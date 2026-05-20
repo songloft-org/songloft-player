@@ -1,7 +1,7 @@
 name: mimusic_flutter
 description: MiMusic - 跨平台音乐播放器
 publish_to: 'none'
-version: 1.0.29+1
+version: 1.0.30+1
 license: Apache-2.0
 
 environment:
