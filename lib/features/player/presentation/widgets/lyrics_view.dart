@@ -15,16 +15,9 @@ import '../../domain/lyric_parser.dart';
 /// 用户手动滚动时会暂停自动滚动，几秒后自动恢复。
 /// 点击歌词行可跳转到对应时间点播放。
 ///
-/// 当 [lyricSource] 为 "url" 时，会通过 [lyricUrl] 从网络按需加载歌词。
-/// 其他情况直接渲染 [lyricText]。
+/// 通过 [lyricUrl] 从网络加载歌词（后端统一端点 /api/v1/songs/{id}/lyric）。
 class LyricsView extends StatefulWidget {
-  /// 歌词文本（LRC 格式）
-  final String? lyricText;
-
-  /// 歌词来源类型（file / embedded / cached / url）
-  final String? lyricSource;
-
-  /// 歌词获取 URL（当 lyricSource == "url" 时使用，相对路径）
+  /// 歌词URL（后端统一端点，相对路径）
   final String? lyricUrl;
 
   /// 当前播放位置
@@ -35,8 +28,6 @@ class LyricsView extends StatefulWidget {
 
   const LyricsView({
     super.key,
-    this.lyricText,
-    this.lyricSource,
     this.lyricUrl,
     required this.currentPosition,
     this.onSeek,
@@ -91,10 +82,8 @@ class _LyricsViewState extends State<LyricsView> {
   void didUpdateWidget(LyricsView oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // 歌词来源或内容变化时重新处理
-    if (widget.lyricText != oldWidget.lyricText ||
-        widget.lyricSource != oldWidget.lyricSource ||
-        widget.lyricUrl != oldWidget.lyricUrl) {
+    // 歌词URL变化时重新处理
+    if (widget.lyricUrl != oldWidget.lyricUrl) {
       _initLyrics();
     }
 
@@ -112,12 +101,10 @@ class _LyricsViewState extends State<LyricsView> {
     super.dispose();
   }
 
-  /// 初始化歌词：判断来源，按需加载或直接解析
+  /// 初始化歌词：从 lyricUrl 加载
   void _initLyrics() {
-    if (widget.lyricSource == 'url' &&
-        widget.lyricUrl != null &&
-        widget.lyricUrl!.isNotEmpty) {
-      // URL 来源：需要从网络加载
+    if (widget.lyricUrl != null && widget.lyricUrl!.isNotEmpty) {
+      // 有 lyricUrl，从网络加载（后端统一端点）
       if (_lastFetchedUrl == widget.lyricUrl && _fetchedLyricText != null) {
         // 同一个 URL 且已成功加载过，直接使用缓存
         _parseLyrics(_fetchedLyricText);
@@ -125,12 +112,13 @@ class _LyricsViewState extends State<LyricsView> {
         _fetchLyricFromUrl(widget.lyricUrl!);
       }
     } else {
-      // 非 URL 来源：直接解析歌词文本
+      // 无 lyricUrl，显示空状态
       _isLoadingFromUrl = false;
       _loadFailed = false;
       _fetchedLyricText = null;
       _lastFetchedUrl = null;
-      _parseLyrics(widget.lyricText);
+      _parsedLines = [];
+      _currentLineIndex = -1;
     }
   }
 

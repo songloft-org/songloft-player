@@ -251,9 +251,7 @@ class _TvPlayerState extends ConsumerState<TvPlayer> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: LyricsView(
-        lyricText: song.lyricSource == 'url' ? null : song.lyric,
-        lyricSource: song.lyricSource,
-        lyricUrl: song.lyricSource == 'url' ? song.lyric : null,
+        lyricUrl: song.lyricUrl,
         currentPosition: state.currentTime,
         onSeek: notifier.seek,
       ),

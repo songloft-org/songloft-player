@@ -10,8 +10,7 @@ class Song {
   final String? url;
   final String? coverPath;
   final String? coverUrl;
-  final String? lyric;
-  final String? lyricSource;
+  final String? lyricUrl; // 歌词URL（后端统一处理，有歌词时为 /api/v1/songs/{id}/lyric，无歌词时为空）
   final int fileSize;
   final String? format;
   final int bitRate;
@@ -31,8 +30,7 @@ class Song {
     this.url,
     this.coverPath,
     this.coverUrl,
-    this.lyric,
-    this.lyricSource,
+    this.lyricUrl,
     this.fileSize = 0,
     this.format,
     this.bitRate = 0,
@@ -54,19 +52,20 @@ class Song {
       url: json['url'] as String?,
       coverPath: json['cover_path'] as String?,
       coverUrl: json['cover_url'] as String?,
-      lyric: json['lyric'] as String?,
-      lyricSource: json['lyric_source'] as String?,
+      lyricUrl: json['lyric_url'] as String?,
       fileSize: json['file_size'] as int? ?? 0,
       format: json['format'] as String?,
       bitRate: json['bit_rate'] as int? ?? 0,
       sampleRate: json['sample_rate'] as int? ?? 0,
       isLive: json['is_live'] as bool? ?? false,
-      addedAt: json['added_at'] != null
-          ? DateTime.parse(json['added_at'] as String)
-          : DateTime.now(),
-      updatedAt: json['updated_at'] != null
-          ? DateTime.parse(json['updated_at'] as String)
-          : DateTime.now(),
+      addedAt:
+          json['added_at'] != null
+              ? DateTime.parse(json['added_at'] as String)
+              : DateTime.now(),
+      updatedAt:
+          json['updated_at'] != null
+              ? DateTime.parse(json['updated_at'] as String)
+              : DateTime.now(),
     );
   }
 
@@ -82,8 +81,7 @@ class Song {
       'url': url,
       'cover_path': coverPath,
       'cover_url': coverUrl,
-      'lyric': lyric,
-      'lyric_source': lyricSource,
+      'lyric_url': lyricUrl,
       'file_size': fileSize,
       'format': format,
       'bit_rate': bitRate,
@@ -105,8 +103,7 @@ class Song {
     String? url,
     String? coverPath,
     String? coverUrl,
-    String? lyric,
-    String? lyricSource,
+    String? lyricUrl,
     int? fileSize,
     String? format,
     int? bitRate,
@@ -126,8 +123,7 @@ class Song {
       url: url ?? this.url,
       coverPath: coverPath ?? this.coverPath,
       coverUrl: coverUrl ?? this.coverUrl,
-      lyric: lyric ?? this.lyric,
-      lyricSource: lyricSource ?? this.lyricSource,
+      lyricUrl: lyricUrl ?? this.lyricUrl,
       fileSize: fileSize ?? this.fileSize,
       format: format ?? this.format,
       bitRate: bitRate ?? this.bitRate,
@@ -153,13 +149,11 @@ class SongListResponse {
   final List<Song> songs;
   final int total;
 
-  const SongListResponse({
-    required this.songs,
-    required this.total,
-  });
+  const SongListResponse({required this.songs, required this.total});
 
   factory SongListResponse.fromJson(Map<String, dynamic> json) {
-    final songsList = (json['songs'] as List<dynamic>?)
+    final songsList =
+        (json['songs'] as List<dynamic>?)
             ?.map((e) => Song.fromJson(e as Map<String, dynamic>))
             .toList() ??
         [];

@@ -186,7 +186,7 @@ class MiMusicAudioHandler extends BaseAudioHandler with SeekHandler {
 
   /// 播放歌曲
   /// 所有 type(local/remote/radio)统一使用 song.url —— 后端 marshal Song 时
-  /// 自动把 url 填成 /api/v1/cache/{id},按 type 分发到 ServeFile / Orchestrator /
+  /// 自动把 url 填成 /api/v1/songs/{id}/play,按 type 分发到 ServeFile / Orchestrator /
   /// 直链下载 / 电台 302,客户端无需关心 type。
   Future<void> playSong(Song song, String? accessToken) async {
     // 确保 stream listeners 已建立
@@ -204,7 +204,7 @@ class MiMusicAudioHandler extends BaseAudioHandler with SeekHandler {
       }
 
       String songUrl = song.url!;
-      // 处理相对路径（本服务器的 API 路径,如 /api/v1/cache/{id}）
+      // 处理相对路径（本服务器的 API 路径,如 /api/v1/songs/{id}/play）
       // 原生平台无法携带 Authorization Header,需拼接 baseUrl 并附加 access_token
       if (songUrl.startsWith('/')) {
         final token =
