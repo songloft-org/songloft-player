@@ -33,11 +33,11 @@ class WindowTrayManager with WindowListener, TrayListener {
     String getIconPath() {
       if (Platform.isWindows) {
         final exeDir = File(Platform.resolvedExecutable).parent.path;
-        final buildPath = '$exeDir\\data\\flutter_assets\\assets\\icons\\app_icon.ico';
+        final buildPath = '$exeDir\\data\\flutter_assets\\windows\\runner\\resources\\app_icon.ico';
         if (File(buildPath).existsSync()) {
           return buildPath;
         }
-        return 'assets/icons/app_icon.ico';
+        return 'windows/runner/resources/app_icon.ico';
       }
       return 'assets/icons/app_icon.png';
     }

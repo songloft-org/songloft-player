@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:window_manager/window_manager.dart';
+import 'package:windows_single_instance/windows_single_instance.dart';
 
 import 'config/app_config.dart';
 import 'core/audio/audio_service.dart';
@@ -23,8 +25,19 @@ final audioHandlerProvider = Provider<SongloftAudioHandler>((ref) {
   throw UnimplementedError('audioHandlerProvider must be overridden');
 });
 
-void main() async {
+void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  if (Platform.isWindows) {
+    await WindowsSingleInstance.ensureSingleInstance(
+      args,
+      "songloft_player_instance",
+      onSecondWindow: (List<String> args) {
+        windowManager.show();
+        windowManager.focus();
+      },
+    );
+  }
 
   // Windows 和 Linux 平台需要 media_kit 作为 just_audio 的后端
   // 必须在 AudioService.init() 之前调用
