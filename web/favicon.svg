@@ -12,18 +12,20 @@
     </filter>
   </defs>
 
-  <!-- 核心图标：抽象 M 型频谱 -->
-  <g transform="translate(116, 160)" filter="url(#shadow)">
-    <!-- 5根频谱柱形成的M形状 -->
-    <rect x="0" y="40" width="40" height="180" rx="20" fill="url(#iconGrad)" />
-    <rect x="60" y="90" width="40" height="130" rx="20" fill="url(#iconGrad)" />
-    <rect x="120" y="20" width="40" height="200" rx="20" fill="url(#iconGrad)" />
-    <rect x="180" y="90" width="40" height="130" rx="20" fill="url(#iconGrad)" />
-    <rect x="240" y="40" width="40" height="180" rx="20" fill="url(#iconGrad)" />
+  <!-- 核心图标：阁楼屋顶频谱 (Songloft = 歌 + 阁楼) -->
+  <g transform="translate(116, 165)" filter="url(#shadow)">
+    <!-- 5 根频谱柱形成对称屋顶/阁楼峰 -->
+    <rect x="0"   y="140" width="40" height="80"  rx="20" fill="url(#iconGrad)" />
+    <rect x="60"  y="80"  width="40" height="140" rx="20" fill="url(#iconGrad)" />
+    <rect x="120" y="0"   width="40" height="220" rx="20" fill="url(#iconGrad)" />
+    <rect x="180" y="80"  width="40" height="140" rx="20" fill="url(#iconGrad)" />
+    <rect x="240" y="140" width="40" height="80"  rx="20" fill="url(#iconGrad)" />
 
-    <!-- 顶部连接点 (象征服务器节点) -->
-    <circle cx="140" cy="-20" r="20" fill="#8B5CF6" />
-    <!-- 极简连接线 -->
-    <rect x="137" y="0" width="6" height="25" rx="3" fill="#8B5CF6" opacity="0.5" />
+    <!-- 阁楼地板/横梁 (loft 的核心隐喻) -->
+    <rect x="-12" y="200" width="304" height="22" rx="11" fill="url(#iconGrad)" />
+
+    <!-- 顶部节点 (烟囱/服务节点) -->
+    <circle cx="140" cy="-28" r="20" fill="#8B5CF6" />
+    <rect x="137" y="-8" width="6" height="22" rx="3" fill="#8B5CF6" opacity="0.5" />
   </g>
 </svg>
