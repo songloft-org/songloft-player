@@ -23,7 +23,7 @@ class AuthInterceptor extends Interceptor {
   final void Function()? onTokenExpired;
 
   // 不需要认证的路径
-  static const _publicPaths = [
+  static final _publicPaths = [
     '${AppConfig.apiPrefix}/auth/login',
     '${AppConfig.apiPrefix}/auth/refresh',
     '${AppConfig.apiPrefix}/version',
