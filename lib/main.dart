@@ -75,36 +75,49 @@ void main(List<String> args) async {
     }
   } else {
     // 独立部署模式：从本地存储恢复用户之前配置的 API 地址
-    final prefs = await AppPreferences.create();
-    final savedUrl = prefs.getApiBaseUrl();
-    if (savedUrl != null && savedUrl.isNotEmpty) {
-      AppConfig.baseUrl = savedUrl;
+    // shared_preferences_android 2.4.23 声明 minSdk=24，API 23 上可能失败
+    try {
+      final prefs = await AppPreferences.create();
+      final savedUrl = prefs.getApiBaseUrl();
+      if (savedUrl != null && savedUrl.isNotEmpty) {
+        AppConfig.baseUrl = savedUrl;
+      }
+    } catch (e) {
+      debugPrint('[Main] SharedPreferences 初始化失败，使用默认配置: $e');
     }
   }
 
   // Android 13+ 需要运行时请求通知权限
+  // 通知权限为非关键功能，TV/低版本设备上可能失败，不应阻塞启动
   if (!kIsWeb && Platform.isAndroid) {
-    final status = await Permission.notification.status;
-    debugPrint('[Main] 📱 Android 平台检测');
-    debugPrint('[Main] 通知权限状态: $status');
-    if (status.isDenied) {
-      debugPrint('[Main] 请求通知权限...');
-      final result = await Permission.notification.request();
-      debugPrint('[Main] 通知权限请求结果: $result');
-    }
-    // 检查权限是否永久拒绝
-    if (status.isPermanentlyDenied) {
-      debugPrint('[Main] ⚠️ 通知权限被永久拒绝，需要在系统设置中手动开启');
+    try {
+      final status = await Permission.notification.status;
+      debugPrint('[Main] Android 平台检测');
+      debugPrint('[Main] 通知权限状态: $status');
+      if (status.isDenied) {
+        debugPrint('[Main] 请求通知权限...');
+        final result = await Permission.notification.request();
+        debugPrint('[Main] 通知权限请求结果: $result');
+      }
+      if (status.isPermanentlyDenied) {
+        debugPrint('[Main] 通知权限被永久拒绝，需要在系统设置中手动开启');
+      }
+    } catch (e) {
+      debugPrint('[Main] 通知权限检查失败: $e');
     }
   }
 
   // 预加载 access token 到内存缓存，避免 UI 首帧渲染时 cachedAccessToken 为 null
   // 解决 Windows 等平台上封面图和音乐 URL 中 access_token= 为空导致 401 的竞态问题
   // （checkAuth() 使用 Future.microtask 异步执行，比 UI 首帧渲染更晚填充缓存）
-  await SecureStorageService().getAccessToken();
-  debugPrint(
-    '[Main] 预加载 token 完成: cachedAccessToken is ${SecureStorageService.cachedAccessToken != null ? "set" : "null"}',
-  );
+  try {
+    await SecureStorageService().getAccessToken();
+    debugPrint(
+      '[Main] 预加载 token 完成: cachedAccessToken is ${SecureStorageService.cachedAccessToken != null ? "set" : "null"}',
+    );
+  } catch (e) {
+    debugPrint('[Main] Token 预加载失败: $e');
+  }
 
   // 初始化 audio_service（带降级保护）
   SongloftAudioHandler audioHandler;
