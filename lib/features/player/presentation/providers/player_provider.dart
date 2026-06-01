@@ -47,6 +47,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
   final Random _random = Random();
   final Set<int> _playedIndices = {}; // 随机模式下已播放的索引
   int _loadGeneration = 0; // 后台加载代次，用于取消过期的异步加载任务
+  int _playGeneration = 0; // 播放协程代次：用户快速切歌时，旧协程在 await 后发现 gen 变化即退出
   int? _preSelectedNextIndex; // 预选的下一首歌曲索引（随机模式使用）
 
   // 播放失败重试配置
@@ -321,8 +322,11 @@ class PlayerNotifier extends Notifier<PlayerState> {
         currentIndex: newIndex,
         currentSong: song,
       );
-      await _playCurrent();
-      _savePlaybackState();
+      final gen = ++_playGeneration;
+      await _playCurrent(gen);
+      if (gen == _playGeneration) {
+        _savePlaybackState();
+      }
     }
   }
 
@@ -356,8 +360,11 @@ class PlayerNotifier extends Notifier<PlayerState> {
       currentSong: songs[safeIndex],
     );
 
-    await _playCurrent();
-    _savePlaybackState();
+    final gen = ++_playGeneration;
+    await _playCurrent(gen);
+    if (gen == _playGeneration) {
+      _savePlaybackState();
+    }
   }
 
   /// 添加到当前播放列表
@@ -419,7 +426,8 @@ class PlayerNotifier extends Notifier<PlayerState> {
       if (_audioHandler.processingState == ja.ProcessingState.idle) {
         debugPrint('[Player] togglePlay: player idle, re-loading current song');
         _consecutiveFailures = 0;
-        await _playCurrent();
+        final gen = ++_playGeneration;
+        await _playCurrent(gen);
       } else {
         debugPrint('[Player] togglePlay: resuming');
         await _audioHandler.play();
@@ -1162,6 +1170,10 @@ class PlayerNotifier extends Notifier<PlayerState> {
     // 取消之前的预加载
     _prefetchCancelToken?.cancel('operation changed');
 
+    // 自增播放代次。旧 _playCurrent 协程在下一次 await 后会发现 gen 变化并退出，
+    // 不会再用旧歌的 source 覆盖新歌的 setAudioSource。
+    final gen = ++_playGeneration;
+
     _playedIndices.add(index);
     state = state.copyWith(
       currentIndex: index,
@@ -1169,12 +1181,22 @@ class PlayerNotifier extends Notifier<PlayerState> {
       currentTime: Duration.zero,
     );
 
-    await _playCurrent();
+    await _playCurrent(gen);
+    if (gen != _playGeneration) return; // 已被新切歌取代，savePlaybackState 也跳过
     _savePlaybackState();
   }
 
+  /// 当前协程是否已被新一次切歌取代。
+  bool _isSuperseded(int gen, String where) {
+    if (gen == _playGeneration) return false;
+    debugPrint(
+      '[Player] _playCurrent superseded at $where: gen=$gen current=$_playGeneration',
+    );
+    return true;
+  }
+
   /// 播放当前歌曲（带自动重试）
-  Future<void> _playCurrent() async {
+  Future<void> _playCurrent(int gen) async {
     final song = state.currentSong;
     if (song == null) {
       debugPrint('[Player] _playCurrent: no current song');
@@ -1189,6 +1211,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
     );
 
     for (int retry = 0; retry <= _maxRetryPerSong; retry++) {
+      if (_isSuperseded(gen, 'retry-loop-top')) return;
       try {
         if (retry > 0) {
           debugPrint(
@@ -1198,13 +1221,16 @@ class PlayerNotifier extends Notifier<PlayerState> {
           await Future<void>.delayed(
             const Duration(milliseconds: _retryDelayMs),
           );
+          if (_isSuperseded(gen, 'retry-delay')) return;
         }
 
-        state = state.copyWith(isBuffering: true, clearErrorMessage: true);
+        state = state.copyWith(clearErrorMessage: true);
         // 副作用：刷新 SecureStorageService.cachedAccessToken,供 UrlHelper 使用
         await _secureStorage.getAccessToken();
+        if (_isSuperseded(gen, 'after-token')) return;
         debugPrint('[Player] _playCurrent: calling audioHandler.playSong');
         await _audioHandler.playSong(song);
+        if (_isSuperseded(gen, 'after-playSong')) return;
         // 移动平台：音量由系统控制，just_audio 固定最大
         // 桌面/Web：使用 just_audio 播放器音量
         if (_useSystemVolume) {
@@ -1212,6 +1238,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
         } else {
           await _audioHandler.setVolume(state.volume / 100);
         }
+        if (_isSuperseded(gen, 'after-volume')) return;
         debugPrint('[Player] _playCurrent: playback started successfully');
 
         // 播放成功 - 重置连续失败计数
@@ -1223,6 +1250,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
           final pos = Duration(milliseconds: _savedPositionMs);
           _savedPositionMs = 0;
           await _audioHandler.seek(pos);
+          if (_isSuperseded(gen, 'after-seek')) return;
         }
 
         _startPositionSaveTimer();
@@ -1236,21 +1264,33 @@ class PlayerNotifier extends Notifier<PlayerState> {
         debugPrint(
           '[Player] _playCurrent: play failed (retry $retry/$_maxRetryPerSong): $e',
         );
+        if (_isSuperseded(gen, 'after-catch')) return;
       }
     }
 
-    // 所有重试都失败
+    // 所有重试都失败 —— 仍要确认未被取代，避免影响新歌的状态
+    if (_isSuperseded(gen, 'all-retries-exhausted')) return;
     debugPrint(
       '[Player] _playCurrent: all retries exhausted for: ${song.title}',
     );
-    state = state.copyWith(isBuffering: false, isRetrying: false);
-    _handlePlayFailure();
+    state = state.copyWith(isRetrying: false);
+    _handlePlayFailure(gen);
   }
 
   /// 处理播放失败（重试耗尽后）
   /// 第二层：自动切歌（仅 order/loop/random 模式）
   /// 第三层：连续失败过多则停止
-  void _handlePlayFailure() {
+  ///
+  /// gen 是触发本次失败的播放代次。若用户已经手动切到新歌，本次失败处理直接放弃，
+  /// 避免污染新歌的状态（如把新歌的 errorMessage 覆盖、或自动跳到下下首）。
+  void _handlePlayFailure(int gen) {
+    if (gen != _playGeneration) {
+      debugPrint(
+        '[Player] _handlePlayFailure superseded: gen=$gen current=$_playGeneration',
+      );
+      return;
+    }
+
     _consecutiveFailures++;
     final failedSong = state.currentSong?.title ?? '未知歌曲';
 
@@ -1265,7 +1305,6 @@ class PlayerNotifier extends Notifier<PlayerState> {
       debugPrint('[Player] Single mode, not skipping to next');
       state = state.copyWith(
         isPlaying: false,
-        isBuffering: false,
         errorMessage: '"$failedSong" 播放失败',
       );
       _audioHandler.stop();
@@ -1278,7 +1317,6 @@ class PlayerNotifier extends Notifier<PlayerState> {
       debugPrint('[Player] Too many consecutive failures, stopping');
       state = state.copyWith(
         isPlaying: false,
-        isBuffering: false,
         errorMessage: '连续 $_consecutiveFailures 首歌曲播放失败，已停止播放，请检查网络连接',
       );
       _audioHandler.stop();
