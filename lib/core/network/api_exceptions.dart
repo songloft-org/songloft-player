@@ -18,9 +18,16 @@ class ApiException implements Exception {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
-        return NetworkException(message: '网络连接超时，请检查网络');
+        return NetworkException(
+          message: '无法连接到 ${_targetOf(e)}（连接超时）。'
+              '请检查：①后端服务是否运行 ②URL 与端口是否正确 '
+              '③若通过 ZeroTier/VPN 访问，请确认 VPN 已连接并启用「全局路由」',
+        );
       case DioExceptionType.connectionError:
-        return NetworkException(message: '无法连接到服务器，请检查网络');
+        return NetworkException(
+          message: '无法连接到 ${_targetOf(e)}。'
+              '请检查 URL 是否正确；若通过 ZeroTier/VPN 访问，请确认 VPN 已启用',
+        );
       case DioExceptionType.badCertificate:
         return NetworkException(message: '证书验证失败');
       case DioExceptionType.badResponse:
@@ -32,6 +39,13 @@ class ApiException implements Exception {
           message: e.message ?? '未知网络错误',
         );
     }
+  }
+
+  /// 从 DioException 提取目标地址用于错误提示（优先 baseUrl，回退完整 uri）
+  static String _targetOf(DioException e) {
+    final base = e.requestOptions.baseUrl;
+    if (base.isNotEmpty) return base;
+    return e.requestOptions.uri.toString();
   }
 
   /// 从响应错误创建 ApiException

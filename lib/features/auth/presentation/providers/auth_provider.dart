@@ -86,10 +86,12 @@ class AuthNotifier extends Notifier<AuthState> {
       }
 
       // 创建临时 Dio 进行登录（不带认证拦截器）
+      // connectTimeout 单独缩短到 10s：登录是用户首次反馈点，30s 会让用户以为 APP 卡死；
+      // 业务 API 维持全局 30s，弱网下封面/音频流仍需更长容忍度
       final dio = Dio(
         BaseOptions(
           baseUrl: AppConfig.baseUrl,
-          connectTimeout: AppConfig.connectTimeout,
+          connectTimeout: const Duration(seconds: 10),
           receiveTimeout: AppConfig.receiveTimeout,
           headers: {
             'Content-Type': 'application/json',
