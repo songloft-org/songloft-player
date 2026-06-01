@@ -1095,19 +1095,20 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
 
     // 添加歌曲到歌单
     final notifier = ref.read(playlistNotifierProvider.notifier);
-    final success = await notifier.addSongsToPlaylist(
+    final result = await notifier.addSongsToPlaylist(
       _playlistIdInt,
       selectedIds,
     );
 
-    if (success && mounted) {
-      ResponsiveSnackBar.showSuccess(
-        context,
-        message: '已添加 ${selectedIds.length} 首歌曲',
-      );
-    } else if (mounted) {
+    if (!mounted) return;
+    if (result == null) {
       ResponsiveSnackBar.showError(context, message: '添加歌曲失败');
+      return;
     }
+    final msg = result.skipped > 0
+        ? '已添加 ${result.added} 首，跳过 ${result.skipped} 首（已存在或类型不兼容）'
+        : '已添加 ${result.added} 首歌曲';
+    ResponsiveSnackBar.showSuccess(context, message: msg);
   }
 
   /// 确认删除歌单

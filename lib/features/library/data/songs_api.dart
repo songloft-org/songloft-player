@@ -12,11 +12,13 @@ class SongsApi {
   /// 获取歌曲列表
   /// [type] 歌曲类型：local, remote, radio（可选）
   /// [keyword] 搜索关键词（可选）
+  /// [pathPrefix] 按 file_path 前缀过滤（可选，如 music/Pop）
   /// [limit] 每页数量，默认 20
   /// [offset] 偏移量，默认 0
   Future<SongListResponse> getSongs({
     String? type,
     String? keyword,
+    String? pathPrefix,
     int limit = 20,
     int offset = 0,
   }) async {
@@ -27,12 +29,41 @@ class SongsApi {
     if (keyword != null && keyword.isNotEmpty) {
       queryParams['keyword'] = keyword;
     }
+    if (pathPrefix != null && pathPrefix.isNotEmpty) {
+      queryParams['path_prefix'] = pathPrefix;
+    }
 
     final response = await dio.get<Map<String, dynamic>>(
       '${AppConfig.apiPrefix}/songs',
       queryParameters: queryParams,
     );
     return SongListResponse.fromJson(response.data!);
+  }
+
+  /// 获取匹配过滤条件的歌曲 ID 列表（用于「全选当前筛选」场景）
+  /// 返回字段：ids（int 列表）、total（int）
+  Future<List<int>> getSongIds({
+    String? type,
+    String? keyword,
+    String? pathPrefix,
+  }) async {
+    final queryParams = <String, dynamic>{};
+    if (type != null && type.isNotEmpty) {
+      queryParams['type'] = type;
+    }
+    if (keyword != null && keyword.isNotEmpty) {
+      queryParams['keyword'] = keyword;
+    }
+    if (pathPrefix != null && pathPrefix.isNotEmpty) {
+      queryParams['path_prefix'] = pathPrefix;
+    }
+
+    final response = await dio.get<Map<String, dynamic>>(
+      '${AppConfig.apiPrefix}/songs/ids',
+      queryParameters: queryParams,
+    );
+    final raw = (response.data?['ids'] as List<dynamic>? ?? const []);
+    return raw.map((e) => (e as num).toInt()).toList();
   }
 
   /// 获取单首歌曲详情

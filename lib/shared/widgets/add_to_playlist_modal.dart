@@ -94,19 +94,20 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
 
     try {
       final notifier = ref.read(playlistNotifierProvider.notifier);
-      final success = await notifier.addSongsToPlaylist(
+      final result = await notifier.addSongsToPlaylist(
         playlist.id,
         widget.songIds,
       );
 
-      if (success && mounted) {
-        Navigator.of(context).pop();
-        ResponsiveSnackBar.show(
-          context,
-          message: '已添加 ${widget.songIds.length} 首歌曲到「${playlist.name}」',
-        );
-      } else if (mounted) {
+      if (!mounted) return;
+      if (result == null) {
         ResponsiveSnackBar.showError(context, message: '添加失败');
+      } else {
+        Navigator.of(context).pop();
+        final msg = result.skipped > 0
+            ? '已添加 ${result.added} 首到「${playlist.name}」，跳过 ${result.skipped} 首'
+            : '已添加 ${result.added} 首歌曲到「${playlist.name}」';
+        ResponsiveSnackBar.show(context, message: msg);
       }
     } catch (e) {
       if (mounted) {
@@ -172,17 +173,18 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
       );
 
       if (newPlaylist != null && mounted) {
-        final success = await notifier.addSongsToPlaylist(
+        final result = await notifier.addSongsToPlaylist(
           newPlaylist.id,
           widget.songIds,
         );
 
-        if (success && mounted) {
+        if (!mounted) return;
+        if (result != null) {
           Navigator.of(context).pop();
-          ResponsiveSnackBar.show(
-            context,
-            message: '已创建歌单「$name」并添加 ${widget.songIds.length} 首歌曲',
-          );
+          final msg = result.skipped > 0
+              ? '已创建歌单「$name」并添加 ${result.added} 首，跳过 ${result.skipped} 首'
+              : '已创建歌单「$name」并添加 ${result.added} 首歌曲';
+          ResponsiveSnackBar.show(context, message: msg);
         }
       } else if (mounted) {
         ResponsiveSnackBar.showError(context, message: '创建歌单失败');

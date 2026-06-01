@@ -306,7 +306,7 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
           asyncValue.when(
             data: (_) => '子目录的歌曲会同时归入祖先目录歌单',
             loading: () => '加载中...',
-            error: (_, __) => '读取配置失败',
+            error: (_, _) => '读取配置失败',
           ),
           style: theme.textTheme.bodySmall?.copyWith(
             color: colorScheme.onSurfaceVariant,

@@ -1072,7 +1072,6 @@ class _PlaylistFormDialog extends StatefulWidget {
   final String? initialName;
   final String? initialDescription;
   final String? initialType;
-  final String? initialCoverPath;
   final String? initialCoverUrl;
   final int? playlistId;
   final bool isEdit;
@@ -1083,7 +1082,6 @@ class _PlaylistFormDialog extends StatefulWidget {
     this.initialName,
     this.initialDescription,
     this.initialType,
-    this.initialCoverPath,
     this.initialCoverUrl,
     this.playlistId,
     this.isEdit = false,
@@ -1187,7 +1185,6 @@ class _PlaylistFormDialogState extends State<_PlaylistFormDialog> {
         _coverMode != 'clear' &&
         (_coverMode == 'local' ||
             _coverMode == 'song' ||
-            widget.initialCoverPath?.isNotEmpty == true ||
             widget.initialCoverUrl?.isNotEmpty == true);
     return AlertDialog(
       title: Text(widget.title),

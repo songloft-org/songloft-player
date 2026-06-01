@@ -143,10 +143,19 @@ class PlaylistApi {
 
   /// 向歌单添加歌曲
   /// POST /api/v1/playlists/{id}/songs
-  Future<void> addSongsToPlaylist(int id, List<int> songIds) async {
-    await dio.post(
+  /// 返回 (added, skipped)：实际新增数量与因已存在或类型不兼容被跳过的数量
+  Future<({int added, int skipped})> addSongsToPlaylist(
+    int id,
+    List<int> songIds,
+  ) async {
+    final response = await dio.post<Map<String, dynamic>>(
       '${AppConfig.apiPrefix}/playlists/$id/songs',
       data: {'song_ids': songIds},
+    );
+    final data = response.data ?? const <String, dynamic>{};
+    return (
+      added: (data['added'] as num?)?.toInt() ?? 0,
+      skipped: (data['skipped'] as num?)?.toInt() ?? 0,
     );
   }
 

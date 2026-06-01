@@ -5,6 +5,7 @@ import '../models/song.dart';
 import '../utils/responsive_snackbar.dart';
 import '../../features/library/presentation/providers/songs_provider.dart';
 import 'cover_image.dart';
+import 'directory_picker_sheet.dart';
 
 /// 歌曲选择器弹窗组件
 /// 用于在歌单详情页中选择要添加的歌曲
@@ -84,6 +85,19 @@ class _SongPickerModalState extends ConsumerState<SongPickerModal> {
   /// 防抖定时器
   Timer? _debounceTimer;
 
+  /// 当前选中的目录前缀，空串表示「全部」（不过滤）
+  String _pathPrefix = '';
+
+  /// 用户在弹窗内手动切换的类型筛选；null 表示「全部」（受 widget.songType 硬约束时不生效）
+  String? _typeFilter;
+
+  /// 当前筛选条件下匹配的歌曲总数（来自后端 list 响应的 total 字段）
+  /// 注意：这是「过滤前」的总数，可能含 excludeIds/类型过滤会再剔除的歌
+  int _total = 0;
+
+  /// 全选异步加载状态
+  bool _isSelectingAll = false;
+
   /// 每页大小
   static const int _pageSize = 20;
 
@@ -131,7 +145,9 @@ class _SongPickerModalState extends ConsumerState<SongPickerModal> {
       final keyword = _searchController.text.trim();
 
       final response = await repository.getSongs(
+        type: _resolvedType(),
         keyword: keyword.isNotEmpty ? keyword : null,
+        pathPrefix: _pathPrefix.isNotEmpty ? _pathPrefix : null,
         limit: _pageSize,
         offset: _currentPage * _pageSize,
       );
@@ -155,6 +171,7 @@ class _SongPickerModalState extends ConsumerState<SongPickerModal> {
       setState(() {
         if (reset) {
           _songs = filteredSongs;
+          _total = response.total;
         } else {
           _songs = [..._songs, ...filteredSongs];
         }
@@ -201,6 +218,87 @@ class _SongPickerModalState extends ConsumerState<SongPickerModal> {
     _loadSongs();
   }
 
+  /// 弹出目录选择器
+  Future<void> _pickFolder() async {
+    final result = await DirectoryPickerSheet.show(
+      context,
+      currentPath: _pathPrefix,
+    );
+    // null = 用户点取消 / 划走，保持现状
+    if (result == null) return;
+    if (result == _pathPrefix) return;
+    setState(() {
+      _pathPrefix = result;
+    });
+    _loadSongs();
+  }
+
+  /// 文件夹按钮上显示的标签：取路径最后一段；空串表示「全部」
+  String get _folderButtonLabel {
+    if (_pathPrefix.isEmpty) return '全部';
+    final parts = _pathPrefix.split(RegExp(r'[\\/]+'));
+    for (var i = parts.length - 1; i >= 0; i--) {
+      if (parts[i].isNotEmpty) return parts[i];
+    }
+    return '全部';
+  }
+
+  /// 返回应该传给后端的 type 参数。
+  /// 优先级：widget.songType（外部硬约束）> _typeFilter（用户内部筛选）。
+  String? _resolvedType() => widget.songType ?? _typeFilter;
+
+  /// 类型筛选 chip 可选项；返回 (label, value) 列表。
+  /// value=null 表示「全部」。
+  /// - widget.songType 设了：返回空列表（不显示筛选器）
+  /// - widget.excludeType 设了某类型：选项中剔除该类型
+  List<({String label, String? value})> _typeFilterOptions() {
+    if (widget.songType != null) return const [];
+    final all = <({String label, String? value})>[
+      (label: '全部', value: null),
+      (label: '本地', value: 'local'),
+      (label: '网络', value: 'remote'),
+      (label: '电台', value: 'radio'),
+    ];
+    if (widget.excludeType == null) return all;
+    return all.where((o) => o.value != widget.excludeType).toList();
+  }
+
+  void _onTypeFilterChanged(String? value) {
+    if (_typeFilter == value) return;
+    setState(() {
+      _typeFilter = value;
+      // 网络/电台没有 file_path，切到这两个类型自动清空目录筛选避免空结果
+      if (!_supportsFolder()) {
+        _pathPrefix = '';
+      }
+    });
+    _loadSongs();
+  }
+
+  /// 当前类型是否支持按文件夹筛选。
+  /// 仅 local 类型有 file_path；「全部」（null）兼有 local 也算支持。
+  /// 受 widget.songType 硬约束时也按此规则判断。
+  bool _supportsFolder() {
+    final t = _resolvedType();
+    return t == null || t == 'local';
+  }
+
+  /// 全选 checkbox 的三态值：null=部分选中，true=全部选中，false=都没选
+  bool? _selectAllCheckboxValue() {
+    if (_selectedIds.isEmpty) return false;
+    if (_total > 0 && _selectedIds.length >= _total) return true;
+    return null;
+  }
+
+  String _emptyMessage() {
+    final hasKeyword = _searchController.text.isNotEmpty;
+    final hasFolder = _pathPrefix.isNotEmpty;
+    if (hasKeyword && hasFolder) return '该目录下未找到匹配的歌曲';
+    if (hasKeyword) return '未找到匹配的歌曲';
+    if (hasFolder) return '该目录下无歌曲';
+    return '暂无歌曲';
+  }
+
   /// 切换歌曲选中状态
   void _toggleSongSelection(int songId) {
     setState(() {
@@ -212,15 +310,58 @@ class _SongPickerModalState extends ConsumerState<SongPickerModal> {
     });
   }
 
-  /// 全选/取消全选
-  void _toggleSelectAll() {
-    setState(() {
-      if (_selectedIds.length == _songs.length) {
-        _selectedIds.clear();
-      } else {
-        _selectedIds.addAll(_songs.map((s) => s.id));
+  /// 全选/取消全选：覆盖整个筛选范围（不仅限当前已加载的页）
+  /// - 已全选 → 清空
+  /// - 否则 → 调 /songs/ids 一次性拿到所有匹配 id
+  ///
+  /// 注：服务端只能按 type/keyword/path_prefix 过滤；客户端独占的
+  /// excludeIds / excludeType / songType（仅显示某类型）需在前端再剔除。
+  /// excludeType 与 songType 可以靠把请求的 type 设成 widget.songType 收敛，
+  /// 但 excludeType 表示"排除该类型，其它都要"——服务端无原生支持，所以
+  /// 我们对返回的 id 列表客户端再过滤。
+  Future<void> _toggleSelectAll() async {
+    if (_isSelectingAll) return;
+
+    // 已全选 → 清空
+    if (_selectedIds.isNotEmpty && _selectedIds.length >= _total) {
+      setState(() => _selectedIds.clear());
+      return;
+    }
+
+    setState(() => _isSelectingAll = true);
+    try {
+      final repository = ref.read(songsRepositoryProvider);
+      final keyword = _searchController.text.trim();
+
+      // 服务端按 type/keyword/path_prefix 收敛
+      final ids = await repository.getSongIds(
+        type: _resolvedType(),
+        keyword: keyword.isNotEmpty ? keyword : null,
+        pathPrefix: _pathPrefix.isNotEmpty ? _pathPrefix : null,
+      );
+
+      // 客户端再剔除 excludeIds 与 excludeType
+      // excludeType 在服务端无法表达，但可通过已知 song 列表查 type；
+      // 实际上 widget.excludeType 通常是 'radio' 或 'remote'，可用 list 接口的
+      // 当前页 song.type 信息+id 集合验证。这里采取保守策略：直接保留所有 id，
+      // 把 excludeType 的剔除留给"添加到歌单"的服务端类型校验（后端 AddSongs
+      // 已通过 ListTypesByIDs + CanAddSong 把不兼容的歌计入 skipped）。
+      final allowed = ids.where((id) => !widget.excludeIds.contains(id));
+
+      if (!mounted) return;
+      setState(() {
+        _selectedIds
+          ..clear()
+          ..addAll(allowed);
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ResponsiveSnackBar.showError(context, message: '获取列表失败: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isSelectingAll = false);
       }
-    });
+    }
   }
 
   /// 确认选择
@@ -273,49 +414,101 @@ class _SongPickerModalState extends ConsumerState<SongPickerModal> {
             ),
           ),
 
-          // 搜索框
+          // 搜索框 + 文件夹筛选
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: TextField(
-              controller: _searchController,
-              onChanged: _onSearchChanged,
-              decoration: InputDecoration(
-                hintText: '搜索歌曲、艺术家或专辑',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon:
-                    _searchController.text.isNotEmpty
-                        ? IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: _clearSearch,
-                        )
-                        : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: _onSearchChanged,
+                    decoration: InputDecoration(
+                      hintText: '搜索歌曲、艺术家或专辑',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon:
+                          _searchController.text.isNotEmpty
+                              ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: _clearSearch,
+                              )
+                              : null,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-              ),
+                if (_supportsFolder()) ...[
+                  const SizedBox(width: 8),
+                  _FolderFilterButton(
+                    label: _folderButtonLabel,
+                    active: _pathPrefix.isNotEmpty,
+                    onPressed: _pickFolder,
+                  ),
+                ],
+              ],
             ),
           ),
 
-          // 全选行
+          // 类型筛选 chip 行
+          if (_typeFilterOptions().isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    for (final opt in _typeFilterOptions()) ...[
+                      ChoiceChip(
+                        label: Text(opt.label),
+                        selected: _typeFilter == opt.value,
+                        onSelected: (_) => _onTypeFilterChanged(opt.value),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+
+          // 全选行（显示总数 + 异步全选）
           if (_songs.isNotEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: InkWell(
-                onTap: _toggleSelectAll,
+                onTap: _isSelectingAll ? null : _toggleSelectAll,
                 borderRadius: BorderRadius.circular(8),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Row(
                     children: [
                       Checkbox(
-                        value: _selectedIds.length == _songs.length,
-                        onChanged: (_) => _toggleSelectAll(),
+                        value: _selectAllCheckboxValue(),
+                        tristate: true,
+                        onChanged: _isSelectingAll
+                            ? null
+                            : (_) => _toggleSelectAll(),
                       ),
-                      const Text('全选'),
+                      Expanded(
+                        child: Text(
+                          _isSelectingAll
+                              ? '正在选择全部...'
+                              : (_selectedIds.length >= _total && _total > 0
+                                  ? '取消全选（已选 ${_selectedIds.length}）'
+                                  : '全选 $_total 首'),
+                        ),
+                      ),
+                      if (_isSelectingAll)
+                        const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
                     ],
                   ),
                 ),
@@ -339,9 +532,7 @@ class _SongPickerModalState extends ConsumerState<SongPickerModal> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            _searchController.text.isEmpty
-                                ? '暂无歌曲'
-                                : '未找到匹配的歌曲',
+                            _emptyMessage(),
                             style: TextStyle(
                               color: colorScheme.onSurfaceVariant,
                             ),
@@ -419,6 +610,56 @@ class _SongPickerModalState extends ConsumerState<SongPickerModal> {
                     ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 文件夹筛选按钮：未选中时显示「全部」，选中时高亮并显示目录名。
+class _FolderFilterButton extends StatelessWidget {
+  final String label;
+  final bool active;
+  final VoidCallback onPressed;
+
+  const _FolderFilterButton({
+    required this.label,
+    required this.active,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 140),
+      child: OutlinedButton.icon(
+        onPressed: onPressed,
+        icon: Icon(
+          active ? Icons.folder : Icons.folder_outlined,
+          size: 18,
+          color: active ? colorScheme.primary : colorScheme.onSurfaceVariant,
+        ),
+        label: Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: active ? colorScheme.primary : null,
+            fontWeight: active ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          side: BorderSide(
+            color: active
+                ? colorScheme.primary
+                : colorScheme.outlineVariant,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
       ),
     );
   }

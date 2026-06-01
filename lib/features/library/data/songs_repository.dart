@@ -13,6 +13,7 @@ class SongsRepository {
   Future<SongListResponse> getSongs({
     String? type,
     String? keyword,
+    String? pathPrefix,
     int limit = 20,
     int offset = 0,
   }) async {
@@ -20,8 +21,26 @@ class SongsRepository {
       return await songsApi.getSongs(
         type: type,
         keyword: keyword,
+        pathPrefix: pathPrefix,
         limit: limit,
         offset: offset,
+      );
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// 获取匹配过滤条件的歌曲 ID 列表
+  Future<List<int>> getSongIds({
+    String? type,
+    String? keyword,
+    String? pathPrefix,
+  }) async {
+    try {
+      return await songsApi.getSongIds(
+        type: type,
+        keyword: keyword,
+        pathPrefix: pathPrefix,
       );
     } on DioException catch (e) {
       throw _handleError(e);

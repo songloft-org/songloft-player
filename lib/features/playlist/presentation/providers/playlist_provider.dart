@@ -407,18 +407,21 @@ class PlaylistNotifier extends Notifier<AsyncValue<void>> {
     }
   }
 
-  /// 向歌单添加歌曲
-  Future<bool> addSongsToPlaylist(int playlistId, List<int> songIds) async {
+  /// 向歌单添加歌曲；成功时返回 (added, skipped) 计数，失败时返回 null。
+  Future<({int added, int skipped})?> addSongsToPlaylist(
+    int playlistId,
+    List<int> songIds,
+  ) async {
     state = const AsyncValue.loading();
     try {
-      await _repository.addSongsToPlaylist(playlistId, songIds);
+      final result = await _repository.addSongsToPlaylist(playlistId, songIds);
       state = const AsyncValue.data(null);
       // 刷新歌单歌曲列表
       ref.invalidate(playlistSongsProvider(playlistId));
-      return true;
+      return result;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
-      return false;
+      return null;
     }
   }
 

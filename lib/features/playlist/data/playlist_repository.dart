@@ -124,10 +124,13 @@ class PlaylistRepository {
     }
   }
 
-  /// 向歌单添加歌曲
-  Future<void> addSongsToPlaylist(int id, List<int> songIds) async {
+  /// 向歌单添加歌曲，返回 (added, skipped)
+  Future<({int added, int skipped})> addSongsToPlaylist(
+    int id,
+    List<int> songIds,
+  ) async {
     try {
-      await playlistApi.addSongsToPlaylist(id, songIds);
+      return await playlistApi.addSongsToPlaylist(id, songIds);
     } on DioException catch (e) {
       throw _handleError(e);
     }

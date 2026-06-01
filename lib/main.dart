@@ -33,7 +33,7 @@ void main(List<String> args) async {
   if (!kIsWeb && Platform.isWindows) {
     await WindowsSingleInstance.ensureSingleInstance(
       args,
-      "songloft_player_instance",
+      'songloft_player_instance',
       onSecondWindow: (List<String> args) {
         windowManager.show();
         windowManager.focus();
