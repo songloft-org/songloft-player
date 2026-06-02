@@ -282,9 +282,11 @@ class DesktopPlayer extends ConsumerWidget {
     ThemeData theme,
   ) {
     return PopupSleepTimerControl(
-      sleepTimerRemaining: state.sleepTimerRemaining,
-      onSetTimer: notifier.setSleepTimer,
-      onCancelTimer: notifier.cancelSleepTimer,
+      status: state.sleepTimer,
+      isLive: state.currentSong?.isLive ?? false,
+      onSetDuration: notifier.setSleepTimerByDuration,
+      onSetAfterSongs: notifier.setSleepTimerAfterSongs,
+      onCancel: notifier.cancelSleepTimer,
     );
   }
 

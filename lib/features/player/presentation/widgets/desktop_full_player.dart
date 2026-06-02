@@ -420,9 +420,11 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
           width: 48,
           height: 48,
           child: PopupSleepTimerControl(
-            sleepTimerRemaining: state.sleepTimerRemaining,
-            onSetTimer: notifier.setSleepTimer,
-            onCancelTimer: notifier.cancelSleepTimer,
+            status: state.sleepTimer,
+            isLive: state.currentSong?.isLive ?? false,
+            onSetDuration: notifier.setSleepTimerByDuration,
+            onSetAfterSongs: notifier.setSleepTimerAfterSongs,
+            onCancel: notifier.cancelSleepTimer,
           ),
         ),
         // 播放队列

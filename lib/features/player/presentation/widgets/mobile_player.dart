@@ -468,9 +468,11 @@ class _MobilePlayerState extends ConsumerState<MobilePlayer>
             width: 48,
             height: 48,
             child: PopupSleepTimerControl(
-              sleepTimerRemaining: state.sleepTimerRemaining,
-              onSetTimer: notifier.setSleepTimer,
-              onCancelTimer: notifier.cancelSleepTimer,
+              status: state.sleepTimer,
+              isLive: state.currentSong?.isLive ?? false,
+              onSetDuration: notifier.setSleepTimerByDuration,
+              onSetAfterSongs: notifier.setSleepTimerAfterSongs,
+              onCancel: notifier.cancelSleepTimer,
             ),
           ),
           // 播放列表 - 显示播放队列浮层（直接覆盖在播放器之上）

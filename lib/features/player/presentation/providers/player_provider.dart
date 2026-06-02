@@ -249,6 +249,23 @@ class PlayerNotifier extends Notifier<PlayerState> {
     _consecutiveFailures = 0;
     debugPrint('[Player] Song completed, playMode: ${state.playMode}');
 
+    // 睡眠定时器钩子：优先于播放模式分支，覆盖所有 playMode
+    final timer = state.sleepTimer;
+    if (timer != null && timer.mode == SleepTimerMode.afterSongs) {
+      final next = (timer.remainingSongs ?? 1) - 1;
+      if (next <= 0) {
+        debugPrint('[Player] Sleep timer: pause after songs reached 0');
+        _audioHandler.pause();
+        cancelSleepTimer();
+        return;
+      }
+      debugPrint('[Player] Sleep timer: $next songs remaining');
+      state = state.copyWith(
+        sleepTimer: timer.copyWith(remainingSongs: next),
+      );
+      // 不 return：继续走 playMode 分支让队列推进到下一首
+    }
+
     if (state.playlist.isEmpty) {
       debugPrint('[Player] Playlist empty, stopping');
       _audioHandler.stop();
@@ -1130,8 +1147,8 @@ class PlayerNotifier extends Notifier<PlayerState> {
     state = state.copyWith(clearErrorMessage: true);
   }
 
-  /// 设置睡眠定时器
-  void setSleepTimer(Duration duration) {
+  /// 设置睡眠定时器：按时长倒计时，到点 pause
+  void setSleepTimerByDuration(Duration duration) {
     cancelSleepTimer();
 
     _sleepTimer = Timer(duration, () {
@@ -1139,19 +1156,42 @@ class PlayerNotifier extends Notifier<PlayerState> {
       cancelSleepTimer();
     });
 
-    // 启动倒计时更新
-    state = state.copyWith(sleepTimerRemaining: duration);
+    state = state.copyWith(
+      sleepTimer: SleepTimerStatus(
+        mode: SleepTimerMode.duration,
+        remaining: duration,
+      ),
+    );
     _sleepTimerCountdown = Timer.periodic(const Duration(seconds: 1), (timer) {
-      final remaining = state.sleepTimerRemaining;
+      final current = state.sleepTimer;
+      if (current == null || current.mode != SleepTimerMode.duration) {
+        timer.cancel();
+        return;
+      }
+      final remaining = current.remaining;
       if (remaining != null && remaining.inSeconds > 0) {
         state = state.copyWith(
-          sleepTimerRemaining: Duration(seconds: remaining.inSeconds - 1),
+          sleepTimer: current.copyWith(
+            remaining: Duration(seconds: remaining.inSeconds - 1),
+          ),
         );
       } else {
         timer.cancel();
         state = state.copyWith(clearSleepTimer: true);
       }
     });
+  }
+
+  /// 设置睡眠定时器：播完 N 首歌曲后 pause（含当前正在播放的曲）
+  void setSleepTimerAfterSongs(int songs) {
+    if (songs < 1) return;
+    cancelSleepTimer();
+    state = state.copyWith(
+      sleepTimer: SleepTimerStatus(
+        mode: SleepTimerMode.afterSongs,
+        remainingSongs: songs,
+      ),
+    );
   }
 
   /// 取消睡眠定时器

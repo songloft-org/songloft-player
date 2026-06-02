@@ -52,6 +52,40 @@ enum PlayMode {
   }
 }
 
+/// 睡眠定时触发模式
+enum SleepTimerMode {
+  /// 按时长倒计时，到点 pause
+  duration,
+
+  /// 播完 N 首歌曲后 pause
+  afterSongs,
+}
+
+/// 睡眠定时状态。三种模式互斥单选。
+class SleepTimerStatus {
+  final SleepTimerMode mode;
+
+  /// 仅 [SleepTimerMode.duration] 模式有效：剩余倒计时
+  final Duration? remaining;
+
+  /// 仅 [SleepTimerMode.afterSongs] 模式有效：剩余首数（含当前正在播放的曲）
+  final int? remainingSongs;
+
+  const SleepTimerStatus({
+    required this.mode,
+    this.remaining,
+    this.remainingSongs,
+  });
+
+  SleepTimerStatus copyWith({Duration? remaining, int? remainingSongs}) {
+    return SleepTimerStatus(
+      mode: mode,
+      remaining: remaining ?? this.remaining,
+      remainingSongs: remainingSongs ?? this.remainingSongs,
+    );
+  }
+}
+
 /// 播放器状态
 class PlayerState {
   final Song? currentSong;
@@ -65,7 +99,7 @@ class PlayerState {
   final bool isBuffering;
   final bool showFullPlayer; // 移动端全屏播放器
   final bool showPlaylistDrawer; // 播放列表抽屉
-  final Duration? sleepTimerRemaining; // 睡眠定时器剩余时间
+  final SleepTimerStatus? sleepTimer; // 当前已设定的睡眠定时（互斥单选）
   final double? previousVolume; // 静音前的音量（用于恢复）
   final String? errorMessage; // 当前错误消息，UI 层监听后显示 SnackBar
   final bool isRetrying; // 是否正在重试中
@@ -82,7 +116,7 @@ class PlayerState {
     this.isBuffering = false,
     this.showFullPlayer = false,
     this.showPlaylistDrawer = false,
-    this.sleepTimerRemaining,
+    this.sleepTimer,
     this.previousVolume,
     this.errorMessage,
     this.isRetrying = false,
@@ -150,7 +184,7 @@ class PlayerState {
     bool? isBuffering,
     bool? showFullPlayer,
     bool? showPlaylistDrawer,
-    Duration? sleepTimerRemaining,
+    SleepTimerStatus? sleepTimer,
     double? previousVolume,
     String? errorMessage,
     bool? isRetrying,
@@ -171,10 +205,7 @@ class PlayerState {
       isBuffering: isBuffering ?? this.isBuffering,
       showFullPlayer: showFullPlayer ?? this.showFullPlayer,
       showPlaylistDrawer: showPlaylistDrawer ?? this.showPlaylistDrawer,
-      sleepTimerRemaining:
-          clearSleepTimer
-              ? null
-              : (sleepTimerRemaining ?? this.sleepTimerRemaining),
+      sleepTimer: clearSleepTimer ? null : (sleepTimer ?? this.sleepTimer),
       previousVolume:
           clearPreviousVolume ? null : (previousVolume ?? this.previousVolume),
       errorMessage:
