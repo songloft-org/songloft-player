@@ -10,6 +10,7 @@ import '../../data/cache_api.dart';
 import '../../data/config_api.dart';
 import '../../data/directory_api.dart';
 import '../../data/scan_api.dart';
+import '../../data/settings_api.dart';
 import '../../data/frontend_version_api.dart';
 import '../../data/upgrade_api.dart';
 import '../../../playlist/presentation/providers/playlist_provider.dart';
@@ -18,10 +19,16 @@ import '../../../playlist/presentation/providers/playlist_provider.dart';
 // API Providers
 // ============================================================================
 
-/// ConfigApi Provider
+/// ConfigApi Provider（仅供 admin 通用编辑器使用，不要在业务功能里直接调用）
 final configApiProvider = Provider<ConfigApi>((ref) {
   final dio = ref.watch(dioProvider);
   return ConfigApi(dio: dio);
+});
+
+/// SettingsApi Provider —— 所有用户可见的功能开关都走这里
+final settingsApiProvider = Provider<SettingsApi>((ref) {
+  final dio = ref.watch(dioProvider);
+  return SettingsApi(dio: dio);
 });
 
 /// ScanApi Provider
@@ -262,16 +269,13 @@ final scanProgressProvider =
 // ============================================================================
 
 /// 「扫描后自动创建歌单是否包含子目录」配置 Notifier。
-/// 后端 key: scan_auto_create_include_subdirs，存 "true"/"false"。
+/// 业务端点：GET/PUT /api/v1/settings/scan-auto-create-include-subdirs
 class AutoCreateIncludeSubdirsNotifier extends AsyncNotifier<bool> {
-  static const _configKey = 'scan_auto_create_include_subdirs';
-
   @override
   Future<bool> build() async {
-    final configApi = ref.watch(configApiProvider);
+    final api = ref.watch(settingsApiProvider);
     try {
-      final config = await configApi.getConfig(_configKey);
-      return config.value.toLowerCase() == 'true';
+      return await api.getScanAutoCreateIncludeSubdirs();
     } catch (_) {
       return false;
     }
@@ -281,11 +285,8 @@ class AutoCreateIncludeSubdirsNotifier extends AsyncNotifier<bool> {
   Future<void> setValue(bool value) async {
     state = AsyncValue.data(value);
     try {
-      final configApi = ref.read(configApiProvider);
-      await configApi.updateConfig(
-        key: _configKey,
-        value: value ? 'true' : 'false',
-      );
+      final api = ref.read(settingsApiProvider);
+      await api.setScanAutoCreateIncludeSubdirs(value);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
       rethrow;
@@ -305,16 +306,13 @@ final autoCreateIncludeSubdirsProvider =
 
 /// HLS 反向代理开关 Notifier。
 /// 开启后服务端拉取并改写电台 m3u8、代理切片;绕过 Referer 防盗链/CORS,但走本机带宽。
-/// 后端 key: hls_proxy_enabled, 存 "true"/"false"。
+/// 业务端点：GET/PUT /api/v1/settings/hls-proxy
 class HlsProxyEnabledNotifier extends AsyncNotifier<bool> {
-  static const _configKey = 'hls_proxy_enabled';
-
   @override
   Future<bool> build() async {
-    final configApi = ref.watch(configApiProvider);
+    final api = ref.watch(settingsApiProvider);
     try {
-      final config = await configApi.getConfig(_configKey);
-      return config.value.toLowerCase() == 'true';
+      return await api.getHlsProxyEnabled();
     } catch (_) {
       return false;
     }
@@ -323,11 +321,8 @@ class HlsProxyEnabledNotifier extends AsyncNotifier<bool> {
   Future<void> setValue(bool value) async {
     state = AsyncValue.data(value);
     try {
-      final configApi = ref.read(configApiProvider);
-      await configApi.updateConfig(
-        key: _configKey,
-        value: value ? 'true' : 'false',
-      );
+      final api = ref.read(settingsApiProvider);
+      await api.setHlsProxyEnabled(value);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
       rethrow;

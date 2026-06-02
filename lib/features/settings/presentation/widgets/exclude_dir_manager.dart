@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,6 +5,7 @@ import '../../../../core/network/api_exceptions.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../shared/utils/responsive_snackbar.dart';
 import '../../data/directory_api.dart';
+import '../../data/settings_api.dart';
 import '../providers/settings_provider.dart';
 
 /// 排除目录管理组件
@@ -56,15 +55,13 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
   Future<void> _loadConfig() async {
     setState(() => _isLoading = true);
     try {
-      final configApi = ref.read(configApiProvider);
-      final config = await configApi.getConfig('music_path');
-      final data = jsonDecode(config.value) as Map<String, dynamic>;
+      final api = ref.read(settingsApiProvider);
+      final setting = await api.getMusicPath();
 
       setState(() {
-        _musicPath = data['path'] as String? ?? 'music';
-        _excludeDirs = List<String>.from(data['exclude_dirs'] as List? ?? []);
-        _excludePaths =
-            List<String>.from(data['exclude_paths'] as List? ?? []);
+        _musicPath = setting.path;
+        _excludeDirs = List<String>.from(setting.excludeDirs);
+        _excludePaths = List<String>.from(setting.excludePaths);
         _isLoading = false;
       });
 
@@ -129,19 +126,16 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
   Future<void> _saveConfig() async {
     setState(() => _isSaving = true);
     try {
-      final configApi = ref.read(configApiProvider);
+      final api = ref.read(settingsApiProvider);
 
-      // 先读取当前完整配置，保留其他字段
-      final currentConfig = await configApi.getConfig('music_path');
-      final data = jsonDecode(currentConfig.value) as Map<String, dynamic>;
-
-      // 更新排除配置
-      data['exclude_dirs'] = _excludeDirs;
-      data['exclude_paths'] = _excludePaths;
-
-      await configApi.updateConfig(
-        key: 'music_path',
-        value: jsonEncode(data),
+      // 先读取当前完整配置，保留 path 字段
+      final current = await api.getMusicPath();
+      await api.updateMusicPath(
+        MusicPathSetting(
+          path: current.path,
+          excludeDirs: _excludeDirs,
+          excludePaths: _excludePaths,
+        ),
       );
 
       if (mounted) {
