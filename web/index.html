@@ -40,18 +40,10 @@
     {{flutter_js}}
     {{flutter_build_config}}
 
-    // 部署模式由构建脚本生成的 deploy-mode.js 注入
-    // embedded 模式：使用本地字体，避免运行时从 CDN 下载
-    // standalone 模式：使用 CDN 字体（默认行为）
     var config = {
-      // canvaskit 加载路径由构建标志控制：
-      // embedded 模式使用 --no-web-resources-cdn，从本地加载引擎资源
-      // standalone 模式不传此标志，从 CDN 加载引擎资源
       canvasKitVariant: "full",
     };
     if (typeof _deployMode !== 'undefined' && _deployMode === 'embedded') {
-      // 使用本地托管的字体文件，避免从 Google CDN 下载
-      // 字体文件位于 web/fonts/ 目录下
       config.fontFallbackBaseUrl = "fonts/";
     }
 

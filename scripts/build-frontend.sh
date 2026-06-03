@@ -199,6 +199,37 @@ with open('$manifest', 'w') as f:
         echo -e "${GREEN}✓ [Web]${NC} 已移除冗余 NotoSansSC OTF 字体（-8 MB），使用 CanvasKit woff2 按需加载"
     fi
 
+    # 同步清理 Service Worker 的 RESOURCES map，移除已删除文件的条目
+    # 避免按需缓存时对不存在的文件发出无效 404 请求
+    local sw_file="$output/flutter_service_worker.js"
+    if [ -f "$sw_file" ]; then
+        python3 -c "
+import json, os, re, sys
+
+sw_path = '$sw_file'
+output_dir = '$output'
+
+with open(sw_path) as f:
+    content = f.read()
+
+match = re.search(r'const RESOURCES = (\{.*?\});', content, re.DOTALL)
+if not match:
+    sys.exit(0)
+
+resources = json.loads(match.group(1))
+cleaned = {k: v for k, v in resources.items()
+           if k == '/' or os.path.exists(os.path.join(output_dir, k))}
+removed = set(resources.keys()) - set(cleaned.keys())
+if removed:
+    new_resources = json.dumps(cleaned)
+    content = content[:match.start(1)] + new_resources + content[match.end(1):]
+    with open(sw_path, 'w') as f:
+        f.write(content)
+    print(f'Cleaned {len(removed)} stale entries from service worker RESOURCES')
+" 2>/dev/null && echo -e "${GREEN}✓ [Web]${NC} 已清理 Service Worker 中的过期资源条目" \
+               || echo -e "${YELLOW}⚠ [Web]${NC} Service Worker 清理失败，跳过"
+    fi
+
     echo -e "${GREEN}✓ [Web]${NC} Web ${mode} 构建完成 → $output"
 }
 
