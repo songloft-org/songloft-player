@@ -27,6 +27,7 @@ class PlayerProgressBar extends StatefulWidget {
 
 class _PlayerProgressBarState extends State<PlayerProgressBar> {
   bool _isDragging = false;
+  bool _isSeeking = false;
   double _dragValue = 0;
 
   double get _progress {
@@ -37,6 +38,14 @@ class _PlayerProgressBarState extends State<PlayerProgressBar> {
 
   String _formatDuration(Duration duration) {
     return Formatters.formatDuration(duration.inSeconds.toDouble());
+  }
+
+  @override
+  void didUpdateWidget(covariant PlayerProgressBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_isSeeking && widget.position != oldWidget.position) {
+      _isSeeking = false;
+    }
   }
 
   void _onDragStart(double value) {
@@ -59,6 +68,7 @@ class _PlayerProgressBarState extends State<PlayerProgressBar> {
     widget.onSeek(newPosition);
     setState(() {
       _isDragging = false;
+      _isSeeking = true;
     });
   }
 
@@ -87,10 +97,9 @@ class _PlayerProgressBarState extends State<PlayerProgressBar> {
   /// 完整进度条（含时间显示）
   Widget _buildFullProgressBar(BuildContext context) {
     final theme = Theme.of(context);
-    final currentValue = _isDragging ? _dragValue : _progress;
+    final currentValue = (_isDragging || _isSeeking) ? _dragValue : _progress;
 
-    // 计算显示的时间
-    final displayPosition = _isDragging
+    final displayPosition = (_isDragging || _isSeeking)
         ? Duration(
             milliseconds:
                 (_dragValue * widget.duration.inMilliseconds).round())
@@ -177,6 +186,9 @@ class ClickableProgressBar extends StatefulWidget {
 
 class _ClickableProgressBarState extends State<ClickableProgressBar> {
   bool _isHovering = false;
+  bool _isDragging = false;
+  bool _isSeeking = false;
+  double _dragProgress = 0;
 
   double get _progress {
     if (widget.duration.inMilliseconds <= 0) return 0;
@@ -184,17 +196,38 @@ class _ClickableProgressBarState extends State<ClickableProgressBar> {
         .clamp(0.0, 1.0);
   }
 
-  void _seekTo(Offset localPosition, double width) {
-    final progress = (localPosition.dx / width).clamp(0.0, 1.0);
+  double get _displayProgress {
+    if (_isDragging || _isSeeking) return _dragProgress;
+    return _progress;
+  }
+
+  @override
+  void didUpdateWidget(covariant ClickableProgressBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_isSeeking && !_isDragging && widget.position != oldWidget.position) {
+      _isSeeking = false;
+    }
+  }
+
+  void _seekTo(double progress) {
+    final clamped = progress.clamp(0.0, 1.0);
     final newPosition = Duration(
-      milliseconds: (progress * widget.duration.inMilliseconds).round(),
+      milliseconds: (clamped * widget.duration.inMilliseconds).round(),
     );
+    setState(() {
+      _dragProgress = clamped;
+      _isSeeking = true;
+    });
     widget.onSeek(newPosition);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final activeColor = widget.activeColor ?? theme.colorScheme.primary;
+    final inactiveColor =
+        widget.inactiveColor ?? theme.colorScheme.surfaceContainerHighest;
+    final barHeight = _isHovering ? widget.height + 2 : widget.height;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovering = true),
@@ -202,26 +235,48 @@ class _ClickableProgressBarState extends State<ClickableProgressBar> {
       child: GestureDetector(
         onTapDown: (details) {
           final box = context.findRenderObject() as RenderBox;
-          _seekTo(details.localPosition, box.size.width);
+          _seekTo(details.localPosition.dx / box.size.width);
+        },
+        onHorizontalDragStart: (details) {
+          final box = context.findRenderObject() as RenderBox;
+          setState(() {
+            _isDragging = true;
+            _dragProgress =
+                (details.localPosition.dx / box.size.width).clamp(0.0, 1.0);
+          });
         },
         onHorizontalDragUpdate: (details) {
           final box = context.findRenderObject() as RenderBox;
-          _seekTo(details.localPosition, box.size.width);
+          setState(() {
+            _dragProgress =
+                (details.localPosition.dx / box.size.width).clamp(0.0, 1.0);
+          });
         },
-        child: Container(
-          height: _isHovering ? widget.height + 2 : widget.height,
-          decoration: BoxDecoration(
-            color: widget.inactiveColor ??
-                theme.colorScheme.surfaceContainerHighest,
-          ),
-          child: FractionallySizedBox(
-            alignment: Alignment.centerLeft,
-            widthFactor: _progress,
-            child: Container(
-              decoration: BoxDecoration(
-                color: widget.activeColor ?? theme.colorScheme.primary,
-              ),
-            ),
+        onHorizontalDragEnd: (_) {
+          _seekTo(_dragProgress);
+          setState(() {
+            _isDragging = false;
+          });
+        },
+        child: SizedBox(
+          height: barHeight,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return Stack(
+                children: [
+                  Positioned.fill(
+                    child: ColoredBox(color: inactiveColor),
+                  ),
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: constraints.maxWidth * _displayProgress,
+                    child: ColoredBox(color: activeColor),
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ),
