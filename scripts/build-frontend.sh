@@ -230,6 +230,24 @@ if removed:
                || echo -e "${YELLOW}⚠ [Web]${NC} Service Worker 清理失败，跳过"
     fi
 
+    # 预压缩可压缩静态资源（brotli + gzip），嵌入 Go 二进制后启动时零开销直出
+    if command -v brotli &>/dev/null; then
+        local compress_count=0
+        local compress_exts="js mjs css html json svg wasm xml txt otf map"
+        for ext in $compress_exts; do
+            while IFS= read -r -d '' file; do
+                brotli -q 11 -f -o "${file}.br" "$file" 2>/dev/null || true
+                gzip -9 -c "$file" > "${file}.gz" 2>/dev/null || true
+                compress_count=$((compress_count + 1))
+            done < <(find "$output" -name "*.${ext}" -size +127c -print0 2>/dev/null) || true
+        done
+        if [ "$compress_count" -gt 0 ]; then
+            echo -e "${GREEN}✓ [Web]${NC} 已预压缩 ${compress_count} 个静态资源（brotli-11 + gzip-9）"
+        fi
+    else
+        echo -e "${YELLOW}⚠ [Web]${NC} 未安装 brotli CLI，跳过预压缩（安装：apt install brotli / brew install brotli）"
+    fi
+
     echo -e "${GREEN}✓ [Web]${NC} Web ${mode} 构建完成 → $output"
 }
 
