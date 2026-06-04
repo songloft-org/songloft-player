@@ -304,24 +304,45 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     }
   }
 
-  /// 构建服务端版本号 + 检查更新入口
+  /// 构建服务端版本号 + 自动检查更新入口
   Widget _buildServerVersionTile() {
-    final serverVersion = ref.watch(serverVersionProvider);
+    final upgradeCheck = ref.watch(upgradeCheckProvider);
 
-    return serverVersion.when(
-      data:
-          (version) => ListTile(
-            leading: const Icon(Icons.dns),
-            title: const Text('检查服务端更新 (仅 Docker 可升级)'),
-            subtitle: Text('当前版本: $version'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => UpgradeDialog.show(context),
+    return upgradeCheck.when(
+      data: (check) {
+        final currentVersion = check.currentVersion ?? '未知';
+        final hasUpdate =
+            check.hasUpdate && check.availableUpdates.isNotEmpty;
+        final subtitle = hasUpdate
+            ? '发现新版本: ${check.availableUpdates.first.version}'
+            : '当前版本: $currentVersion (已是最新)';
+
+        return ListTile(
+          leading: const Icon(Icons.dns),
+          title: const Text('检查服务端更新 (仅 Docker 可升级)'),
+          subtitle: Text(
+            subtitle,
+            style: hasUpdate
+                ? TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  )
+                : null,
           ),
+          trailing: hasUpdate
+              ? Icon(
+                  Icons.chevron_right,
+                  color: Theme.of(context).colorScheme.primary,
+                )
+              : const Icon(Icons.chevron_right),
+          onTap: () => UpgradeDialog.show(context),
+        );
+      },
       loading:
           () => const ListTile(
             leading: Icon(Icons.dns),
             title: Text('检查服务端更新 (仅 Docker 可升级)'),
-            subtitle: Text('正在获取版本信息...'),
+            subtitle: Text('正在检查更新...'),
             trailing: SizedBox(
               width: 20,
               height: 20,
@@ -332,7 +353,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           (_, _) => ListTile(
             leading: const Icon(Icons.dns),
             title: const Text('检查服务端更新 (仅 Docker 可升级)'),
-            subtitle: const Text('获取版本信息失败'),
+            subtitle: const Text('检查更新失败'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => UpgradeDialog.show(context),
           ),
