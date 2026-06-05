@@ -295,7 +295,7 @@ class _PluginRegistryDialogState extends ConsumerState<_PluginRegistryDialog> {
           child: Column(
             children: [
               DropdownButtonFormField<PluginRegistryConfig>(
-                value: _selectedRegistry,
+                initialValue: _selectedRegistry,
                 decoration: const InputDecoration(
                   labelText: '订阅源',
                   border: OutlineInputBorder(),
