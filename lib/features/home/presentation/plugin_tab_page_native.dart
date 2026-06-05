@@ -38,14 +38,17 @@ class _PluginTabPageState extends State<PluginTabPage> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Stack(
-      children: [
-        if (_errorMessage != null)
-          _buildErrorView(colorScheme)
-        else
-          _buildWebView(),
-        if (_isLoading) const Center(child: CircularProgressIndicator()),
-      ],
+    return SafeArea(
+      bottom: false,
+      child: Stack(
+        children: [
+          if (_errorMessage != null)
+            _buildErrorView(colorScheme)
+          else
+            _buildWebView(),
+          if (_isLoading) const Center(child: CircularProgressIndicator()),
+        ],
+      ),
     );
   }
 
