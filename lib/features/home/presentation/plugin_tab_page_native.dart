@@ -22,7 +22,7 @@ class _PluginTabPageState extends State<PluginTabPage> {
   String? _errorMessage;
 
   String get _pluginUrl =>
-      '${AppConfig.baseUrl}${AppConfig.basePath}/api/v1/jsplugin/${widget.entryPath}';
+      '${AppConfig.baseUrl}${AppConfig.basePath}/api/v1/jsplugin/${widget.entryPath}?embed';
 
   String _buildTokenInjectionScript() {
     final token = SecureStorageService.cachedAccessToken ?? '';

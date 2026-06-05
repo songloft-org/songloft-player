@@ -24,9 +24,8 @@ class _PluginTabPageState extends State<PluginTabPage> {
     final baseUrl =
         '${AppConfig.baseUrl}${AppConfig.basePath}/api/v1/jsplugin/${widget.entryPath}';
     final token = SecureStorageService.cachedAccessToken ?? '';
-    if (token.isEmpty) return baseUrl;
-    final separator = baseUrl.contains('?') ? '&' : '?';
-    return '$baseUrl${separator}access_token=$token';
+    if (token.isEmpty) return '$baseUrl?embed';
+    return '$baseUrl?embed&access_token=$token';
   }
 
   @override
