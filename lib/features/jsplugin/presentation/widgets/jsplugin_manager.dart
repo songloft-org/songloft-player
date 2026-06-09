@@ -12,6 +12,7 @@ import '../../../../core/theme/responsive.dart';
 import '../../../../shared/utils/responsive_snackbar.dart';
 import '../../data/jsplugin_api.dart';
 import '../providers/jsplugin_provider.dart';
+import 'plugin_icon.dart';
 
 /// JS 插件远程更新的预设 GitHub 代理选项
 class _JSProxyOption {
@@ -599,10 +600,11 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: statusColor.withValues(alpha: 0.2),
-                child: Icon(Icons.extension, color: statusColor, size: 20),
+              PluginIcon(
+                iconUrl: plugin.iconUrl,
+                displayName: plugin.displayName,
+                size: 36,
+                statusColor: statusColor,
               ),
               const SizedBox(width: 12),
               Expanded(

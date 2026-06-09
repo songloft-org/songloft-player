@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/router/app_router.dart';
 import '../../features/jsplugin/data/jsplugin_api.dart';
 import '../../features/jsplugin/presentation/providers/jsplugin_provider.dart';
+import '../../features/jsplugin/presentation/widgets/plugin_icon.dart';
 import '../../features/settings/data/settings_api.dart';
 import '../../features/settings/presentation/providers/settings_provider.dart';
 import 'adaptive_scaffold.dart';
@@ -28,16 +29,16 @@ class ActiveDestinations {
 
     destinations.add(const NavDestination(
       label: '首页',
-      icon: Icons.home_outlined,
-      selectedIcon: Icons.home,
+      icon: Icon(Icons.home_outlined),
+      selectedIcon: Icon(Icons.home),
     ));
     indexToRoute.add(AppRoutes.home);
 
     if (config.showLibrary) {
       destinations.add(const NavDestination(
         label: '歌曲库',
-        icon: Icons.library_music_outlined,
-        selectedIcon: Icons.library_music,
+        icon: Icon(Icons.library_music_outlined),
+        selectedIcon: Icon(Icons.library_music),
       ));
       indexToRoute.add(AppRoutes.library);
     }
@@ -45,8 +46,8 @@ class ActiveDestinations {
     if (config.showPlaylists) {
       destinations.add(const NavDestination(
         label: '歌单',
-        icon: Icons.queue_music_outlined,
-        selectedIcon: Icons.queue_music,
+        icon: Icon(Icons.queue_music_outlined),
+        selectedIcon: Icon(Icons.queue_music),
       ));
       indexToRoute.add(AppRoutes.playlists);
     }
@@ -62,8 +63,14 @@ class ActiveDestinations {
       if (plugin != null) {
         destinations.add(NavDestination(
           label: plugin.displayName,
-          icon: Icons.extension_outlined,
-          selectedIcon: Icons.extension,
+          icon: PluginNavIcon(
+            iconUrl: plugin.iconUrl,
+            fallbackIcon: const Icon(Icons.extension_outlined),
+          ),
+          selectedIcon: PluginNavIcon(
+            iconUrl: plugin.iconUrl,
+            fallbackIcon: const Icon(Icons.extension),
+          ),
         ));
         indexToRoute.add('/plugin-tab/${pt.entryPath}');
       }
@@ -71,8 +78,8 @@ class ActiveDestinations {
 
     destinations.add(const NavDestination(
       label: '设置',
-      icon: Icons.settings_outlined,
-      selectedIcon: Icons.settings,
+      icon: Icon(Icons.settings_outlined),
+      selectedIcon: Icon(Icons.settings),
     ));
     indexToRoute.add(AppRoutes.settings);
 

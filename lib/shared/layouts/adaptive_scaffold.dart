@@ -8,8 +8,8 @@ import '../../core/theme/tv_theme.dart';
 /// 导航目的地定义
 class NavDestination {
   final String label;
-  final IconData icon;
-  final IconData selectedIcon;
+  final Widget icon;
+  final Widget selectedIcon;
 
   const NavDestination({
     required this.label,
@@ -67,8 +67,8 @@ class AdaptiveScaffold extends StatelessWidget {
             destinations:
                 destinations.map((dest) {
                   return NavigationDestination(
-                    icon: Icon(dest.icon),
-                    selectedIcon: Icon(dest.selectedIcon),
+                    icon: dest.icon,
+                    selectedIcon: dest.selectedIcon,
                     label: dest.label,
                   );
                 }).toList(),
@@ -90,8 +90,8 @@ class AdaptiveScaffold extends StatelessWidget {
             destinations:
                 destinations.map((dest) {
                   return NavigationRailDestination(
-                    icon: Icon(dest.icon),
-                    selectedIcon: Icon(dest.selectedIcon),
+                    icon: dest.icon,
+                    selectedIcon: dest.selectedIcon,
                     label: Text(dest.label),
                   );
                 }).toList(),
@@ -167,12 +167,16 @@ class AdaptiveScaffold extends StatelessWidget {
                           vertical: 2,
                         ),
                         child: ListTile(
-                          leading: Icon(
-                            isSelected ? dest.selectedIcon : dest.icon,
-                            color:
-                                isSelected
-                                    ? colorScheme.primary
-                                    : colorScheme.onSurfaceVariant,
+                          leading: IconTheme(
+                            data: IconThemeData(
+                              color:
+                                  isSelected
+                                      ? colorScheme.primary
+                                      : colorScheme.onSurfaceVariant,
+                            ),
+                            child: isSelected
+                                ? dest.selectedIcon
+                                : dest.icon,
                           ),
                           title: Text(
                             dest.label,
@@ -326,7 +330,7 @@ class AdaptiveScaffold extends StatelessWidget {
 ///
 /// 支持 D-Pad 焦点导航的大尺寸导航按钮
 class _TvNavButton extends StatefulWidget {
-  final IconData icon;
+  final Widget icon;
   final String label;
   final bool isSelected;
   final VoidCallback onPressed;
@@ -431,13 +435,19 @@ class _TvNavButtonState extends State<_TvNavButton> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      widget.icon,
-                      size: 28,
-                      color:
-                          widget.isSelected || _hasFocus
-                              ? colorScheme.primary
-                              : colorScheme.onSurfaceVariant,
+                    IconTheme(
+                      data: IconThemeData(
+                        size: 28,
+                        color:
+                            widget.isSelected || _hasFocus
+                                ? colorScheme.primary
+                                : colorScheme.onSurfaceVariant,
+                      ),
+                      child: SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: widget.icon,
+                      ),
                     ),
                     const SizedBox(width: TvTheme.spacingSmall),
                     Text(

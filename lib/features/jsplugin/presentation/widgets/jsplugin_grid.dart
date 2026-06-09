@@ -10,6 +10,7 @@ import '../../../../core/storage/secure_storage.dart';
 import '../../../../core/theme/responsive.dart';
 import '../../data/jsplugin_api.dart';
 import '../providers/jsplugin_provider.dart';
+import 'plugin_icon.dart';
 
 /// JS 插件入口网格组件
 class JSPluginGrid extends ConsumerWidget {
@@ -100,18 +101,10 @@ class _JSPluginCard extends StatelessWidget {
 
   const _JSPluginCard({required this.plugin});
 
-  /// 根据插件名称生成颜色
-  Color _generateColor() {
-    final hash = plugin.displayName.hashCode;
-    final hue = (hash % 360).abs().toDouble();
-    return HSLColor.fromAHSL(1.0, hue, 0.6, 0.5).toColor();
-  }
-
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    final iconColor = _generateColor();
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -122,15 +115,11 @@ class _JSPluginCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // 左侧彩色圆形图标
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(Icons.javascript, color: iconColor, size: 24),
+              // 左侧插件图标
+              PluginIcon(
+                iconUrl: plugin.iconUrl,
+                displayName: plugin.displayName,
+                size: 40,
               ),
               const SizedBox(width: 12),
               // 中间信息

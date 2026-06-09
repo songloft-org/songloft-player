@@ -15,6 +15,7 @@ class JSPlugin {
   final String? homepage;
   final String? entryPath;
   final String? main;
+  final String? icon;
   final List<String> permissions;
   final String filePath;
   final String status; // 'active', 'inactive', 'error'
@@ -30,6 +31,7 @@ class JSPlugin {
     this.homepage,
     this.entryPath,
     this.main,
+    this.icon,
     this.permissions = const [],
     required this.filePath,
     required this.status,
@@ -47,6 +49,7 @@ class JSPlugin {
       homepage: json['homepage'] as String?,
       entryPath: json['entry_path'] as String?,
       main: json['main'] as String?,
+      icon: json['icon'] as String?,
       permissions:
           (json['permissions'] as List<dynamic>?)
               ?.map((e) => e as String)
@@ -73,6 +76,12 @@ class JSPlugin {
 
   /// 显示名称
   String get displayName => name ?? filePath.split('/').last;
+
+  /// 完整图标 URL（通过免认证静态路由访问）
+  String? get iconUrl {
+    if (icon == null || icon!.isEmpty || entryPath == null) return null;
+    return '${AppConfig.baseUrl}${AppConfig.basePath}/api/v1/jsplugin/$entryPath/static/$icon';
+  }
 
   @override
   String toString() => 'JSPlugin(id: $id, name: $displayName, status: $status)';

@@ -5,6 +5,7 @@ import '../../../core/theme/app_dimensions.dart';
 import '../../../shared/utils/responsive_snackbar.dart';
 import '../../jsplugin/data/jsplugin_api.dart';
 import '../../jsplugin/presentation/providers/jsplugin_provider.dart';
+import '../../jsplugin/presentation/widgets/plugin_icon.dart';
 import '../data/settings_api.dart';
 import 'providers/settings_provider.dart';
 
@@ -115,7 +116,11 @@ class TabConfigPage extends ConsumerWidget {
       if (i > 0) widgets.add(const Divider(height: 1));
       widgets.add(
         SwitchListTile(
-          secondary: const Icon(Icons.extension_outlined),
+          secondary: PluginNavIcon(
+            iconUrl: plugin.iconUrl,
+            size: 24,
+            fallbackIcon: const Icon(Icons.extension_outlined),
+          ),
           title: Text(plugin.displayName),
           subtitle: plugin.version != null ? Text('v${plugin.version}') : null,
           value: isEnabled,

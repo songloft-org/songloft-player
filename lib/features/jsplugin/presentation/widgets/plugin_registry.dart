@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../core/network/api_exceptions.dart';
 import '../../../../core/theme/app_dimensions.dart';
@@ -632,15 +633,26 @@ class _RegistryPluginItemState extends ConsumerState<_RegistryPluginItem> {
 
   Widget _buildIcon(RegistryPluginEntry entry, ThemeData theme) {
     if (entry.icon != null && entry.icon!.isNotEmpty) {
+      final url = entry.icon!;
+      final isSvg = url.toLowerCase().endsWith('.svg');
       return ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: Image.network(
-          entry.icon!,
-          width: 40,
-          height: 40,
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => _buildFallbackIcon(entry, theme),
-        ),
+        child: isSvg
+            ? SvgPicture.network(
+                url,
+                width: 40,
+                height: 40,
+                fit: BoxFit.contain,
+                placeholderBuilder: (_) => _buildFallbackIcon(entry, theme),
+                errorBuilder: (_, _, _) => _buildFallbackIcon(entry, theme),
+              )
+            : Image.network(
+                url,
+                width: 40,
+                height: 40,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => _buildFallbackIcon(entry, theme),
+              ),
       );
     }
     return _buildFallbackIcon(entry, theme);
