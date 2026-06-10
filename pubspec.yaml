@@ -51,6 +51,8 @@ dependencies:
   tray_manager: ^0.2.4
   windows_single_instance: any
   flutter_svg: ^2.3.0
+  # HMAC-SHA256 签名（Tracely 监控 SDK）
+  crypto: ^3.0.6
 
 dev_dependencies:
   flutter_test:

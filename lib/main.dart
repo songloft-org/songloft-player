@@ -10,13 +10,19 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:windows_single_instance/windows_single_instance.dart';
 
+import 'dart:math';
+
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'config/app_config.dart';
 import 'core/audio/audio_service.dart';
 import 'core/storage/app_preferences.dart';
 import 'core/storage/secure_storage.dart';
+import 'core/tracely/tracely_client.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/responsive.dart';
 import 'core/router/app_router.dart';
+import 'core/utils/platform_utils.dart';
 import 'core/utils/window_tray_manager.dart';
 import 'features/settings/presentation/providers/settings_provider.dart';
 import 'features/startup/presentation/startup_gate.dart';
@@ -25,6 +31,9 @@ import 'features/startup/presentation/startup_gate.dart';
 final audioHandlerProvider = Provider<SongloftAudioHandler>((ref) {
   throw UnimplementedError('audioHandlerProvider must be overridden');
 });
+
+/// 全局 Tracely 客户端（未启用时为 null）
+TracelyClient? _tracelyClient;
 
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,9 +64,19 @@ void main(List<String> args) async {
   FlutterError.onError = (FlutterErrorDetails details) {
     debugPrint('[FlutterError] ${details.exceptionAsString()}');
     FlutterError.presentError(details);
+    _tracelyClient?.reportError(
+      type: 'flutter',
+      message: details.exceptionAsString(),
+      stack: details.stack?.toString(),
+    );
   };
   PlatformDispatcher.instance.onError = (error, stack) {
     debugPrint('[PlatformError] $error\n$stack');
+    _tracelyClient?.reportError(
+      type: 'dart',
+      message: error.toString(),
+      stack: stack.toString(),
+    );
     return true;
   };
 
@@ -83,6 +102,37 @@ void main(List<String> args) async {
       await prefs.migrateLegacyApiBaseUrl();
     } catch (e) {
       debugPrint('[Main] SharedPreferences 初始化失败，使用默认配置: $e');
+    }
+  }
+
+  // 初始化 Tracely 监控（仅在编译时注入了配置参数时启用）
+  if (AppConfig.tracelyEnabled) {
+    _tracelyClient = TracelyClient(
+      appId: AppConfig.tracelyAppId,
+      appSecret: AppConfig.tracelyAppSecret,
+      host: AppConfig.tracelyHost,
+    );
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final lastVersion = prefs.getString('_tracely_reported_version') ?? '';
+      const currentVersion = AppConfig.frontendVersion;
+      final platform = kIsWeb ? 'Web' : PlatformUtils.platformName;
+      var userId = prefs.getString('_tracely_uid') ?? '';
+      if (userId.isEmpty) {
+        userId = _generateUserId();
+        await prefs.setString('_tracely_uid', userId);
+      }
+      if (lastVersion.isEmpty) {
+        _tracelyClient!.reportInstall(currentVersion, platform, userId);
+      } else if (lastVersion != currentVersion) {
+        _tracelyClient!
+            .reportUpgrade(lastVersion, currentVersion, platform, userId);
+      }
+      if (lastVersion != currentVersion) {
+        await prefs.setString('_tracely_reported_version', currentVersion);
+      }
+    } catch (e) {
+      debugPrint('[Main] Tracely 初始化失败: $e');
     }
   }
 
@@ -162,6 +212,16 @@ void main(List<String> args) async {
       child: const StartupGate(child: SongloftApp()),
     ),
   );
+}
+
+String _generateUserId() {
+  final random = Random.secure();
+  final bytes = List<int>.generate(16, (_) => random.nextInt(256));
+  // 格式化为 UUID v4 风格
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  final hex = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+  return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}';
 }
 
 /// 支持鼠标拖拽滚动的 ScrollBehavior（macOS / desktop）

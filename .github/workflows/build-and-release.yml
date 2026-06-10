@@ -72,7 +72,7 @@ jobs:
         run: |
           VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1)
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-      - run: flutter build web --release --no-web-resources-cdn --dart-define=DEPLOY_MODE=${{ matrix.mode }} --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }}
+      - run: flutter build web --release --no-web-resources-cdn --dart-define=DEPLOY_MODE=${{ matrix.mode }} --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }} --dart-define=TRACELY_APP_ID=${{ secrets.TRACELY_APP_ID }} --dart-define=TRACELY_APP_SECRET=${{ secrets.TRACELY_APP_SECRET }} --dart-define=TRACELY_HOST=${{ secrets.TRACELY_HOST }}
       - name: Package
         run: |
           cd build/web
@@ -116,7 +116,7 @@ jobs:
         run: |
           VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1)
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-      - run: flutter build linux --release --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }}
+      - run: flutter build linux --release --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }} --dart-define=TRACELY_APP_ID=${{ secrets.TRACELY_APP_ID }} --dart-define=TRACELY_APP_SECRET=${{ secrets.TRACELY_APP_SECRET }} --dart-define=TRACELY_HOST=${{ secrets.TRACELY_HOST }}
       - name: Prepare app icon for fastforge
         run: |
           mkdir -p assets/icons
@@ -184,7 +184,7 @@ jobs:
           echo "version=$version" >> $env:GITHUB_OUTPUT
       - name: Setup NuGet
         uses: nuget/setup-nuget@v2
-      - run: flutter build windows --release --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }}
+      - run: flutter build windows --release --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }} --dart-define=TRACELY_APP_ID=${{ secrets.TRACELY_APP_ID }} --dart-define=TRACELY_APP_SECRET=${{ secrets.TRACELY_APP_SECRET }} --dart-define=TRACELY_HOST=${{ secrets.TRACELY_HOST }}
       - name: Package ZIP (绿色便携包)
         shell: pwsh
         run: |
@@ -228,7 +228,7 @@ jobs:
         run: |
           VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1)
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-      - run: flutter build macos --release --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }}
+      - run: flutter build macos --release --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }} --dart-define=TRACELY_APP_ID=${{ secrets.TRACELY_APP_ID }} --dart-define=TRACELY_APP_SECRET=${{ secrets.TRACELY_APP_SECRET }} --dart-define=TRACELY_HOST=${{ secrets.TRACELY_HOST }}
       - name: Package ZIP (.app)
         run: |
           cd build/macos/Build/Products/Release
@@ -282,7 +282,7 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: flutter build apk --release --split-per-abi --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }}
+        run: flutter build apk --release --split-per-abi --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }} --dart-define=TRACELY_APP_ID=${{ secrets.TRACELY_APP_ID }} --dart-define=TRACELY_APP_SECRET=${{ secrets.TRACELY_APP_SECRET }} --dart-define=TRACELY_HOST=${{ secrets.TRACELY_HOST }}
       - name: Collect APKs
         run: |
           mkdir -p apk-output
@@ -311,7 +311,7 @@ jobs:
         run: |
           VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1)
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-      - run: flutter build ios --release --no-codesign --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }}
+      - run: flutter build ios --release --no-codesign --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }} --dart-define=TRACELY_APP_ID=${{ secrets.TRACELY_APP_ID }} --dart-define=TRACELY_APP_SECRET=${{ secrets.TRACELY_APP_SECRET }} --dart-define=TRACELY_HOST=${{ secrets.TRACELY_HOST }}
       - name: Package as IPA
         run: |
           mkdir -p Payload

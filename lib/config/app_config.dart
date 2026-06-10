@@ -23,6 +23,18 @@ class AppConfig {
   static const String frontendVersion =
       String.fromEnvironment('FRONTEND_VERSION', defaultValue: 'dev');
 
+  /// Tracely 监控配置（编译时通过 --dart-define 注入，未配置则不启用）
+  static const String tracelyAppId =
+      String.fromEnvironment('TRACELY_APP_ID', defaultValue: '');
+  static const String tracelyAppSecret =
+      String.fromEnvironment('TRACELY_APP_SECRET', defaultValue: '');
+  static const String tracelyHost =
+      String.fromEnvironment('TRACELY_HOST', defaultValue: '');
+  static bool get tracelyEnabled =>
+      tracelyAppId.isNotEmpty &&
+      tracelyAppSecret.isNotEmpty &&
+      tracelyHost.isNotEmpty;
+
   /// 前端 GitHub 仓库
   static const String frontendRepo = 'songloft-org/songloft-player';
 
