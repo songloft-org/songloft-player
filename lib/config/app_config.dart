@@ -19,7 +19,7 @@ class AppConfig {
   static const bool isEmbedded = _kDeployMode == 'embedded';
 
   /// 是否运行在电视系统上
-  static bool isTvMode = false;
+  static late final bool isTvMode;
 
   /// 前端版本号，通过 --dart-define=FRONTEND_VERSION=x.y.z 在构建时注入
   /// 本地开发时默认为 'dev'

@@ -16,5 +16,7 @@ void main() {
     expect(listView.scrollDirection, Axis.horizontal);
     
     expect(find.text('本地音乐'), findsOneWidget);
+    expect(find.text('播放列表'), findsOneWidget);
+    expect(find.text('设置'), findsOneWidget);
   });
 }

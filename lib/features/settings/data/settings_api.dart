@@ -246,6 +246,7 @@ class SettingsApi {
     }
   }
 
+
   // ---------- 扫描后自动创建歌单是否包含子目录 ----------
 
   Future<bool> getScanAutoCreateIncludeSubdirs() async {

@@ -6,6 +6,7 @@ import 'package:songloft_flutter/shared/widgets/tv_focusable.dart';
 void main() {
   testWidgets('TvFocusable responds to focus and selection', (WidgetTester tester) async {
     bool tapped = false;
+    final focusNode = FocusNode();
 
     await tester.pumpWidget(
       MaterialApp(
@@ -13,6 +14,7 @@ void main() {
           body: TvFocusable(
             onSelect: () => tapped = true,
             autofocus: true,
+            focusNode: focusNode,
             child: const Text('TV Item'),
           ),
         ),
@@ -21,7 +23,7 @@ void main() {
 
     // Default focus
     await tester.pump();
-    expect(FocusManager.instance.primaryFocus?.context?.widget is Focus, isTrue);
+    expect(focusNode.hasFocus, isTrue);
 
     // Send enter key (simulating generic selection, TV specific mapped later)
     await tester.sendKeyEvent(LogicalKeyboardKey.enter);
