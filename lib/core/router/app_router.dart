@@ -5,7 +5,9 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/domain/auth_state.dart';
 import '../../features/auth/presentation/login_page.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
+import '../../config/app_config.dart';
 import '../../features/home/presentation/home_page.dart';
+import '../../features/home/presentation/tv_home_page.dart';
 import '../../features/home/presentation/plugin_webview_page.dart';
 import '../../features/library/presentation/library_page.dart';
 import '../../features/playlist/presentation/playlists_page.dart';
@@ -106,7 +108,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.home,
             pageBuilder:
-                (context, state) => const NoTransitionPage(child: HomePage()),
+                (context, state) => NoTransitionPage(
+                  child: AppConfig.isTvMode
+                      ? const TvHomePage()
+                      : const HomePage(),
+                ),
           ),
 
           // 歌曲库

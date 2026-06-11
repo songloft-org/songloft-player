@@ -12,6 +12,7 @@ import 'package:windows_single_instance/windows_single_instance.dart';
 
 import 'config/app_config.dart';
 import 'core/audio/audio_service.dart';
+import 'core/env/tv_detector.dart';
 import 'core/storage/app_preferences.dart';
 import 'core/storage/secure_storage.dart';
 import 'core/theme/app_theme.dart';
@@ -60,6 +61,8 @@ void main(List<String> args) async {
     debugPrint('[PlatformError] $error\n$stack');
     return true;
   };
+
+  AppConfig.isTvMode = await TvDetector.isTv();
 
   if (AppConfig.isEmbedded) {
     // 嵌入模式：Flutter Web 嵌入 Go 后端，直接使用当前页面的 origin 作为后端 API 地址
