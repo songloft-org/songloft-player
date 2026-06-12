@@ -18,13 +18,15 @@ class ExcludeDirManager extends ConsumerStatefulWidget {
 }
 
 class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
-  // 当前选中的 Tab: 0=名称排除, 1=路径排除
+  // 当前选中的 Tab: 0=名称排除, 1=路径排除, 2=自动创建歌单排除
   int _selectedTab = 0;
 
   // 名称排除列表
   List<String> _excludeDirs = [];
   // 路径排除列表
   List<String> _excludePaths = [];
+  // 自动创建歌单排除目录列表
+  List<String> _autoCreateExcludeDirs = [];
   // 音乐根目录
   String _musicPath = '';
 
@@ -38,6 +40,7 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
 
   // 输入控制器
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _autoCreateExcludeController = TextEditingController();
 
   @override
   void initState() {
@@ -48,6 +51,7 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
   @override
   void dispose() {
     _nameController.dispose();
+    _autoCreateExcludeController.dispose();
     super.dispose();
   }
 
@@ -62,6 +66,7 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
         _musicPath = setting.path;
         _excludeDirs = List<String>.from(setting.excludeDirs);
         _excludePaths = List<String>.from(setting.excludePaths);
+        _autoCreateExcludeDirs = List<String>.from(setting.autoCreateExcludeDirs);
         _isLoading = false;
       });
 
@@ -122,6 +127,23 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
     });
   }
 
+  /// 添加自动创建歌单排除项
+  void _addAutoCreateExcludeDir(String name) {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty || _autoCreateExcludeDirs.contains(trimmed)) return;
+    setState(() {
+      _autoCreateExcludeDirs.add(trimmed);
+    });
+    _autoCreateExcludeController.clear();
+  }
+
+  /// 移除自动创建歌单排除项
+  void _removeAutoCreateExcludeDir(String name) {
+    setState(() {
+      _autoCreateExcludeDirs.remove(name);
+    });
+  }
+
   /// 保存排除配置
   Future<void> _saveConfig() async {
     setState(() => _isSaving = true);
@@ -135,6 +157,7 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
           path: current.path,
           excludeDirs: _excludeDirs,
           excludePaths: _excludePaths,
+          autoCreateExcludeDirs: _autoCreateExcludeDirs,
         ),
       );
 
@@ -189,6 +212,11 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
                 label: Text('路径排除'),
                 icon: Icon(Icons.folder_outlined),
               ),
+              ButtonSegment(
+                value: 2,
+                label: Text('歌单排除'),
+                icon: Icon(Icons.playlist_play),
+              ),
             ],
             selected: {_selectedTab},
             onSelectionChanged: (selected) {
@@ -201,6 +229,7 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
         // Tab 内容
         if (_selectedTab == 0) _buildNameExcludeTab(theme, colorScheme),
         if (_selectedTab == 1) _buildPathExcludeTab(theme, colorScheme),
+        if (_selectedTab == 2) _buildAutoCreateExcludeTab(theme, colorScheme),
 
         const SizedBox(height: AppSpacing.md),
 
@@ -424,6 +453,86 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
             }).toList(),
           ),
         ],
+      ],
+    );
+  }
+
+  /// 构建自动创建歌单排除 Tab
+  Widget _buildAutoCreateExcludeTab(ThemeData theme, ColorScheme colorScheme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 输入框
+        TextFormField(
+          controller: _autoCreateExcludeController,
+          decoration: InputDecoration(
+            labelText: '输入目录名称',
+            hintText: '输入并选择或按回车添加',
+            border: const OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.folder_outlined),
+            suffixIcon: IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: () {
+                if (_autoCreateExcludeController.text.trim().isNotEmpty) {
+                  _addAutoCreateExcludeDir(_autoCreateExcludeController.text);
+                }
+              },
+              tooltip: '添加',
+            ),
+          ),
+          onFieldSubmitted: (value) {
+            if (value.trim().isNotEmpty) {
+              _addAutoCreateExcludeDir(value);
+            }
+          },
+        ),
+        const SizedBox(height: AppSpacing.sm),
+
+        // 已排除的目录名称（InputChip）
+        if (_autoCreateExcludeDirs.isNotEmpty) ...[
+          Text(
+            '自动创建歌单时不纳入的目录:',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: _autoCreateExcludeDirs.map((name) {
+              return InputChip(
+                label: Text(name),
+                avatar: const Icon(Icons.folder_outlined, size: 18),
+                onDeleted: () => _removeAutoCreateExcludeDir(name),
+                deleteIconColor: colorScheme.onSurfaceVariant,
+              );
+            }).toList(),
+          ),
+        ],
+
+        const SizedBox(height: AppSpacing.xs),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+          child: Row(
+            children: [
+              Icon(
+                Icons.info_outline,
+                size: 14,
+                color: colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  '路径中任何层级包含该名称的目录都不会被自动创建歌单',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }

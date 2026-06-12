@@ -8,11 +8,13 @@ class MusicPathSetting {
   final String path;
   final List<String> excludeDirs;
   final List<String> excludePaths;
+  final List<String> autoCreateExcludeDirs;
 
   MusicPathSetting({
     required this.path,
     required this.excludeDirs,
     required this.excludePaths,
+    required this.autoCreateExcludeDirs,
   });
 
   factory MusicPathSetting.fromJson(Map<String, dynamic> json) {
@@ -24,6 +26,9 @@ class MusicPathSetting {
       excludePaths:
           (json['exclude_paths'] as List?)?.map((e) => e as String).toList() ??
           <String>[],
+      autoCreateExcludeDirs:
+          (json['auto_create_exclude_dirs'] as List?)?.map((e) => e as String).toList() ??
+          <String>[],
     );
   }
 
@@ -31,16 +36,19 @@ class MusicPathSetting {
     'path': path,
     'exclude_dirs': excludeDirs,
     'exclude_paths': excludePaths,
+    'auto_create_exclude_dirs': autoCreateExcludeDirs,
   };
 
   MusicPathSetting copyWith({
     String? path,
     List<String>? excludeDirs,
     List<String>? excludePaths,
+    List<String>? autoCreateExcludeDirs,
   }) => MusicPathSetting(
     path: path ?? this.path,
     excludeDirs: excludeDirs ?? this.excludeDirs,
     excludePaths: excludePaths ?? this.excludePaths,
+    autoCreateExcludeDirs: autoCreateExcludeDirs ?? this.autoCreateExcludeDirs,
   );
 }
 
