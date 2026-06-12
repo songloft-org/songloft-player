@@ -10,7 +10,9 @@ import io.flutter.plugin.common.MethodChannel
 import com.ryanheise.audioservice.AudioServiceActivity
 
 class MainActivity : AudioServiceActivity() {
-    private val CHANNEL = "com.songloft/tv_detector"
+    companion object {
+        private const val CHANNEL = "com.songloft/tv_detector"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -28,6 +28,8 @@ class TvHomePage extends StatelessWidget {
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   children: [
+                    // TODO: The target pages (library, playlists, settings) currently lack D-Pad focus optimization.
+                    // This will be implemented in subsequent phases of the TV adaptation.
                     _buildTvCard(context, '本地音乐', Icons.library_music, autofocus: true, onSelect: () => context.go(AppRoutes.library)),
                     const SizedBox(width: 24),
                     _buildTvCard(context, '播放列表', Icons.queue_music, onSelect: () => context.go(AppRoutes.playlists)),
