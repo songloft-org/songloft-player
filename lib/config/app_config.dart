@@ -18,6 +18,9 @@ class AppConfig {
   /// 编译时常量，tree-shaking 会移除未使用的分支代码
   static const bool isEmbedded = _kDeployMode == 'embedded';
 
+  /// 是否运行在电视系统上
+  static late final bool isTvMode;
+
   /// 前端版本号，通过 --dart-define=FRONTEND_VERSION=x.y.z 在构建时注入
   /// 本地开发时默认为 'dev'
   static const String frontendVersion =
