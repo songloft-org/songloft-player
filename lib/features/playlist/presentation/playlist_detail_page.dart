@@ -17,7 +17,6 @@ import '../../../shared/utils/responsive_snackbar.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/song_picker_modal.dart';
 import '../../player/presentation/providers/player_provider.dart';
-import '../data/playlist_api.dart';
 import '../domain/playlist.dart';
 import 'providers/playlist_provider.dart';
 import 'widgets/song_cover_picker_modal.dart';

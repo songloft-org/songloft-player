@@ -38,13 +38,22 @@ class UrlHelper {
   ///
   /// [songFormat] 歌曲原始格式（如 "wma"），用于判断当前平台是否需要转码。
   /// 当平台不支持该格式时自动追加 format 参数请求服务端转码。
-  static String buildSongUrl(String url, {String? songFormat}) {
-    final baseUrl = buildResourceUrl(url);
-    if (baseUrl.isEmpty) return '';
+  /// [quality] 音质偏好（'128'/'192'/'320'），非空且非 'original' 时追加 quality 参数。
+  static String buildSongUrl(
+    String url, {
+    String? songFormat,
+    String? quality,
+  }) {
+    var result = buildResourceUrl(url);
+    if (result.isEmpty) return '';
     final transcode = AudioFormatHelper.getTranscodeFormat(songFormat);
-    if (transcode == null) return baseUrl;
-    final sep = baseUrl.contains('?') ? '&' : '?';
-    return '$baseUrl${sep}format=$transcode';
+    if (transcode != null) {
+      result += '${result.contains('?') ? '&' : '?'}format=$transcode';
+    }
+    if (quality != null && quality.isNotEmpty && quality != 'original') {
+      result += '${result.contains('?') ? '&' : '?'}quality=$quality';
+    }
+    return result;
   }
 
   /// 构建封面图片 URL（兼容旧接口，内部调用 buildResourceUrl）

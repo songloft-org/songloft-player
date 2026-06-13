@@ -345,7 +345,7 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
   /// 自动把 url 填成 /api/v1/songs/{id}/play,按 type 分发到 ServeFile / Orchestrator /
   /// 直链下载 / 电台 302,客户端无需关心 type。
   /// URL 拼接（baseUrl + access_token）统一走 UrlHelper。
-  Future<void> playSong(Song song) async {
+  Future<void> playSong(Song song, {String? quality}) async {
     // 确保 stream listeners 已建立
     await _initFuture;
 
@@ -361,7 +361,11 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
       }
 
       // 原生平台无法携带 Authorization Header,UrlHelper 会自动拼接 baseUrl + access_token
-      final songUrl = UrlHelper.buildSongUrl(song.url!, songFormat: song.format);
+      final songUrl = UrlHelper.buildSongUrl(
+        song.url!,
+        songFormat: song.format,
+        quality: quality,
+      );
 
       debugPrint('[Player] SongloftAudioHandler: song url: $songUrl');
       // Web 平台 / 电台直播流使用 AudioSource.uri（直播流无法缓存）,

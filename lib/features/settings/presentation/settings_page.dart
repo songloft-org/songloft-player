@@ -51,6 +51,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       subtitle: '主题、菜单和显示',
     ),
     SettingsCategory(
+      icon: Icons.play_circle_outlined,
+      title: '播放设置',
+      subtitle: '音质',
+    ),
+    SettingsCategory(
       icon: Icons.library_music_outlined,
       title: '音乐库管理',
       subtitle: '扫描、导入和转换',
@@ -133,13 +138,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Widget _buildCategoryContent(int index) {
     final items = switch (index) {
       0 => _buildAppearanceItems(),
-      1 => _buildLibraryItems(),
-      2 => _buildExtensionsItems(),
-      3 => _buildCacheItems(),
-      4 => _buildNetworkItems(),
-      5 => _buildDataItems(),
-      6 => _buildAboutItems(),
-      7 => _buildAccountItems(),
+      1 => _buildPlaybackItems(),
+      2 => _buildLibraryItems(),
+      3 => _buildExtensionsItems(),
+      4 => _buildCacheItems(),
+      5 => _buildNetworkItems(),
+      6 => _buildDataItems(),
+      7 => _buildAboutItems(),
+      8 => _buildAccountItems(),
       _ => <Widget>[],
     };
 
@@ -294,6 +300,76 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       if (!mounted) return;
       ResponsiveSnackBar.showError(context, message: '保存失败: $e');
     }
+  }
+
+  // ── 播放设置 ──
+
+  List<Widget> _buildPlaybackItems() {
+    final quality = ref.watch(audioQualityProvider);
+    const labels = {
+      'original': '原始音质',
+      '128': '低 (128kbps)',
+      '192': '中 (192kbps)',
+      '320': '高 (320kbps)',
+    };
+    return [
+      SectionCard(
+        title: '播放设置',
+        icon: Icons.play_circle_outlined,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.high_quality_outlined),
+            title: const Text('音质'),
+            subtitle: Text(
+              labels[quality] ?? '原始音质',
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () async {
+              final picked = await showDialog<String>(
+                context: context,
+                builder: (ctx) => SimpleDialog(
+                  title: const Text('选择音质'),
+                  children: [
+                    RadioGroup<String>(
+                      groupValue: quality,
+                      onChanged: (v) => Navigator.pop(ctx, v),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: labels.entries
+                            .map(
+                              (e) => RadioListTile<String>(
+                                title: Text(e.value),
+                                subtitle: e.key == 'original'
+                                    ? const Text('不转码，使用文件原始码率')
+                                    : const Text('转码为 MP3，适合弱网环境'),
+                                value: e.key,
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+              if (picked == null || picked == quality) return;
+              try {
+                await ref
+                    .read(audioQualityProvider.notifier)
+                    .setQuality(picked);
+                if (!mounted) return;
+                ResponsiveSnackBar.show(
+                  context,
+                  message: '音质已切换为${labels[picked]}',
+                );
+              } catch (e) {
+                if (!mounted) return;
+                ResponsiveSnackBar.showError(context, message: '切换失败: $e');
+              }
+            },
+          ),
+        ],
+      ),
+    ];
   }
 
   // ── 音乐库管理 ──

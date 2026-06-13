@@ -1367,7 +1367,9 @@ class PlayerNotifier extends Notifier<PlayerState> {
         await _secureStorage.getAccessToken();
         if (_isSuperseded(gen, 'after-token')) return;
         debugPrint('[Player] _playCurrent: calling audioHandler.playSong');
-        await _audioHandler.playSong(song);
+        final prefs = await ref.read(appPreferencesProvider.future);
+        final quality = prefs.getAudioQuality();
+        await _audioHandler.playSong(song, quality: quality);
         if (_isSuperseded(gen, 'after-playSong')) return;
         // 移动平台：音量由系统控制，just_audio 固定最大
         // 桌面/Web：使用 just_audio 播放器音量
@@ -1513,19 +1515,23 @@ class PlayerNotifier extends Notifier<PlayerState> {
     // 平台感知的转码目标：当前平台不能原生解码该格式时返回 'mp3'，否则 null。
     final targetFormat = AudioFormatHelper.getTranscodeFormat(nextSong.format);
     final isLocal = nextSong.type == 'local';
+    final prefs = await ref.read(appPreferencesProvider.future);
+    final quality = prefs.getAudioQuality();
+    final needsQualityTranscode =
+        quality != 'original' && quality.isNotEmpty;
 
-    // 本地歌曲且无需转码 → 无意义预热（本地文件随时可读）
-    if (isLocal && targetFormat == null) return;
+    // 本地歌曲且无需转码且无音质转码 → 无意义预热（本地文件随时可读）
+    if (isLocal && targetFormat == null && !needsQualityTranscode) return;
 
     // 取消之前的预加载
     _prefetchCancelToken?.cancel('new prefetch');
     _prefetchCancelToken = CancelToken();
 
     try {
-      // UrlHelper.buildSongUrl 会根据平台自动追加 format= 参数（需转码时）
       final songUrl = UrlHelper.buildSongUrl(
         nextSong.url!,
         songFormat: nextSong.format,
+        quality: quality,
       );
       final separator = songUrl.contains('?') ? '&' : '?';
       final prefetchUrl = '$songUrl${separator}prefetch=1';

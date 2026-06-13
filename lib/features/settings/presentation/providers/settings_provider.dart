@@ -649,3 +649,38 @@ final upgradeProgressProvider =
     NotifierProvider<UpgradeProgressNotifier, UpgradeProgress>(
       UpgradeProgressNotifier.new,
     );
+
+// ============================================================================
+// Audio Quality Provider (客户端本地偏好)
+// ============================================================================
+
+/// 音质偏好 Notifier
+class AudioQualityNotifier extends Notifier<String> {
+  @override
+  String build() {
+    _load();
+    return 'original';
+  }
+
+  Future<void> _load() async {
+    try {
+      final prefs = await ref.read(appPreferencesProvider.future);
+      state = prefs.getAudioQuality();
+    } catch (_) {
+      state = 'original';
+    }
+  }
+
+  Future<void> setQuality(String quality) async {
+    state = quality;
+    try {
+      final prefs = await ref.read(appPreferencesProvider.future);
+      await prefs.setAudioQuality(quality);
+    } catch (_) {}
+  }
+}
+
+/// 音质偏好 Provider
+final audioQualityProvider = NotifierProvider<AudioQualityNotifier, String>(
+  AudioQualityNotifier.new,
+);

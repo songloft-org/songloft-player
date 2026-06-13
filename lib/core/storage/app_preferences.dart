@@ -199,6 +199,19 @@ class AppPreferences {
   }
 
   /// 本地缓存大小上限 key
+  static const _audioQualityKey = 'player_audio_quality';
+
+  /// 获取音质偏好
+  /// 返回 'original'(默认)、'128'、'192'、'320'
+  String getAudioQuality() {
+    return _prefs.getString(_audioQualityKey) ?? 'original';
+  }
+
+  /// 设置音质偏好
+  Future<bool> setAudioQuality(String quality) {
+    return _prefs.setString(_audioQualityKey, quality);
+  }
+
   static const _localCacheMaxSizeKey = 'local_cache_max_size';
 
   /// 获取本地缓存大小上限（字节），默认 1 GB，0 表示不限制
