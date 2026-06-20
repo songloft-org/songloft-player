@@ -22,6 +22,9 @@ class FrontendVersionCheck {
   /// 发布时间
   final DateTime? publishedAt;
 
+  /// Release 资源列表（各平台安装包下载地址）
+  final List<ReleaseAsset> assets;
+
   FrontendVersionCheck({
     required this.hasUpdate,
     required this.currentVersion,
@@ -29,11 +32,25 @@ class FrontendVersionCheck {
     required this.releaseUrl,
     this.releaseNotes,
     this.publishedAt,
+    this.assets = const [],
   });
 
   @override
   String toString() =>
       'FrontendVersionCheck(hasUpdate: $hasUpdate, current: $currentVersion, latest: $latestVersion)';
+}
+
+/// GitHub Release 资源文件
+class ReleaseAsset {
+  final String name;
+  final String downloadUrl;
+  final int size;
+
+  const ReleaseAsset({
+    required this.name,
+    required this.downloadUrl,
+    required this.size,
+  });
 }
 
 /// 前端版本检测 API
@@ -57,9 +74,11 @@ class FrontendVersionApi {
           );
 
   /// 检查前端是否有新版本
-  Future<FrontendVersionCheck> checkUpdate() async {
+  /// [githubProxy] 可选的 GitHub 代理前缀（如 https://ghproxy.com/）
+  Future<FrontendVersionCheck> checkUpdate({String? githubProxy}) async {
     try {
-      final response = await _dio.get(_apiUrl);
+      final url = _applyProxy(_apiUrl, githubProxy);
+      final response = await _dio.get(url);
       final data = response.data as Map<String, dynamic>;
 
       // 解析 tag_name，去掉 v 前缀
@@ -82,6 +101,9 @@ class FrontendVersionApi {
       final releaseUrl =
           data['html_url'] as String? ?? AppConfig.frontendReleasesUrl;
 
+      // 解析资源列表
+      final assets = _parseAssets(data['assets']);
+
       // 判断是否有更新
       final hasUpdate = _isNewerVersion(currentVersion, latestVersion);
 
@@ -92,12 +114,42 @@ class FrontendVersionApi {
         releaseUrl: releaseUrl,
         releaseNotes: releaseNotes,
         publishedAt: publishedAt,
+        assets: assets,
       );
     } on DioException catch (e) {
       throw Exception('检查前端更新失败: ${e.message}');
     } catch (e) {
       throw Exception('检查前端更新失败: $e');
     }
+  }
+
+  /// 对 URL 拼接代理前缀
+  static String _applyProxy(String rawUrl, String? proxyPrefix) {
+    if (proxyPrefix == null || proxyPrefix.isEmpty) return rawUrl;
+    final prefix =
+        proxyPrefix.endsWith('/') ? proxyPrefix : '$proxyPrefix/';
+    return '$prefix$rawUrl';
+  }
+
+  /// 对外暴露的代理拼接方法，供 UI 层使用
+  static String applyProxy(String rawUrl, String? proxyPrefix) {
+    return _applyProxy(rawUrl, proxyPrefix);
+  }
+
+  /// 解析 GitHub Release 的 assets 列表
+  static List<ReleaseAsset> _parseAssets(dynamic assetsData) {
+    if (assetsData is! List) return [];
+    return assetsData
+        .whereType<Map<String, dynamic>>()
+        .map(
+          (a) => ReleaseAsset(
+            name: a['name'] as String? ?? '',
+            downloadUrl: a['browser_download_url'] as String? ?? '',
+            size: a['size'] as int? ?? 0,
+          ),
+        )
+        .where((a) => a.downloadUrl.isNotEmpty)
+        .toList();
   }
 
   /// 去掉版本号前缀 v/V

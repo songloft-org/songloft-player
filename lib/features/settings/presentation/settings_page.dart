@@ -741,16 +741,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     color: Theme.of(context).colorScheme.primary,
                   )
                   : const Icon(Icons.chevron_right),
-          onTap: () {
-            if (check.hasUpdate) {
-              FrontendUpgradeDialog.show(context, versionCheck: check);
-            } else {
-              ResponsiveSnackBar.show(
-                context,
-                message: '当前已是最新版本 $versionDisplay',
-              );
-            }
-          },
+          onTap: () => FrontendUpgradeDialog.show(context),
         );
       },
       loading:
@@ -770,7 +761,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             title: const Text('检查客户端更新'),
             subtitle: Text('当前版本: $versionDisplay'),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => ref.invalidate(frontendVersionCheckProvider),
+            onTap: () => FrontendUpgradeDialog.show(context),
           ),
     );
   }
