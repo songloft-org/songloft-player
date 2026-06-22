@@ -83,11 +83,13 @@ class PluginRegistryConfig {
   final String url;
   final String name;
   final bool enabled;
+  final String token;
 
   PluginRegistryConfig({
     required this.url,
     required this.name,
     this.enabled = true,
+    this.token = '',
   });
 
   factory PluginRegistryConfig.fromJson(Map<String, dynamic> json) {
@@ -95,6 +97,7 @@ class PluginRegistryConfig {
       url: json['url'] as String? ?? '',
       name: json['name'] as String? ?? '',
       enabled: json['enabled'] as bool? ?? true,
+      token: json['token'] as String? ?? '',
     );
   }
 
@@ -102,13 +105,20 @@ class PluginRegistryConfig {
     'url': url,
     'name': name,
     'enabled': enabled,
+    if (token.isNotEmpty) 'token': token,
   };
 
-  PluginRegistryConfig copyWith({String? url, String? name, bool? enabled}) =>
+  PluginRegistryConfig copyWith({
+    String? url,
+    String? name,
+    bool? enabled,
+    String? token,
+  }) =>
       PluginRegistryConfig(
         url: url ?? this.url,
         name: name ?? this.name,
         enabled: enabled ?? this.enabled,
+        token: token ?? this.token,
       );
 }
 

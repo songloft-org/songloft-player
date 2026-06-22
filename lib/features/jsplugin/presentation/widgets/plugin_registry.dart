@@ -123,6 +123,9 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
         pageSize: _pageSize,
         search: _searchText.isEmpty ? null : _searchText,
         githubProxy: _effectiveProxy.isEmpty ? null : _effectiveProxy,
+        token: _selectedRegistry!.token.isEmpty
+            ? null
+            : _selectedRegistry!.token,
       );
       if (!mounted) return;
       setState(() {
@@ -444,6 +447,7 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
                 _RegistryPluginItem(
                   entry: plugins[index],
                   githubProxy: _effectiveProxy,
+                  token: _selectedRegistry?.token ?? '',
                   onInstalled: () {
                     _refreshPlugins();
                     ref.invalidate(jsPluginsProvider);
@@ -557,11 +561,13 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
 class _RegistryPluginItem extends ConsumerStatefulWidget {
   final RegistryPluginEntry entry;
   final String githubProxy;
+  final String token;
   final VoidCallback onInstalled;
 
   const _RegistryPluginItem({
     required this.entry,
     required this.githubProxy,
+    this.token = '',
     required this.onInstalled,
   });
 
@@ -580,6 +586,7 @@ class _RegistryPluginItemState extends ConsumerState<_RegistryPluginItem> {
       final result = await api.installFromRegistry(
         downloadUrl: widget.entry.downloadUrl,
         githubProxy: widget.githubProxy.isEmpty ? null : widget.githubProxy,
+        token: widget.token.isEmpty ? null : widget.token,
       );
       if (!mounted) return;
       if (result.success > 0) {
@@ -756,12 +763,41 @@ class _RegistryManagementDialogState
   }
 
   void _addRegistry() {
-    final urlController = TextEditingController();
-    final nameController = TextEditingController();
+    _showRegistryEditDialog();
+  }
+
+  void _editRegistry(int index) {
+    final r = _registries[index];
+    _showRegistryEditDialog(
+      initialUrl: r.url,
+      initialName: r.name,
+      initialToken: r.token,
+      onSave: (url, name, token) {
+        setState(() {
+          _registries[index] = r.copyWith(
+            url: url,
+            name: name,
+            token: token,
+          );
+        });
+      },
+    );
+  }
+
+  void _showRegistryEditDialog({
+    String initialUrl = '',
+    String initialName = '',
+    String initialToken = '',
+    void Function(String url, String name, String token)? onSave,
+  }) {
+    final urlController = TextEditingController(text: initialUrl);
+    final nameController = TextEditingController(text: initialName);
+    final tokenController = TextEditingController(text: initialToken);
+    final isEdit = onSave != null;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('添加订阅源'),
+        title: Text(isEdit ? '编辑订阅源' : '添加订阅源'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -772,14 +808,24 @@ class _RegistryManagementDialogState
                 hintText: 'https://example.com/registry.json',
                 border: OutlineInputBorder(),
               ),
-              autofocus: true,
+              autofocus: !isEdit,
             ),
             const SizedBox(height: 12),
             TextField(
               controller: nameController,
               decoration: const InputDecoration(
                 labelText: '名称（可选）',
-                hintText: '官方插件',
+                hintText: '我的插件源',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: tokenController,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: 'Token（可选）',
+                hintText: 'Bearer Token / GitHub PAT',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -794,16 +840,25 @@ class _RegistryManagementDialogState
             onPressed: () {
               final url = urlController.text.trim();
               if (url.isEmpty) return;
-              setState(() {
-                _registries.add(PluginRegistryConfig(
-                  url: url,
-                  name: nameController.text.trim(),
-                  enabled: true,
-                ));
-              });
+              if (isEdit) {
+                onSave(
+                  url,
+                  nameController.text.trim(),
+                  tokenController.text.trim(),
+                );
+              } else {
+                setState(() {
+                  _registries.add(PluginRegistryConfig(
+                    url: url,
+                    name: nameController.text.trim(),
+                    enabled: true,
+                    token: tokenController.text.trim(),
+                  ));
+                });
+              }
               Navigator.of(ctx).pop();
             },
-            child: const Text('添加'),
+            child: Text(isEdit ? '保存' : '添加'),
           ),
         ],
       ),
@@ -874,6 +929,19 @@ class _RegistryManagementDialogState
                               ),
                             ),
                           ],
+                          if (r.token.isNotEmpty) ...[
+                            const SizedBox(width: 6),
+                            Tooltip(
+                              message: '已配置认证',
+                              child: Icon(
+                                Icons.lock_outline,
+                                size: 14,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .outline,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                       subtitle: r.name.isNotEmpty
@@ -884,12 +952,22 @@ class _RegistryManagementDialogState
                               style: Theme.of(context).textTheme.bodySmall,
                             )
                           : null,
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete_outline),
-                        tooltip: '删除订阅源',
-                        onPressed: () {
-                          setState(() => _registries.removeAt(index));
-                        },
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit_outlined),
+                            tooltip: '编辑订阅源',
+                            onPressed: () => _editRegistry(index),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline),
+                            tooltip: '删除订阅源',
+                            onPressed: () {
+                              setState(() => _registries.removeAt(index));
+                            },
+                          ),
+                        ],
                       ),
                     );
                   },

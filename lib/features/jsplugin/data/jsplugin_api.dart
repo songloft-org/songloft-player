@@ -509,6 +509,7 @@ class JSPluginApi {
     int pageSize = 20,
     String? search,
     String? githubProxy,
+    String? token,
   }) async {
     try {
       final body = <String, dynamic>{
@@ -521,6 +522,9 @@ class JSPluginApi {
       }
       if (githubProxy != null && githubProxy.isNotEmpty) {
         body['github_proxy'] = githubProxy;
+      }
+      if (token != null && token.isNotEmpty) {
+        body['token'] = token;
       }
       final response = await dio.post(
         '${AppConfig.apiPrefix}/jsplugins/registry/refresh',
@@ -539,11 +543,15 @@ class JSPluginApi {
   Future<JSPluginUploadResponse> installFromRegistry({
     required String downloadUrl,
     String? githubProxy,
+    String? token,
   }) async {
     try {
       final body = <String, dynamic>{'download_url': downloadUrl};
       if (githubProxy != null && githubProxy.isNotEmpty) {
         body['github_proxy'] = githubProxy;
+      }
+      if (token != null && token.isNotEmpty) {
+        body['token'] = token;
       }
       final response = await dio.post(
         '${AppConfig.apiPrefix}/jsplugins/registry/install',
