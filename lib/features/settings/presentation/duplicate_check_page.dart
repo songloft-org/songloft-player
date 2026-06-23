@@ -30,6 +30,7 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
 
   // key = group index, value = selected song id (to keep)
   final Map<int, int> _selectedKeep = {};
+  final Set<int> _ignoredGroups = {};
 
   @override
   void initState() {
@@ -123,6 +124,7 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
       final result = await api.getDuplicates();
       if (!mounted) return;
       _selectedKeep.clear();
+      _ignoredGroups.clear();
       for (int i = 0; i < result.groups.length; i++) {
         _selectedKeep[i] = _recommendedSongId(result.groups[i]);
       }
@@ -180,6 +182,7 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
 
     final allToDelete = <int>[];
     for (int i = 0; i < _duplicates!.groups.length; i++) {
+      if (_ignoredGroups.contains(i)) continue;
       final group = _duplicates!.groups[i];
       final keepId = _selectedKeep[i] ?? _recommendedSongId(group);
       for (final s in group.songs) {
@@ -485,6 +488,7 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
   Widget _buildResultsSummary(DuplicatesResult duplicates) {
     final colorScheme = Theme.of(context).colorScheme;
     final totalToDelete = _countTotalToDelete();
+    final ignoredCount = _ignoredGroups.length;
 
     return Card(
       elevation: 0,
@@ -503,6 +507,15 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
                 color: colorScheme.onSecondaryContainer,
               ),
             ),
+            if (ignoredCount > 0) ...[
+              const SizedBox(height: 4),
+              Text(
+                '已忽略 $ignoredCount 组',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSecondaryContainer,
+                ),
+              ),
+            ],
             if (totalToDelete > 0) ...[
               const SizedBox(height: 12),
               SizedBox(
@@ -528,6 +541,7 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
     if (_duplicates == null) return 0;
     int count = 0;
     for (int i = 0; i < _duplicates!.groups.length; i++) {
+      if (_ignoredGroups.contains(i)) continue;
       final keepId = _selectedKeep[i] ?? _recommendedSongId(_duplicates!.groups[i]);
       count += _duplicates!.groups[i].songs.where((s) => s.id != keepId).length;
     }
@@ -539,52 +553,81 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
     final theme = Theme.of(context);
     final keepId = _selectedKeep[groupIndex] ?? _recommendedSongId(group);
     final recommendedId = _recommendedSongId(group);
+    final isIgnored = _ignoredGroups.contains(groupIndex);
 
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.sm),
-        side: BorderSide(color: colorScheme.outlineVariant),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '重复组 ${groupIndex + 1}',
-              style: theme.textTheme.titleSmall?.copyWith(
-                color: colorScheme.primary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            RadioGroup<int>(
-              groupValue: keepId,
-              onChanged: (v) {
-                if (v != null) setState(() => _selectedKeep[groupIndex] = v);
-              },
-              child: Column(
+    return Opacity(
+      opacity: isIgnored ? 0.5 : 1.0,
+      child: Card(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+          side: BorderSide(color: colorScheme.outlineVariant),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  for (final song in group.songs) ...[
-                    _buildSongTile(groupIndex, song, keepId, recommendedId),
-                    if (song != group.songs.last) const Divider(height: 1),
-                  ],
+                  Expanded(
+                    child: Text(
+                      '重复组 ${groupIndex + 1}',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      setState(() {
+                        if (isIgnored) {
+                          _ignoredGroups.remove(groupIndex);
+                        } else {
+                          _ignoredGroups.add(groupIndex);
+                        }
+                      });
+                    },
+                    icon: Icon(
+                      isIgnored ? Icons.visibility : Icons.visibility_off,
+                      size: 20,
+                    ),
+                    tooltip: isIgnored ? '取消忽略' : '忽略此组',
+                    visualDensity: VisualDensity.compact,
+                  ),
                 ],
               ),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () => _deleteGroupDuplicates(groupIndex),
-                icon: Icon(Icons.delete_outline, color: colorScheme.error),
-                label: Text(
-                  '删除未选中',
-                  style: TextStyle(color: colorScheme.error),
+              if (!isIgnored) ...[
+                const SizedBox(height: 8),
+                RadioGroup<int>(
+                  groupValue: keepId,
+                  onChanged: (v) {
+                    if (v != null) setState(() => _selectedKeep[groupIndex] = v);
+                  },
+                  child: Column(
+                    children: [
+                      for (final song in group.songs) ...[
+                        _buildSongTile(groupIndex, song, keepId, recommendedId),
+                        if (song != group.songs.last) const Divider(height: 1),
+                      ],
+                    ],
+                  ),
                 ),
-              ),
-            ),
-          ],
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => _deleteGroupDuplicates(groupIndex),
+                    icon: Icon(Icons.delete_outline, color: colorScheme.error),
+                    label: Text(
+                      '删除未选中',
+                      style: TextStyle(color: colorScheme.error),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );
