@@ -558,6 +558,31 @@ class SettingsApi {
     }
   }
 
+  // ---------- 网络歌曲标题来源 ----------
+
+  Future<String> getRemoteTitleSource() async {
+    try {
+      final response = await dio.get(
+        '${AppConfig.apiPrefix}/settings/remote-title-source',
+      );
+      final data = response.data as Map<String, dynamic>;
+      return data['title_source'] as String? ?? 'filename';
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  Future<void> setRemoteTitleSource(String titleSource) async {
+    try {
+      await dio.put(
+        '${AppConfig.apiPrefix}/settings/remote-title-source',
+        data: {'title_source': titleSource},
+      );
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
   // ---------- 刷新远程歌曲元数据 ----------
 
   Future<void> startMetadataRefresh() async {

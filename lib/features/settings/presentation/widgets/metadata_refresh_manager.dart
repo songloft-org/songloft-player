@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../shared/utils/responsive_snackbar.dart';
 import '../../data/settings_api.dart';
 import '../providers/settings_provider.dart';
 
@@ -27,13 +28,61 @@ class _MetadataRefreshManagerState
     final progress = ref.watch(metadataRefreshProvider);
     final theme = Theme.of(context);
 
+    Widget refreshTile;
     if (progress.isRunning) {
-      return _buildRunningState(progress, theme);
+      refreshTile = _buildRunningState(progress, theme);
+    } else if (progress.isDone && progress.total > 0) {
+      refreshTile = _buildDoneState(progress, theme);
+    } else {
+      refreshTile = _buildIdleState(theme);
     }
-    if (progress.isDone && progress.total > 0) {
-      return _buildDoneState(progress, theme);
-    }
-    return _buildIdleState(theme);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _buildRemoteTitleSourceTile(theme),
+        refreshTile,
+      ],
+    );
+  }
+
+  Widget _buildRemoteTitleSourceTile(ThemeData theme) {
+    final asyncValue = ref.watch(remoteTitleSourceProvider);
+    final isTag = (asyncValue.value ?? 'filename') == 'tag';
+
+    return SwitchListTile(
+      secondary: Icon(
+        Icons.title_outlined,
+        color: theme.colorScheme.onSurfaceVariant,
+      ),
+      title: const Text('使用标签覆盖标题'),
+      subtitle: Text(
+        isTag ? '网络歌曲元数据刷新时用音频标签覆盖标题' : '网络歌曲标题保持文件名，不使用标签覆盖',
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      ),
+      value: isTag,
+      onChanged: asyncValue.isLoading
+          ? null
+          : (value) async {
+              try {
+                await ref
+                    .read(remoteTitleSourceProvider.notifier)
+                    .setValue(value ? 'tag' : 'filename');
+                if (mounted) {
+                  ResponsiveSnackBar.show(context, message: '已保存');
+                }
+              } catch (e) {
+                if (mounted) {
+                  ResponsiveSnackBar.showError(
+                    context,
+                    message: '保存失败: $e',
+                  );
+                }
+              }
+            },
+    );
   }
 
   Widget _buildIdleState(ThemeData theme) {

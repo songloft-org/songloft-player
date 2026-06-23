@@ -689,6 +689,40 @@ final audioQualityProvider = NotifierProvider<AudioQualityNotifier, String>(
 );
 
 // ============================================================================
+// 网络歌曲标题来源 Provider
+// ============================================================================
+
+/// 业务端点：GET/PUT /api/v1/settings/remote-title-source
+class RemoteTitleSourceNotifier extends AsyncNotifier<String> {
+  @override
+  Future<String> build() async {
+    final api = ref.watch(settingsApiProvider);
+    try {
+      return await api.getRemoteTitleSource();
+    } catch (_) {
+      return 'filename';
+    }
+  }
+
+  Future<void> setValue(String value) async {
+    final previous = state.value ?? 'filename';
+    state = AsyncValue.data(value);
+    try {
+      final api = ref.read(settingsApiProvider);
+      await api.setRemoteTitleSource(value);
+    } catch (_) {
+      state = AsyncValue.data(previous);
+      rethrow;
+    }
+  }
+}
+
+final remoteTitleSourceProvider =
+    AsyncNotifierProvider<RemoteTitleSourceNotifier, String>(
+      RemoteTitleSourceNotifier.new,
+    );
+
+// ============================================================================
 // Metadata Refresh Provider
 // ============================================================================
 
