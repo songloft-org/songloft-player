@@ -89,24 +89,40 @@ class _FilterChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Material(
-      color: isSelected
-          ? colorScheme.primaryContainer
-          : colorScheme.surfaceContainerHighest,
-      borderRadius: BorderRadius.circular(8),
+      color: isSelected ? colorScheme.secondaryContainer : Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(100),
+        side: isSelected
+            ? BorderSide.none
+            : BorderSide(color: colorScheme.outline),
+      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(100),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              color: isSelected
-                  ? colorScheme.onPrimaryContainer
-                  : colorScheme.onSurfaceVariant,
-              fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
-            ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (isSelected) ...[
+                Icon(
+                  Icons.check,
+                  size: 16,
+                  color: colorScheme.onSecondaryContainer,
+                ),
+                const SizedBox(width: 4),
+              ],
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: isSelected
+                      ? colorScheme.onSecondaryContainer
+                      : colorScheme.onSurfaceVariant,
+                  fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
+                ),
+              ),
+            ],
           ),
         ),
       ),

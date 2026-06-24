@@ -60,7 +60,10 @@ class SongListTile extends ConsumerWidget {
     final coverUrl = song.coverUrl;
 
     return ListTile(
-      tileColor: isCurrentSong ? colorScheme.primaryContainer.withValues(alpha: 0.3) : null,
+      tileColor: isCurrentSong ? colorScheme.secondaryContainer : null,
+      shape: isCurrentSong
+          ? RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
+          : null,
       leading:
           isSelectionMode
               ? Checkbox(value: isSelected, onChanged: (_) => onSelect?.call())
@@ -97,15 +100,16 @@ class SongListTile extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isCurrentSong
-              ? colorScheme.primaryContainer.withValues(alpha: 0.3)
-              : null,
-          border: Border(
-            bottom: BorderSide(
-              color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-              width: 0.5,
-            ),
-          ),
+          color: isCurrentSong ? colorScheme.secondaryContainer : null,
+          borderRadius: isCurrentSong ? BorderRadius.circular(12) : null,
+          border: isCurrentSong
+              ? null
+              : Border(
+                  bottom: BorderSide(
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                    width: 0.5,
+                  ),
+                ),
         ),
         child: Row(
           children: [
