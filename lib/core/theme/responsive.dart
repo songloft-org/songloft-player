@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum ScreenType { mobile, tablet, desktop, tv }
+enum ScreenType { mobile, tablet, desktop, auto_, tv }
 
 class ResponsiveBreakpoints {
   static const double mobile = 0;
@@ -22,7 +22,16 @@ extension ResponsiveContext on BuildContext {
       screenWidth < ResponsiveBreakpoints.tv;
   bool get isTv => screenWidth >= ResponsiveBreakpoints.tv;
 
+  /// 车机模式：宽度 >= 900 且宽高比 > 2.2:1（横向超宽屏幕）
+  bool get isAuto {
+    if (screenWidth < ResponsiveBreakpoints.desktop) return false;
+    if (screenHeight <= 0) return false;
+    return screenWidth / screenHeight > 2.2;
+  }
+
   ScreenType get screenType {
+    // 车机模式优先于其他宽屏断点（desktop/tv），因为它靠宽高比区分
+    if (isAuto) return ScreenType.auto_;
     if (isTv) return ScreenType.tv;
     if (isDesktop) return ScreenType.desktop;
     if (isTablet) return ScreenType.tablet;
@@ -38,10 +47,18 @@ extension ResponsiveContext on BuildContext {
   bool get isWideScreen => screenWidth >= ResponsiveBreakpoints.tablet;
 
   /// 根据屏幕类型返回不同值
-  T responsive<T>({required T mobile, T? tablet, T? desktop, T? tv}) {
+  T responsive<T>({
+    required T mobile,
+    T? tablet,
+    T? desktop,
+    T? auto_,
+    T? tv,
+  }) {
     switch (screenType) {
       case ScreenType.tv:
         return tv ?? desktop ?? tablet ?? mobile;
+      case ScreenType.auto_:
+        return auto_ ?? desktop ?? tablet ?? mobile;
       case ScreenType.desktop:
         return desktop ?? tablet ?? mobile;
       case ScreenType.tablet:
@@ -56,6 +73,8 @@ extension ResponsiveContext on BuildContext {
     switch (screenType) {
       case ScreenType.tv:
         return const Size(120, 56);
+      case ScreenType.auto_:
+        return const Size(112, 56);
       case ScreenType.desktop:
         return const Size(88, 44);
       case ScreenType.tablet:
@@ -70,6 +89,8 @@ extension ResponsiveContext on BuildContext {
     switch (screenType) {
       case ScreenType.tv:
         return 600;
+      case ScreenType.auto_:
+        return 420;
       case ScreenType.desktop:
         return 480;
       case ScreenType.tablet:

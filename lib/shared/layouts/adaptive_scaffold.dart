@@ -48,6 +48,8 @@ class AdaptiveScaffold extends StatelessWidget {
         return _buildTabletLayout(context);
       case ScreenType.desktop:
         return _buildDesktopLayout(context);
+      case ScreenType.auto_:
+        return _buildAutoLayout(context);
       case ScreenType.tv:
         return _buildTvLayout(context);
     }
@@ -253,10 +255,13 @@ class AdaptiveScaffold extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      Icon(
-                        Icons.music_note,
-                        size: 32,
-                        color: colorScheme.primary,
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.asset(
+                          'assets/icons/app_icon.png',
+                          width: 32,
+                          height: 32,
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Text(
@@ -343,6 +348,23 @@ class AdaptiveScaffold extends StatelessWidget {
     );
   }
 
+  /// Auto/Car: 左侧 Dock 导航布局（宽高比 > 2.2 的超宽屏幕）
+  Widget _buildAutoLayout(BuildContext context) {
+    return Scaffold(
+      body: Row(
+        children: [
+          _AutoDock(
+            destinations: destinations,
+            currentIndex: currentIndex,
+            onDestinationSelected: onDestinationSelected,
+          ),
+          const VerticalDivider(thickness: 1, width: 1),
+          Expanded(child: body),
+        ],
+      ),
+    );
+  }
+
   /// TV: 顶部 Tab 导航布局
   Widget _buildTvLayout(BuildContext context) {
     final theme = Theme.of(context);
@@ -380,7 +402,14 @@ class AdaptiveScaffold extends StatelessWidget {
               child: Row(
                 children: [
                   // Logo 和标题
-                  Icon(Icons.music_note, size: 40, color: colorScheme.primary),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.asset(
+                      'assets/icons/app_icon.png',
+                      width: 40,
+                      height: 40,
+                    ),
+                  ),
                   const SizedBox(width: 16),
                   Text(
                     'Songloft',
@@ -597,6 +626,107 @@ class _TvNavButtonState extends State<_TvNavButton> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Auto/Car 模式左侧 Dock 导航组件
+///
+/// 140px 宽的垂直导航栏，顶部 Logo，下方导航项（图标+标签），
+/// 适配车机超宽屏幕，大触控目标（最小 56dp 高度）。
+class _AutoDock extends StatelessWidget {
+  final List<NavDestination> destinations;
+  final int currentIndex;
+  final ValueChanged<int> onDestinationSelected;
+
+  static const double _dockWidth = 140;
+  static const double _itemHeight = 60;
+
+  const _AutoDock({
+    required this.destinations,
+    required this.currentIndex,
+    required this.onDestinationSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      width: _dockWidth,
+      color: colorScheme.surfaceContainerLow,
+      child: Column(
+        children: [
+          // Logo 区域
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.asset(
+                'assets/icons/app_icon.png',
+                width: 48,
+                height: 48,
+              ),
+            ),
+          ),
+          // 导航项列表
+          Expanded(
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+              itemCount: destinations.length,
+              separatorBuilder: (_, _) => const SizedBox(height: 4),
+              itemBuilder: (context, index) {
+                final dest = destinations[index];
+                final isSelected = index == currentIndex;
+                return Material(
+                  color: isSelected
+                      ? colorScheme.secondaryContainer
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(16),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () => onDestinationSelected(index),
+                    child: SizedBox(
+                      height: _itemHeight,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconTheme(
+                            data: IconThemeData(
+                              size: 26,
+                              color: isSelected
+                                  ? colorScheme.onSecondaryContainer
+                                  : colorScheme.onSurfaceVariant,
+                            ),
+                            child: isSelected
+                                ? dest.selectedIcon
+                                : dest.icon,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            dest.label,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: isSelected
+                                  ? colorScheme.onSecondaryContainer
+                                  : colorScheme.onSurfaceVariant,
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.normal,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

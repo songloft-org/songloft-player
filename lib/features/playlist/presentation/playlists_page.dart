@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../config/constants.dart';
+import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/responsive.dart';
 import '../../../core/utils/url_helper.dart';
 import '../../../shared/utils/responsive_snackbar.dart';
@@ -274,13 +275,24 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
                 onRefresh: () async {
                   ref.invalidate(playlistListProvider(_selectedType));
                 },
-                child: CustomScrollView(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1200),
+                    child: CustomScrollView(
                   controller: _scrollController,
                   slivers: [
                     // 类型筛选
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.all(16),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: context.responsive<double>(
+                            mobile: AppSpacing.md,
+                            tablet: AppSpacing.lg,
+                            desktop: AppSpacing.xl,
+                            tv: AppSpacing.xxl,
+                          ),
+                          vertical: AppSpacing.md,
+                        ),
                         child: SegmentedButton<String?>(
                           segments: const [
                             ButtonSegment(
@@ -340,6 +352,8 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
                       ),
                     ),
                   ],
+                ),
+                  ),
                 ),
               ),
     );
@@ -724,14 +738,26 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
       desktop: 4,
       tv: 5,
     );
+    final gridSpacing = context.responsive<double>(
+      mobile: AppSpacing.md,
+      tablet: AppSpacing.md,
+      desktop: AppSpacing.lg,
+      tv: AppSpacing.xl,
+    );
+    final horizontalPadding = context.responsive<double>(
+      mobile: AppSpacing.md,
+      tablet: AppSpacing.lg,
+      desktop: AppSpacing.xl,
+      tv: AppSpacing.xxl,
+    );
 
     return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
       sliver: SliverGrid(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: crossAxisCount,
-          mainAxisSpacing: 16,
-          crossAxisSpacing: 16,
+          mainAxisSpacing: gridSpacing,
+          crossAxisSpacing: gridSpacing,
           childAspectRatio: 0.7,
         ),
         delegate: SliverChildBuilderDelegate((context, index) {
@@ -764,8 +790,14 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
   Widget _buildListView(BuildContext context, List<Playlist> playlists) {
     final currentPlaylistId = ref.watch(sourcePlaylistIdProvider);
     final isPlaying = ref.watch(isPlayingProvider);
+    final horizontalPadding = context.responsive<double>(
+      mobile: AppSpacing.md,
+      tablet: AppSpacing.lg,
+      desktop: AppSpacing.xl,
+      tv: AppSpacing.xxl,
+    );
     return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate((context, index) {
           final playlist = playlists[index];
@@ -804,12 +836,20 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.queue_music_outlined,
-              size: 64,
-              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+            Container(
+              width: 96,
+              height: 96,
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHighest,
+                borderRadius: AppRadius.xlAll,
+              ),
+              child: Icon(
+                Icons.queue_music_outlined,
+                size: 48,
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             Text(
               '暂无歌单',
               style: textTheme.titleMedium?.copyWith(
@@ -820,7 +860,7 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
             Text(
               '点击右上角按钮创建歌单',
               style: textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
               ),
             ),
           ],

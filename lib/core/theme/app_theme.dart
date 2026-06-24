@@ -4,8 +4,8 @@ import 'app_dimensions.dart';
 import 'responsive.dart';
 
 class AppTheme {
-  // 使用 indigo 作为主色调（与现有 Web 端一致）
-  static const Color _seedColor = Color(0xFF6366F1); // indigo-500
+  // M3 Blue baseline — 与设计系统对齐
+  static const Color _seedColor = Color(0xFF415F91);
 
   /// 亮色主题
   /// [screenType] 屏幕类型，默认为 mobile

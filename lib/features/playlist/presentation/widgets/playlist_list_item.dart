@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/utils/url_helper.dart';
 import '../../domain/playlist.dart';
 
@@ -43,15 +44,15 @@ class PlaylistListItem extends StatelessWidget {
       shape:
           (isSelectionMode && isSelected) || isCurrentPlaylist
               ? RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: AppRadius.mdAll,
                 side: BorderSide(color: colorScheme.primary, width: 2),
               )
-              : null,
+              : RoundedRectangleBorder(borderRadius: AppRadius.mdAll),
       child: InkWell(
         onTap: isSelectionMode ? onSelect : onTap,
         onLongPress: isSelectionMode ? null : onLongPress,
         child: Padding(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(10),
           child: Row(
             children: [
               // 多选模式下显示 Checkbox
@@ -65,7 +66,7 @@ class PlaylistListItem extends StatelessWidget {
                 ),
               // 左侧：方形封面 56x56
               ClipRRect(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: AppRadius.smAll,
                 child: SizedBox(
                   width: 56,
                   height: 56,
@@ -136,7 +137,7 @@ class PlaylistListItem extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: colorScheme.secondary,
-                              borderRadius: BorderRadius.circular(4),
+                              borderRadius: BorderRadius.circular(AppRadius.sm),
                             ),
                             child: Text(
                               '电台',

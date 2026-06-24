@@ -15,6 +15,7 @@ import 'lyrics_view.dart';
 import 'play_controls.dart';
 import 'popup_controls.dart';
 import 'progress_bar.dart';
+import 'vinyl_ring.dart';
 import 'volume_control.dart';
 
 /// Desktop/Tablet 全屏播放器（左右分栏布局）
@@ -51,25 +52,21 @@ class DesktopFullPlayer extends ConsumerStatefulWidget {
 
 class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
     with SingleTickerProviderStateMixin {
-  /// 封面脉冲动画控制器
-  late final AnimationController _pulseController;
-  late final Animation<double> _pulseAnimation;
+  /// 唱片环旋转动画控制器
+  late final AnimationController _rotationController;
 
   @override
   void initState() {
     super.initState();
-    _pulseController = AnimationController(
+    _rotationController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2),
-    );
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.02).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+      duration: const Duration(seconds: 28),
     );
   }
 
   @override
   void dispose() {
-    _pulseController.dispose();
+    _rotationController.dispose();
     super.dispose();
   }
 
@@ -90,22 +87,19 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
           Navigator.of(context).pop();
         }
       }
-      // 控制封面脉冲动画
-      if (next.isPlaying && !_pulseController.isAnimating) {
-        _pulseController.repeat(reverse: true);
-      } else if (!next.isPlaying && _pulseController.isAnimating) {
-        _pulseController.animateTo(
-          0.0,
-          duration: const Duration(milliseconds: 300),
-        );
+      // 控制唱片环旋转动画
+      if (next.isPlaying && !_rotationController.isAnimating) {
+        _rotationController.repeat();
+      } else if (!next.isPlaying && _rotationController.isAnimating) {
+        _rotationController.stop();
       }
     });
 
     // 初始播放状态动画
-    if (state.isPlaying && !_pulseController.isAnimating) {
+    if (state.isPlaying && !_rotationController.isAnimating) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && state.isPlaying && !_pulseController.isAnimating) {
-          _pulseController.repeat(reverse: true);
+        if (mounted && state.isPlaying && !_rotationController.isAnimating) {
+          _rotationController.repeat();
         }
       });
     }
@@ -133,7 +127,7 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
             Positioned.fill(
               child: ExcludeSemantics(
                 child: ImageFiltered(
-                  imageFilter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
+                  imageFilter: ImageFilter.blur(sigmaX: 70, sigmaY: 70),
                   child: Image.network(
                     UrlHelper.buildCoverUrl(coverUrl),
                     fit: BoxFit.cover,
@@ -158,6 +152,25 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
                       palette.dominantColor.withValues(alpha: 0.6),
                       palette.darkMutedColor ?? palette.dominantColor,
                     ],
+                  ),
+                ),
+              ),
+            ),
+          // 径向环境光晕
+          if (palette != null)
+            Positioned.fill(
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      center: const Alignment(-0.6, -0.5),
+                      radius: 1.2,
+                      colors: [
+                        (palette.vibrantColor ?? palette.dominantColor)
+                            .withValues(alpha: 0.22),
+                        Colors.transparent,
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -221,9 +234,9 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                // 封面带脉冲动画
-                                ScaleTransition(
-                                  scale: _pulseAnimation,
+                                // 封面带唱片环旋转
+                                VinylRing(
+                                  rotationAnimation: _rotationController,
                                   child: _buildCover(
                                     context,
                                     coverUrl,
@@ -293,6 +306,7 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
                     onPrev: notifier.playPrev,
                     onNext: notifier.playNext,
                     size: 52,
+                    showGlow: true,
                   ),
                   const SizedBox(height: 12),
                   // 底部工具栏
@@ -347,22 +361,17 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
     CoverPalette? palette,
   }) {
     final theme = Theme.of(context);
+    final glowColor = palette?.vibrantColor ?? palette?.dominantColor;
 
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
-        borderRadius: AppRadius.lgAll,
+        borderRadius: AppRadius.xlAll,
         color: theme.colorScheme.surfaceContainerHighest,
-        boxShadow: [
-          BoxShadow(
-            color: (palette?.dominantColor ?? Colors.black).withValues(
-              alpha: 0.2,
-            ),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        boxShadow: glowColor != null
+            ? AppEffects.primaryGlow(glowColor)
+            : AppEffects.softGlow(theme.colorScheme.onSurface),
       ),
       clipBehavior: Clip.antiAlias,
       child:

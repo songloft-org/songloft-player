@@ -384,6 +384,22 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
     Playlist playlist,
     AsyncValue<PaginatedSongsState> songsAsync,
   ) {
+    // Desktop / TV（非车机模式）使用左右分栏布局
+    final useWideLayout =
+        (context.isDesktop || context.isTv) && !context.isAuto;
+    if (useWideLayout) {
+      return _buildWideContent(context, playlist, songsAsync);
+    }
+
+    return _buildNarrowContent(context, playlist, songsAsync);
+  }
+
+  /// 窄屏布局（Mobile / Tablet / Auto）：单列 CustomScrollView
+  Widget _buildNarrowContent(
+    BuildContext context,
+    Playlist playlist,
+    AsyncValue<PaginatedSongsState> songsAsync,
+  ) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return CustomScrollView(
@@ -460,6 +476,243 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
           child: SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
         ),
       ],
+    );
+  }
+
+  /// 宽屏布局（Desktop / TV）：左右分栏
+  Widget _buildWideContent(
+    BuildContext context,
+    Playlist playlist,
+    AsyncValue<PaginatedSongsState> songsAsync,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Column(
+      children: [
+        // 顶栏
+        AppBar(
+          backgroundColor: colorScheme.surface,
+          foregroundColor: colorScheme.onSurface,
+          title: Text(playlist.name),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            tooltip: '返回',
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/playlists');
+              }
+            },
+          ),
+          actions: _buildAppBarActions(
+            context,
+            playlist,
+            songsAsync,
+            colorScheme,
+          ),
+        ),
+        // 左右分栏
+        Expanded(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 左栏：封面 + 歌单信息 + 操作按钮
+              SizedBox(
+                width: 320,
+                child: _buildWideLeftPanel(context, playlist, songsAsync),
+              ),
+              VerticalDivider(
+                width: 1,
+                thickness: 1,
+                color: colorScheme.outlineVariant,
+              ),
+              // 右栏：歌曲列表
+              Expanded(
+                child: _buildWideRightPanel(context, playlist, songsAsync),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// 宽屏左栏：封面 + 歌单信息 + 操作按钮（固定不滚动或轻量滚动）
+  Widget _buildWideLeftPanel(
+    BuildContext context,
+    Playlist playlist,
+    AsyncValue<PaginatedSongsState> songsAsync,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final coverUrl = playlist.coverUrl;
+    final paletteAsync = ref.watch(coverColorsProvider(coverUrl));
+    final palette = paletteAsync.value;
+    final bgColor =
+        palette?.darkMutedColor ?? colorScheme.surfaceContainerHighest;
+
+    final songCount = songsAsync.value?.total ?? 0;
+    final songs = songsAsync.value?.items ?? [];
+
+    // 构建信息片段
+    final infoParts = <String>[];
+    if (playlist.type == 'radio') infoParts.add('电台');
+    for (final label in playlist.labels) {
+      infoParts.add(_getLabelName(label));
+    }
+    infoParts.add('$songCount 首歌曲');
+    final subtitle = infoParts.join(' · ');
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // 封面
+          Container(
+            width: 240,
+            height: 240,
+            decoration: BoxDecoration(
+              borderRadius: AppRadius.xlAll,
+              boxShadow: AppShadows.medium,
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  bgColor.withValues(alpha: 0.3),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: playlist.coverImageUrl != null
+                ? ExcludeSemantics(
+                    child: CachedNetworkImage(
+                      imageUrl: UrlHelper.buildCoverUrl(
+                        playlist.coverImageUrl!,
+                      ),
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(
+                        color: colorScheme.surfaceContainerHighest,
+                      ),
+                      errorWidget: (context, url, error) =>
+                          _buildCoverPlaceholder(colorScheme, playlist),
+                    ),
+                  )
+                : _buildCoverPlaceholder(colorScheme, playlist),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          // 歌单名称
+          Text(
+            playlist.name,
+            style: textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          // 描述
+          if (playlist.description?.isNotEmpty == true) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              playlist.description!,
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 4,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+          const SizedBox(height: AppSpacing.sm),
+          // 标签 / 歌曲数
+          Text(
+            subtitle,
+            style: textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          // 操作按钮（纵向全宽排列）
+          if (!_isSortMode && !_isSelectMode) ...[
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed:
+                    songs.isEmpty ? null : () => _playAll(playlist, songs),
+                icon: const Icon(Icons.play_arrow),
+                label: const Text('播放全部'),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 48),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _addSongs,
+                icon: const Icon(Icons.add),
+                label: const Text('添加歌曲'),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 48),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// 宽屏右栏：歌曲列表（含搜索栏、分页加载）
+  Widget _buildWideRightPanel(
+    BuildContext context,
+    Playlist playlist,
+    AsyncValue<PaginatedSongsState> songsAsync,
+  ) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1200),
+        child: CustomScrollView(
+          controller: _scrollController,
+          slivers: [
+            // 搜索栏
+            if (_isSearchMode)
+              SliverToBoxAdapter(child: _buildSearchBar(context)),
+
+            // 歌曲列表
+            songsAsync.when(
+              data: (state) => _buildSongList(context, playlist, state.items),
+              loading: () => SliverToBoxAdapter(
+                child: Column(
+                  children: [
+                    for (int i = 0; i < 5; i++) SkeletonLoader.listTile(),
+                  ],
+                ),
+              ),
+              error: (error, stack) =>
+                  SliverToBoxAdapter(child: _buildError(error.toString())),
+            ),
+
+            // 加载更多指示器
+            if (songsAsync.value != null)
+              SliverToBoxAdapter(
+                child: _buildSongsLoadMoreIndicator(songsAsync.value!),
+              ),
+
+            // 底部安全区域
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: MediaQuery.of(context).padding.bottom + 80,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

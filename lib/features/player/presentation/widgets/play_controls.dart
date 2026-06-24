@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_dimensions.dart';
+
 /// 播放控制按钮组
 class PlayControls extends StatelessWidget {
   final bool isPlaying;
@@ -9,8 +11,10 @@ class PlayControls extends StatelessWidget {
   final VoidCallback? onPause;
   final VoidCallback? onPrev;
   final VoidCallback? onNext;
-  final double size; // 按钮大小（默认 48）
+  final double size;
   final bool isBuffering;
+  final bool showGlow;
+  final bool useRoundedRect;
 
   const PlayControls({
     super.key,
@@ -23,6 +27,8 @@ class PlayControls extends StatelessWidget {
     this.onNext,
     this.size = 48,
     this.isBuffering = false,
+    this.showGlow = false,
+    this.useRoundedRect = false,
   });
 
   @override
@@ -68,15 +74,20 @@ class PlayControls extends StatelessWidget {
 
   Widget _buildPlayPauseButton(BuildContext context, double iconSize) {
     final theme = Theme.of(context);
+    final borderRadius =
+        useRoundedRect ? AppRadius.xxlAll : BorderRadius.circular(size);
+
+    Widget button;
 
     if (isBuffering) {
-      return Semantics(
+      button = Semantics(
         label: '正在缓冲',
-        child: ClipOval(
-          child: Container(
+        child: Material(
+          color: theme.colorScheme.primary,
+          borderRadius: borderRadius,
+          child: SizedBox(
             width: size,
             height: size,
-            color: theme.colorScheme.primary,
             child: Padding(
               padding: EdgeInsets.all(size * 0.25),
               child: CircularProgressIndicator(
@@ -89,16 +100,16 @@ class PlayControls extends StatelessWidget {
           ),
         ),
       );
-    }
-
-    return Semantics(
-      button: true,
-      label: isPlaying ? '暂停' : '播放',
-      child: ClipOval(
+    } else {
+      button = Semantics(
+        button: true,
+        label: isPlaying ? '暂停' : '播放',
         child: Material(
           color: theme.colorScheme.primary,
+          borderRadius: borderRadius,
           child: InkWell(
             onTap: isPlaying ? onPause : onPlay,
+            borderRadius: borderRadius,
             child: SizedBox(
               width: size,
               height: size,
@@ -110,7 +121,20 @@ class PlayControls extends StatelessWidget {
             ),
           ),
         ),
+      );
+    }
+
+    if (!showGlow) return ClipRRect(borderRadius: borderRadius, child: button);
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      decoration: BoxDecoration(
+        borderRadius: borderRadius,
+        boxShadow: isPlaying
+            ? AppEffects.primaryGlow(theme.colorScheme.primary)
+            : [],
       ),
+      child: button,
     );
   }
 }

@@ -132,6 +132,80 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           });
         },
         contentBuilder: (_, index) => _buildCategoryContent(index),
+        header: _buildServerInfoCard(),
+      ),
+    );
+  }
+
+  Widget _buildServerInfoCard() {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final currentUrl = ref.watch(baseUrlProvider);
+    final serverVersionAsync = ref.watch(serverVersionProvider);
+    final versionText = serverVersionAsync.value;
+    final versionLabel = versionText == null
+        ? null
+        : versionText == 'dev'
+            ? '开发版'
+            : 'v$versionText';
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer,
+        borderRadius: AppRadius.lgAll,
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: colorScheme.onPrimaryContainer.withValues(alpha: 0.12),
+              borderRadius: AppRadius.mdAll,
+            ),
+            child: Icon(
+              Icons.dns_outlined,
+              size: 22,
+              color: colorScheme.onPrimaryContainer,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  AppConfig.isEmbedded ? 'Songloft' : currentUrl,
+                  style: textTheme.titleSmall?.copyWith(
+                    color: colorScheme.onPrimaryContainer,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (versionLabel != null)
+                  Text(
+                    versionLabel,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onPrimaryContainer
+                          .withValues(alpha: 0.7),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          if (!AppConfig.isEmbedded)
+            TextButton(
+              onPressed: () => context.push(AppRoutes.servers),
+              style: TextButton.styleFrom(
+                foregroundColor: colorScheme.onPrimaryContainer,
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: const Text('管理'),
+            ),
+        ],
       ),
     );
   }
@@ -152,8 +226,21 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
-      children: items,
+      children: _interleave(items, const SizedBox(height: AppSpacing.lg)),
     );
+  }
+
+  /// Insert a separator widget between each item in the list.
+  List<Widget> _interleave(List<Widget> items, Widget separator) {
+    if (items.length <= 1) return items;
+    final result = <Widget>[];
+    for (var i = 0; i < items.length; i++) {
+      result.add(items[i]);
+      if (i < items.length - 1) {
+        result.add(separator);
+      }
+    }
+    return result;
   }
 
   // ── 外观设置 ──
@@ -193,7 +280,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ),
         ],
       ),
-      const SizedBox(height: AppSpacing.md),
       SectionCard(
         title: '菜单设置',
         icon: Icons.tab_outlined,

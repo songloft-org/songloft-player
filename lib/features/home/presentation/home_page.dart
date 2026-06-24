@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -5,11 +6,14 @@ import 'package:go_router/go_router.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/responsive.dart';
+import '../../../core/utils/url_helper.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../playlist/domain/playlist.dart';
 import '../../player/presentation/providers/player_provider.dart';
 import '../../playlist/presentation/providers/playlist_provider.dart';
 import 'widgets/playlist_carousel.dart';
+import 'widgets/section_header.dart';
+import 'widgets/stats_strip.dart';
 import '../../../features/jsplugin/presentation/widgets/jsplugin_grid.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 
@@ -32,33 +36,8 @@ class HomePage extends ConsumerWidget {
         },
         child: CustomScrollView(
           slivers: [
-            // 顶部 AppBar
-            SliverAppBar(
-              expandedHeight: context.responsive<double>(
-                mobile: 100,
-                tablet: 120,
-                desktop: 140,
-              ),
-              floating: false,
-              pinned: true,
-              flexibleSpace: FlexibleSpaceBar(
-                title: Text(
-                  _getGreeting(),
-                  style: TextStyle(
-                    fontSize: context.responsive<double>(
-                      mobile: 17,
-                      tablet: 20,
-                      desktop: 22,
-                    ),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                titlePadding: EdgeInsets.only(
-                  left: context.responsive<double>(mobile: 16, desktop: 24),
-                  bottom: 16,
-                ),
-              ),
-            ),
+            // 顶部问候栏
+            _GreetingAppBar(),
 
             // 主体内容
             SliverToBoxAdapter(
@@ -94,8 +73,6 @@ class HomePage extends ConsumerWidget {
     required int normalTotalCount,
     required int radioTotalCount,
   }) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
     final currentPlaylistId = ref.watch(sourcePlaylistIdProvider);
     final isPlaying = ref.watch(isPlayingProvider);
 
@@ -103,121 +80,135 @@ class HomePage extends ConsumerWidget {
     final normalPlaylists = playlists.where((p) => p.type == 'normal').toList();
     final radioPlaylists = playlists.where((p) => p.type == 'radio').toList();
 
-    return Column(
+    // 空状态
+    if (playlists.isEmpty) {
+      return EmptyState(
+        icon: Icons.library_music_outlined,
+        title: '暂无歌单',
+        subtitle: '创建你的第一个歌单开始收藏音乐',
+        action: FilledButton.tonal(
+          onPressed: () => context.go(AppRoutes.playlists),
+          child: const Text('创建歌单'),
+        ),
+      );
+    }
+
+    // 根据屏幕类型选择布局
+    final isWide = context.isWideScreen;
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1200),
+        child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.md),
 
         // 我的歌单区域
         if (normalPlaylists.isNotEmpty) ...[
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '我的歌单',
-                  style: textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => context.go(AppRoutes.playlists),
-                  child: const Text('查看全部'),
-                ),
-              ],
+          SectionHeader(
+            title: '我的歌单',
+            actionText: '查看全部',
+            onAction: () => context.go(AppRoutes.playlists),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          if (isWide)
+            _PlaylistGrid(
+              playlists: normalPlaylists,
+              currentPlaylistId: currentPlaylistId,
+              isPlaying: isPlaying,
+            )
+          else
+            PlaylistCarousel(
+              playlists: normalPlaylists,
+              currentPlaylistId: currentPlaylistId,
+              isPlaying: isPlaying,
+              onPlaylistTap: (playlist) {
+                context.push('/playlists/${playlist.id}');
+              },
             ),
-          ),
-          const SizedBox(height: 12),
-          PlaylistCarousel(
-            playlists: normalPlaylists,
-            currentPlaylistId: currentPlaylistId,
-            isPlaying: isPlaying,
-            onPlaylistTap: (playlist) {
-              // 使用 push 保持导航栈，便于返回
-              context.push('/playlists/${playlist.id}');
-            },
-          ),
-          const SizedBox(height: 32),
+          SizedBox(height: isWide ? AppSpacing.xl : AppSpacing.lg),
         ],
 
         // 电台歌单区域
         if (radioPlaylists.isNotEmpty) ...[
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-            child: Text(
-              '我的电台',
-              style: textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          const SectionHeader(
+            title: '我的电台',
+            icon: Icons.radio_rounded,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          if (isWide)
+            _PlaylistGrid(
+              playlists: radioPlaylists,
+              currentPlaylistId: currentPlaylistId,
+              isPlaying: isPlaying,
+            )
+          else
+            PlaylistCarousel(
+              playlists: radioPlaylists,
+              currentPlaylistId: currentPlaylistId,
+              isPlaying: isPlaying,
+              onPlaylistTap: (playlist) {
+                context.push('/playlists/${playlist.id}');
+              },
             ),
-          ),
-          const SizedBox(height: 12),
-          PlaylistCarousel(
-            playlists: radioPlaylists,
-            currentPlaylistId: currentPlaylistId,
-            isPlaying: isPlaying,
-            onPlaylistTap: (playlist) {
-              // 使用 push 保持导航栈，便于返回
-              context.push('/playlists/${playlist.id}');
-            },
-          ),
-          const SizedBox(height: 32),
+          SizedBox(height: isWide ? AppSpacing.xl : AppSpacing.lg),
         ],
 
         // JS 插件入口区域
         const JSPluginGrid(),
-        const SizedBox(height: 32),
+        const SizedBox(height: AppSpacing.lg),
 
-        // 统计信息
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _StatItem(
-                    icon: Icons.queue_music,
-                    label: '歌单',
-                    value: normalTotalCount.toString(),
-                    color: colorScheme.primary,
-                  ),
-                  _StatItem(
-                    icon: Icons.radio,
-                    label: '电台',
-                    value: radioTotalCount.toString(),
-                    color: colorScheme.secondary,
-                  ),
-                  _StatItem(
-                    icon: Icons.library_music,
-                    label: '总计',
-                    value: (normalTotalCount + radioTotalCount).toString(),
-                    color: colorScheme.tertiary,
-                  ),
-                ],
-              ),
-            ),
-          ),
+        // 统计信息条
+        StatsStrip(
+          normalCount: normalTotalCount,
+          radioCount: radioTotalCount,
         ),
-        const SizedBox(height: 32),
-
-        // 空状态
-        if (playlists.isEmpty)
-          EmptyState(
-            icon: Icons.library_music_outlined,
-            title: '暂无歌单',
-            subtitle: '创建你的第一个歌单开始收藏音乐',
-            action: FilledButton.tonal(
-              onPressed: () => context.go(AppRoutes.playlists),
-              child: const Text('创建歌单'),
-            ),
-          ),
+        const SizedBox(height: AppSpacing.lg),
 
         // 底部安全区域
         SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
       ],
+    ),
+      ),
+    );
+  }
+
+}
+
+/// 问候栏 AppBar
+class _GreetingAppBar extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return SliverAppBar(
+      expandedHeight: context.responsive<double>(
+        mobile: 90,
+        tablet: 100,
+        desktop: 110,
+        auto_: 70,
+      ),
+      floating: false,
+      pinned: true,
+      flexibleSpace: FlexibleSpaceBar(
+        title: Text(
+          _getGreeting(),
+          style: TextStyle(
+            fontSize: context.responsive<double>(
+              mobile: 20,
+              tablet: 22,
+              desktop: 24,
+            ),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        titlePadding: EdgeInsets.only(
+          left: context.responsive<double>(
+            mobile: AppSpacing.md,
+            desktop: AppSpacing.lg,
+          ),
+          bottom: 14,
+        ),
+      ),
     );
   }
 
@@ -238,43 +229,172 @@ class HomePage extends ConsumerWidget {
   }
 }
 
-/// 统计项组件
-class _StatItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final Color color;
+/// Tablet/Desktop 歌单网格布局
+class _PlaylistGrid extends StatelessWidget {
+  final List<Playlist> playlists;
+  final int? currentPlaylistId;
+  final bool isPlaying;
 
-  const _StatItem({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.color,
+  const _PlaylistGrid({
+    required this.playlists,
+    this.currentPlaylistId,
+    this.isPlaying = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final crossAxisCount = context.responsive<int>(
+      mobile: 2,
+      tablet: 3,
+      desktop: 4,
+    );
+
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: context.responsive<double>(
+          mobile: AppSpacing.md,
+          tablet: AppSpacing.lg,
+          desktop: AppSpacing.lg,
+        ),
+      ),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: crossAxisCount,
+          mainAxisSpacing: AppSpacing.md,
+          crossAxisSpacing: AppSpacing.md,
+          childAspectRatio: 0.82,
+        ),
+        itemCount: playlists.length > crossAxisCount * 2
+            ? crossAxisCount * 2
+            : playlists.length,
+        itemBuilder: (context, index) {
+          final playlist = playlists[index];
+          final isCurrent = playlist.id == currentPlaylistId;
+          return _GridPlaylistCard(
+            playlist: playlist,
+            isCurrent: isCurrent,
+            isPlaying: isPlaying && isCurrent,
+            onTap: () => context.push('/playlists/${playlist.id}'),
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// 网格布局中的歌单卡片
+class _GridPlaylistCard extends StatelessWidget {
+  final Playlist playlist;
+  final bool isCurrent;
+  final bool isPlaying;
+  final VoidCallback onTap;
+
+  const _GridPlaylistCard({
+    required this.playlist,
+    required this.isCurrent,
+    required this.isPlaying,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 32, color: color),
-        const SizedBox(height: 8),
-        Text(
-          value,
-          style: textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: color,
+    return Semantics(
+      button: true,
+      label: '打开歌单 ${playlist.name}',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: AppRadius.mdAll,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 封面
+              Expanded(
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: AppRadius.mdAll,
+                      color: colorScheme.surfaceContainerHighest,
+                      border: isCurrent
+                          ? Border.all(color: colorScheme.primary, width: 2)
+                          : null,
+                      boxShadow: AppShadows.light,
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        playlist.coverImageUrl != null
+                            ? _buildNetworkImage(
+                                playlist.coverImageUrl!,
+                                colorScheme,
+                              )
+                            : _buildPlaceholder(colorScheme),
+                        if (isPlaying)
+                          Container(
+                            color: Colors.black54,
+                            child: Center(
+                              child: Icon(
+                                Icons.equalizer_rounded,
+                                size: 32,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              // 歌单名称
+              Text(
+                playlist.name,
+                style: textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                  color: isCurrent ? colorScheme.primary : null,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              // 歌曲数
+              Text(
+                '${playlist.songCount} 首',
+                style: textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
           ),
         ),
-        Text(
-          label,
-          style: textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-        ),
-      ],
+      ),
+    );
+  }
+
+  Widget _buildNetworkImage(String coverUrl, ColorScheme colorScheme) {
+    return CachedNetworkImage(
+      imageUrl: UrlHelper.buildCoverUrl(coverUrl),
+      fit: BoxFit.cover,
+      placeholder: (context, url) => _buildPlaceholder(colorScheme),
+      errorWidget:
+          (context, url, error) => _buildPlaceholder(colorScheme),
+    );
+  }
+
+  Widget _buildPlaceholder(ColorScheme colorScheme) {
+    return Center(
+      child: Icon(
+        Icons.queue_music,
+        size: 48,
+        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+      ),
     );
   }
 }

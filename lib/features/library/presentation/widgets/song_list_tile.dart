@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../config/constants.dart';
+import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/responsive.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/url_helper.dart';
@@ -15,6 +16,7 @@ class SongListTile extends ConsumerWidget {
   final bool isSelected;
   final bool isSelectionMode;
   final bool isNarrow; // 窄屏模式（隐藏专辑列）
+  final bool isCurrentSong; // 当前正在播放的歌曲
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
   final VoidCallback? onSelect;
@@ -29,6 +31,7 @@ class SongListTile extends ConsumerWidget {
     this.isSelected = false,
     this.isSelectionMode = false,
     this.isNarrow = false,
+    this.isCurrentSong = false,
     this.onTap,
     this.onLongPress,
     this.onSelect,
@@ -57,11 +60,19 @@ class SongListTile extends ConsumerWidget {
     final coverUrl = song.coverUrl;
 
     return ListTile(
+      tileColor: isCurrentSong ? colorScheme.primaryContainer.withValues(alpha: 0.3) : null,
       leading:
           isSelectionMode
               ? Checkbox(value: isSelected, onChanged: (_) => onSelect?.call())
               : _buildCoverImage(coverUrl, 48),
-      title: Text(song.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+      title: Text(
+        song.title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: isCurrentSong
+            ? TextStyle(color: colorScheme.primary, fontWeight: FontWeight.w600)
+            : null,
+      ),
       subtitle: Text(
         song.artist ?? '未知艺术家',
         maxLines: 1,
@@ -82,8 +93,20 @@ class SongListTile extends ConsumerWidget {
     return InkWell(
       onTap: isSelectionMode ? onSelect : onTap,
       onLongPress: isSelectionMode ? null : onLongPress,
+      hoverColor: colorScheme.surfaceContainerHigh,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isCurrentSong
+              ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+              : null,
+          border: Border(
+            bottom: BorderSide(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+              width: 0.5,
+            ),
+          ),
+        ),
         child: Row(
           children: [
             // 多选复选框
@@ -92,13 +115,19 @@ class SongListTile extends ConsumerWidget {
             else
               SizedBox(
                 width: 40,
-                child: Text(
-                  '${index + 1}',
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
+                child: isCurrentSong
+                    ? Icon(
+                        Icons.equalizer_rounded,
+                        size: 20,
+                        color: colorScheme.primary,
+                      )
+                    : Text(
+                        '${index + 1}',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
               ),
             const SizedBox(width: 12),
             // 封面
@@ -111,6 +140,12 @@ class SongListTile extends ConsumerWidget {
                 song.title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
+                style: isCurrentSong
+                    ? TextStyle(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                      )
+                    : null,
               ),
             ),
             const SizedBox(width: 16),
@@ -161,7 +196,7 @@ class SongListTile extends ConsumerWidget {
 
   Widget _buildCoverImage(String? coverUrl, double size) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(4),
+      borderRadius: BorderRadius.circular(AppRadius.sm),
       child:
           coverUrl != null
               ? ExcludeSemantics(
@@ -178,11 +213,20 @@ class SongListTile extends ConsumerWidget {
   }
 
   Widget _buildDefaultCover(double size) {
-    return Container(
-      width: size,
-      height: size,
-      color: Colors.grey[300],
-      child: Icon(_getTypeIcon(), size: size * 0.5, color: Colors.grey[600]),
+    return Builder(
+      builder: (context) {
+        final colorScheme = Theme.of(context).colorScheme;
+        return Container(
+          width: size,
+          height: size,
+          color: colorScheme.surfaceContainerHighest,
+          child: Icon(
+            _getTypeIcon(),
+            size: size * 0.5,
+            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+          ),
+        );
+      },
     );
   }
 

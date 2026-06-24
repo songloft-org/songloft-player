@@ -146,6 +146,9 @@ class _ShellLayoutState extends ConsumerState<ShellLayout> {
       case ScreenType.tablet:
       case ScreenType.desktop:
         return const DesktopPlayer();
+      case ScreenType.auto_:
+        // 车机模式使用 MiniPlayer（屏幕纵向空间有限）
+        return const MiniPlayer();
       case ScreenType.tv:
         // 仅在 Android TV 等真正的 TV 平台使用 TvMiniPlayer
         // 桌面/Web 大屏使用 DesktopPlayer 以保留完整工具栏

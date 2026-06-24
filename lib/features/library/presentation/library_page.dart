@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../config/constants.dart';
+import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/responsive.dart';
 import '../../../shared/models/song.dart';
 import '../../../shared/utils/responsive_snackbar.dart';
@@ -260,8 +261,14 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
   }
 
   Widget _buildSearchBar(BuildContext context) {
+    final horizontalPadding = context.responsive<double>(
+      mobile: AppSpacing.md,
+      tablet: AppSpacing.lg,
+      desktop: AppSpacing.xl,
+    );
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      padding: EdgeInsets.fromLTRB(horizontalPadding, 8, horizontalPadding, 0),
       child: TextField(
         controller: _searchController,
         decoration: InputDecoration(
@@ -278,7 +285,9 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
                     },
                   )
                   : null,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppRadius.xl),
+          ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16),
         ),
         onChanged: _onSearchChanged,
@@ -295,23 +304,34 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
       return _buildEmptyState(context);
     }
 
+    final contentPadding = context.responsive<double>(
+      mobile: 0,
+      tablet: AppSpacing.sm,
+      desktop: AppSpacing.md,
+    );
+
     return RefreshIndicator(
       onRefresh: () => ref.read(songsListProvider.notifier).refresh(),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          // 使用实际可用宽度判断，避免在窄容器中溢出
-          if (context.isMobile ||
-              constraints.maxWidth < ResponsiveBreakpoints.tablet) {
-            return _buildMobileList(context, state);
-          } else {
-            return _buildDesktopList(context, state);
-          }
-        },
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: contentPadding),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // 使用实际可用宽度判断，避免在窄容器中溢出
+            if (context.isMobile ||
+                constraints.maxWidth < ResponsiveBreakpoints.tablet) {
+              return _buildMobileList(context, state);
+            } else {
+              return _buildDesktopList(context, state);
+            }
+          },
+        ),
       ),
     );
   }
 
   Widget _buildMobileList(BuildContext context, SongsListState state) {
+    final currentSong = ref.watch(currentSongProvider);
+
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.only(bottom: 80),
@@ -332,6 +352,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
           index: index,
           isSelected: state.selectedSongIds.contains(song.id),
           isSelectionMode: state.isSelectionMode,
+          isCurrentSong: currentSong?.id == song.id,
           onTap: () => _onSongTap(song, index),
           onLongPress: () {
             ref.read(songsListProvider.notifier).toggleSelectMode();
@@ -354,17 +375,22 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
   Widget _buildDesktopList(BuildContext context, SongsListState state) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final currentSong = ref.watch(currentSongProvider);
 
-    return LayoutBuilder(
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1200),
+        child: LayoutBuilder(
       builder: (context, constraints) {
-        final isNarrow = constraints.maxWidth < 700; // 宽庤阈值
+        final isNarrow = constraints.maxWidth < 700;
 
         return Column(
           children: [
             // 表头
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerLow,
                 border: Border(
                   bottom: BorderSide(color: colorScheme.outlineVariant),
                 ),
@@ -465,6 +491,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
                     isSelected: state.selectedSongIds.contains(song.id),
                     isSelectionMode: state.isSelectionMode,
                     isNarrow: isNarrow,
+                    isCurrentSong: currentSong?.id == song.id,
                     onTap: () => _onSongTap(song, index),
                     onLongPress: () {
                       ref
@@ -493,6 +520,8 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
           ],
         );
       },
+    ),
+      ),
     );
   }
 
@@ -504,12 +533,20 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.library_music,
-            size: 64,
-            color: colorScheme.onSurfaceVariant,
+          Container(
+            width: 96,
+            height: 96,
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest,
+              borderRadius: AppRadius.xlAll,
+            ),
+            child: Icon(
+              state.keyword.isNotEmpty ? Icons.search_off : Icons.library_music,
+              size: 48,
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+            ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           Text(
             state.keyword.isNotEmpty ? '未找到匹配的歌曲' : '歌曲库为空',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -520,7 +557,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
           Text(
             state.keyword.isNotEmpty ? '尝试其他关键词' : '添加一些歌曲开始吧',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant,
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
             ),
           ),
         ],
