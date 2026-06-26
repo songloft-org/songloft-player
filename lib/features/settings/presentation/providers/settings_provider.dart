@@ -345,28 +345,28 @@ final autoCreatePlaylistsProvider =
     );
 
 // ============================================================================
-// Auto-Create Playlists Include Subdirs Provider
+// 歌单创建方式 Provider
 // ============================================================================
 
-/// 「扫描后自动创建歌单是否包含子目录」配置 Notifier。
-/// 业务端点：GET/PUT /api/v1/settings/scan-auto-create-include-subdirs
-class AutoCreateIncludeSubdirsNotifier extends AsyncNotifier<bool> {
+/// 歌单创建方式 Notifier。
+/// directory：按文件夹；top_level：按顶层文件夹合并；bubble_up：包含子目录。
+/// 业务端点：GET/PUT /api/v1/settings/scan-playlist-mode
+class ScanPlaylistModeNotifier extends AsyncNotifier<String> {
   @override
-  Future<bool> build() async {
+  Future<String> build() async {
     final api = ref.watch(settingsApiProvider);
     try {
-      return await api.getScanAutoCreateIncludeSubdirs();
+      return await api.getScanPlaylistMode();
     } catch (_) {
-      return false;
+      return 'directory';
     }
   }
 
-  /// 切换并持久化
-  Future<void> setValue(bool value) async {
+  Future<void> setValue(String value) async {
     state = AsyncValue.data(value);
     try {
       final api = ref.read(settingsApiProvider);
-      await api.setScanAutoCreateIncludeSubdirs(value);
+      await api.setScanPlaylistMode(value);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
       rethrow;
@@ -374,10 +374,10 @@ class AutoCreateIncludeSubdirsNotifier extends AsyncNotifier<bool> {
   }
 }
 
-/// 「扫描后自动创建歌单是否包含子目录」Provider
-final autoCreateIncludeSubdirsProvider =
-    AsyncNotifierProvider<AutoCreateIncludeSubdirsNotifier, bool>(
-      AutoCreateIncludeSubdirsNotifier.new,
+/// 歌单创建方式 Provider
+final scanPlaylistModeProvider =
+    AsyncNotifierProvider<ScanPlaylistModeNotifier, String>(
+      ScanPlaylistModeNotifier.new,
     );
 
 // ============================================================================

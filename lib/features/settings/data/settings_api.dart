@@ -322,25 +322,25 @@ class SettingsApi {
     }
   }
 
-  // ---------- 扫描后自动创建歌单是否包含子目录 ----------
+  // ---------- 歌单创建方式 ----------
 
-  Future<bool> getScanAutoCreateIncludeSubdirs() async {
+  Future<String> getScanPlaylistMode() async {
     try {
       final response = await dio.get(
-        '${AppConfig.apiPrefix}/settings/scan-auto-create-include-subdirs',
+        '${AppConfig.apiPrefix}/settings/scan-playlist-mode',
       );
       final data = response.data as Map<String, dynamic>;
-      return data['enabled'] as bool? ?? false;
+      return data['mode'] as String? ?? 'directory';
     } on DioException catch (e) {
       throw ApiException.fromDioException(e);
     }
   }
 
-  Future<void> setScanAutoCreateIncludeSubdirs(bool enabled) async {
+  Future<void> setScanPlaylistMode(String mode) async {
     try {
       await dio.put(
-        '${AppConfig.apiPrefix}/settings/scan-auto-create-include-subdirs',
-        data: {'enabled': enabled},
+        '${AppConfig.apiPrefix}/settings/scan-playlist-mode',
+        data: {'mode': mode},
       );
     } on DioException catch (e) {
       throw ApiException.fromDioException(e);

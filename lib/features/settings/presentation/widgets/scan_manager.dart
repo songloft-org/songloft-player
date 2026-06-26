@@ -115,8 +115,8 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
         _buildAutoCreatePlaylistsTile(),
         const SizedBox(height: AppSpacing.md),
 
-        // 「歌单包含子目录歌曲」开关
-        _buildIncludeSubdirsTile(),
+        // 「歌单创建方式」选择
+        _buildPlaylistModeTile(),
         const SizedBox(height: AppSpacing.md),
 
         // 「标题来源」切换
@@ -343,13 +343,25 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
     );
   }
 
-  /// 「歌单包含子目录歌曲」开关
-  Widget _buildIncludeSubdirsTile() {
+  static const _playlistModes = <String, (String, String)>{
+    'directory': ('按文件夹', '每个文件夹生成独立歌单'),
+    'top_level': ('按顶层文件夹', '子文件夹的歌曲合并到一级文件夹歌单'),
+    'bubble_up': ('包含子目录', '歌曲同时出现在所有上级文件夹歌单'),
+  };
+
+  /// 「歌单创建方式」下拉选择
+  Widget _buildPlaylistModeTile() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final asyncValue = ref.watch(autoCreateIncludeSubdirsProvider);
+    final asyncValue = ref.watch(scanPlaylistModeProvider);
     final autoCreateAsync = ref.watch(autoCreatePlaylistsProvider);
     final autoCreateEnabled = autoCreateAsync.value ?? true;
+    final currentMode = asyncValue.value ?? 'directory';
+    final disabled = !autoCreateEnabled || asyncValue.isLoading;
+    const disabledAlpha = 0.4;
+
+    final (_, currentDesc) =
+        _playlistModes[currentMode] ?? _playlistModes['directory']!;
 
     return Card(
       elevation: 0,
@@ -357,27 +369,27 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
         borderRadius: BorderRadius.circular(AppRadius.sm),
         side: BorderSide(color: colorScheme.outlineVariant),
       ),
-      child: SwitchListTile(
-        secondary: Icon(
+      child: ListTile(
+        leading: Icon(
           Icons.account_tree_outlined,
           color:
               autoCreateEnabled
                   ? colorScheme.onSurfaceVariant
-                  : colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                  : colorScheme.onSurfaceVariant.withValues(alpha: disabledAlpha),
         ),
         title: Text(
-          '歌单包含子目录歌曲',
+          '歌单创建方式',
           style: TextStyle(
             color:
                 autoCreateEnabled
                     ? null
-                    : colorScheme.onSurface.withValues(alpha: 0.4),
+                    : colorScheme.onSurface.withValues(alpha: disabledAlpha),
           ),
         ),
         subtitle: Text(
           autoCreateEnabled
               ? asyncValue.when(
-                data: (_) => '子目录的歌曲会同时归入祖先目录歌单',
+                data: (_) => currentDesc,
                 loading: () => '加载中...',
                 error: (_, _) => '读取配置失败',
               )
@@ -386,27 +398,51 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
             color:
                 autoCreateEnabled
                     ? colorScheme.onSurfaceVariant
-                    : colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                    : colorScheme.onSurfaceVariant.withValues(alpha: disabledAlpha),
           ),
         ),
-        value: asyncValue.value ?? false,
-        onChanged:
-            (!autoCreateEnabled || asyncValue.isLoading)
-                ? null
-                : (value) async {
-                  try {
-                    await ref
-                        .read(autoCreateIncludeSubdirsProvider.notifier)
-                        .setValue(value);
-                  } catch (e) {
-                    if (mounted) {
-                      ResponsiveSnackBar.showError(
-                        context,
-                        message: '保存失败: $e',
-                      );
+        trailing: DropdownButton<String>(
+          value: currentMode,
+          underline: const SizedBox.shrink(),
+          onChanged:
+              disabled
+                  ? null
+                  : (value) async {
+                    if (value == null) return;
+                    try {
+                      await ref
+                          .read(scanPlaylistModeProvider.notifier)
+                          .setValue(value);
+                    } catch (e) {
+                      if (mounted) {
+                        ResponsiveSnackBar.showError(
+                          context,
+                          message: '保存失败: $e',
+                        );
+                      }
                     }
-                  }
-                },
+                  },
+          items:
+              _playlistModes.entries.map((e) {
+                final (label, desc) = e.value;
+                return DropdownMenuItem(
+                  value: e.key,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(label, style: theme.textTheme.bodyMedium),
+                      Text(
+                        desc,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+        ),
       ),
     );
   }
