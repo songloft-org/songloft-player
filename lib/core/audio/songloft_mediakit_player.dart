@@ -334,7 +334,8 @@ class SongloftMediaKitPlayer extends AudioPlayerPlatform {
 
   Future<void> _setMpvProperty(String key, dynamic value) async {
     if (player.platform is! NativePlayer) return;
-    await (player.platform as NativePlayer).setProperty(key, value);
+    // dynamic 避免 Web stub 编译时缺少 setProperty 方法
+    await (player.platform as dynamic).setProperty(key, value);
   }
 
   PlaylistMode _loopModeToPlaylistMode(LoopModeMessage loopMode) =>
