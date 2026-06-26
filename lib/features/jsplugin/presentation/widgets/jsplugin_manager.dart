@@ -75,6 +75,11 @@ class _JSPluginManagerState extends ConsumerState<JSPluginManager> {
                         icon: const Icon(Icons.system_update),
                         label: const Text('全部更新'),
                       ),
+                      OutlinedButton.icon(
+                        onPressed: _cleanupOrphanStorage,
+                        icon: const Icon(Icons.cleaning_services_outlined),
+                        label: const Text('清理数据'),
+                      ),
                     ],
                   )
                   : Row(
@@ -89,6 +94,12 @@ class _JSPluginManagerState extends ConsumerState<JSPluginManager> {
                         onPressed: _showBatchUpdateDialog,
                         icon: const Icon(Icons.system_update),
                         label: const Text('全部更新'),
+                      ),
+                      const SizedBox(width: 8),
+                      OutlinedButton.icon(
+                        onPressed: _cleanupOrphanStorage,
+                        icon: const Icon(Icons.cleaning_services_outlined),
+                        label: const Text('清理数据'),
                       ),
                     ],
                   ),
@@ -149,6 +160,45 @@ class _JSPluginManagerState extends ConsumerState<JSPluginManager> {
         onUpdateComplete: () => ref.invalidate(jsPluginsProvider),
       ),
     );
+  }
+
+  Future<void> _cleanupOrphanStorage() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('清理孤儿数据'),
+            content: const Text('将清理已卸载插件遗留的持久化存储数据，此操作不可撤销。'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('取消'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('清理'),
+              ),
+            ],
+          ),
+    );
+
+    if (confirm != true) return;
+
+    try {
+      final api = ref.read(jsPluginApiProvider);
+      final message = await api.cleanupOrphanStorage();
+      if (mounted) {
+        ResponsiveSnackBar.show(context, message: message);
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        ResponsiveSnackBar.showError(context, message: '清理失败: ${e.message}');
+      }
+    } catch (e) {
+      if (mounted) {
+        ResponsiveSnackBar.showError(context, message: '清理失败: $e');
+      }
+    }
   }
 
   Widget _buildPluginList(List<JSPlugin> plugins) {
@@ -531,35 +581,65 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
   }
 
   Future<void> _deletePlugin() async {
-    final confirm = await showDialog<bool>(
+    final result = await showDialog<({bool confirmed, bool keepData})>(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('确认删除'),
-            content: Text('确定要删除插件 "${widget.plugin.displayName}" 吗？'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('取消'),
+      builder: (context) {
+        var keepData = false;
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('确认删除'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('确定要删除插件 "${widget.plugin.displayName}" 吗？'),
+                  const SizedBox(height: 12),
+                  CheckboxListTile(
+                    value: keepData,
+                    onChanged: (v) => setDialogState(() => keepData = v!),
+                    title: const Text('保留插件数据'),
+                    subtitle: const Text('保留文件存储数据，方便日后重装'),
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    controlAffinity: ListTileControlAffinity.leading,
+                  ),
+                ],
               ),
-              FilledButton(
-                onPressed: () => Navigator.pop(context, true),
-                style: FilledButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.error,
+              actions: [
+                TextButton(
+                  onPressed:
+                      () => Navigator.pop(
+                        context,
+                        (confirmed: false, keepData: false),
+                      ),
+                  child: const Text('取消'),
                 ),
-                child: const Text('删除'),
-              ),
-            ],
-          ),
+                FilledButton(
+                  onPressed:
+                      () => Navigator.pop(
+                        context,
+                        (confirmed: true, keepData: keepData),
+                      ),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.error,
+                  ),
+                  child: const Text('删除'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
 
-    if (confirm != true) return;
+    if (result == null || !result.confirmed) return;
 
     setState(() => _isDeleting = true);
 
     try {
       final api = ref.read(jsPluginApiProvider);
-      await api.deletePlugin(widget.plugin.id);
+      await api.deletePlugin(widget.plugin.id, keepData: result.keepData);
       ref.invalidate(jsPluginsProvider);
       if (mounted) {
         ResponsiveSnackBar.show(context, message: '插件已删除');

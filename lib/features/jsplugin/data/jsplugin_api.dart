@@ -397,10 +397,28 @@ class JSPluginApi {
   }
 
   /// 删除 JS 插件
-  /// DELETE /api/v1/jsplugins/{id}
-  Future<void> deletePlugin(int id) async {
+  /// DELETE /api/v1/jsplugins/{id}?keep_data=true
+  Future<void> deletePlugin(int id, {bool keepData = false}) async {
     try {
-      await dio.delete('${AppConfig.apiPrefix}/jsplugins/$id');
+      await dio.delete(
+        '${AppConfig.apiPrefix}/jsplugins/$id',
+        queryParameters:
+            keepData ? {'keep_data': 'true'} : <String, String>{},
+      );
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  /// 清理孤儿持久化存储数据
+  /// POST /api/v1/jsplugins/storage/cleanup
+  Future<String> cleanupOrphanStorage() async {
+    try {
+      final response = await dio.post(
+        '${AppConfig.apiPrefix}/jsplugins/storage/cleanup',
+      );
+      final data = response.data as Map<String, dynamic>;
+      return data['message'] as String? ?? '清理完成';
     } on DioException catch (e) {
       throw ApiException.fromDioException(e);
     }
