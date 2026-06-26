@@ -20,7 +20,9 @@ dependencies:
   dio: ^5.7.0
   # 音频播放
   just_audio: ^0.10.5
+  just_audio_platform_interface: any  # SongloftMediaKitPlayer 实现 AudioPlayerPlatform
   just_audio_media_kit: ^2.0.0  # Windows/Linux 平台的 just_audio 后端（libmpv）
+  media_kit: any  # EQ 均衡器需要直接访问 NativePlayer 设置 mpv 音频滤镜
   media_kit_libs_windows_audio: any  # Windows 平台 media_kit 音频库
   audio_service: ^0.18.17
   audio_session: ^0.2.3

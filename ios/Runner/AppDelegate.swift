@@ -16,5 +16,6 @@ import UIKit
     guard let controller = window?.rootViewController as? FlutterViewController else { return }
     let messenger = controller.binaryMessenger
     LiveActivityManager.shared.register(with: messenger)
+    EqualizerPlugin.shared.register(with: messenger)
   }
 }

@@ -17,6 +17,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'config/app_config.dart';
 import 'core/audio/audio_service.dart';
+import 'core/audio/songloft_just_audio_platform.dart';
 import 'core/env/tv_detector.dart';
 import 'core/storage/app_preferences.dart';
 import 'core/storage/secure_storage.dart';
@@ -59,8 +60,14 @@ void main(List<String> args) async {
 
   // Windows 和 Linux 平台需要 media_kit 作为 just_audio 的后端
   // 必须在 AudioService.init() 之前调用
+  // 使用自定义 SongloftJustAudioPlatform 替代 JustAudioMediaKit，
+  // 以暴露 media_kit Player 实例供 EQ 均衡器设置 mpv 音频滤镜。
   if (!kIsWeb) {
-    JustAudioMediaKit.ensureInitialized();
+    if (Platform.isWindows || Platform.isLinux) {
+      SongloftJustAudioPlatform.register();
+    } else {
+      JustAudioMediaKit.ensureInitialized();
+    }
   }
 
   // 初始化 Windows 系统托盘与拦截关闭事件

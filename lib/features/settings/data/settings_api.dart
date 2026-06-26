@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 
 import '../../../config/app_config.dart';
 import '../../../core/network/api_exceptions.dart';
+import '../../player/domain/equalizer_setting.dart';
 
 /// 音乐路径与扫描排除配置（GET/PUT /settings/music-path）
 class MusicPathSetting {
@@ -553,6 +554,30 @@ class SettingsApi {
         data: prefs.toJson(),
       );
       return UserPreferences.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  // ---------- 均衡器 ----------
+
+  Future<EqualizerSetting> getEqualizer() async {
+    try {
+      final response = await dio.get(
+        '${AppConfig.apiPrefix}/settings/equalizer',
+      );
+      return EqualizerSetting.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  Future<void> updateEqualizer(EqualizerSetting setting) async {
+    try {
+      await dio.put(
+        '${AppConfig.apiPrefix}/settings/equalizer',
+        data: setting.toJson(),
+      );
     } on DioException catch (e) {
       throw ApiException.fromDioException(e);
     }

@@ -9,6 +9,7 @@ class MainFlutterWindow: NSWindow {
     self.setFrame(windowFrame, display: true)
 
     RegisterGeneratedPlugins(registry: flutterViewController)
+    EqualizerPlugin.shared.register(with: flutterViewController.engine.binaryMessenger)
 
     super.awakeFromNib()
   }

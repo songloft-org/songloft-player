@@ -10,6 +10,7 @@ import '../../../../core/network/servers_provider.dart';
 import '../../../../core/storage/app_preferences.dart';
 import '../../../../core/storage/preference_sync_service.dart';
 import '../../../../core/storage/secure_storage.dart';
+import '../../../player/presentation/providers/equalizer_provider.dart';
 import '../../data/auth_api.dart';
 import '../../data/auth_repository.dart';
 import '../../domain/auth_state.dart';
@@ -124,6 +125,9 @@ class AuthNotifier extends Notifier<AuthState> {
       await syncPreferencesFromServer(ref.read(dioProvider));
       ref.invalidate(themeModeProvider);
       ref.invalidate(audioQualityProvider);
+
+      // 同步 EQ 均衡器配置
+      ref.read(equalizerProvider.notifier).loadFromServer();
 
       state = state.authenticated();
     } on FormatException catch (e) {

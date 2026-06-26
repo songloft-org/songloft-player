@@ -9,6 +9,7 @@ import '../providers/player_provider.dart';
 import 'desktop_full_player.dart';
 import 'play_controls.dart';
 import 'progress_bar.dart';
+import 'equalizer_panel.dart';
 import 'popup_controls.dart';
 import 'volume_control.dart';
 
@@ -247,6 +248,13 @@ class DesktopPlayer extends ConsumerWidget {
             volume: state.volume,
             onVolumeChanged: notifier.setVolume,
           ),
+        ),
+        // 均衡器
+        IconButton(
+          onPressed: () => showEqualizerSheet(context),
+          icon: const Icon(Icons.equalizer_rounded, size: 20),
+          tooltip: '均衡器',
+          visualDensity: VisualDensity.compact,
         ),
         // 睡眠定时
         _buildSleepTimerButton(context, state, notifier, theme),

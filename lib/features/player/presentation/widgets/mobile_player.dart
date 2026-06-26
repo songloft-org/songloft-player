@@ -14,6 +14,7 @@ import 'lyrics_view.dart';
 import 'play_controls.dart';
 import 'popup_controls.dart';
 import 'progress_bar.dart';
+import 'equalizer_panel.dart';
 import 'vinyl_ring.dart';
 import 'volume_control.dart';
 
@@ -469,6 +470,17 @@ class _MobilePlayerState extends ConsumerState<MobilePlayer>
             child: PopupPlayModeControl(
               playMode: state.playMode,
               onPlayModeChanged: notifier.setPlayMode,
+            ),
+          ),
+          // 均衡器
+          SizedBox(
+            width: 48,
+            height: 48,
+            child: IconButton(
+              onPressed: () => showEqualizerSheet(context),
+              icon: const Icon(Icons.equalizer_rounded, size: 20),
+              tooltip: '均衡器',
+              visualDensity: VisualDensity.compact,
             ),
           ),
           // 音量

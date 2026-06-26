@@ -17,7 +17,13 @@ import 'media_browse_data_source.dart';
 /// Songloft 音频处理器 - 集成 audio_service 实现通知栏控制
 /// 严格遵循 audio_service 官方示例模式：使用 .pipe() 绑定 playbackState
 class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
-  final ja.AudioPlayer _player = ja.AudioPlayer();
+  final ja.AndroidEqualizer androidEqualizer = ja.AndroidEqualizer();
+
+  late final ja.AudioPlayer _player = ja.AudioPlayer(
+    audioPipeline: ja.AudioPipeline(
+      androidAudioEffects: [androidEqualizer],
+    ),
+  );
 
   /// 通知栏回调（由 PlayerNotifier 设置）
   VoidCallback? onSkipToNext;
