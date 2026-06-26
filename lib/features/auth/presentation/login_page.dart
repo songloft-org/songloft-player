@@ -1,13 +1,20 @@
+import 'package:dio/dio.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../../config/app_config.dart';
+import '../../../core/backend/embedded_backend_service.dart';
+import '../../../core/backend/run_mode_provider.dart';
 import '../../../core/network/base_url_provider.dart';
 import '../../../core/network/server_entry.dart';
 import '../../../core/network/servers_provider.dart';
 import '../../../core/router/app_router.dart';
+import '../../../core/storage/secure_storage.dart';
 import '../../../core/theme/tv_theme.dart';
 import '../../../shared/utils/responsive_snackbar.dart';
 import '../domain/auth_state.dart';
@@ -34,6 +41,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _loginButtonFocusNode = FocusNode();
 
   bool _obscurePassword = true;
+  bool _isLocalModeBootstrapping = false;
+  String _localModeHint = '';
 
   // TV 焦点步骤指示器
   int _currentStep = 1;
@@ -49,6 +58,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       _loadSavedApiUrl();
     }
     _loadSavedCredentials();
+
+    // 本地模式下自动登录（token 过期回到登录页时，无需用户手动操作）
+    if (_showLocalMode) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _tryAutoLoginLocal());
+    }
 
     // 监听焦点变化更新步骤指示器
     _usernameFocusNode.addListener(_updateStep);
@@ -162,6 +176,30 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       }
     });
 
+    // 本地模式自动登录中，显示加载界面
+    if (_isLocalModeBootstrapping &&
+        ref.read(runModeProvider) == RunMode.local) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(
+                'assets/icons/app_icon.png',
+                width: 64,
+                height: 64,
+                semanticLabel: 'Songloft',
+              ),
+              const SizedBox(height: 24),
+              const CircularProgressIndicator(),
+              const SizedBox(height: 24),
+              Text(_localModeHint),
+            ],
+          ),
+        ),
+      );
+    }
+
     if (_isTv(context)) {
       return _buildTvLayout(context, authState, theme, colorScheme);
     }
@@ -222,6 +260,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         ),
                       ),
                     ),
+
+                    if (_showLocalMode) ...[
+                      const SizedBox(height: 16),
+                      _buildLocalModeButton(colorScheme),
+                    ],
 
                     const SizedBox(height: 24),
 
@@ -382,6 +425,39 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               authState,
                               colorScheme,
                             ),
+
+                            if (_showLocalMode) ...[
+                              const SizedBox(height: TvTheme.spacingLarge),
+                              OutlinedButton.icon(
+                                onPressed: _isLocalModeBootstrapping
+                                    ? null
+                                    : _handleLocalMode,
+                                style: OutlinedButton.styleFrom(
+                                  minimumSize: const Size.fromHeight(
+                                    TvTheme.minButtonSize,
+                                  ),
+                                  textStyle: TvTheme.buttonStyle(context),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                ),
+                                icon: _isLocalModeBootstrapping
+                                    ? SizedBox(
+                                        height: 28,
+                                        width: 28,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 3,
+                                          color: colorScheme.primary,
+                                        ),
+                                      )
+                                    : const Icon(Icons.phone_android),
+                                label: Text(
+                                  _isLocalModeBootstrapping
+                                      ? _localModeHint
+                                      : '使用本地模式',
+                                ),
+                              ),
+                            ],
 
                             const SizedBox(height: TvTheme.spacingXLarge),
 
@@ -761,6 +837,163 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         color: theme.colorScheme.onSurfaceVariant,
       ),
     );
+  }
+
+  // ========== 本地模式 ==========
+
+  static const bool _showLocalMode = !kIsWeb && AppConfig.hasEmbeddedBackend;
+
+  Future<void> _tryAutoLoginLocal() async {
+    final runMode = ref.read(runModeProvider);
+    if (runMode != RunMode.local) return;
+
+    setState(() {
+      _isLocalModeBootstrapping = true;
+      _localModeHint = '正在自动登录…';
+    });
+
+    try {
+      final running = await EmbeddedBackendService.isRunning();
+      if (!running) {
+        final musicDir = ref.read(localMusicDirProvider);
+        if (musicDir == null || musicDir.isEmpty) return;
+        setState(() => _localModeHint = '正在启动本地后端…');
+        final dataDir = (await getApplicationSupportDirectory()).path;
+        final port = await EmbeddedBackendService.start(
+          dataDir: dataDir,
+          musicDir: musicDir,
+        );
+        ref.read(baseUrlProvider.notifier).set('http://127.0.0.1:$port');
+
+        final dio = Dio(
+          BaseOptions(connectTimeout: const Duration(seconds: 2)),
+        );
+        for (var i = 0; i < 10; i++) {
+          try {
+            final baseUrl = ref.read(baseUrlProvider);
+            final resp = await dio.get('$baseUrl/api/v1/health');
+            if (resp.statusCode == 200) break;
+          } catch (_) {
+            await Future.delayed(const Duration(milliseconds: 300));
+          }
+        }
+        dio.close();
+      }
+
+      await ref.read(authStateProvider.notifier).login(
+        username: 'admin',
+        password: 'admin',
+      );
+    } catch (e) {
+      if (mounted) {
+        ResponsiveSnackBar.showError(context, message: '自动登录失败：$e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLocalModeBootstrapping = false);
+      }
+    }
+  }
+
+  Widget _buildLocalModeButton(ColorScheme colorScheme) {
+    return Column(
+      children: [
+        OutlinedButton.icon(
+          onPressed: _isLocalModeBootstrapping ? null : _handleLocalMode,
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+          ),
+          icon: _isLocalModeBootstrapping
+              ? SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: colorScheme.primary,
+                  ),
+                )
+              : const Icon(Icons.phone_android),
+          label: Text(
+            _isLocalModeBootstrapping ? _localModeHint : '使用本地模式',
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _handleLocalMode() async {
+    setState(() {
+      _isLocalModeBootstrapping = true;
+      _localModeHint = '正在准备…';
+    });
+
+    try {
+      var musicDir = ref.read(localMusicDirProvider);
+      if (musicDir == null || musicDir.isEmpty) {
+        final result = await FilePicker.platform.getDirectoryPath(
+          dialogTitle: '选择音乐文件夹',
+        );
+        if (result == null) {
+          setState(() => _isLocalModeBootstrapping = false);
+          return;
+        }
+        await ref.read(localMusicDirProvider.notifier).set(result);
+        musicDir = result;
+      }
+
+      await ref.read(runModeProvider.notifier).set(RunMode.local);
+
+      setState(() => _localModeHint = '正在启动本地后端…');
+      final dataDir = (await getApplicationSupportDirectory()).path;
+      final port = await EmbeddedBackendService.start(
+        dataDir: dataDir,
+        musicDir: musicDir,
+      );
+
+      final baseUrl = 'http://127.0.0.1:$port';
+      ref.read(baseUrlProvider.notifier).set(baseUrl);
+
+      setState(() => _localModeHint = '正在连接…');
+      final dio = Dio(BaseOptions(connectTimeout: const Duration(seconds: 2)));
+      for (var i = 0; i < 10; i++) {
+        try {
+          final resp = await dio.get('$baseUrl/api/v1/health');
+          if (resp.statusCode == 200) break;
+        } catch (_) {
+          await Future.delayed(const Duration(milliseconds: 300));
+        }
+      }
+
+      setState(() => _localModeHint = '正在登录…');
+      final loginDio = Dio(BaseOptions(
+        baseUrl: baseUrl,
+        connectTimeout: const Duration(seconds: 5),
+      ));
+      final resp = await loginDio.post(
+        '${AppConfig.apiPrefix}/auth/login',
+        data: {'username': 'admin', 'password': 'admin'},
+      );
+      if (resp.statusCode == 200 && resp.data != null) {
+        final storage = SecureStorageService();
+        await storage.saveTokens(
+          accessToken: resp.data['access_token'] ?? '',
+          refreshToken: resp.data['refresh_token'] ?? '',
+          expiresIn: resp.data['expires_in'] ?? 3600,
+        );
+      }
+      dio.close();
+      loginDio.close();
+
+      await ref.read(authStateProvider.notifier).checkAuth();
+    } catch (e) {
+      if (mounted) {
+        ResponsiveSnackBar.showError(context, message: '本地模式启动失败：$e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLocalModeBootstrapping = false);
+      }
+    }
   }
 }
 

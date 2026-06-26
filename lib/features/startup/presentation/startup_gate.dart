@@ -45,6 +45,8 @@ class _StartupGateState extends ConsumerState<StartupGate> {
 
   Future<void> _bootstrap() async {
     try {
+      await ref.read(runModeProvider.notifier).ensureLoaded();
+      await ref.read(localMusicDirProvider.notifier).ensureLoaded();
       final runMode = ref.read(runModeProvider);
 
       if (runMode == RunMode.local && !kIsWeb) {

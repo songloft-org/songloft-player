@@ -1,15 +1,19 @@
+import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../../config/app_config.dart';
+import '../../../core/backend/embedded_backend_service.dart';
 import '../../../core/backend/run_mode_provider.dart';
 import '../../../core/network/base_url_provider.dart';
 import '../../../core/network/server_entry.dart';
 import '../../../core/network/server_probe.dart';
 import '../../../core/network/servers_provider.dart';
 import '../../../shared/utils/responsive_snackbar.dart';
+import '../../auth/presentation/providers/auth_provider.dart';
 
 class ServersPage extends ConsumerWidget {
   const ServersPage({super.key});
@@ -36,15 +40,8 @@ class ServersPage extends ConsumerWidget {
         error: (e, _) => Center(child: Text('加载失败: $e')),
         data: (servers) {
           const showLocalMode = !kIsWeb && AppConfig.hasEmbeddedBackend;
-          final localModeCard = showLocalMode
-              ? _LocalModeCard(
-                  onNeedRestart: () {
-                    ResponsiveSnackBar.show(
-                      context,
-                      message: '模式已切换，请重启应用生效',
-                    );
-                  },
-                )
+          const localModeCard = showLocalMode
+              ? _LocalModeCard()
               : null;
 
           if (servers.isEmpty) {
@@ -87,8 +84,8 @@ class ServersPage extends ConsumerWidget {
           return Column(
             children: [
               if (localModeCard != null)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
                   child: localModeCard,
                 ),
               Expanded(
@@ -426,12 +423,18 @@ class _StatusDot extends StatelessWidget {
 }
 
 /// 本地模式配置卡片（仅在 HAS_BACKEND=true 的移动端构建中显示）
-class _LocalModeCard extends ConsumerWidget {
-  final VoidCallback onNeedRestart;
-  const _LocalModeCard({required this.onNeedRestart});
+class _LocalModeCard extends ConsumerStatefulWidget {
+  const _LocalModeCard();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_LocalModeCard> createState() => _LocalModeCardState();
+}
+
+class _LocalModeCardState extends ConsumerState<_LocalModeCard> {
+  bool _isSwitching = false;
+
+  @override
+  Widget build(BuildContext context) {
     final runMode = ref.watch(runModeProvider);
     final musicDir = ref.watch(localMusicDirProvider);
     final isLocal = runMode == RunMode.local;
@@ -455,11 +458,9 @@ class _LocalModeCard extends ConsumerWidget {
                 ),
                 Switch(
                   value: isLocal,
-                  onChanged: (value) async {
-                    final mode = value ? RunMode.local : RunMode.remote;
-                    await ref.read(runModeProvider.notifier).set(mode);
-                    onNeedRestart();
-                  },
+                  onChanged: _isSwitching
+                      ? null
+                      : (value) => _handleToggle(value),
                 ),
               ],
             ),
@@ -470,7 +471,11 @@ class _LocalModeCard extends ConsumerWidget {
                     color: colorScheme.onSurfaceVariant,
                   ),
             ),
-            if (isLocal) ...[
+            if (_isSwitching) ...[
+              const SizedBox(height: 8),
+              const LinearProgressIndicator(),
+            ],
+            if (isLocal && !_isSwitching) ...[
               const SizedBox(height: 12),
               const Divider(height: 1),
               const SizedBox(height: 12),
@@ -500,7 +505,7 @@ class _LocalModeCard extends ConsumerWidget {
                   ),
                   const SizedBox(width: 8),
                   FilledButton.tonal(
-                    onPressed: () => _pickMusicDir(context, ref),
+                    onPressed: () => _pickMusicDir(),
                     child: const Text('选择'),
                   ),
                 ],
@@ -512,17 +517,82 @@ class _LocalModeCard extends ConsumerWidget {
     );
   }
 
-  Future<void> _pickMusicDir(BuildContext context, WidgetRef ref) async {
+  Future<void> _handleToggle(bool enableLocal) async {
+    setState(() => _isSwitching = true);
+    try {
+      if (enableLocal) {
+        await _switchToLocal();
+      } else {
+        await _switchToRemote();
+      }
+    } catch (e) {
+      if (mounted) {
+        ResponsiveSnackBar.showError(context, message: '切换失败：$e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSwitching = false);
+      }
+    }
+  }
+
+  Future<void> _switchToLocal() async {
+    var musicDir = ref.read(localMusicDirProvider);
+    if (musicDir == null || musicDir.isEmpty) {
+      final result = await FilePicker.platform.getDirectoryPath(
+        dialogTitle: '选择音乐文件夹',
+      );
+      if (result == null) return;
+      await ref.read(localMusicDirProvider.notifier).set(result);
+      musicDir = result;
+    }
+
+    await ref.read(runModeProvider.notifier).set(RunMode.local);
+
+    final dataDir = (await getApplicationSupportDirectory()).path;
+    final port = await EmbeddedBackendService.start(
+      dataDir: dataDir,
+      musicDir: musicDir,
+    );
+
+    final baseUrl = 'http://127.0.0.1:$port';
+    ref.read(baseUrlProvider.notifier).set(baseUrl);
+
+    final dio = Dio(BaseOptions(connectTimeout: const Duration(seconds: 2)));
+    for (var i = 0; i < 10; i++) {
+      try {
+        final resp = await dio.get('$baseUrl/api/v1/health');
+        if (resp.statusCode == 200) break;
+      } catch (_) {
+        await Future.delayed(const Duration(milliseconds: 300));
+      }
+    }
+    dio.close();
+
+    await ref.read(authStateProvider.notifier).login(
+      username: 'admin',
+      password: 'admin',
+    );
+
+    if (mounted) {
+      ResponsiveSnackBar.show(context, message: '已切换到本地模式');
+    }
+  }
+
+  Future<void> _switchToRemote() async {
+    await ref.read(runModeProvider.notifier).set(RunMode.remote);
+    await EmbeddedBackendService.stop();
+    await ref.read(authStateProvider.notifier).logout();
+  }
+
+  Future<void> _pickMusicDir() async {
     final result = await FilePicker.platform.getDirectoryPath(
       dialogTitle: '选择音乐文件夹',
     );
     if (result != null) {
       await ref.read(localMusicDirProvider.notifier).set(result);
-      if (context.mounted) {
-        ResponsiveSnackBar.show(
-          context,
-          message: '音乐目录已设置，重启应用后生效',
-        );
+      if (mounted) {
+        ResponsiveSnackBar.show(context, message: '音乐目录已更新');
       }
     }
   }

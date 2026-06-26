@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -11,17 +13,28 @@ const _kLocalMusicDirKey = 'songloft_local_music_dir';
 
 /// 持久化用户选择的运行模式
 class RunModeNotifier extends Notifier<RunMode> {
+  Completer<void> _loadCompleter = Completer<void>();
+
   @override
   RunMode build() {
+    _loadCompleter = Completer<void>();
     _load();
     return RunMode.remote;
   }
 
+  Future<void> ensureLoaded() => _loadCompleter.future;
+
   Future<void> _load() async {
-    final prefs = await SharedPreferences.getInstance();
-    final value = prefs.getString(_kRunModeKey);
-    if (value == 'local') {
-      state = RunMode.local;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final value = prefs.getString(_kRunModeKey);
+      if (value == 'local') {
+        state = RunMode.local;
+      }
+    } finally {
+      if (!_loadCompleter.isCompleted) {
+        _loadCompleter.complete();
+      }
     }
   }
 
@@ -38,15 +51,26 @@ final runModeProvider = NotifierProvider<RunModeNotifier, RunMode>(
 
 /// 持久化用户选择的本地音乐目录
 class LocalMusicDirNotifier extends Notifier<String?> {
+  Completer<void> _loadCompleter = Completer<void>();
+
   @override
   String? build() {
+    _loadCompleter = Completer<void>();
     _load();
     return null;
   }
 
+  Future<void> ensureLoaded() => _loadCompleter.future;
+
   Future<void> _load() async {
-    final prefs = await SharedPreferences.getInstance();
-    state = prefs.getString(_kLocalMusicDirKey);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      state = prefs.getString(_kLocalMusicDirKey);
+    } finally {
+      if (!_loadCompleter.isCompleted) {
+        _loadCompleter.complete();
+      }
+    }
   }
 
   Future<void> set(String path) async {
