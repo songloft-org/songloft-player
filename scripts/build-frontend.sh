@@ -426,6 +426,16 @@ build_macos() {
 
     # 1. 构建 Flutter macOS .app
     flutter build macos --release 2>&1 | tee -a "$log_file"
+
+    # 如果存在 Go 后端二进制，拷贝到 .app/Contents/MacOS/ 目录
+    local go_server="macos/Runner/songloft-server"
+    if [ -f "$go_server" ]; then
+        for app_dir in build/macos/Build/Products/Release/*.app; do
+            cp "$go_server" "$app_dir/Contents/MacOS/"
+            echo -e "${GREEN}✓ [macOS]${NC} Go 后端已打包进 .app"
+        done
+    fi
+
     cp -r build/macos/Build/Products/Release/*.app "$output/"
     echo -e "${GREEN}✓ [macOS]${NC} macOS .app 构建完成"
 

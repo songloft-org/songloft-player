@@ -126,3 +126,11 @@ if(NOT CMAKE_BUILD_TYPE MATCHES "Debug")
   install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
     COMPONENT Runtime)
 endif()
+
+# Bundle Go backend binary (built by `make build-go-desktop-linux`).
+# If the binary exists, copy it alongside the Flutter executable.
+set(GO_SERVER_BINARY "${CMAKE_CURRENT_SOURCE_DIR}/runner/songloft-server")
+if(EXISTS "${GO_SERVER_BINARY}")
+  install(PROGRAMS "${GO_SERVER_BINARY}" DESTINATION "${CMAKE_INSTALL_PREFIX}"
+    COMPONENT Runtime)
+endif()

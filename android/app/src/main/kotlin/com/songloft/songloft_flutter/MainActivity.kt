@@ -30,5 +30,8 @@ class MainActivity : AudioServiceActivity() {
                 result.notImplemented()
             }
         }
+
+        // 注册内嵌后端 MethodChannel（反射调用 .aar，未打包时自动降级）
+        SongloftBackendPlugin(flutterEngine)
     }
 }

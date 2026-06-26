@@ -1,11 +1,17 @@
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../../config/app_config.dart';
+import '../../../core/backend/embedded_backend_service.dart';
+import '../../../core/backend/run_mode_provider.dart';
 import '../../../core/network/base_url_provider.dart';
 import '../../../core/network/server_entry.dart';
 import '../../../core/network/server_probe.dart';
 import '../../../core/network/servers_provider.dart';
+import '../../../core/storage/secure_storage.dart';
 
 /// 启动时显示一个简单 Splash，期间完成：
 /// 1. 读取持久化的服务器列表
@@ -14,6 +20,7 @@ import '../../../core/network/servers_provider.dart';
 /// 4. 设置 probeOutcomeProvider 供首屏 SnackBar 提示
 ///
 /// embedded 模式不做任何探测，直接渲染 child。
+/// local 模式启动内嵌 Go 后端，连接 localhost 并自动登录。
 class StartupGate extends ConsumerStatefulWidget {
   final Widget child;
   const StartupGate({super.key, required this.child});
@@ -38,24 +45,12 @@ class _StartupGateState extends ConsumerState<StartupGate> {
 
   Future<void> _bootstrap() async {
     try {
-      final servers = await ref.read(serversProvider.future);
+      final runMode = ref.read(runModeProvider);
 
-      if (servers.isEmpty) {
-        ref.read(probeOutcomeProvider.notifier).set(ProbeOutcome.noServers);
-      } else if (servers.length == 1) {
-        ref.read(baseUrlProvider.notifier).set(servers.first.url);
-        ref.read(probeOutcomeProvider.notifier).set(ProbeOutcome.success);
+      if (runMode == RunMode.local && !kIsWeb) {
+        await _bootstrapLocal();
       } else {
-        setState(() {
-          _hint = '正在连接 ${_describe(servers.first)}…';
-        });
-
-        final picked = await ServerProbe.pickFirstReachable(servers);
-        final chosen = picked ?? servers.first;
-        ref.read(baseUrlProvider.notifier).set(chosen.url);
-        ref.read(probeOutcomeProvider.notifier).set(
-              picked == null ? ProbeOutcome.fallbackUsed : ProbeOutcome.success,
-            );
+        await _bootstrapRemote();
       }
     } catch (e) {
       debugPrint('[StartupGate] 启动初始化失败: $e');
@@ -66,6 +61,93 @@ class _StartupGateState extends ConsumerState<StartupGate> {
           _ready = true;
         });
       }
+    }
+  }
+
+  Future<void> _bootstrapLocal() async {
+    setState(() => _hint = '正在启动本地后端…');
+
+    final musicDir = ref.read(localMusicDirProvider);
+    if (musicDir == null || musicDir.isEmpty) {
+      debugPrint('[StartupGate] 本地模式未配置音乐目录，回退到远程模式');
+      await ref.read(runModeProvider.notifier).set(RunMode.remote);
+      await _bootstrapRemote();
+      return;
+    }
+
+    final dataDir = (await getApplicationSupportDirectory()).path;
+    final port = await EmbeddedBackendService.start(
+      dataDir: dataDir,
+      musicDir: musicDir,
+    );
+
+    final baseUrl = 'http://127.0.0.1:$port';
+    ref.read(baseUrlProvider.notifier).set(baseUrl);
+
+    setState(() => _hint = '正在连接本地后端…');
+
+    // 等待后端 health 端点就绪
+    final dio = Dio(BaseOptions(connectTimeout: const Duration(seconds: 2)));
+    for (var i = 0; i < 10; i++) {
+      try {
+        final resp = await dio.get('$baseUrl/api/v1/health');
+        if (resp.statusCode == 200) break;
+      } catch (_) {
+        await Future.delayed(const Duration(milliseconds: 300));
+      }
+    }
+    dio.close();
+
+    // 本地模式自动登录（使用默认凭据 admin/admin）
+    await _autoLogin(baseUrl);
+
+    ref.read(probeOutcomeProvider.notifier).set(ProbeOutcome.success);
+  }
+
+  Future<void> _autoLogin(String baseUrl) async {
+    try {
+      final dio = Dio(BaseOptions(
+        baseUrl: baseUrl,
+        connectTimeout: const Duration(seconds: 5),
+      ));
+      final resp = await dio.post(
+        '${AppConfig.apiPrefix}/auth/login',
+        data: {'username': 'admin', 'password': 'admin'},
+      );
+      if (resp.statusCode == 200 && resp.data != null) {
+        final storage = SecureStorageService();
+        await storage.saveTokens(
+          accessToken: resp.data['access_token'] ?? '',
+          refreshToken: resp.data['refresh_token'] ?? '',
+          expiresIn: resp.data['expires_in'] ?? 3600,
+        );
+        debugPrint('[StartupGate] 本地模式自动登录成功');
+      }
+      dio.close();
+    } catch (e) {
+      debugPrint('[StartupGate] 本地模式自动登录失败: $e');
+    }
+  }
+
+  Future<void> _bootstrapRemote() async {
+    final servers = await ref.read(serversProvider.future);
+
+    if (servers.isEmpty) {
+      ref.read(probeOutcomeProvider.notifier).set(ProbeOutcome.noServers);
+    } else if (servers.length == 1) {
+      ref.read(baseUrlProvider.notifier).set(servers.first.url);
+      ref.read(probeOutcomeProvider.notifier).set(ProbeOutcome.success);
+    } else {
+      setState(() {
+        _hint = '正在连接 ${_describe(servers.first)}…';
+      });
+
+      final picked = await ServerProbe.pickFirstReachable(servers);
+      final chosen = picked ?? servers.first;
+      ref.read(baseUrlProvider.notifier).set(chosen.url);
+      ref.read(probeOutcomeProvider.notifier).set(
+            picked == null ? ProbeOutcome.fallbackUsed : ProbeOutcome.success,
+          );
     }
   }
 

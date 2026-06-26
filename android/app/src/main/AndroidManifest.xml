@@ -8,6 +8,9 @@
     <uses-feature android:name="android.hardware.type.automotive" android:required="false" />
     
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- 本地模式：读取设备音频文件 -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
     <!-- audio_service 权限 -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>

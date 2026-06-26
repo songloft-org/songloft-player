@@ -18,6 +18,11 @@ class AppConfig {
   /// 编译时常量，tree-shaking 会移除未使用的分支代码
   static const bool isEmbedded = _kDeployMode == 'embedded';
 
+  /// 是否为移动端嵌入后端构建（通过 --dart-define=HAS_BACKEND=true 注入）
+  /// 为 true 时显示"本地模式"选项，允许在设备上直接运行 Go 后端
+  static const bool hasEmbeddedBackend =
+      bool.fromEnvironment('HAS_BACKEND', defaultValue: false);
+
   /// 是否运行在电视系统上
   static late final bool isTvMode;
 

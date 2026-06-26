@@ -80,6 +80,9 @@ android {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    // gomobile bind 生成的 Go 后端 .aar（本地模式使用）
+    // 文件由 `make build-go-mobile-android` 生成到 libs/ 目录
+    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.aar"))))
 }
 
 flutter {

@@ -1,6 +1,10 @@
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../config/app_config.dart';
+import '../../../core/backend/run_mode_provider.dart';
 import '../../../core/network/base_url_provider.dart';
 import '../../../core/network/server_entry.dart';
 import '../../../core/network/server_probe.dart';
@@ -31,58 +35,89 @@ class ServersPage extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('加载失败: $e')),
         data: (servers) {
+          const showLocalMode = !kIsWeb && AppConfig.hasEmbeddedBackend;
+          final localModeCard = showLocalMode
+              ? _LocalModeCard(
+                  onNeedRestart: () {
+                    ResponsiveSnackBar.show(
+                      context,
+                      message: '模式已切换，请重启应用生效',
+                    );
+                  },
+                )
+              : null;
+
           if (servers.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.cloud_off_outlined,
-                      size: 64,
-                      color: Theme.of(context).colorScheme.outline,
+            return ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                if (localModeCard != null) ...[
+                  localModeCard,
+                  const SizedBox(height: 24),
+                ],
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.cloud_off_outlined,
+                          size: 64,
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          '尚未添加服务器',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '点击右下角「+」添加 API 地址。\n启动时会按顺序探测，优先使用排在前面的可达项。',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      '尚未添加服务器',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '点击右下角「+」添加 API 地址。\n启动时会按顺序探测，优先使用排在前面的可达项。',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             );
           }
-          return ReorderableListView.builder(
-            buildDefaultDragHandles: false,
-            padding: const EdgeInsets.only(bottom: 96),
-            itemCount: servers.length,
-            onReorder: (oldIndex, newIndex) {
-              ref.read(serversProvider.notifier).reorder(oldIndex, newIndex);
-            },
-            itemBuilder: (context, index) {
-              final entry = servers[index];
-              final isCurrent = entry.url == currentUrl;
-              final status = statuses[entry.id] ?? ProbeStatus.unknown;
-              return _ServerTile(
-                key: ValueKey(entry.id),
-                index: index,
-                entry: entry,
-                isCurrent: isCurrent,
-                status: status,
-                onEdit: () => _showEditDialog(context, ref, entry),
-                onDelete: () => _confirmDelete(context, ref, entry, isCurrent),
-                onTest: () => _probeOne(context, ref, entry),
-                onSwitchTo: () => _switchTo(context, ref, entry, isCurrent),
-              );
-            },
+          return Column(
+            children: [
+              if (localModeCard != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                  child: localModeCard,
+                ),
+              Expanded(
+                child: ReorderableListView.builder(
+                  buildDefaultDragHandles: false,
+                  padding: const EdgeInsets.only(bottom: 96),
+                  itemCount: servers.length,
+                  onReorder: (oldIndex, newIndex) {
+                    ref.read(serversProvider.notifier).reorder(oldIndex, newIndex);
+                  },
+                  itemBuilder: (context, index) {
+                    final entry = servers[index];
+                    final isCurrent = entry.url == currentUrl;
+                    final status = statuses[entry.id] ?? ProbeStatus.unknown;
+                    return _ServerTile(
+                      key: ValueKey(entry.id),
+                      index: index,
+                      entry: entry,
+                      isCurrent: isCurrent,
+                      status: status,
+                      onEdit: () => _showEditDialog(context, ref, entry),
+                      onDelete: () => _confirmDelete(context, ref, entry, isCurrent),
+                      onTest: () => _probeOne(context, ref, entry),
+                      onSwitchTo: () => _switchTo(context, ref, entry, isCurrent),
+                    );
+                  },
+                ),
+              ),
+            ],
           );
         },
       ),
@@ -387,5 +422,108 @@ class _StatusDot extends StatelessWidget {
       height: 12,
       decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
+  }
+}
+
+/// 本地模式配置卡片（仅在 HAS_BACKEND=true 的移动端构建中显示）
+class _LocalModeCard extends ConsumerWidget {
+  final VoidCallback onNeedRestart;
+  const _LocalModeCard({required this.onNeedRestart});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final runMode = ref.watch(runModeProvider);
+    final musicDir = ref.watch(localMusicDirProvider);
+    final isLocal = runMode == RunMode.local;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.phone_android, color: colorScheme.primary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '本地模式',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ),
+                Switch(
+                  value: isLocal,
+                  onChanged: (value) async {
+                    final mode = value ? RunMode.local : RunMode.remote;
+                    await ref.read(runModeProvider.notifier).set(mode);
+                    onNeedRestart();
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '开启后在设备上运行后端，无需网络即可播放本地音乐。',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+            ),
+            if (isLocal) ...[
+              const SizedBox(height: 12),
+              const Divider(height: 1),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '音乐目录',
+                          style: Theme.of(context).textTheme.labelMedium,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          musicDir ?? '未选择',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: musicDir != null
+                                    ? colorScheme.onSurface
+                                    : colorScheme.error,
+                              ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton.tonal(
+                    onPressed: () => _pickMusicDir(context, ref),
+                    child: const Text('选择'),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickMusicDir(BuildContext context, WidgetRef ref) async {
+    final result = await FilePicker.platform.getDirectoryPath(
+      dialogTitle: '选择音乐文件夹',
+    );
+    if (result != null) {
+      await ref.read(localMusicDirProvider.notifier).set(result);
+      if (context.mounted) {
+        ResponsiveSnackBar.show(
+          context,
+          message: '音乐目录已设置，重启应用后生效',
+        );
+      }
+    }
   }
 }

@@ -109,3 +109,11 @@ install(DIRECTORY "${PROJECT_BUILD_DIR}/${FLUTTER_ASSET_DIR_NAME}"
 install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}"
   CONFIGURATIONS Profile;Release
   COMPONENT Runtime)
+
+# Bundle Go backend binary (built by `make build-go-desktop-windows`).
+# If the binary exists, copy it alongside the Flutter executable.
+set(GO_SERVER_BINARY "${CMAKE_CURRENT_SOURCE_DIR}/runner/songloft-server.exe")
+if(EXISTS "${GO_SERVER_BINARY}")
+  install(PROGRAMS "${GO_SERVER_BINARY}" DESTINATION "${CMAKE_INSTALL_PREFIX}"
+    COMPONENT Runtime)
+endif()
