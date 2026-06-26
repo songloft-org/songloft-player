@@ -22,6 +22,8 @@
 		0679C9CAEAD9D3899AB3C416 /* SongloftLiveActivityBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67706DF2A7C12721D9D732F4 /* SongloftLiveActivityBundle.swift */; };
 		A9917055B5D12C4931DB4FF8 /* SongloftLiveActivityWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 085C5BD3D26D80C7A1B76626 /* SongloftLiveActivityWidget.swift */; };
 		B9397FE54B9C33EB37C7EC33 /* SongloftMusicAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D8DABF3971B81F4C4DCB69F /* SongloftMusicAttributes.swift */; };
+		F2E1D0C9B8A7F6E5D4C3B2A1 /* EqualizerPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F2 /* EqualizerPlugin.swift */; };
+		A4F3E2D1C0B9A8F7E6D5C4B3 /* SongloftBackendPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3C4D5E6F7A8B9C0D1E2F3A4 /* SongloftBackendPlugin.swift */; };
 		9002AF41380C05DE18E5E41E /* SongloftLiveActivity.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 54DBE75737E76300EECBF1EF /* SongloftLiveActivity.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -96,6 +98,8 @@
 		54DBE75737E76300EECBF1EF /* SongloftLiveActivity.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SongloftLiveActivity.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		67706DF2A7C12721D9D732F4 /* SongloftLiveActivityBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongloftLiveActivityBundle.swift; sourceTree = "<group>"; };
 		085C5BD3D26D80C7A1B76626 /* SongloftLiveActivityWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongloftLiveActivityWidget.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6A7B8C9D0E1F2 /* EqualizerPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EqualizerPlugin.swift; sourceTree = "<group>"; };
+		B3C4D5E6F7A8B9C0D1E2F3A4 /* SongloftBackendPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongloftBackendPlugin.swift; sourceTree = "<group>"; };
 		4D0753C0E44B38039FF03628 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -205,6 +209,8 @@
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 				9696852CBAA00AAC64333330 /* LiveActivityManager.swift */,
 				6D8DABF3971B81F4C4DCB69F /* SongloftMusicAttributes.swift */,
+				A1B2C3D4E5F6A7B8C9D0E1F2 /* EqualizerPlugin.swift */,
+				B3C4D5E6F7A8B9C0D1E2F3A4 /* SongloftBackendPlugin.swift */,
 			);
 			path = Runner;
 			sourceTree = "<group>";
@@ -484,6 +490,8 @@
 				7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */,
 				B2E4516EF54414FD1B67CA97 /* LiveActivityManager.swift in Sources */,
 				1C9486310C7849E245C00E29 /* SongloftMusicAttributes.swift in Sources */,
+				F2E1D0C9B8A7F6E5D4C3B2A1 /* EqualizerPlugin.swift in Sources */,
+				A4F3E2D1C0B9A8F7E6D5C4B3 /* SongloftBackendPlugin.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
