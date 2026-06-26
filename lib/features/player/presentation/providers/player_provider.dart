@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart' as ja;
 import 'package:volume_controller/volume_controller.dart';
@@ -295,18 +296,29 @@ class PlayerNotifier extends Notifier<PlayerState> {
   /// 初始化 Live Activity 服务
   void _initLiveActivityListeners() {
     _liveActivity = LiveActivityService();
+    if (!kIsWeb && PlatformUtils.isIOS) {
+      _lifecycleListener = AppLifecycleListener(
+        onResume: () => _liveActivity.clearSupportedCache(),
+      );
+      ref.onDispose(() => _lifecycleListener?.dispose());
+    }
   }
 
   late final LiveActivityService _liveActivity;
+  AppLifecycleListener? _lifecycleListener;
 
   /// 通知 Live Activity 当前歌曲变更
   void _syncLiveActivitySong(Song? song) {
     if (song == null) {
       _liveActivity.endActivity();
     } else {
+      final lyricState = ref.read(lyricStateProvider);
       _liveActivity.startActivity(
         title: song.title,
         artist: song.artist ?? '',
+        lyricLine: lyricState.currentLyricText.isNotEmpty
+            ? lyricState.currentLyricText
+            : null,
         artUrl: song.coverUrl != null
             ? UrlHelper.buildCoverUrl(song.coverUrl!)
             : null,

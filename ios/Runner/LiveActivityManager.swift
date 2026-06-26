@@ -78,11 +78,17 @@ class LiveActivityManager: NSObject {
     func isSupported() -> Bool {
         if #available(iOS 16.2, *) {
             #if canImport(ActivityKit)
-            return ActivityAuthorizationInfo().areActivitiesEnabled
+            let enabled = ActivityAuthorizationInfo().areActivitiesEnabled
+            if !enabled {
+                print("[LiveActivity] areActivitiesEnabled = false (check Settings > Songloft > Live Activities)")
+            }
+            return enabled
             #else
+            print("[LiveActivity] ActivityKit not available in this build")
             return false
             #endif
         }
+        print("[LiveActivity] iOS version < 16.2, Live Activity not supported")
         return false
     }
 
@@ -111,6 +117,7 @@ class LiveActivityManager: NSObject {
                     pushType: nil
                 )
                 currentActivity = activity
+                print("[LiveActivity] Activity started: id=\(activity.id), title=\(title)")
             } catch {
                 print("[LiveActivity] Failed to start activity: \(error)")
             }

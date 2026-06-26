@@ -20,14 +20,22 @@ class LiveActivityService {
 
   bool get _isApplicable => !kIsWeb && Platform.isIOS;
 
+  /// 清除 isSupported 缓存，下次调用时重新检查。
+  /// 在 app 回到前台时调用，以便捕获用户在系统设置中开关 Live Activity。
+  void clearSupportedCache() {
+    _supported = null;
+  }
+
   /// 检查当前设备是否支持 Live Activity
   Future<bool> isSupported() async {
     if (!_isApplicable) return false;
     if (_supported != null) return _supported!;
     try {
       _supported = await _channel.invokeMethod<bool>('isSupported') ?? false;
+      debugPrint('[LiveActivity] isSupported: $_supported');
     } on MissingPluginException {
       _supported = false;
+      debugPrint('[LiveActivity] isSupported: plugin not found');
     } catch (e) {
       debugPrint('[LiveActivity] isSupported check failed: $e');
       _supported = false;
@@ -42,8 +50,12 @@ class LiveActivityService {
     String? lyricLine,
     String? artUrl,
   }) async {
-    if (!await isSupported()) return;
+    if (!await isSupported()) {
+      debugPrint('[LiveActivity] startActivity skipped: not supported');
+      return;
+    }
     try {
+      debugPrint('[LiveActivity] startActivity: $title - $artist');
       await _channel.invokeMethod('startActivity', {
         'title': title,
         'artist': artist,
