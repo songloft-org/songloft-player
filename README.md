@@ -1,5 +1,7 @@
 # Songloft Flutter
 
+[English](README.en.md) | 中文
+
 [![Build and Release](https://github.com/songloft-org/songloft-player/actions/workflows/build-and-release.yml/badge.svg)](https://github.com/songloft-org/songloft-player/actions/workflows/build-and-release.yml)
 [![GitHub License](https://img.shields.io/github/license/songloft-org/songloft-player)](https://github.com/songloft-org/songloft-player)
 [![GitHub Release](https://img.shields.io/github/v/release/songloft-org/songloft-player)](https://github.com/songloft-org/songloft-player/releases)
@@ -94,7 +96,7 @@ flutter build windows                                                          #
 ./scripts/build-frontend.sh all           # 构建所有平台
 ```
 
-详细构建说明参见 [构建指南](docs/build_guide.md)。
+详细构建说明参见 [构建指南](docs/cn/build_guide.md)。
 
 ## CI/CD
 
@@ -139,10 +141,10 @@ scripts/
 
 | 文档 | 说明 |
 |------|------|
-| [docs/build_guide.md](docs/build_guide.md) | 多平台构建指南 |
-| [docs/development.md](docs/development.md) | 开发指南 |
-| [docs/architecture.md](docs/architecture.md) | 架构补充说明 |
-| [docs/platform-notes.md](docs/platform-notes.md) | 平台特定注意事项 |
+| [docs/cn/build_guide.md](docs/cn/build_guide.md) | 多平台构建指南 |
+| [docs/cn/development.md](docs/cn/development.md) | 开发指南 |
+| [docs/cn/architecture.md](docs/cn/architecture.md) | 架构补充说明 |
+| [docs/cn/platform-notes.md](docs/cn/platform-notes.md) | 平台特定注意事项 |
 | [scripts/README.md](scripts/README.md) | 版本发布脚本指南 |
 
 ## 技术栈
