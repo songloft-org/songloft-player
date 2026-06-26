@@ -655,9 +655,9 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('扫描完成'),
+                    Text('扫描完成，本地歌曲共 ${progress.localSongCount} 首'),
                     Text(
-                      '导入 ${progress.importedFiles} 首, 跳过 ${progress.skippedFiles} 首, 失败 ${progress.failedFiles} 个',
+                      '本次导入 ${progress.importedFiles} 首，跳过 ${progress.skippedFiles} 首，失败 ${progress.failedFiles} 个',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],

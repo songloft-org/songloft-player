@@ -13,6 +13,7 @@ class ScanProgress {
   final int importedFiles;
   final int skippedFiles;
   final int failedFiles;
+  final int localSongCount;
 
   ScanProgress({
     required this.status,
@@ -22,6 +23,7 @@ class ScanProgress {
     required this.importedFiles,
     required this.skippedFiles,
     required this.failedFiles,
+    this.localSongCount = 0,
   });
 
   factory ScanProgress.fromJson(Map<String, dynamic> json) {
@@ -33,6 +35,7 @@ class ScanProgress {
       importedFiles: json['imported_files'] as int? ?? 0,
       skippedFiles: json['skipped_files'] as int? ?? 0,
       failedFiles: json['failed_files'] as int? ?? 0,
+      localSongCount: json['local_song_count'] as int? ?? 0,
     );
   }
 
