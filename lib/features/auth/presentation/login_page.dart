@@ -100,6 +100,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Future<void> _loadSavedCredentials() async {
+    // 优先从当前服务器的 ServerEntry 读取保存的凭证
+    try {
+      final currentUrl = ref.read(baseUrlProvider);
+      final servers = await ref.read(serversProvider.future);
+      final entry = servers.where((e) => e.url == currentUrl).firstOrNull;
+      if (entry != null && entry.username != null && entry.username!.isNotEmpty) {
+        _usernameController.text = entry.username!;
+        if (entry.password != null) _passwordController.text = entry.password!;
+        return;
+      }
+    } catch (_) {}
+    // 兼容回退：全局 last 凭证
     final prefs = await ref.read(appPreferencesProvider.future);
     final savedUsername = prefs.getLastUsername();
     final savedPassword = prefs.getLastPassword();
@@ -965,27 +977,33 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         }
       }
 
-      setState(() => _localModeHint = '正在登录…');
-      final loginDio = Dio(BaseOptions(
-        baseUrl: baseUrl,
-        connectTimeout: const Duration(seconds: 5),
-      ));
-      final resp = await loginDio.post(
-        '${AppConfig.apiPrefix}/auth/login',
-        data: {'username': 'admin', 'password': 'admin'},
-      );
-      if (resp.statusCode == 200 && resp.data != null) {
-        final storage = SecureStorageService();
-        await storage.saveTokens(
-          accessToken: resp.data['access_token'] ?? '',
-          refreshToken: resp.data['refresh_token'] ?? '',
-          expiresIn: resp.data['expires_in'] ?? 3600,
-        );
-      }
       dio.close();
-      loginDio.close();
 
-      await ref.read(authStateProvider.notifier).checkAuth();
+      // 尝试恢复本地 session，有效则跳过登录
+      final storage = SecureStorageService();
+      final restored = await storage.restoreWallet(SecureStorageService.localWalletKey);
+      if (restored && !await storage.isAccessTokenExpired()) {
+        ref.read(authStateProvider.notifier).setAuthenticated();
+      } else {
+        setState(() => _localModeHint = '正在登录…');
+        final loginDio = Dio(BaseOptions(
+          baseUrl: baseUrl,
+          connectTimeout: const Duration(seconds: 5),
+        ));
+        final resp = await loginDio.post(
+          '${AppConfig.apiPrefix}/auth/login',
+          data: {'username': 'admin', 'password': 'admin'},
+        );
+        if (resp.statusCode == 200 && resp.data != null) {
+          await storage.saveTokens(
+            accessToken: resp.data['access_token'] ?? '',
+            refreshToken: resp.data['refresh_token'] ?? '',
+            expiresIn: resp.data['expires_in'] ?? 3600,
+          );
+        }
+        loginDio.close();
+        await ref.read(authStateProvider.notifier).checkAuth();
+      }
     } catch (e) {
       if (mounted) {
         ResponsiveSnackBar.showError(context, message: '本地模式启动失败：$e');

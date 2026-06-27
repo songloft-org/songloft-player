@@ -102,8 +102,12 @@ class _StartupGateState extends ConsumerState<StartupGate> {
     }
     dio.close();
 
-    // 本地模式自动登录（使用默认凭据 admin/admin）
-    await _autoLogin(baseUrl);
+    // 尝试恢复本地 session，有效则跳过 auto-login
+    final storage = SecureStorageService();
+    final restored = await storage.restoreWallet(SecureStorageService.localWalletKey);
+    if (!restored || await storage.isAccessTokenExpired()) {
+      await _autoLogin(baseUrl);
+    }
 
     ref.read(probeOutcomeProvider.notifier).set(ProbeOutcome.success);
   }
@@ -139,7 +143,11 @@ class _StartupGateState extends ConsumerState<StartupGate> {
     if (servers.isEmpty) {
       ref.read(probeOutcomeProvider.notifier).set(ProbeOutcome.noServers);
     } else if (servers.length == 1) {
-      ref.read(baseUrlProvider.notifier).set(servers.first.url);
+      final url = servers.first.url;
+      ref.read(baseUrlProvider.notifier).set(url);
+      // 恢复该服务器的 wallet
+      final storage = SecureStorageService();
+      await storage.restoreWallet(SecureStorageService.walletKey(url));
       ref.read(probeOutcomeProvider.notifier).set(ProbeOutcome.success);
     } else {
       setState(() {
@@ -149,6 +157,9 @@ class _StartupGateState extends ConsumerState<StartupGate> {
       final picked = await ServerProbe.pickFirstReachable(servers);
       final chosen = picked ?? servers.first;
       ref.read(baseUrlProvider.notifier).set(chosen.url);
+      // 恢复选中服务器的 wallet
+      final storage = SecureStorageService();
+      await storage.restoreWallet(SecureStorageService.walletKey(chosen.url));
       ref.read(probeOutcomeProvider.notifier).set(
             picked == null ? ProbeOutcome.fallbackUsed : ProbeOutcome.success,
           );

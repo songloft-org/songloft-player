@@ -116,7 +116,14 @@ class AuthNotifier extends Notifier<AuthState> {
         expiresIn: tokens.expiresIn,
       );
 
-      // 登录成功后保存账号密码
+      // 登录成功后保存凭证到对应 ServerEntry
+      final currentUrl = ref.read(baseUrlProvider);
+      await ref.read(serversProvider.notifier).updateCredentials(
+        currentUrl,
+        username: username,
+        password: password,
+      );
+      // 兼容：继续保存全局 last 凭证
       final prefs = await ref.read(appPreferencesProvider.future);
       await prefs.setLastUsername(username);
       await prefs.setLastPassword(password);
@@ -158,7 +165,7 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
-  /// 登出
+  /// 登出（同时清除当前服务器的 wallet 存档）
   Future<void> logout() async {
     state = state.loading();
 
@@ -169,8 +176,20 @@ class AuthNotifier extends Notifier<AuthState> {
       // 忽略登出错误，仍然清除本地状态
     }
 
+    final currentUrl = ref.read(baseUrlProvider);
+    await _secureStorage.clearWallet(SecureStorageService.walletKey(currentUrl));
     await _secureStorage.clearTokens();
     state = state.unauthenticated();
+  }
+
+  /// 直接设置为已登录态（wallet 恢复后使用，不发请求）
+  void setAuthenticated() {
+    state = state.authenticated();
+  }
+
+  /// 直接设置为未登录态（wallet 恢复失败后使用，不发请求）
+  void setUnauthenticated([String? error]) {
+    state = state.unauthenticated(error);
   }
 
   /// Token 过期处理

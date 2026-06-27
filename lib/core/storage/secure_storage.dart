@@ -119,4 +119,66 @@ class SecureStorageService {
       expiresAt.subtract(const Duration(seconds: 30)),
     );
   }
+
+  // ── Credential Wallet（按服务器隔离 token）──
+
+  static const _walletKeys = [
+    _accessTokenKey,
+    _refreshTokenKey,
+    _tokenExpiresAtKey,
+  ];
+
+  /// 规范化 URL 作为 wallet key（去尾斜杠、小写 scheme+host）
+  static String walletKey(String url) {
+    final uri = Uri.tryParse(url);
+    if (uri == null) return url;
+    final host = uri.host.toLowerCase();
+    final port = uri.hasPort ? ':${uri.port}' : '';
+    return '${uri.scheme}://$host$port';
+  }
+
+  /// 本地模式的固定 wallet key
+  static const localWalletKey = '_local_';
+
+  /// 将当前全局 token 存档到指定 server key
+  Future<void> saveWallet(String serverKey) async {
+    final prefs = await _getPrefs();
+    for (final key in _walletKeys) {
+      final value = prefs.getString(key);
+      if (value != null) {
+        await prefs.setString('$key@$serverKey', value);
+      }
+    }
+  }
+
+  /// 从指定 server key 恢复 token 到全局 key。
+  /// 返回 true 表示找到了存档 token。
+  Future<bool> restoreWallet(String serverKey) async {
+    final prefs = await _getPrefs();
+    final accessToken = prefs.getString('$_accessTokenKey@$serverKey');
+    if (accessToken == null || accessToken.isEmpty) {
+      cachedAccessToken = null;
+      cachedRefreshToken = null;
+      return false;
+    }
+    for (final key in _walletKeys) {
+      final value = prefs.getString('$key@$serverKey');
+      if (value != null) {
+        await prefs.setString(key, value);
+      } else {
+        await prefs.remove(key);
+      }
+    }
+    cachedAccessToken = prefs.getString(_accessTokenKey);
+    cachedRefreshToken = prefs.getString(_refreshTokenKey);
+    return true;
+  }
+
+  /// 清除指定 server 的存档 token
+  Future<void> clearWallet(String serverKey) async {
+    final prefs = await _getPrefs();
+    for (final key in _walletKeys) {
+      await prefs.remove('$key@$serverKey');
+    }
+  }
 }

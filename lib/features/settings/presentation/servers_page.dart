@@ -12,6 +12,7 @@ import '../../../core/network/base_url_provider.dart';
 import '../../../core/network/server_entry.dart';
 import '../../../core/network/server_probe.dart';
 import '../../../core/network/servers_provider.dart';
+import '../../../core/storage/secure_storage.dart';
 import '../../../shared/utils/responsive_snackbar.dart';
 import '../../auth/presentation/providers/auth_provider.dart';
 
@@ -136,6 +137,22 @@ class ServersPage extends ConsumerWidget {
   ) async {
     final nameController = TextEditingController(text: existing?.name ?? '');
     final urlController = TextEditingController(text: existing?.url ?? '');
+    // 新建时默认继承当前凭证，编辑时显示已保存的凭证
+    String? defaultUser;
+    String? defaultPass;
+    if (existing != null) {
+      defaultUser = existing.username;
+      defaultPass = existing.password;
+    } else {
+      // 从当前服务器获取凭证作为默认值
+      final currentUrl = ref.read(baseUrlProvider);
+      final servers = ref.read(serversProvider).value ?? const <ServerEntry>[];
+      final current = servers.where((e) => e.url == currentUrl).firstOrNull;
+      defaultUser = current?.username;
+      defaultPass = current?.password;
+    }
+    final usernameController = TextEditingController(text: defaultUser ?? '');
+    final passwordController = TextEditingController(text: defaultPass ?? '');
     final formKey = GlobalKey<FormState>();
 
     final ok = await showDialog<bool>(
@@ -144,36 +161,55 @@ class ServersPage extends ConsumerWidget {
         title: Text(existing == null ? '添加服务器' : '编辑服务器'),
         content: Form(
           key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: '名称（可选）',
-                  hintText: '局域网 / 广域网 / 备用',
-                  border: OutlineInputBorder(),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                    labelText: '名称（可选）',
+                    hintText: '局域网 / 广域网 / 备用',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: urlController,
-                keyboardType: TextInputType.url,
-                decoration: const InputDecoration(
-                  labelText: 'API 地址',
-                  hintText: 'http://192.168.1.10:58091',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: urlController,
+                  keyboardType: TextInputType.url,
+                  decoration: const InputDecoration(
+                    labelText: 'API 地址',
+                    hintText: 'http://192.168.1.10:58091',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (v) {
+                    try {
+                      ServerEntry.normalizeUrl(v ?? '');
+                      return null;
+                    } on FormatException catch (e) {
+                      return e.message;
+                    }
+                  },
                 ),
-                validator: (v) {
-                  try {
-                    ServerEntry.normalizeUrl(v ?? '');
-                    return null;
-                  } on FormatException catch (e) {
-                    return e.message;
-                  }
-                },
-              ),
-            ],
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: usernameController,
+                  decoration: const InputDecoration(
+                    labelText: '用户名',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: passwordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: '密码',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
         actions: [
@@ -198,13 +234,28 @@ class ServersPage extends ConsumerWidget {
     try {
       final url = ServerEntry.normalizeUrl(urlController.text);
       final name = nameController.text.trim();
+      final username = usernameController.text.trim().isEmpty
+          ? null : usernameController.text.trim();
+      final password = passwordController.text.isEmpty
+          ? null : passwordController.text;
       final notifier = ref.read(serversProvider.notifier);
       if (existing == null) {
         await notifier.add(
-          ServerEntry(id: ServerEntry.generateId(), name: name, url: url),
+          ServerEntry(
+            id: ServerEntry.generateId(),
+            name: name,
+            url: url,
+            username: username,
+            password: password,
+          ),
         );
       } else {
-        await notifier.editEntry(existing.copyWith(name: name, url: url));
+        await notifier.editEntry(existing.copyWith(
+          name: name,
+          url: url,
+          usernameOverride: () => username,
+          passwordOverride: () => password,
+        ));
       }
     } catch (e) {
       if (context.mounted) {
@@ -550,6 +601,11 @@ class _LocalModeCardState extends ConsumerState<_LocalModeCard> {
       musicDir = result;
     }
 
+    // 存档当前远程 session
+    final storage = SecureStorageService();
+    final currentUrl = ref.read(baseUrlProvider);
+    await storage.saveWallet(SecureStorageService.walletKey(currentUrl));
+
     await ref.read(runModeProvider.notifier).set(RunMode.local);
     await EmbeddedBackendService.ensureStoragePermission();
 
@@ -573,10 +629,16 @@ class _LocalModeCardState extends ConsumerState<_LocalModeCard> {
     }
     dio.close();
 
-    await ref.read(authStateProvider.notifier).login(
-      username: 'admin',
-      password: 'admin',
-    );
+    // 尝试恢复本地 session
+    final restored = await storage.restoreWallet(SecureStorageService.localWalletKey);
+    if (restored && !await storage.isAccessTokenExpired()) {
+      ref.read(authStateProvider.notifier).setAuthenticated();
+    } else {
+      await ref.read(authStateProvider.notifier).login(
+        username: 'admin',
+        password: 'admin',
+      );
+    }
 
     if (mounted) {
       ResponsiveSnackBar.show(context, message: '已切换到本地模式');
@@ -584,9 +646,27 @@ class _LocalModeCardState extends ConsumerState<_LocalModeCard> {
   }
 
   Future<void> _switchToRemote() async {
+    // 存档本地 session
+    final storage = SecureStorageService();
+    await storage.saveWallet(SecureStorageService.localWalletKey);
+
     await ref.read(runModeProvider.notifier).set(RunMode.remote);
     await EmbeddedBackendService.stop();
-    await ref.read(authStateProvider.notifier).logout();
+
+    // 尝试恢复上次使用的远程服务器 session
+    final servers = await ref.read(serversProvider.future);
+    if (servers.isNotEmpty) {
+      final target = servers.first;
+      ref.read(baseUrlProvider.notifier).set(target.url);
+      final restored = await storage.restoreWallet(SecureStorageService.walletKey(target.url));
+      if (restored && !await storage.isAccessTokenExpired()) {
+        ref.read(authStateProvider.notifier).setAuthenticated();
+        return;
+      }
+    }
+    // 无可恢复的 session → 清除并回到登录页
+    await storage.clearTokens();
+    ref.read(authStateProvider.notifier).setUnauthenticated();
   }
 
   Future<void> _pickMusicDir() async {

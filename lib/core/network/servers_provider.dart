@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/auth/presentation/providers/auth_provider.dart';
+import '../storage/secure_storage.dart';
 import 'base_url_provider.dart';
 import 'server_entry.dart';
 
@@ -52,6 +54,19 @@ class ServersNotifier extends AsyncNotifier<List<ServerEntry>> {
   Future<void> replace(List<ServerEntry> next) async {
     await _save(next);
   }
+
+  /// 更新指定服务器的保存凭证（登录成功后调用）
+  Future<void> updateCredentials(String url, {String? username, String? password}) async {
+    final current = state.value ?? const <ServerEntry>[];
+    final next = current.map((e) {
+      if (e.url != url) return e;
+      return e.copyWith(
+        usernameOverride: () => username,
+        passwordOverride: () => password,
+      );
+    }).toList();
+    await _save(next);
+  }
 }
 
 final serversProvider =
@@ -90,11 +105,23 @@ final probeOutcomeProvider =
 );
 
 /// 切换到指定服务器（统一入口）：
-/// - 选中当前在用 URL：短路无操作
-/// - 否则：set baseUrl（dioProvider 自动重建）+ 登出
+/// 存档当前 session → 切换 baseUrl → 恢复目标 session → 判断登录态
 Future<void> applyServerSelection(WidgetRef ref, ServerEntry entry) async {
-  final current = ref.read(baseUrlProvider);
-  if (current == entry.url) return;
+  final currentUrl = ref.read(baseUrlProvider);
+  if (currentUrl == entry.url) return;
+
+  final storage = SecureStorageService();
+  // 1. 存档当前 session
+  await storage.saveWallet(SecureStorageService.walletKey(currentUrl));
+  // 2. 切换 baseUrl（触发 dioProvider 重建）
   ref.read(baseUrlProvider.notifier).set(entry.url);
-  await ref.read(authStateProvider.notifier).logout();
+  // 3. 恢复目标 session
+  final restored = await storage.restoreWallet(SecureStorageService.walletKey(entry.url));
+  if (restored && !await storage.isAccessTokenExpired()) {
+    debugPrint('[Servers] 恢复 ${entry.displayName} 的登录态');
+    ref.read(authStateProvider.notifier).setAuthenticated();
+  } else {
+    await storage.clearTokens();
+    ref.read(authStateProvider.notifier).setUnauthenticated();
+  }
 }
