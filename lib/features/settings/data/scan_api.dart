@@ -8,6 +8,7 @@ class ScanProgress {
   final String
   status; // 'idle', 'scanning', 'importing', 'creating_playlists', 'completed', 'failed', 'cancelling', 'cancelled'
   final String? currentFile;
+  final int discoveredFiles;
   final int totalFiles;
   final int scannedFiles;
   final int importedFiles;
@@ -18,6 +19,7 @@ class ScanProgress {
   ScanProgress({
     required this.status,
     this.currentFile,
+    this.discoveredFiles = 0,
     required this.totalFiles,
     required this.scannedFiles,
     required this.importedFiles,
@@ -30,6 +32,7 @@ class ScanProgress {
     return ScanProgress(
       status: json['status'] as String? ?? 'idle',
       currentFile: json['current_file'] as String?,
+      discoveredFiles: json['discovered_files'] as int? ?? 0,
       totalFiles: json['total_files'] as int? ?? 0,
       scannedFiles: json['scanned_files'] as int? ?? 0,
       importedFiles: json['imported_files'] as int? ?? 0,

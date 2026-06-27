@@ -258,18 +258,26 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
 
   Widget _buildScanningState(ScanProgress progress) {
     final isCreatingPlaylists = progress.isCreatingPlaylists;
+    final isDiscovering = progress.status == 'scanning';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         LinearProgressIndicator(
-          value: isCreatingPlaylists ? null : progress.progress / 100,
+          value: (isCreatingPlaylists || isDiscovering)
+              ? null
+              : progress.progress / 100,
           minHeight: 8,
           borderRadius: BorderRadius.circular(4),
         ),
         const SizedBox(height: 12),
         if (isCreatingPlaylists)
           Text('正在按目录自动创建歌单...', style: Theme.of(context).textTheme.bodySmall)
-        else ...[
+        else if (isDiscovering) ...[
+          Text(
+            '正在发现文件${progress.discoveredFiles > 0 ? ': 已发现 ${progress.discoveredFiles} 个' : '...'}',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ] else ...[
           if (progress.currentFile != null)
             Text(
               '正在扫描: ${progress.currentFile}',
