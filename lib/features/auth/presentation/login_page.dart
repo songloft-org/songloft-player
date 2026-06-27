@@ -942,6 +942,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       }
 
       await ref.read(runModeProvider.notifier).set(RunMode.local);
+      await EmbeddedBackendService.ensureStoragePermission();
 
       setState(() => _localModeHint = '正在启动本地后端…');
       final dataDir = (await getApplicationSupportDirectory()).path;

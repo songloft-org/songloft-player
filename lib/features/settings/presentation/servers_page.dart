@@ -23,16 +23,18 @@ class ServersPage extends ConsumerWidget {
     final serversAsync = ref.watch(serversProvider);
     final currentUrl = ref.watch(baseUrlProvider);
     final statuses = ref.watch(probeStatusProvider);
+    final isLocal = ref.watch(runModeProvider) == RunMode.local;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('服务器'),
         actions: [
-          IconButton(
-            tooltip: '全部测试',
-            icon: const Icon(Icons.network_check),
-            onPressed: () => _probeAll(context, ref),
-          ),
+          if (!isLocal)
+            IconButton(
+              tooltip: '全部测试',
+              icon: const Icon(Icons.network_check),
+              onPressed: () => _probeAll(context, ref),
+            ),
         ],
       ),
       body: serversAsync.when(
@@ -52,32 +54,33 @@ class ServersPage extends ConsumerWidget {
                   localModeCard,
                   const SizedBox(height: 24),
                 ],
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.cloud_off_outlined,
-                          size: 64,
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          '尚未添加服务器',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '点击右下角「+」添加 API 地址。\n启动时会按顺序探测，优先使用排在前面的可达项。',
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
+                if (!isLocal)
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.cloud_off_outlined,
+                            size: 64,
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            '尚未添加服务器',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            '点击右下角「+」添加 API 地址。\n启动时会按顺序探测，优先使用排在前面的可达项。',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
               ],
             );
           }
@@ -118,7 +121,7 @@ class ServersPage extends ConsumerWidget {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: isLocal ? null : FloatingActionButton(
         onPressed: () => _showEditDialog(context, ref, null),
         tooltip: '添加服务器',
         child: const Icon(Icons.add),
@@ -548,6 +551,7 @@ class _LocalModeCardState extends ConsumerState<_LocalModeCard> {
     }
 
     await ref.read(runModeProvider.notifier).set(RunMode.local);
+    await EmbeddedBackendService.ensureStoragePermission();
 
     final dataDir = (await getApplicationSupportDirectory()).path;
     final port = await EmbeddedBackendService.start(

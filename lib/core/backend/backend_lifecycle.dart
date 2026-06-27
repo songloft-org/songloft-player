@@ -48,6 +48,7 @@ class BackendLifecycle with WidgetsBindingObserver {
     if (musicDir == null || musicDir.isEmpty) return;
 
     try {
+      await EmbeddedBackendService.ensureStoragePermission();
       final dataDir = (await getApplicationSupportDirectory()).path;
       final port = await EmbeddedBackendService.start(
         dataDir: dataDir,

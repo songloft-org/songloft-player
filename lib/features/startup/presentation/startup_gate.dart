@@ -77,6 +77,8 @@ class _StartupGateState extends ConsumerState<StartupGate> {
       return;
     }
 
+    await EmbeddedBackendService.ensureStoragePermission();
+
     final dataDir = (await getApplicationSupportDirectory()).path;
     final port = await EmbeddedBackendService.start(
       dataDir: dataDir,

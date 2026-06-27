@@ -1,7 +1,8 @@
 import 'dart:io' show Platform;
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 import 'package:flutter/services.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import 'desktop_backend_service.dart';
 
@@ -38,6 +39,26 @@ class EmbeddedBackendService {
     }
 
     return false;
+  }
+
+  /// 请求 Android 存储读取权限（本地模式需要 Go 后端直接遍历文件系统）。
+  /// Android ≤12 请求 READ_EXTERNAL_STORAGE，Android 13+ 请求 READ_MEDIA_AUDIO。
+  static Future<void> ensureStoragePermission() async {
+    if (kIsWeb || !Platform.isAndroid) return;
+
+    // Android 13+ (API 33): READ_MEDIA_AUDIO
+    var status = await Permission.audio.status;
+    if (!status.isGranted) {
+      status = await Permission.audio.request();
+      debugPrint('[Backend] audio permission: $status');
+    }
+
+    // Android ≤12: READ_EXTERNAL_STORAGE
+    status = await Permission.storage.status;
+    if (!status.isGranted && !status.isPermanentlyDenied) {
+      status = await Permission.storage.request();
+      debugPrint('[Backend] storage permission: $status');
+    }
   }
 
   /// 启动内嵌后端，返回实际监听端口

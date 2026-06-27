@@ -24,6 +24,7 @@ import '../../../features/jsplugin/data/jsplugin_api.dart';
 import '../../../features/jsplugin/presentation/providers/jsplugin_provider.dart';
 import '../../../features/jsplugin/presentation/widgets/jsplugin_manager.dart';
 import '../../../features/jsplugin/presentation/widgets/plugin_icon.dart';
+import '../../../core/backend/run_mode_provider.dart';
 import '../data/settings_api.dart';
 import 'widgets/metadata_refresh_manager.dart';
 import 'widgets/scan_manager.dart';
@@ -194,7 +195,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               ],
             ),
           ),
-          if (!AppConfig.isEmbedded)
+          if (!AppConfig.isEmbedded && ref.watch(runModeProvider) != RunMode.local)
             TextButton(
               onPressed: () => context.push(AppRoutes.servers),
               style: TextButton.styleFrom(
@@ -599,7 +600,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         title: '账户',
         icon: Icons.account_circle_outlined,
         children: [
-          if (!AppConfig.isEmbedded) ...[
+          if (!AppConfig.isEmbedded && ref.watch(runModeProvider) != RunMode.local) ...[
             ListTile(
               leading: const Icon(Icons.link),
               title: const Text('服务器'),
