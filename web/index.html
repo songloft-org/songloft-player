@@ -38,6 +38,49 @@
   <script src="equalizer.js"></script>
   <script src="deploy-mode.js"></script>
   <script>
+    // WebGL context recovery for mobile browsers.
+    // Mobile browsers may destroy WebGL contexts when tabs are backgrounded,
+    // causing CanvasKit to render a black screen when the user returns.
+    (function() {
+      document.addEventListener('webglcontextlost', function(e) {
+        e.preventDefault();
+      }, true);
+
+      document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState !== 'visible') return;
+
+        setTimeout(function() {
+          var canvases = document.querySelectorAll('canvas');
+          var hasLostContext = false;
+
+          for (var i = 0; i < canvases.length; i++) {
+            var gl = canvases[i].getContext('webgl2') || canvases[i].getContext('webgl');
+            if (gl && gl.isContextLost()) {
+              hasLostContext = true;
+              try {
+                var ext = gl.getExtension('WEBGL_lose_context');
+                if (ext) ext.restoreContext();
+              } catch (_) {}
+            }
+          }
+
+          if (hasLostContext) {
+            setTimeout(function() {
+              var cs = document.querySelectorAll('canvas');
+              for (var j = 0; j < cs.length; j++) {
+                var g = cs[j].getContext('webgl2') || cs[j].getContext('webgl');
+                if (g && g.isContextLost()) {
+                  window.location.reload();
+                  return;
+                }
+              }
+            }, 3000);
+          }
+        }, 500);
+      });
+    })();
+  </script>
+  <script>
     {{flutter_js}}
     {{flutter_build_config}}
 

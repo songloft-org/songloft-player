@@ -29,17 +29,39 @@ class StartupGate extends ConsumerStatefulWidget {
   ConsumerState<StartupGate> createState() => _StartupGateState();
 }
 
-class _StartupGateState extends ConsumerState<StartupGate> {
+class _StartupGateState extends ConsumerState<StartupGate>
+    with WidgetsBindingObserver {
   bool _ready = false;
   String _hint = '正在启动…';
 
   @override
   void initState() {
     super.initState();
+    if (kIsWeb) {
+      WidgetsBinding.instance.addObserver(this);
+    }
     if (AppConfig.isEmbedded) {
       _ready = true;
     } else {
       WidgetsBinding.instance.addPostFrameCallback((_) => _bootstrap());
+    }
+  }
+
+  @override
+  void dispose() {
+    if (kIsWeb) {
+      WidgetsBinding.instance.removeObserver(this);
+    }
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!kIsWeb || state != AppLifecycleState.resumed) return;
+    for (var i = 0; i < 3; i++) {
+      Future.delayed(Duration(milliseconds: i * 200), () {
+        if (mounted) WidgetsBinding.instance.scheduleFrame();
+      });
     }
   }
 
