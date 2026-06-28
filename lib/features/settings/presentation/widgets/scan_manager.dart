@@ -430,6 +430,15 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
                       }
                     }
                   },
+          selectedItemBuilder:
+              (_) =>
+                  _playlistModes.entries.map((e) {
+                    final (label, _) = e.value;
+                    return Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(label, style: theme.textTheme.bodyMedium),
+                    );
+                  }).toList(),
           items:
               _playlistModes.entries.map((e) {
                 final (label, desc) = e.value;
