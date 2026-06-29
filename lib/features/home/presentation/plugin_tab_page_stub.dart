@@ -14,8 +14,13 @@ import 'plugin_theme_utils.dart';
 /// 使用 iframe 嵌入插件页面，体验与原生 WebView 一致
 class PluginTabPage extends ConsumerStatefulWidget {
   final String entryPath;
+  final bool isActive;
 
-  const PluginTabPage({super.key, required this.entryPath});
+  const PluginTabPage({
+    super.key,
+    required this.entryPath,
+    this.isActive = true,
+  });
 
   @override
   ConsumerState<PluginTabPage> createState() => _PluginTabPageState();

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -75,9 +76,7 @@ class WindowTrayManager with WindowListener, TrayListener {
 
   @override
   void onTrayIconMouseDown() {
-    // 左键点击托盘图标：恢复窗口显示
-    windowManager.show();
-    windowManager.focus();
+    _restoreWindow();
   }
 
   @override
@@ -89,8 +88,7 @@ class WindowTrayManager with WindowListener, TrayListener {
   @override
   void onTrayMenuItemClick(MenuItem menuItem) async {
     if (menuItem.key == 'show_window') {
-      windowManager.show();
-      windowManager.focus();
+      _restoreWindow();
     } else if (menuItem.key == 'exit_app') {
       try {
         await onBeforeExit?.call();
@@ -100,5 +98,23 @@ class WindowTrayManager with WindowListener, TrayListener {
       await windowManager.setPreventClose(false);
       await windowManager.close();
     }
+  }
+
+  Future<void> _restoreWindow() async {
+    await windowManager.show();
+    await windowManager.focus();
+    // hide/show 循环后 Flutter 引擎的 IME 上下文可能未正确恢复，
+    // 延迟重置焦点以重建输入法连接
+    Future.delayed(const Duration(milliseconds: 100), () {
+      final currentFocus = FocusManager.instance.primaryFocus;
+      if (currentFocus != null && currentFocus.canRequestFocus) {
+        currentFocus.unfocus();
+        Future.delayed(const Duration(milliseconds: 50), () {
+          if (currentFocus.canRequestFocus) {
+            currentFocus.requestFocus();
+          }
+        });
+      }
+    });
   }
 }

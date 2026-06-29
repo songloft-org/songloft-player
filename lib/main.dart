@@ -2,12 +2,14 @@ import 'dart:io' show Platform;
 import 'dart:ui';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:audio_service_mpris/audio_service_mpris.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:smtc_windows/smtc_windows.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:windows_single_instance/windows_single_instance.dart';
 
@@ -17,6 +19,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'config/app_config.dart';
 import 'core/audio/audio_service.dart';
+import 'core/audio/smtc_service.dart';
 import 'core/audio/songloft_just_audio_platform.dart';
 import 'core/env/tv_detector.dart';
 import 'core/storage/app_preferences.dart';
@@ -183,6 +186,16 @@ void main(List<String> args) async {
     debugPrint('[Main] Token 预加载失败: $e');
   }
 
+  // Linux: 注册 MPRIS 平台实现，使 audio_service 自动集成 D-Bus 媒体键
+  if (!kIsWeb && Platform.isLinux) {
+    AudioServiceMpris.registerWith();
+  }
+
+  // Windows: 初始化 SMTC (System Media Transport Controls)
+  if (!kIsWeb && Platform.isWindows) {
+    await SMTCWindows.initialize();
+  }
+
   // 初始化 audio_service（带降级保护）
   SongloftAudioHandler audioHandler;
   if (kIsWeb) {
@@ -225,9 +238,16 @@ void main(List<String> args) async {
     }
   }
 
+  // Windows: 创建 SMTC 桥接服务，连接系统媒体传输控件与音频处理器
+  SmtcService? smtcService;
+  if (!kIsWeb && Platform.isWindows) {
+    smtcService = SmtcService(audioHandler);
+  }
+
   // 注入退出前清理回调：先释放音频资源，避免窗口销毁时 libmpv C++ 线程仍在运行导致 Fail Fast Exception
   if (!kIsWeb && Platform.isWindows) {
     WindowTrayManager().onBeforeExit = () async {
+      await smtcService?.dispose();
       await audioHandler.stop();
       await audioHandler.dispose();
     };

@@ -117,6 +117,7 @@ class _ShellLayoutState extends ConsumerState<ShellLayout> {
               child: PluginTabPage(
                 key: ValueKey('plugin-keep-$ep'),
                 entryPath: ep,
+                isActive: currentEntryPath == ep,
               ),
             ),
         ],

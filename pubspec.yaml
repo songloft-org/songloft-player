@@ -25,7 +25,9 @@ dependencies:
   media_kit: any  # EQ 均衡器需要直接访问 NativePlayer 设置 mpv 音频滤镜
   media_kit_libs_windows_audio: any  # Windows 平台 media_kit 音频库
   audio_service: ^0.18.17
+  audio_service_mpris: ^0.2.1  # Linux MPRIS 媒体键支持
   audio_session: ^0.2.3
+  smtc_windows: ^1.1.0  # Windows 系统媒体传输控件
   # 权限管理
   permission_handler: ^12.0.1
   # 本地存储

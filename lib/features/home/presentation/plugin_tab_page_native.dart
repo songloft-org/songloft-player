@@ -13,8 +13,13 @@ import 'plugin_theme_utils.dart';
 /// 在 Shell 内嵌入 WebView 展示插件页面，底部导航栏保持可见
 class PluginTabPage extends ConsumerStatefulWidget {
   final String entryPath;
+  final bool isActive;
 
-  const PluginTabPage({super.key, required this.entryPath});
+  const PluginTabPage({
+    super.key,
+    required this.entryPath,
+    this.isActive = true,
+  });
 
   @override
   ConsumerState<PluginTabPage> createState() => _PluginTabPageState();
@@ -33,6 +38,16 @@ class _PluginTabPageState extends ConsumerState<PluginTabPage>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didUpdateWidget(covariant PluginTabPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isActive && !widget.isActive) {
+      // 原生 WebView 即使被 Offstage 隐藏仍可在系统层面持有键盘焦点，
+      // 释放焦点以防止抢夺 Flutter 输入法上下文
+      _webViewController?.clearFocus();
+    }
   }
 
   @override
