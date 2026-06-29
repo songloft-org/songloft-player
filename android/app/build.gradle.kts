@@ -21,7 +21,7 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
-        // 启用 core library desugaring，因为 minSdk 23 < 26，
+        // 启用 core library desugaring，因为 minSdk 24 < 26，
         // 某些 Java 8+ API（如 java.time）需要 desugaring 支持
         isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
@@ -56,12 +56,10 @@ android {
     defaultConfig {
         applicationId = "com.songloft.songloft_flutter"
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        // 显式设置为 23 以支持 Android 6.0+ 的旧版 TV 设备（如小米 4A）
-        // Flutter 3.29 默认值为 24，这里降低以兼容更多设备
+        // audio_session 依赖要求 API 24+，与 Flutter 默认值保持一致。
         // Android Automotive 建议 API 28+，但非强制
-        // 注意：不能直接写 minSdk = 23，Flutter 迁移工具会自动将 16-23 的值替换为 flutter.minSdkVersion
         @Suppress("PropertyName")
-        val SONGLOFT_MIN_SDK = 23
+        val SONGLOFT_MIN_SDK = 24
         minSdk = SONGLOFT_MIN_SDK
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

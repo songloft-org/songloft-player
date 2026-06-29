@@ -113,7 +113,7 @@ void main(List<String> args) async {
   } else {
     // 独立部署模式：迁移旧的单地址到新的服务器列表。
     // 实际探测在 StartupGate 内异步执行，避免阻塞 main 让 Splash 立即可见。
-    // shared_preferences_android 2.4.23 声明 minSdk=24，API 23 上可能失败
+    // 偏好存储初始化失败时不阻塞启动流程，后续使用默认配置。
     try {
       final prefs = await AppPreferences.create();
       await prefs.migrateLegacyApiBaseUrl();
