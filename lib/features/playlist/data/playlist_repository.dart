@@ -214,6 +214,9 @@ class PlaylistRepository {
       case DioExceptionType.cancel:
         return PlaylistException('请求已取消');
       default:
+        if (e.type.name == 'transformTimeout') {
+          return PlaylistException('网络连接超时');
+        }
         return PlaylistException('网络错误: ${e.message}');
     }
   }

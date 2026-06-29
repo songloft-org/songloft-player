@@ -210,6 +210,9 @@ class SongsRepository {
       case DioExceptionType.connectionError:
         return Exception('网络连接失败，请检查网络');
       default:
+        if (e.type.name == 'transformTimeout') {
+          return Exception('网络连接超时，请检查网络');
+        }
         return Exception('网络错误：${e.message}');
     }
   }

@@ -6,11 +6,7 @@ class ApiException implements Exception {
   final int? statusCode;
   final dynamic data;
 
-  ApiException({
-    required this.message,
-    this.statusCode,
-    this.data,
-  });
+  ApiException({required this.message, this.statusCode, this.data});
 
   /// 从 DioException 创建 ApiException
   factory ApiException.fromDioException(DioException e) {
@@ -19,13 +15,15 @@ class ApiException implements Exception {
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
         return NetworkException(
-          message: '无法连接到 ${_targetOf(e)}（连接超时）。'
+          message:
+              '无法连接到 ${_targetOf(e)}（连接超时）。'
               '请检查：①后端服务是否运行 ②URL 与端口是否正确 '
               '③若通过 ZeroTier/VPN 访问，请确认 VPN 已连接并启用「全局路由」',
         );
       case DioExceptionType.connectionError:
         return NetworkException(
-          message: '无法连接到 ${_targetOf(e)}。'
+          message:
+              '无法连接到 ${_targetOf(e)}。'
               '请检查 URL 是否正确；若通过 ZeroTier/VPN 访问，请确认 VPN 已启用',
         );
       case DioExceptionType.badCertificate:
@@ -35,9 +33,19 @@ class ApiException implements Exception {
       case DioExceptionType.cancel:
         return ApiException(message: '请求已取消');
       case DioExceptionType.unknown:
-        return NetworkException(
-          message: e.message ?? '未知网络错误',
-        );
+        return NetworkException(message: e.message ?? '未知网络错误');
+      // Dio 5.10 adds transformTimeout; keep compiling with older Dio versions.
+      // ignore: unreachable_switch_default
+      default:
+        if (e.type.name == 'transformTimeout') {
+          return NetworkException(
+            message:
+                '无法连接到 ${_targetOf(e)}（连接超时）。'
+                '请检查：①后端服务是否运行 ②URL 与端口是否正确 '
+                '③若通过 ZeroTier/VPN 访问，请确认 VPN 已连接并启用「全局路由」',
+          );
+        }
+        return NetworkException(message: e.message ?? '未知网络错误');
     }
   }
 
@@ -61,7 +69,8 @@ class ApiException implements Exception {
     // 尝试解析后端错误信息
     String message = '请求失败';
     if (data is Map<String, dynamic>) {
-      message = data['error'] as String? ??
+      message =
+          data['error'] as String? ??
           data['detail'] as String? ??
           data['message'] as String? ??
           '请求失败';
