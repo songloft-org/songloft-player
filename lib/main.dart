@@ -9,7 +9,6 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:smtc_windows/smtc_windows.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:windows_single_instance/windows_single_instance.dart';
 
@@ -193,7 +192,7 @@ void main(List<String> args) async {
 
   // Windows: 初始化 SMTC (System Media Transport Controls)
   if (!kIsWeb && Platform.isWindows) {
-    await SMTCWindows.initialize();
+    await initializeSmtc();
   }
 
   // 初始化 audio_service（带降级保护）
