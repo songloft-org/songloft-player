@@ -232,9 +232,9 @@ class SongsListNotifier extends Notifier<SongsListState> {
   }
 
   /// 删除歌曲
-  Future<void> deleteSong(int songId) async {
+  Future<void> deleteSong(int songId, {bool deleteFiles = false}) async {
     try {
-      await _repository.deleteSong(songId);
+      await _repository.deleteSong(songId, deleteFiles: deleteFiles);
       state = state.copyWith(
         songs: state.songs.where((s) => s.id != songId).toList(),
         total: state.total - 1,
@@ -246,13 +246,13 @@ class SongsListNotifier extends Notifier<SongsListState> {
   }
 
   /// 批量删除歌曲
-  Future<int> batchDeleteSongs() async {
+  Future<int> batchDeleteSongs({bool deleteFiles = false}) async {
     if (state.selectedSongIds.isEmpty) return 0;
 
     final selectedIds = state.selectedSongIds.toList();
 
     try {
-      final deleted = await _repository.batchDeleteSongs(selectedIds);
+      final deleted = await _repository.batchDeleteSongs(selectedIds, deleteFiles: deleteFiles);
 
       // 如果服务端返回的数量与选中数量不一致，状态可能已脏，直接全量刷新列表
       if (deleted != selectedIds.length) {

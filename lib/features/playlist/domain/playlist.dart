@@ -93,6 +93,9 @@ class Playlist {
   /// 是否是自动创建的歌单
   bool get isAutoCreated => labels.contains('auto_created');
 
+  /// 是否是隐藏歌单
+  bool get isHidden => labels.contains('hidden');
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;

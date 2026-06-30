@@ -15,8 +15,10 @@ import '../../../core/utils/formatters.dart';
 import '../../../core/utils/url_helper.dart';
 import '../../../shared/models/song.dart';
 import '../../../shared/utils/responsive_snackbar.dart';
+import '../../../shared/widgets/delete_song_dialog.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/song_picker_modal.dart';
+import '../../library/presentation/providers/songs_provider.dart';
 import '../../player/presentation/providers/player_provider.dart';
 import '../domain/playlist.dart';
 import 'providers/playlist_provider.dart';
@@ -910,14 +912,39 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
           },
           child: Text(_selectedSongIds.length == totalSongs ? '取消全选' : '全选'),
         ),
-        TextButton(
-          onPressed:
-              _selectedSongIds.isEmpty ? null : _batchRemoveSelectedSongs,
-          style: TextButton.styleFrom(
-            foregroundColor:
-                _selectedSongIds.isEmpty ? null : colorScheme.error,
+        PopupMenuButton<String>(
+          enabled: _selectedSongIds.isNotEmpty,
+          onSelected: (value) {
+            if (value == 'remove') {
+              _batchRemoveSelectedSongs();
+            } else if (value == 'delete') {
+              _batchDeleteSelectedSongsFromLibrary();
+            }
+          },
+          itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 'remove',
+              child: Text('从歌单移除'),
+            ),
+            PopupMenuItem(
+              value: 'delete',
+              child: Text(
+                '从歌曲库删除',
+                style: TextStyle(color: colorScheme.error),
+              ),
+            ),
+          ],
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Text(
+              '操作(${_selectedSongIds.length})',
+              style: TextStyle(
+                color: _selectedSongIds.isEmpty
+                    ? colorScheme.onSurface.withValues(alpha: 0.38)
+                    : colorScheme.primary,
+              ),
+            ),
           ),
-          child: Text('删除(${_selectedSongIds.length})'),
         ),
         TextButton(
           onPressed: _exitSelectMode,
@@ -1287,6 +1314,7 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
           index: index + 1,
           onTap: () => _playSong(song, songs, index),
           onRemove: () => _removeSong(playlist.id, song),
+          onDeleteFromLibrary: () => _deleteSongFromLibrary(song),
           onLongPress: () {
             _enterSelectMode();
             _toggleSongSelection(song.id);
@@ -1519,6 +1547,73 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
       }
     }
   }
+
+  Future<void> _deleteSongFromLibrary(Song song) async {
+    final result = await DeleteSongDialog.show(
+      context,
+      title: '删除歌曲',
+      content: '确定要从歌曲库中删除「${song.title}」吗？',
+    );
+    if (result == null || !mounted) return;
+
+    try {
+      await ref
+          .read(songsApiProvider)
+          .deleteSong(song.id, deleteFiles: result.deleteFiles);
+      ref.invalidate(playlistSongsProvider(_playlistIdInt));
+      ref.invalidate(songsListProvider);
+      _removeDeletedSongsFromPlayerQueue({song.id});
+      if (mounted) {
+        ResponsiveSnackBar.showSuccess(context, message: '歌曲已删除');
+      }
+    } catch (e) {
+      if (mounted) {
+        ResponsiveSnackBar.showError(context, message: '删除失败');
+      }
+    }
+  }
+
+  Future<void> _batchDeleteSelectedSongsFromLibrary() async {
+    if (_selectedSongIds.isEmpty) return;
+
+    final count = _selectedSongIds.length;
+    final ids = _selectedSongIds.toSet();
+    final result = await DeleteSongDialog.show(
+      context,
+      title: '批量删除',
+      content: '确定要从歌曲库中删除选中的 $count 首歌曲吗？',
+    );
+    if (result == null || !mounted) return;
+
+    try {
+      final api = ref.read(songsApiProvider);
+      final deleted = await api.batchDeleteSongs(
+        ids.toList(),
+        deleteFiles: result.deleteFiles,
+      );
+      ref.invalidate(playlistSongsProvider(_playlistIdInt));
+      ref.invalidate(songsListProvider);
+      _removeDeletedSongsFromPlayerQueue(ids);
+      _exitSelectMode();
+      if (mounted) {
+        ResponsiveSnackBar.showSuccess(context, message: '已删除 $deleted 首歌曲');
+      }
+    } catch (e) {
+      if (mounted) {
+        ResponsiveSnackBar.showError(context, message: '删除失败');
+      }
+    }
+  }
+
+  void _removeDeletedSongsFromPlayerQueue(Set<int> deletedIds) {
+    final playerNotifier = ref.read(playerStateProvider.notifier);
+    final queue = ref.read(playerStateProvider).playlist;
+    for (int i = queue.length - 1; i >= 0; i--) {
+      if (deletedIds.contains(queue[i].id)) {
+        playerNotifier.removeFromPlaylist(i);
+      }
+    }
+  }
 }
 
 /// 歌曲列表项组件
@@ -1527,6 +1622,7 @@ class _SongListTile extends StatelessWidget {
   final int index;
   final VoidCallback onTap;
   final VoidCallback onRemove;
+  final VoidCallback? onDeleteFromLibrary;
   final VoidCallback? onLongPress;
 
   /// 是否显示拖拽手柄（排序模式）
@@ -1550,6 +1646,7 @@ class _SongListTile extends StatelessWidget {
     required this.index,
     required this.onTap,
     required this.onRemove,
+    this.onDeleteFromLibrary,
     this.onLongPress,
     this.showDragHandle = false,
     this.showCheckbox = false,
@@ -1654,19 +1751,30 @@ class _SongListTile extends StatelessWidget {
                     onSelected: (value) {
                       if (value == 'remove') {
                         onRemove();
+                      } else if (value == 'delete') {
+                        onDeleteFromLibrary?.call();
                       }
                     },
                     itemBuilder:
                         (context) => [
-                          PopupMenuItem(
+                          const PopupMenuItem(
                             value: 'remove',
                             child: ListTile(
+                              leading: Icon(Icons.remove_circle_outline),
+                              title: Text('从歌单移除'),
+                              dense: true,
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'delete',
+                            child: ListTile(
                               leading: Icon(
-                                Icons.remove_circle_outline,
+                                Icons.delete_outline,
                                 color: colorScheme.error,
                               ),
                               title: Text(
-                                '从歌单移除',
+                                '从歌曲库删除',
                                 style: TextStyle(color: colorScheme.error),
                               ),
                               dense: true,

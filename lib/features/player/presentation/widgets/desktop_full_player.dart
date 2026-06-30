@@ -15,6 +15,7 @@ import 'lyrics_view.dart';
 import 'play_controls.dart';
 import 'popup_controls.dart';
 import 'progress_bar.dart';
+import '../utils/player_song_actions.dart';
 import 'vinyl_ring.dart';
 import 'volume_control.dart';
 
@@ -347,8 +348,35 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
             fontSize: 14,
           ),
         ),
-        // 占位，保持布局对称
-        const SizedBox(width: 48),
+        // 更多操作
+        PopupMenuButton<String>(
+          icon: const Icon(Icons.more_horiz_rounded, color: Colors.white),
+          onSelected: (value) {
+            if (value == 'delete') {
+              deleteCurrentSongFromPlayer(context, ref);
+            }
+          },
+          itemBuilder: (context) {
+            final colorScheme = Theme.of(context).colorScheme;
+            return [
+              PopupMenuItem(
+                value: 'delete',
+                child: ListTile(
+                  leading: Icon(
+                    Icons.delete_outline,
+                    color: colorScheme.error,
+                  ),
+                  title: Text(
+                    '删除当前歌曲',
+                    style: TextStyle(color: colorScheme.error),
+                  ),
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ];
+          },
+        ),
       ],
     );
   }

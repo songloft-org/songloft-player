@@ -9,6 +9,7 @@ import '../../../core/theme/responsive.dart';
 import '../../../shared/models/song.dart';
 import '../../../shared/utils/responsive_snackbar.dart';
 import '../../../shared/widgets/add_to_playlist_modal.dart';
+import '../../../shared/widgets/delete_song_dialog.dart';
 import '../../player/presentation/providers/player_provider.dart';
 import 'providers/songs_provider.dart';
 import 'song_edit_page.dart';
@@ -601,28 +602,17 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
     }
   }
 
-  void _showDeleteConfirmDialog(BuildContext context, int songId) {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('确认删除'),
-            content: const Text('确定要删除这首歌曲吗？'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('取消'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  ref.read(songsListProvider.notifier).deleteSong(songId);
-                },
-                child: const Text('删除'),
-              ),
-            ],
-          ),
+  Future<void> _showDeleteConfirmDialog(BuildContext context, int songId) async {
+    final result = await DeleteSongDialog.show(
+      context,
+      title: '确认删除',
+      content: '确定要删除这首歌曲吗？',
     );
+    if (result != null) {
+      await ref
+          .read(songsListProvider.notifier)
+          .deleteSong(songId, deleteFiles: result.deleteFiles);
+    }
   }
 
   void _showCleanConfirmDialog(BuildContext context) {
@@ -660,42 +650,23 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
     AddToPlaylistModal.show(context, songIds: songIds);
   }
 
-  void _showBatchDeleteConfirmDialog(BuildContext context) {
+  Future<void> _showBatchDeleteConfirmDialog(BuildContext context) async {
     final count = ref.read(songsListProvider).selectedSongIds.length;
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('批量删除'),
-            content: Text('确定要删除选中的 $count 首歌曲吗？此操作不可恢复。'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('取消'),
-              ),
-              FilledButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _executeBatchDelete();
-                },
-                style: FilledButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.error,
-                ),
-                child: const Text('删除'),
-              ),
-            ],
-          ),
+    final result = await DeleteSongDialog.show(
+      context,
+      title: '批量删除',
+      content: '确定要删除选中的 $count 首歌曲吗？',
     );
-  }
-
-  Future<void> _executeBatchDelete() async {
-    final deleted =
-        await ref.read(songsListProvider.notifier).batchDeleteSongs();
-    if (mounted) {
-      if (deleted > 0) {
-        ResponsiveSnackBar.showSuccess(context, message: '已删除 $deleted 首歌曲');
-      } else {
-        ResponsiveSnackBar.showError(context, message: '删除失败');
+    if (result != null) {
+      final deleted = await ref
+          .read(songsListProvider.notifier)
+          .batchDeleteSongs(deleteFiles: result.deleteFiles);
+      if (context.mounted) {
+        if (deleted > 0) {
+          ResponsiveSnackBar.showSuccess(context, message: '已删除 $deleted 首歌曲');
+        } else {
+          ResponsiveSnackBar.showError(context, message: '删除失败');
+        }
       }
     }
   }

@@ -130,6 +130,9 @@ class PaginatedPlaylistsNotifier
   /// family 参数：歌单类型过滤（null 表示全部）
   final String? _typeArg;
 
+  /// 排除的标签（默认 null，让后端默认排除 hidden）
+  String? _excludeLabels;
+
   /// 每页大小
   static const int pageLimit = 30;
 
@@ -138,6 +141,7 @@ class PaginatedPlaylistsNotifier
     final repository = ref.watch(playlistRepositoryProvider);
     final response = await repository.getPlaylists(
       type: _typeArg,
+      excludeLabels: _excludeLabels,
       limit: pageLimit,
       offset: 0,
     );
@@ -147,6 +151,13 @@ class PaginatedPlaylistsNotifier
       hasMore: response.playlists.length >= pageLimit,
       isLoadingMore: false,
     );
+  }
+
+  /// 设置排除标签并刷新列表
+  Future<void> setExcludeLabels(String? excludeLabels) async {
+    _excludeLabels = excludeLabels;
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() => build());
   }
 
   /// 触底加载下一页
@@ -163,6 +174,7 @@ class PaginatedPlaylistsNotifier
       final repository = ref.read(playlistRepositoryProvider);
       final response = await repository.getPlaylists(
         type: _typeArg,
+        excludeLabels: _excludeLabels,
         limit: pageLimit,
         offset: current.items.length,
       );
@@ -552,6 +564,21 @@ class PlaylistNotifier extends Notifier<AsyncValue<void>> {
     } catch (e, st) {
       state = AsyncValue.error(e, st);
       return 0;
+    }
+  }
+
+  /// 设置歌单可见性
+  Future<bool> setPlaylistVisibility(int id, {required bool hidden}) async {
+    state = const AsyncValue.loading();
+    try {
+      await _repository.setPlaylistVisibility(id, hidden: hidden);
+      state = const AsyncValue.data(null);
+      ref.invalidate(playlistListProvider);
+      ref.invalidate(playlistDetailProvider(id));
+      return true;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return false;
     }
   }
 

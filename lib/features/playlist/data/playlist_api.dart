@@ -16,12 +16,16 @@ class PlaylistApi {
   /// GET /api/v1/playlists?type=normal&limit=20&offset=0
   Future<PlaylistListResponse> getPlaylists({
     String? type,
+    String? excludeLabels,
     int limit = 20,
     int offset = 0,
   }) async {
     final queryParams = <String, dynamic>{'limit': limit, 'offset': offset};
     if (type != null) {
       queryParams['type'] = type;
+    }
+    if (excludeLabels != null) {
+      queryParams['exclude_labels'] = excludeLabels;
     }
 
     final response = await dio.get(
@@ -201,6 +205,16 @@ class PlaylistApi {
   /// POST /api/v1/playlists/{id}/touch
   Future<void> touchPlaylist(int id) async {
     await dio.post('${AppConfig.apiPrefix}/playlists/$id/touch');
+  }
+
+  /// 设置歌单可见性
+  /// PUT /api/v1/playlists/{id}/visibility
+  Future<Playlist> setPlaylistVisibility(int id, {required bool hidden}) async {
+    final response = await dio.put(
+      '${AppConfig.apiPrefix}/playlists/$id/visibility',
+      data: {'hidden': hidden},
+    );
+    return Playlist.fromJson(response.data as Map<String, dynamic>);
   }
 
   /// 批量删除歌单

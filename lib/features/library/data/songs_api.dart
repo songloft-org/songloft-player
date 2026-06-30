@@ -205,16 +205,19 @@ class SongsApi {
   }
 
   /// 删除歌曲
-  Future<void> deleteSong(int id) async {
-    await dio.delete('${AppConfig.apiPrefix}/songs/$id');
+  Future<void> deleteSong(int id, {bool deleteFiles = false}) async {
+    await dio.delete(
+      '${AppConfig.apiPrefix}/songs/$id',
+      queryParameters: deleteFiles ? {'delete_files': 'true'} : null,
+    );
   }
 
   /// 批量删除歌曲
   /// POST /api/v1/songs/batch-delete
-  Future<int> batchDeleteSongs(List<int> ids) async {
+  Future<int> batchDeleteSongs(List<int> ids, {bool deleteFiles = false}) async {
     final response = await dio.post<Map<String, dynamic>>(
       '${AppConfig.apiPrefix}/songs/batch-delete',
-      data: {'ids': ids},
+      data: {'ids': ids, 'delete_files': deleteFiles},
     );
     return response.data?['deleted'] as int? ?? 0;
   }

@@ -11,6 +11,7 @@ class PlaylistCard extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
+  final VoidCallback? onToggleVisibility;
   final VoidCallback? onPlayAll;
   final VoidCallback? onLongPress;
   final bool isSelectionMode;
@@ -25,6 +26,7 @@ class PlaylistCard extends StatelessWidget {
     this.onTap,
     this.onEdit,
     this.onDelete,
+    this.onToggleVisibility,
     this.onPlayAll,
     this.onLongPress,
     this.isSelectionMode = false,
@@ -311,6 +313,10 @@ class PlaylistCard extends StatelessWidget {
         displayLabel = '自动';
         backgroundColor = colorScheme.secondaryContainer;
         break;
+      case 'hidden':
+        displayLabel = '已隐藏';
+        backgroundColor = colorScheme.errorContainer;
+        break;
       default:
         displayLabel = label;
         backgroundColor = colorScheme.tertiaryContainer;
@@ -347,6 +353,8 @@ class PlaylistCard extends StatelessWidget {
             onEdit?.call();
           case 'delete':
             onDelete?.call();
+          case 'toggle_visibility':
+            onToggleVisibility?.call();
         }
       },
       itemBuilder: (context) => [
@@ -356,6 +364,20 @@ class PlaylistCard extends StatelessWidget {
             child: ListTile(
               leading: Icon(Icons.edit),
               title: Text('编辑'),
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+            ),
+          ),
+        if (onToggleVisibility != null && !playlist.isBuiltIn)
+          PopupMenuItem(
+            value: 'toggle_visibility',
+            child: ListTile(
+              leading: Icon(
+                playlist.isHidden
+                    ? Icons.visibility
+                    : Icons.visibility_off,
+              ),
+              title: Text(playlist.isHidden ? '取消隐藏' : '隐藏歌单'),
               dense: true,
               contentPadding: EdgeInsets.zero,
             ),

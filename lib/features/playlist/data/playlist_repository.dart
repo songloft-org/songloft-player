@@ -16,12 +16,14 @@ class PlaylistRepository {
   /// 获取歌单列表
   Future<PlaylistListResponse> getPlaylists({
     String? type,
+    String? excludeLabels,
     int limit = 20,
     int offset = 0,
   }) async {
     try {
       return await playlistApi.getPlaylists(
         type: type,
+        excludeLabels: excludeLabels,
         limit: limit,
         offset: offset,
       );
@@ -175,6 +177,15 @@ class PlaylistRepository {
   Future<void> touchPlaylist(int id) async {
     try {
       await playlistApi.touchPlaylist(id);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// 设置歌单可见性
+  Future<Playlist> setPlaylistVisibility(int id, {required bool hidden}) async {
+    try {
+      return await playlistApi.setPlaylistVisibility(id, hidden: hidden);
     } on DioException catch (e) {
       throw _handleError(e);
     }

@@ -37,6 +37,9 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
   bool _isSortMode = false;
   List<Playlist> _sortablePlaylists = [];
 
+  /// 是否显示隐藏歌单
+  bool _showHidden = false;
+
   /// 触底加载预留距离（提前 300px 触发下一页加载）
   static const double _loadMoreThreshold = 300.0;
 
@@ -491,6 +494,8 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
             switch (value) {
               case 'create':
                 _showCreateDialog();
+              case 'toggle_hidden':
+                _toggleShowHidden();
             }
           },
           itemBuilder:
@@ -500,6 +505,20 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
                   child: ListTile(
                     leading: Icon(Icons.add),
                     title: Text('创建歌单'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'toggle_hidden',
+                  child: ListTile(
+                    leading: Icon(
+                      _showHidden
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                    ),
+                    title: Text(
+                      _showHidden ? '隐藏已隐藏歌单' : '显示已隐藏歌单',
+                    ),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
@@ -768,6 +787,7 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
             onEdit: () => _showEditDialog(playlist),
             onDelete:
                 playlist.isBuiltIn ? null : () => _confirmDelete(playlist),
+            onToggleVisibility: () => _togglePlaylistVisibility(playlist),
             onPlayAll: () => _playAll(playlist),
             onLongPress: () {
               setState(() {
@@ -807,6 +827,7 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
             onEdit: () => _showEditDialog(playlist),
             onDelete:
                 playlist.isBuiltIn ? null : () => _confirmDelete(playlist),
+            onToggleVisibility: () => _togglePlaylistVisibility(playlist),
             onPlayAll: () => _playAll(playlist),
             onLongPress: () {
               setState(() {
@@ -1092,6 +1113,30 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
       if (success && mounted) {
         ResponsiveSnackBar.showSuccess(context, message: '歌单已删除');
       }
+    }
+  }
+
+  void _toggleShowHidden() {
+    setState(() {
+      _showHidden = !_showHidden;
+    });
+    ref
+        .read(playlistListProvider(_selectedType).notifier)
+        .setExcludeLabels(_showHidden ? 'none' : null);
+  }
+
+  Future<void> _togglePlaylistVisibility(Playlist playlist) async {
+    final notifier = ref.read(playlistNotifierProvider.notifier);
+    final hidden = !playlist.isHidden;
+    final success = await notifier.setPlaylistVisibility(
+      playlist.id,
+      hidden: hidden,
+    );
+    if (success && mounted) {
+      ResponsiveSnackBar.showSuccess(
+        context,
+        message: hidden ? '歌单已隐藏' : '歌单已取消隐藏',
+      );
     }
   }
 

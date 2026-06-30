@@ -153,18 +153,18 @@ class SongsRepository {
   }
 
   /// 删除歌曲
-  Future<void> deleteSong(int id) async {
+  Future<void> deleteSong(int id, {bool deleteFiles = false}) async {
     try {
-      await songsApi.deleteSong(id);
+      await songsApi.deleteSong(id, deleteFiles: deleteFiles);
     } on DioException catch (e) {
       throw _handleError(e);
     }
   }
 
   /// 批量删除歌曲
-  Future<int> batchDeleteSongs(List<int> ids) async {
+  Future<int> batchDeleteSongs(List<int> ids, {bool deleteFiles = false}) async {
     try {
-      return await songsApi.batchDeleteSongs(ids);
+      return await songsApi.batchDeleteSongs(ids, deleteFiles: deleteFiles);
     } on DioException catch (e) {
       throw _handleError(e);
     }
