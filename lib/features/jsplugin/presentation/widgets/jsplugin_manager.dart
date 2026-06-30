@@ -975,6 +975,14 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
     // 桌面端
     return [
       switchOrLoader,
+      if (plugin.isActive)
+        IconButton(
+          icon: Icon(
+            isKeepAlive ? Icons.push_pin : Icons.push_pin_outlined,
+          ),
+          onPressed: _toggleKeepAlive,
+          tooltip: isKeepAlive ? '取消常驻运行' : '常驻运行',
+        ),
       PopupMenuButton<String>(
         icon:
             _isForceUpdating
@@ -987,8 +995,6 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
         tooltip: '更新',
         onSelected: (value) {
           switch (value) {
-            case 'keep_alive':
-              _toggleKeepAlive();
             case 'update':
               _showUpdateDialog();
             case 'force_update':
@@ -996,23 +1002,6 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
           }
         },
         itemBuilder: (context) => [
-          if (plugin.isActive)
-            PopupMenuItem<String>(
-              value: 'keep_alive',
-              child: ListTile(
-                leading: Icon(
-                  isKeepAlive
-                      ? Icons.push_pin
-                      : Icons.push_pin_outlined,
-                ),
-                title: const Text('常驻运行'),
-                trailing: isKeepAlive
-                    ? const Icon(Icons.check, size: 18)
-                    : null,
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-              ),
-            ),
           const PopupMenuItem<String>(
             value: 'update',
             child: ListTile(
