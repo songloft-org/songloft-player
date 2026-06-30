@@ -4,6 +4,8 @@ import 'package:flutter/widgets.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
+import 'file_logger.dart';
+
 class WindowTrayManager with WindowListener, TrayListener {
   static final WindowTrayManager _instance = WindowTrayManager._internal();
 
@@ -48,19 +50,26 @@ class WindowTrayManager with WindowListener, TrayListener {
 
     await trayManager.setIcon(getIconPath());
 
-    Menu menu = Menu(
-      items: [
-        MenuItem(
-          key: 'show_window',
-          label: '打开 Songloft',
-        ),
-        MenuItem.separator(),
-        MenuItem(
-          key: 'exit_app',
-          label: '退出',
-        ),
-      ],
-    );
+    final menuItems = <MenuItem>[
+      MenuItem(
+        key: 'show_window',
+        label: '打开 Songloft',
+      ),
+    ];
+    if (FileLogger.logDir != null) {
+      menuItems.add(MenuItem(
+        key: 'open_logs',
+        label: '打开日志目录',
+      ));
+    }
+    menuItems.addAll([
+      MenuItem.separator(),
+      MenuItem(
+        key: 'exit_app',
+        label: '退出',
+      ),
+    ]);
+    Menu menu = Menu(items: menuItems);
     await trayManager.setContextMenu(menu);
     await trayManager.setToolTip('Songloft');
   }
@@ -89,6 +98,11 @@ class WindowTrayManager with WindowListener, TrayListener {
   void onTrayMenuItemClick(MenuItem menuItem) async {
     if (menuItem.key == 'show_window') {
       _restoreWindow();
+    } else if (menuItem.key == 'open_logs') {
+      final dir = FileLogger.logDir;
+      if (dir != null) {
+        Process.run('explorer', [dir]);
+      }
     } else if (menuItem.key == 'exit_app') {
       try {
         await onBeforeExit?.call();

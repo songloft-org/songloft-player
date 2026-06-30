@@ -58,6 +58,11 @@ dependencies:
   # HMAC-SHA256 签名（Tracely 监控 SDK）
   crypto: ^3.0.6
 
+dependency_overrides:
+  # smtc_windows 1.1.0 的 Rust codegen 使用 flutter_rust_bridge 2.11.1 编译，
+  # 但 ^2.11.1 约束允许解析到 2.12.0，导致 codegen/runtime 版本不匹配。
+  flutter_rust_bridge: 2.11.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

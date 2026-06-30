@@ -15,7 +15,6 @@ import '../utils/url_helper.dart';
 import 'media_browse_data_source.dart';
 
 /// Songloft 音频处理器 - 集成 audio_service 实现通知栏控制
-/// 严格遵循 audio_service 官方示例模式：使用 .pipe() 绑定 playbackState
 class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
   final ja.AndroidEqualizer androidEqualizer = ja.AndroidEqualizer();
 
@@ -50,11 +49,16 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
   /// 初始化 Future，用于确保初始化完成
   late final Future<void> _initFuture;
 
+  late final StreamSubscription<PlaybackState> _playbackEventSub;
+
   SongloftAudioHandler() {
-    // ★ 关键：使用官方示例的 pipe 模式直接绑定 playbackState
-    // 这比手动 listen + add 更可靠，直接管道连接，无中间状态丢失
-    _player.playbackEventStream.map(_transformEvent).pipe(playbackState);
-    debugPrint('[AudioService] ✓ playbackEventStream.pipe(playbackState) 已绑定');
+    // 使用 listen + add 而非 pipe()：pipe() 内部调用 addStream 独占 sink，
+    // 导致 super.stop() 等方法无法再调用 playbackState.add()，
+    // 退出时抛出 "You cannot add items while items are being added from addStream"。
+    _playbackEventSub = _player.playbackEventStream
+        .map(_transformEvent)
+        .listen(playbackState.add);
+    debugPrint('[AudioService] ✓ playbackEventStream 已绑定');
 
     // 监听 playbackState 变化，用于排查通知栏问题
     playbackState.listen((state) {
@@ -513,5 +517,8 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
   // ====================== 资源释放 ======================
 
   /// 释放资源
-  Future<void> dispose() => _player.dispose();
+  Future<void> dispose() async {
+    await _playbackEventSub.cancel();
+    await _player.dispose();
+  }
 }
