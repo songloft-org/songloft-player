@@ -593,6 +593,46 @@ class PlayerNotifier extends Notifier<PlayerState> {
     await _playAtIndex(nextIndex);
   }
 
+  /// 投屏专用：仅将播放队列推进到下一首（更新 currentIndex/currentSong），
+  /// 不触发本地播放。用于 DLNA 投屏时设备播完当前曲后推进歌单。
+  /// 返回推进后的当前歌曲；顺序模式到达末尾时返回 null。
+  /// 注意：single / singlePlay 模式由投屏层单独处理，不应调用此方法。
+  Song? advanceForCasting() {
+    if (state.playlist.isEmpty) return null;
+
+    int nextIndex;
+    if (state.playMode == PlayMode.random) {
+      // 投屏期间列表可能变化，预选索引可能失效，越界则重新随机
+      final pre = _preSelectedNextIndex;
+      nextIndex = (pre != null && pre >= 0 && pre < state.playlist.length)
+          ? pre
+          : _getRandomIndex();
+    } else {
+      nextIndex = state.currentIndex + 1;
+      if (nextIndex >= state.playlist.length) {
+        if (state.playMode == PlayMode.loop) {
+          nextIndex = 0;
+        } else {
+          return null; // 顺序模式到末尾
+        }
+      }
+    }
+
+    // 兜底：任何情况下都不越界访问
+    if (nextIndex < 0 || nextIndex >= state.playlist.length) return null;
+
+    _playedIndices.add(nextIndex);
+    state = state.copyWith(
+      currentIndex: nextIndex,
+      currentSong: state.playlist[nextIndex],
+      currentTime: Duration.zero,
+      duration: Duration.zero,
+    );
+    _preSelectNextIndex();
+    _savePlaybackState();
+    return state.currentSong;
+  }
+
   /// 播放上一首
   Future<void> playPrev() async {
     _consecutiveFailures = 0;

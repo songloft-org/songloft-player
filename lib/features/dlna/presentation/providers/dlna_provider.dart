@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/audio/audio_service.dart';
 import '../../../../core/utils/url_helper.dart';
 import '../../../../main.dart';
+import '../../../player/domain/player_state.dart';
 import '../../../player/presentation/providers/player_provider.dart';
 import '../../data/dlna_service.dart';
 import '../../domain/dlna_state.dart';
@@ -20,12 +21,14 @@ final dlnaStateProvider =
 class DlnaNotifier extends Notifier<DlnaState> {
   StreamSubscription? _devicesSub;
   StreamSubscription? _positionSub;
+  StreamSubscription? _completionSub;
 
   @override
   DlnaState build() {
     ref.onDispose(() {
       _devicesSub?.cancel();
       _positionSub?.cancel();
+      _completionSub?.cancel();
     });
     return const DlnaState();
   }
@@ -78,6 +81,10 @@ class DlnaNotifier extends Notifier<DlnaState> {
         );
       });
 
+      _completionSub?.cancel();
+      _completionSub =
+          _service.completionStream.listen((_) => _onDeviceCompleted());
+
       _listenSongChanges();
 
       state = state.copyWith(
@@ -100,9 +107,54 @@ class DlnaNotifier extends Notifier<DlnaState> {
       _lastSongId = next.id;
       if (next.url != null) {
         final url = UrlHelper.buildSongUrl(next.url!, songFormat: next.format);
-        _service.castTo(state.activeDevice!.id, url, title: next.title);
+        unawaited(_safeCast(url, next.title));
       }
     });
+  }
+
+  /// 带错误兜底的投歌（castTo 内部已带 HttpException 重试）
+  Future<void> _safeCast(String url, String title) async {
+    final device = state.activeDevice;
+    if (device == null) return;
+    try {
+      await _service.castTo(device.id, url, title: title);
+      state = state.copyWith(isPlaying: true, error: () => null);
+    } catch (e) {
+      state = state.copyWith(error: () => e.toString());
+    }
+  }
+
+  /// 设备端当前曲播放完成：按播放模式推进歌单。
+  /// order/loop/random 推进队列后由 [_listenSongChanges] 自动投下一首；
+  /// single 循环重投当前曲；singlePlay 与顺序模式末尾则停止。
+  void _onDeviceCompleted() {
+    if (!state.isCasting) return;
+    final playerNotifier = ref.read(playerStateProvider.notifier);
+    final playerState = ref.read(playerStateProvider);
+
+    switch (playerState.playMode) {
+      case PlayMode.singlePlay:
+        state = state.copyWith(isPlaying: false);
+        return;
+      case PlayMode.single:
+        final song = playerState.currentSong;
+        if (song?.url != null) {
+          final url =
+              UrlHelper.buildSongUrl(song!.url!, songFormat: song.format);
+          unawaited(_safeCast(url, song.title));
+        }
+        return;
+      case PlayMode.order:
+      case PlayMode.loop:
+      case PlayMode.random:
+        final next = playerNotifier.advanceForCasting();
+        if (next == null) {
+          // 顺序模式已到末尾
+          state = state.copyWith(isPlaying: false);
+        }
+        // next 非空：currentSong 变化 → _listenSongChanges 自动投下一首
+        return;
+    }
   }
 
   Future<void> togglePlay() async {
@@ -131,6 +183,7 @@ class DlnaNotifier extends Notifier<DlnaState> {
 
   void disconnect() {
     _positionSub?.cancel();
+    _completionSub?.cancel();
     _service.disconnect();
     state = state.copyWith(
       activeDevice: () => null,
