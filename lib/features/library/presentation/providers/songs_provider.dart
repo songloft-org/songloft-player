@@ -32,6 +32,8 @@ class SongsListState {
   final bool isSelectionMode;
   final Set<int> selectedSongIds;
   final bool isSelectingAll;
+  final String sort;
+  final String order;
 
   const SongsListState({
     this.songs = const [],
@@ -46,6 +48,8 @@ class SongsListState {
     this.isSelectionMode = false,
     this.selectedSongIds = const {},
     this.isSelectingAll = false,
+    this.sort = 'added_at',
+    this.order = 'desc',
   });
 
   SongsListState copyWith({
@@ -61,6 +65,8 @@ class SongsListState {
     bool? isSelectionMode,
     Set<int>? selectedSongIds,
     bool? isSelectingAll,
+    String? sort,
+    String? order,
     bool clearError = false,
     bool clearType = false,
   }) {
@@ -77,6 +83,8 @@ class SongsListState {
       isSelectionMode: isSelectionMode ?? this.isSelectionMode,
       selectedSongIds: selectedSongIds ?? this.selectedSongIds,
       isSelectingAll: isSelectingAll ?? this.isSelectingAll,
+      sort: sort ?? this.sort,
+      order: order ?? this.order,
     );
   }
 }
@@ -117,6 +125,8 @@ class SongsListNotifier extends Notifier<SongsListState> {
         keyword: keyword ?? state.keyword,
         limit: _pageSize,
         offset: page * _pageSize,
+        sort: state.sort,
+        order: state.order,
       );
 
       state = state.copyWith(
@@ -144,6 +154,8 @@ class SongsListNotifier extends Notifier<SongsListState> {
         keyword: state.keyword,
         limit: _pageSize,
         offset: nextPage * _pageSize,
+        sort: state.sort,
+        order: state.order,
       );
 
       state = state.copyWith(
@@ -166,6 +178,13 @@ class SongsListNotifier extends Notifier<SongsListState> {
   /// 搜索
   Future<void> search(String keyword) async {
     await loadSongs(page: 0, keyword: keyword, type: state.type);
+  }
+
+  /// 设置排序字段与方向后重新加载
+  Future<void> setSort(String sort, String order) async {
+    if (state.sort == sort && state.order == order) return;
+    state = state.copyWith(sort: sort, order: order);
+    await loadSongs(page: 0, keyword: state.keyword, type: state.type);
   }
 
   /// 设置类型筛选
@@ -221,6 +240,8 @@ class SongsListNotifier extends Notifier<SongsListState> {
       final ids = await _repository.getSongIds(
         type: state.type,
         keyword: state.keyword.isNotEmpty ? state.keyword : null,
+        sort: state.sort,
+        order: state.order,
       );
       state = state.copyWith(
         selectedSongIds: ids.toSet(),

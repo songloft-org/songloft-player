@@ -16,6 +16,8 @@ class SongsRepository {
     String? pathPrefix,
     int limit = 20,
     int offset = 0,
+    String? sort,
+    String? order,
   }) async {
     try {
       return await songsApi.getSongs(
@@ -24,6 +26,8 @@ class SongsRepository {
         pathPrefix: pathPrefix,
         limit: limit,
         offset: offset,
+        sort: sort,
+        order: order,
       );
     } on DioException catch (e) {
       throw _handleError(e);
@@ -35,12 +39,16 @@ class SongsRepository {
     String? type,
     String? keyword,
     String? pathPrefix,
+    String? sort,
+    String? order,
   }) async {
     try {
       return await songsApi.getSongIds(
         type: type,
         keyword: keyword,
         pathPrefix: pathPrefix,
+        sort: sort,
+        order: order,
       );
     } on DioException catch (e) {
       throw _handleError(e);

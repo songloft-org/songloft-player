@@ -984,6 +984,9 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
               case 'view_added_at':
                 notifier.setSort('added_at', 'desc');
                 break;
+              case 'view_file_modified_at':
+                notifier.setSort('file_modified_at', 'desc');
+                break;
               case 'view_title':
                 notifier.setSort('title', 'asc');
                 break;
@@ -1021,6 +1024,12 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
                   icon: Icons.schedule,
                   title: '最近加入',
                   isSelected: currentSort == 'added_at',
+                ),
+                _buildSortMenuItem(
+                  value: 'view_file_modified_at',
+                  icon: Icons.insert_drive_file_outlined,
+                  title: '文件时间',
+                  isSelected: currentSort == 'file_modified_at',
                 ),
                 _buildSortMenuItem(
                   value: 'view_title',

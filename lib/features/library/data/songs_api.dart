@@ -15,12 +15,16 @@ class SongsApi {
   /// [pathPrefix] 按 file_path 前缀过滤（可选，如 music/Pop）
   /// [limit] 每页数量，默认 20
   /// [offset] 偏移量，默认 0
+  /// [sort] 排序字段（可选，如 added_at/title/file_modified_at）
+  /// [order] 排序方向（可选，asc/desc）
   Future<SongListResponse> getSongs({
     String? type,
     String? keyword,
     String? pathPrefix,
     int limit = 20,
     int offset = 0,
+    String? sort,
+    String? order,
   }) async {
     final queryParams = <String, dynamic>{'limit': limit, 'offset': offset};
     if (type != null && type.isNotEmpty) {
@@ -31,6 +35,12 @@ class SongsApi {
     }
     if (pathPrefix != null && pathPrefix.isNotEmpty) {
       queryParams['path_prefix'] = pathPrefix;
+    }
+    if (sort != null && sort.isNotEmpty) {
+      queryParams['sort'] = sort;
+    }
+    if (order != null && order.isNotEmpty) {
+      queryParams['order'] = order;
     }
 
     final response = await dio.get<Map<String, dynamic>>(
@@ -46,6 +56,8 @@ class SongsApi {
     String? type,
     String? keyword,
     String? pathPrefix,
+    String? sort,
+    String? order,
   }) async {
     final queryParams = <String, dynamic>{};
     if (type != null && type.isNotEmpty) {
@@ -56,6 +68,12 @@ class SongsApi {
     }
     if (pathPrefix != null && pathPrefix.isNotEmpty) {
       queryParams['path_prefix'] = pathPrefix;
+    }
+    if (sort != null && sort.isNotEmpty) {
+      queryParams['sort'] = sort;
+    }
+    if (order != null && order.isNotEmpty) {
+      queryParams['order'] = order;
     }
 
     final response = await dio.get<Map<String, dynamic>>(

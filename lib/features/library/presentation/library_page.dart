@@ -207,6 +207,55 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
           tooltip: '播放全部',
           onPressed: state.songs.isEmpty ? null : () => _playAll(state),
         ),
+        // 排序
+        PopupMenuButton<String>(
+          icon: const Icon(Icons.sort),
+          tooltip: '排序',
+          onSelected: (value) {
+            final (sort, order) = switch (value) {
+              'added_at' => ('added_at', 'desc'),
+              'file_modified_at' => ('file_modified_at', 'desc'),
+              'title' => ('title', 'asc'),
+              'artist' => ('artist', 'asc'),
+              'duration' => ('duration', 'asc'),
+              _ => ('added_at', 'desc'),
+            };
+            ref.read(songsListProvider.notifier).setSort(sort, order);
+          },
+          itemBuilder:
+              (context) => [
+                _buildLibrarySortItem(
+                  value: 'added_at',
+                  icon: Icons.schedule,
+                  title: '最近加入',
+                  isSelected: state.sort == 'added_at',
+                ),
+                _buildLibrarySortItem(
+                  value: 'file_modified_at',
+                  icon: Icons.insert_drive_file_outlined,
+                  title: '文件时间',
+                  isSelected: state.sort == 'file_modified_at',
+                ),
+                _buildLibrarySortItem(
+                  value: 'title',
+                  icon: Icons.sort_by_alpha,
+                  title: '标题',
+                  isSelected: state.sort == 'title',
+                ),
+                _buildLibrarySortItem(
+                  value: 'artist',
+                  icon: Icons.person,
+                  title: '艺术家',
+                  isSelected: state.sort == 'artist',
+                ),
+                _buildLibrarySortItem(
+                  value: 'duration',
+                  icon: Icons.timer,
+                  title: '时长',
+                  isSelected: state.sort == 'duration',
+                ),
+              ],
+        ),
         // 多选按钮
         IconButton(
           icon: const Icon(Icons.checklist),
@@ -258,6 +307,26 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
               ],
         ),
       ],
+    );
+  }
+
+  PopupMenuItem<String> _buildLibrarySortItem({
+    required String value,
+    required IconData icon,
+    required String title,
+    required bool isSelected,
+  }) {
+    final color =
+        isSelected ? Theme.of(context).colorScheme.primary : null;
+    return PopupMenuItem<String>(
+      value: value,
+      child: ListTile(
+        leading: Icon(icon, color: color),
+        title: Text(title, style: TextStyle(color: color)),
+        trailing: isSelected ? Icon(Icons.check, color: color) : null,
+        dense: true,
+        contentPadding: EdgeInsets.zero,
+      ),
     );
   }
 
