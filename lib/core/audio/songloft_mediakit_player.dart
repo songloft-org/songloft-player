@@ -8,6 +8,8 @@ import 'package:media_kit/media_kit.dart';
 /// 用于 Windows/Linux 平台的 EQ 均衡器——需要通过 [NativePlayer.setProperty]
 /// 设置 mpv 的 `af` 音频滤镜。
 class SongloftMediaKitPlayer extends AudioPlayerPlatform {
+  static const Duration _mediaLoadTimeout = Duration(seconds: 18);
+
   late final Player player;
 
   late final List<StreamSubscription> _streamSubscriptions;
@@ -126,10 +128,8 @@ class SongloftMediaKitPlayer extends AudioPlayerPlatform {
       player.stream.error.listen((error) {
         final errorUri = RegExp(r'Failed to open (.*)\.').firstMatch(error)?[1];
         if (errorUri == null || errorUri == _currentMedia?.uri) {
-          _processingState = ProcessingStateMessage.idle;
-          _errorCode = 1;
-          _errorMessage = error;
-          _updatePlaybackEvent();
+          _mediaOpened = false;
+          _completeLoadError(Exception(error));
         }
       }),
       player.stream.playlist.listen((playlist) {
@@ -201,7 +201,8 @@ class SongloftMediaKitPlayer extends AudioPlayerPlatform {
   @override
   Future<LoadResponse> load(LoadRequest request) async {
     _mediaOpened = false;
-    _loadCompleter = Completer();
+    final loadCompleter = Completer<Duration?>();
+    _loadCompleter = loadCompleter;
     _currentIndex = request.initialIndex ?? 0;
     _bufferedPosition = Duration.zero;
     _position = Duration.zero;
@@ -218,10 +219,10 @@ class SongloftMediaKitPlayer extends AudioPlayerPlatform {
         audioSource.children.map(_convertAudioSource).toList(),
         index: _currentIndex,
       );
-      await player.open(playable, play: _playing);
+      await _openMedia(() => player.open(playable, play: _playing));
     } else {
       final playable = _convertAudioSource(request.audioSourceMessage);
-      await player.open(playable, play: _playing);
+      await _openMedia(() => player.open(playable, play: _playing));
     }
     _mediaOpened = true;
 
@@ -230,8 +231,62 @@ class SongloftMediaKitPlayer extends AudioPlayerPlatform {
     }
 
     _updatePlaybackEvent();
-    final duration = await _loadCompleter?.future;
-    return LoadResponse(duration: duration);
+    try {
+      final duration = await _waitForLoadReady(loadCompleter);
+      return LoadResponse(duration: duration);
+    } finally {
+      if (_loadCompleter == loadCompleter) {
+        _loadCompleter = null;
+      }
+    }
+  }
+
+  Future<void> _openMedia(Future<void> Function() open) async {
+    try {
+      await open().timeout(_mediaLoadTimeout);
+    } on TimeoutException catch (error) {
+      _loadCompleter = null;
+      _mediaOpened = false;
+      _setLoadError(error);
+      unawaited(player.stop());
+      rethrow;
+    } catch (error) {
+      _loadCompleter = null;
+      _mediaOpened = false;
+      _setLoadError(error);
+      rethrow;
+    }
+  }
+
+  Future<Duration?> _waitForLoadReady(
+    Completer<Duration?> loadCompleter,
+  ) async {
+    try {
+      return await loadCompleter.future.timeout(_mediaLoadTimeout);
+    } on TimeoutException catch (error) {
+      if (_loadCompleter == loadCompleter) {
+        _loadCompleter = null;
+      }
+      _mediaOpened = false;
+      _setLoadError(error);
+      unawaited(player.stop());
+      rethrow;
+    }
+  }
+
+  void _completeLoadError(Object error) {
+    _setLoadError(error);
+    final completer = _loadCompleter;
+    if (completer != null && !completer.isCompleted) {
+      completer.completeError(error);
+    }
+  }
+
+  void _setLoadError(Object error) {
+    _processingState = ProcessingStateMessage.idle;
+    _errorCode = 1;
+    _errorMessage = error.toString();
+    _updatePlaybackEvent();
   }
 
   @override

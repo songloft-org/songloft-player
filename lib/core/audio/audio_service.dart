@@ -16,6 +16,10 @@ import 'media_browse_data_source.dart';
 
 /// Songloft 音频处理器 - 集成 audio_service 实现通知栏控制
 class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
+  static const Duration _liveLoadTimeout = Duration(seconds: 18);
+  static const String _streamUserAgent =
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36 Songloft/1.0';
+
   final ja.AndroidEqualizer androidEqualizer = ja.AndroidEqualizer();
 
   late final ja.AudioPlayer _player = ja.AudioPlayer(
@@ -387,10 +391,12 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
       );
 
       debugPrint('[Player] SongloftAudioHandler: song url: $songUrl');
+      final liveHeaders = _buildLiveStreamHeaders(song);
+
       // Web 平台 / 电台直播流使用 AudioSource.uri（直播流无法缓存）,
       // 其他平台普通歌曲使用 LockCachingAudioSource 实现边播边缓存
       if (kIsWeb || song.isLive) {
-        source = ja.AudioSource.uri(Uri.parse(songUrl));
+        source = ja.AudioSource.uri(Uri.parse(songUrl), headers: liveHeaders);
       } else {
         source = ja.LockCachingAudioSource(Uri.parse(songUrl));
       }
@@ -421,7 +427,7 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
       }
 
       debugPrint('[Player] SongloftAudioHandler: setting audio source');
-      await _player.setAudioSource(source);
+      await _setAudioSourceWithGuard(source, song);
 
       debugPrint('[Player] SongloftAudioHandler: starting playback');
       // 注意：just_audio 的 play() Future 在播放停止时才完成，不能 await，否则会阻塞调用链
@@ -439,6 +445,65 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
       debugPrint('[Player] SongloftAudioHandler.playSong error: $e');
       rethrow;
     }
+  }
+
+  Future<void> _setAudioSourceWithGuard(
+    ja.AudioSource source,
+    Song song,
+  ) async {
+    if (!song.isLive) {
+      await _player.setAudioSource(source);
+      return;
+    }
+
+    try {
+      await _player
+          .setAudioSource(source)
+          .timeout(
+            _liveLoadTimeout,
+            onTimeout: () async {
+              debugPrint(
+                '[Player] live stream load timed out after ${_liveLoadTimeout.inSeconds}s: ${song.title}',
+              );
+              await _player.stop();
+              throw TimeoutException('直播流加载超时');
+            },
+          );
+    } catch (_) {
+      try {
+        await _player.stop();
+      } catch (stopError) {
+        debugPrint('[Player] stop after live load failure ignored: $stopError');
+      }
+      rethrow;
+    }
+  }
+
+  Map<String, String>? _buildLiveStreamHeaders(Song song) {
+    final isDesktop =
+        defaultTargetPlatform == TargetPlatform.windows ||
+        defaultTargetPlatform == TargetPlatform.linux ||
+        defaultTargetPlatform == TargetPlatform.macOS;
+    if (kIsWeb || !song.isLive || !isDesktop) return null;
+
+    final headers = <String, String>{
+      'User-Agent': _streamUserAgent,
+      'Accept': '*/*',
+      'Icy-MetaData': '1',
+    };
+
+    final sourceUrl = song.sourceUrl;
+    if (sourceUrl != null && sourceUrl.isNotEmpty) {
+      final uri = Uri.tryParse(sourceUrl);
+      if (uri != null &&
+          (uri.scheme == 'http' || uri.scheme == 'https') &&
+          uri.host.isNotEmpty) {
+        final port = uri.hasPort ? ':${uri.port}' : '';
+        headers['Referer'] = '${uri.scheme}://${uri.host}$port/';
+      }
+    }
+
+    return headers;
   }
 
   /// 更新通知栏元数据
