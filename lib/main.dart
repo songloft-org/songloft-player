@@ -245,49 +245,49 @@ void main(List<String> args) async {
   }
 
   // 初始化 audio_service（带降级保护）
+  //
+  // 注意：Web 端此前跳过 AudioService.init，导致 audio_service_web 从未初始化，
+  // 浏览器 MediaSession 的 nexttrack / previoustrack 处理器从未注册——系统媒体
+  // 控制 / 蓝牙耳机 / 语音助手的「上一首 / 下一首」全部失效（play / pause 只是
+  // 靠浏览器对底层 <audio> 元素的原生兜底才可用）。改为所有平台统一走
+  // AudioService.init，让 Web 也接入 MediaSession，next / prev 才有处理器。
+  // init 失败时回退到裸 handler（等价于此前的 Web 行为），首帧延迟由 timeout 兜底。
   SongloftAudioHandler audioHandler;
-  if (kIsWeb) {
-    // Web 平台无系统通知栏，跳过 AudioService.init 的 await，
-    // 直接创建 handler 让首帧尽快渲染。_initAudioSession 在构造函数中
-    // 已异步启动，播放时通过 await _initFuture 保证初始化完成。
+  try {
+    debugPrint('[Main] 🚀 开始初始化 AudioService...');
+    audioHandler = await AudioService.init<SongloftAudioHandler>(
+      builder: () => SongloftAudioHandler(),
+      // androidStopForegroundOnPause 设为 false 保持前台服务持续运行：
+      // HyperOS3 等系统在前台服务停止后会激进回收资源，
+      // 导致歌曲播放完成后 playNext() 命令失效无法自动切歌
+      config: const AudioServiceConfig(
+        androidNotificationChannelId: 'com.songloft.playback',
+        androidNotificationChannelName: 'Songloft 播放控制',
+        androidNotificationOngoing: false,
+        androidStopForegroundOnPause: false,
+        androidBrowsableRootExtras: {
+          AndroidContentStyle.supportedKey: true,
+          AndroidContentStyle.playableHintKey:
+              AndroidContentStyle.listItemHintValue,
+          AndroidContentStyle.browsableHintKey:
+              AndroidContentStyle.gridItemHintValue,
+        },
+      ),
+    ).timeout(_audioStartupTimeout);
+    await audioHandler.ensureInitialized().timeout(_audioStartupTimeout);
+    debugPrint(
+      '[Main] ✅ AudioService 初始化成功, handler type: ${audioHandler.runtimeType}',
+    );
+  } catch (e, stackTrace) {
+    debugPrint('[Main] ❌ AudioService.init 失败: $e');
+    debugPrint('[Main] Stack trace: $stackTrace');
+    debugPrint('[Main] ⚠️ 使用降级 handler (通知栏功能将不可用)');
     audioHandler = SongloftAudioHandler();
-  } else {
     try {
-      debugPrint('[Main] 🚀 开始初始化 AudioService...');
-      audioHandler = await AudioService.init<SongloftAudioHandler>(
-        builder: () => SongloftAudioHandler(),
-        // androidStopForegroundOnPause 设为 false 保持前台服务持续运行：
-        // HyperOS3 等系统在前台服务停止后会激进回收资源，
-        // 导致歌曲播放完成后 playNext() 命令失效无法自动切歌
-        config: const AudioServiceConfig(
-          androidNotificationChannelId: 'com.songloft.playback',
-          androidNotificationChannelName: 'Songloft 播放控制',
-          androidNotificationOngoing: false,
-          androidStopForegroundOnPause: false,
-          androidBrowsableRootExtras: {
-            AndroidContentStyle.supportedKey: true,
-            AndroidContentStyle.playableHintKey:
-                AndroidContentStyle.listItemHintValue,
-            AndroidContentStyle.browsableHintKey:
-                AndroidContentStyle.gridItemHintValue,
-          },
-        ),
-      ).timeout(_audioStartupTimeout);
       await audioHandler.ensureInitialized().timeout(_audioStartupTimeout);
-      debugPrint(
-        '[Main] ✅ AudioService 初始化成功, handler type: ${audioHandler.runtimeType}',
-      );
-    } catch (e, stackTrace) {
-      debugPrint('[Main] ❌ AudioService.init 失败: $e');
-      debugPrint('[Main] Stack trace: $stackTrace');
-      debugPrint('[Main] ⚠️ 使用降级 handler (通知栏功能将不可用)');
-      audioHandler = SongloftAudioHandler();
-      try {
-        await audioHandler.ensureInitialized().timeout(_audioStartupTimeout);
-      } catch (fallbackError, fallbackStackTrace) {
-        debugPrint('[Main] 降级 handler 初始化失败，继续启动: $fallbackError');
-        debugPrint('[Main] Stack trace: $fallbackStackTrace');
-      }
+    } catch (fallbackError, fallbackStackTrace) {
+      debugPrint('[Main] 降级 handler 初始化失败，继续启动: $fallbackError');
+      debugPrint('[Main] Stack trace: $fallbackStackTrace');
     }
   }
 
