@@ -64,6 +64,8 @@ class UpgradeCheck {
   final bool hasUpdate;
   final bool isDocker;
   final String? currentVersion;
+  final String? currentChannel;
+  final String? currentBuildType;
 
   /// 可用的更新版本列表（stable、dev）
   final List<UpdateVersionInfo> availableUpdates;
@@ -75,8 +77,11 @@ class UpgradeCheck {
     required this.hasUpdate,
     required this.isDocker,
     this.currentVersion,
+    this.currentChannel,
+    this.currentBuildType,
     this.availableUpdates = const [],
-    this.releaseUrl = 'https://github.com/songloft-org/songloft/releases/latest',
+    this.releaseUrl =
+        'https://github.com/songloft-org/songloft/releases/latest',
   });
 
   factory UpgradeCheck.fromJson(Map<String, dynamic> json) {
@@ -88,6 +93,12 @@ class UpgradeCheck {
       final current = json['current'] as Map<String, dynamic>?;
       currentVersion = current?['version'] as String?;
     }
+    final current = json['current'] as Map<String, dynamic>?;
+    final currentChannel =
+        json['current_channel'] as String? ?? current?['channel'] as String?;
+    final currentBuildType =
+        json['current_build_type'] as String? ??
+        current?['build_type'] as String?;
 
     // 解析可用更新列表
     final availableUpdates = <UpdateVersionInfo>[];
@@ -105,6 +116,8 @@ class UpgradeCheck {
       hasUpdate: json['has_update'] as bool? ?? false,
       isDocker: isDocker,
       currentVersion: currentVersion,
+      currentChannel: currentChannel,
+      currentBuildType: currentBuildType,
       availableUpdates: availableUpdates,
     );
   }
@@ -127,7 +140,10 @@ class UpgradeProgress {
     return UpgradeProgress(
       status: json['status'] as String? ?? 'idle',
       progress: json['progress'] as int? ?? 0,
-      message: json['message'] as String?,
+      message:
+          json['message'] as String? ??
+          json['current_step'] as String? ??
+          json['error'] as String?,
     );
   }
 
@@ -143,7 +159,7 @@ class UpgradeProgress {
   bool get isCompleted => status == 'completed' || status == 'restarting';
 
   /// 是否出错
-  bool get isError => status == 'error';
+  bool get isError => status == 'error' || status == 'failed';
 
   /// 是否空闲
   bool get isIdle => status == 'idle';
@@ -164,6 +180,7 @@ class UpgradeProgress {
       case 'completed':
         return '升级完成';
       case 'error':
+      case 'failed':
         return '升级失败';
       default:
         return '空闲';

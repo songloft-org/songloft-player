@@ -2,8 +2,10 @@
 /// - 'embedded' : Flutter Web 嵌入 Go 后端，同域访问，无需用户配置 API 地址
 /// - 'standalone': 独立静态部署，后端地址与前端不同域，需用户手动配置
 /// 默认值为 'standalone'，即未指定时保持完整功能
-const String _kDeployMode =
-    String.fromEnvironment('DEPLOY_MODE', defaultValue: 'standalone');
+const String _kDeployMode = String.fromEnvironment(
+  'DEPLOY_MODE',
+  defaultValue: 'standalone',
+);
 
 class AppConfig {
   static String baseUrl = 'http://localhost:58091';
@@ -20,24 +22,40 @@ class AppConfig {
 
   /// 是否为移动端嵌入后端构建（通过 --dart-define=HAS_BACKEND=true 注入）
   /// 为 true 时显示"本地模式"选项，允许在设备上直接运行 Go 后端
-  static const bool hasEmbeddedBackend =
-      bool.fromEnvironment('HAS_BACKEND', defaultValue: false);
+  static const bool hasEmbeddedBackend = bool.fromEnvironment(
+    'HAS_BACKEND',
+    defaultValue: false,
+  );
 
   /// 是否运行在电视系统上
   static late final bool isTvMode;
 
   /// 前端版本号，通过 --dart-define=FRONTEND_VERSION=x.y.z 在构建时注入
   /// 本地开发时默认为 'dev'
-  static const String frontendVersion =
-      String.fromEnvironment('FRONTEND_VERSION', defaultValue: 'dev');
+  static const String frontendVersion = String.fromEnvironment(
+    'FRONTEND_VERSION',
+    defaultValue: 'dev',
+  );
+
+  /// 前端构建时间，通过 --dart-define=FRONTEND_BUILD_TIME=YYYY-MM-DD_HH:MM:SS 注入
+  static const String frontendBuildTime = String.fromEnvironment(
+    'FRONTEND_BUILD_TIME',
+    defaultValue: 'unknown',
+  );
 
   /// Tracely 监控配置（编译时通过 --dart-define 注入，未配置则不启用）
-  static const String tracelyAppId =
-      String.fromEnvironment('TRACELY_APP_ID', defaultValue: '');
-  static const String tracelyAppSecret =
-      String.fromEnvironment('TRACELY_APP_SECRET', defaultValue: '');
-  static const String tracelyHost =
-      String.fromEnvironment('TRACELY_HOST', defaultValue: '');
+  static const String tracelyAppId = String.fromEnvironment(
+    'TRACELY_APP_ID',
+    defaultValue: '',
+  );
+  static const String tracelyAppSecret = String.fromEnvironment(
+    'TRACELY_APP_SECRET',
+    defaultValue: '',
+  );
+  static const String tracelyHost = String.fromEnvironment(
+    'TRACELY_HOST',
+    defaultValue: '',
+  );
   static bool get tracelyEnabled =>
       tracelyAppId.isNotEmpty &&
       tracelyAppSecret.isNotEmpty &&

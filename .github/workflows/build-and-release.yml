@@ -70,9 +70,16 @@ jobs:
       - name: Extract version from pubspec.yaml
         id: version
         run: |
-          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1)
+          PUBSPEC_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1)
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            VERSION="$PUBSPEC_VERSION"
+          else
+            VERSION="dev"
+          fi
+          BUILD_TIME=$(date -u '+%Y-%m-%d_%H:%M:%S')
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-      - run: flutter build web --release --no-web-resources-cdn --dart-define=DEPLOY_MODE=${{ matrix.mode }} --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }} --dart-define=TRACELY_APP_ID=${{ secrets.TRACELY_APP_ID }} --dart-define=TRACELY_APP_SECRET=${{ secrets.TRACELY_APP_SECRET }} --dart-define=TRACELY_HOST=${{ secrets.TRACELY_HOST }}
+          echo "build_time=$BUILD_TIME" >> "$GITHUB_OUTPUT"
+      - run: flutter build web --release --no-web-resources-cdn --dart-define=DEPLOY_MODE=${{ matrix.mode }} --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }} --dart-define=FRONTEND_BUILD_TIME=${{ steps.version.outputs.build_time }} --dart-define=TRACELY_APP_ID=${{ secrets.TRACELY_APP_ID }} --dart-define=TRACELY_APP_SECRET=${{ secrets.TRACELY_APP_SECRET }} --dart-define=TRACELY_HOST=${{ secrets.TRACELY_HOST }}
       - name: Package
         run: |
           cd build/web
@@ -114,9 +121,16 @@ jobs:
       - name: Extract version from pubspec.yaml
         id: version
         run: |
-          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1)
+          PUBSPEC_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1)
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            VERSION="$PUBSPEC_VERSION"
+          else
+            VERSION="dev"
+          fi
+          BUILD_TIME=$(date -u '+%Y-%m-%d_%H:%M:%S')
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-      - run: flutter build linux --release --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }} --dart-define=TRACELY_APP_ID=${{ secrets.TRACELY_APP_ID }} --dart-define=TRACELY_APP_SECRET=${{ secrets.TRACELY_APP_SECRET }} --dart-define=TRACELY_HOST=${{ secrets.TRACELY_HOST }}
+          echo "build_time=$BUILD_TIME" >> "$GITHUB_OUTPUT"
+      - run: flutter build linux --release --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }} --dart-define=FRONTEND_BUILD_TIME=${{ steps.version.outputs.build_time }} --dart-define=TRACELY_APP_ID=${{ secrets.TRACELY_APP_ID }} --dart-define=TRACELY_APP_SECRET=${{ secrets.TRACELY_APP_SECRET }} --dart-define=TRACELY_HOST=${{ secrets.TRACELY_HOST }}
       - name: Prepare app icon for fastforge
         run: |
           mkdir -p assets/icons
@@ -180,11 +194,18 @@ jobs:
         shell: pwsh
         run: |
           $versionLine = (Select-String -Path pubspec.yaml -Pattern '^version:' | Select-Object -First 1).Line
-          $version = ($versionLine -replace 'version:\s*', '') -replace '\+.*', ''
+          $pubspecVersion = ($versionLine -replace 'version:\s*', '') -replace '\+.*', ''
+          if ($env:GITHUB_REF -like 'refs/tags/v*') {
+            $version = $pubspecVersion
+          } else {
+            $version = 'dev'
+          }
+          $buildTime = (Get-Date).ToUniversalTime().ToString('yyyy-MM-dd_HH:mm:ss')
           echo "version=$version" >> $env:GITHUB_OUTPUT
+          echo "build_time=$buildTime" >> $env:GITHUB_OUTPUT
       - name: Setup NuGet
         uses: nuget/setup-nuget@v2
-      - run: flutter build windows --release --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }} --dart-define=TRACELY_APP_ID=${{ secrets.TRACELY_APP_ID }} --dart-define=TRACELY_APP_SECRET=${{ secrets.TRACELY_APP_SECRET }} --dart-define=TRACELY_HOST=${{ secrets.TRACELY_HOST }}
+      - run: flutter build windows --release --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }} --dart-define=FRONTEND_BUILD_TIME=${{ steps.version.outputs.build_time }} --dart-define=TRACELY_APP_ID=${{ secrets.TRACELY_APP_ID }} --dart-define=TRACELY_APP_SECRET=${{ secrets.TRACELY_APP_SECRET }} --dart-define=TRACELY_HOST=${{ secrets.TRACELY_HOST }}
       - name: Package ZIP (绿色便携包)
         shell: pwsh
         run: |
@@ -226,9 +247,16 @@ jobs:
       - name: Extract version from pubspec.yaml
         id: version
         run: |
-          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1)
+          PUBSPEC_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1)
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            VERSION="$PUBSPEC_VERSION"
+          else
+            VERSION="dev"
+          fi
+          BUILD_TIME=$(date -u '+%Y-%m-%d_%H:%M:%S')
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-      - run: flutter build macos --release --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }} --dart-define=TRACELY_APP_ID=${{ secrets.TRACELY_APP_ID }} --dart-define=TRACELY_APP_SECRET=${{ secrets.TRACELY_APP_SECRET }} --dart-define=TRACELY_HOST=${{ secrets.TRACELY_HOST }}
+          echo "build_time=$BUILD_TIME" >> "$GITHUB_OUTPUT"
+      - run: flutter build macos --release --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }} --dart-define=FRONTEND_BUILD_TIME=${{ steps.version.outputs.build_time }} --dart-define=TRACELY_APP_ID=${{ secrets.TRACELY_APP_ID }} --dart-define=TRACELY_APP_SECRET=${{ secrets.TRACELY_APP_SECRET }} --dart-define=TRACELY_HOST=${{ secrets.TRACELY_HOST }}
       - name: Package ZIP (.app)
         run: |
           cd build/macos/Build/Products/Release
@@ -267,8 +295,15 @@ jobs:
       - name: Extract version from pubspec.yaml
         id: version
         run: |
-          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1)
+          PUBSPEC_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1)
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            VERSION="$PUBSPEC_VERSION"
+          else
+            VERSION="dev"
+          fi
+          BUILD_TIME=$(date -u '+%Y-%m-%d_%H:%M:%S')
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "build_time=$BUILD_TIME" >> "$GITHUB_OUTPUT"
       - name: Setup Android signing
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -282,7 +317,7 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: flutter build apk --release --split-per-abi --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }} --dart-define=TRACELY_APP_ID=${{ secrets.TRACELY_APP_ID }} --dart-define=TRACELY_APP_SECRET=${{ secrets.TRACELY_APP_SECRET }} --dart-define=TRACELY_HOST=${{ secrets.TRACELY_HOST }}
+        run: flutter build apk --release --split-per-abi --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }} --dart-define=FRONTEND_BUILD_TIME=${{ steps.version.outputs.build_time }} --dart-define=TRACELY_APP_ID=${{ secrets.TRACELY_APP_ID }} --dart-define=TRACELY_APP_SECRET=${{ secrets.TRACELY_APP_SECRET }} --dart-define=TRACELY_HOST=${{ secrets.TRACELY_HOST }}
       - name: Collect APKs
         run: |
           mkdir -p apk-output
@@ -309,9 +344,16 @@ jobs:
       - name: Extract version from pubspec.yaml
         id: version
         run: |
-          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1)
+          PUBSPEC_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1)
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            VERSION="$PUBSPEC_VERSION"
+          else
+            VERSION="dev"
+          fi
+          BUILD_TIME=$(date -u '+%Y-%m-%d_%H:%M:%S')
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-      - run: flutter build ios --release --no-codesign --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }} --dart-define=TRACELY_APP_ID=${{ secrets.TRACELY_APP_ID }} --dart-define=TRACELY_APP_SECRET=${{ secrets.TRACELY_APP_SECRET }} --dart-define=TRACELY_HOST=${{ secrets.TRACELY_HOST }}
+          echo "build_time=$BUILD_TIME" >> "$GITHUB_OUTPUT"
+      - run: flutter build ios --release --no-codesign --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }} --dart-define=FRONTEND_BUILD_TIME=${{ steps.version.outputs.build_time }} --dart-define=TRACELY_APP_ID=${{ secrets.TRACELY_APP_ID }} --dart-define=TRACELY_APP_SECRET=${{ secrets.TRACELY_APP_SECRET }} --dart-define=TRACELY_HOST=${{ secrets.TRACELY_HOST }}
       - name: Package as IPA
         run: |
           mkdir -p Payload

@@ -280,7 +280,7 @@ class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  '最新版本: v${check.latestVersion}',
+                  '最新版本: ${check.latestVersionDisplay}',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: colorScheme.onPrimaryContainer,
@@ -303,8 +303,7 @@ class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
         ],
 
         // 更新说明
-        if (check.releaseNotes != null &&
-            check.releaseNotes!.isNotEmpty) ...[
+        if (check.releaseNotes != null && check.releaseNotes!.isNotEmpty) ...[
           const SizedBox(height: 16),
           Text('更新说明:', style: theme.textTheme.titleSmall),
           const SizedBox(height: 8),
@@ -349,9 +348,10 @@ class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
   Future<void> _launchReleaseUrl() async {
     if (_checkResult == null) return;
     final proxy = _effectiveProxy;
-    final rawUrl = _checkResult!.releaseUrl.isNotEmpty
-        ? _checkResult!.releaseUrl
-        : AppConfig.frontendReleasesUrl;
+    final rawUrl =
+        _checkResult!.releaseUrl.isNotEmpty
+            ? _checkResult!.releaseUrl
+            : AppConfig.frontendReleasesUrl;
     final url = Uri.parse(FrontendVersionApi.applyProxy(rawUrl, proxy));
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);

@@ -36,6 +36,13 @@ case "$OUTPUT_DIR" in
     *) OUTPUT_DIR="$(pwd)/$OUTPUT_DIR" ;;
 esac
 
+FRONTEND_VERSION_VALUE="${FRONTEND_VERSION:-dev}"
+FRONTEND_BUILD_TIME_VALUE="${FRONTEND_BUILD_TIME:-$(date -u '+%Y-%m-%d_%H:%M:%S')}"
+FLUTTER_VERSION_ARGS=(
+    "--dart-define=FRONTEND_VERSION=${FRONTEND_VERSION_VALUE}"
+    "--dart-define=FRONTEND_BUILD_TIME=${FRONTEND_BUILD_TIME_VALUE}"
+)
+
 # 帮助信息
 show_help() {
     echo -e "${BLUE}Songloft Flutter 前端构建工具${NC}"
@@ -100,6 +107,8 @@ prepare() {
     echo -e "${BLUE}构建平台:${NC} $PLATFORM"
     echo -e "${BLUE}输出目录:${NC} $OUTPUT_DIR"
     echo -e "${BLUE}前端目录:${NC} $FRONTEND_DIR"
+    echo -e "${BLUE}前端版本:${NC} $FRONTEND_VERSION_VALUE"
+    echo -e "${BLUE}前端构建时间:${NC} $FRONTEND_BUILD_TIME_VALUE"
     echo ""
 
     check_flutter
@@ -177,9 +186,9 @@ build_web() {
     # embedded 模式：使用本地引擎资源（--no-web-resources-cdn），canvaskit 路径由构建标志写入 flutter_build_config
     # standalone 模式：不传此标志，flutter_build_config 会配置从 CDN 加载引擎资源
     if [ "$mode" = "embedded" ]; then
-        flutter build web --release ${debug_args} --no-web-resources-cdn --no-wasm-dry-run --dart-define=DEPLOY_MODE=${mode} --output="$output" 2>&1 | tee -a "$log_file"
+        flutter build web --release ${debug_args} --no-web-resources-cdn --no-wasm-dry-run --dart-define=DEPLOY_MODE=${mode} "${FLUTTER_VERSION_ARGS[@]}" --output="$output" 2>&1 | tee -a "$log_file"
     else
-        flutter build web --release ${debug_args} --no-wasm-dry-run --dart-define=DEPLOY_MODE=${mode} --output="$output" 2>&1 | tee -a "$log_file"
+        flutter build web --release ${debug_args} --no-wasm-dry-run --dart-define=DEPLOY_MODE=${mode} "${FLUTTER_VERSION_ARGS[@]}" --output="$output" 2>&1 | tee -a "$log_file"
     fi
 
     # 生成部署模式配置文件，供 index.html 读取
@@ -275,7 +284,7 @@ build_linux() {
     mkdir -p "$output"
 
     # 1. 构建 Flutter Linux bundle
-    flutter build linux --release 2>&1 | tee -a "$log_file"
+    flutter build linux --release "${FLUTTER_VERSION_ARGS[@]}" 2>&1 | tee -a "$log_file"
     cp -r build/linux/x64/release/bundle "$output/"
     echo -e "${GREEN}✓ [Linux]${NC} Linux bundle 构建完成"
 
@@ -351,7 +360,7 @@ build_windows() {
     mkdir -p "$output"
 
     # 1. 构建 Flutter Windows bundle
-    flutter build windows --release 2>&1 | tee -a "$log_file"
+    flutter build windows --release "${FLUTTER_VERSION_ARGS[@]}" 2>&1 | tee -a "$log_file"
     cp -r build/windows/x64/runner/Release "$output/bundle"
     echo -e "${GREEN}✓ [Windows]${NC} Windows bundle 构建完成"
 
@@ -425,7 +434,7 @@ build_macos() {
     mkdir -p "$output"
 
     # 1. 构建 Flutter macOS .app
-    flutter build macos --release 2>&1 | tee -a "$log_file"
+    flutter build macos --release "${FLUTTER_VERSION_ARGS[@]}" 2>&1 | tee -a "$log_file"
 
     # 如果存在 Go 后端二进制，拷贝到 .app/Contents/MacOS/ 目录
     local go_server="macos/Runner/songloft-server"
@@ -475,7 +484,7 @@ build_android() {
     mkdir -p "$output"
 
     # 构建 APK（split-per-abi 生成多架构包）
-    flutter build apk --release --split-per-abi 2>&1 | tee -a "$log_file"
+    flutter build apk --release --split-per-abi "${FLUTTER_VERSION_ARGS[@]}" 2>&1 | tee -a "$log_file"
     # 复制 APK 产物到输出目录
     if [ -d "build/app/outputs/flutter-apk" ]; then
         cp -r build/app/outputs/flutter-apk "$output/apk"
@@ -483,7 +492,7 @@ build_android() {
     fi
 
     # 构建 AAB（App Bundle）
-    flutter build appbundle --release 2>&1 | tee -a "$log_file"
+    flutter build appbundle --release "${FLUTTER_VERSION_ARGS[@]}" 2>&1 | tee -a "$log_file"
     # 复制 AAB 产物到输出目录
     if [ -d "build/app/outputs/bundle/release" ]; then
         mkdir -p "$output/bundle"
@@ -508,7 +517,7 @@ build_ios() {
     mkdir -p "$output"
 
     # 1. 构建 Flutter iOS .app
-    flutter build ios --release --no-codesign 2>&1 | tee -a "$log_file"
+    flutter build ios --release --no-codesign "${FLUTTER_VERSION_ARGS[@]}" 2>&1 | tee -a "$log_file"
     cp -r build/ios/iphoneos/*.app "$output/" 2>/dev/null || true
     echo -e "${GREEN}✓ [iOS]${NC} iOS .app 构建完成"
 

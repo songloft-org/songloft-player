@@ -35,6 +35,9 @@ class FrontendVersionCheck {
     this.assets = const [],
   });
 
+  String get latestVersionDisplay =>
+      latestVersion == 'dev' ? '开发版本' : 'v$latestVersion';
+
   @override
   String toString() =>
       'FrontendVersionCheck(hasUpdate: $hasUpdate, current: $currentVersion, latest: $latestVersion)';
@@ -59,8 +62,10 @@ class FrontendVersionApi {
   final Dio _dio;
 
   /// GitHub API 地址
-  static const String _apiUrl =
+  static const String _latestReleaseApiUrl =
       'https://api.github.com/repos/${AppConfig.frontendRepo}/releases/latest';
+  static const String _devReleaseApiUrl =
+      'https://api.github.com/repos/${AppConfig.frontendRepo}/releases/tags/dev';
 
   FrontendVersionApi({Dio? dio})
     : _dio =
@@ -77,14 +82,16 @@ class FrontendVersionApi {
   /// [githubProxy] 可选的 GitHub 代理前缀（如 https://ghproxy.com/）
   Future<FrontendVersionCheck> checkUpdate({String? githubProxy}) async {
     try {
-      final url = _applyProxy(_apiUrl, githubProxy);
+      const currentVersion = AppConfig.frontendVersion;
+      const isDev = currentVersion == 'dev';
+      const rawUrl = isDev ? _devReleaseApiUrl : _latestReleaseApiUrl;
+      final url = _applyProxy(rawUrl, githubProxy);
       final response = await _dio.get(url);
       final data = response.data as Map<String, dynamic>;
 
       // 解析 tag_name，去掉 v 前缀
       final tagName = data['tag_name'] as String? ?? '';
       final latestVersion = _normalizeVersion(tagName);
-      const currentVersion = AppConfig.frontendVersion;
 
       // 解析发布说明，将 gitmoji 短代码转换为 Unicode emoji
       final rawNotes = data['body'] as String?;
@@ -105,7 +112,11 @@ class FrontendVersionApi {
       final assets = _parseAssets(data['assets']);
 
       // 判断是否有更新
-      final hasUpdate = _isNewerVersion(currentVersion, latestVersion);
+      final hasUpdate = _isNewerVersion(
+        currentVersion,
+        latestVersion,
+        latestBuildTime: publishedAt,
+      );
 
       return FrontendVersionCheck(
         hasUpdate: hasUpdate,
@@ -126,8 +137,7 @@ class FrontendVersionApi {
   /// 对 URL 拼接代理前缀
   static String _applyProxy(String rawUrl, String? proxyPrefix) {
     if (proxyPrefix == null || proxyPrefix.isEmpty) return rawUrl;
-    final prefix =
-        proxyPrefix.endsWith('/') ? proxyPrefix : '$proxyPrefix/';
+    final prefix = proxyPrefix.endsWith('/') ? proxyPrefix : '$proxyPrefix/';
     return '$prefix$rawUrl';
   }
 
@@ -160,11 +170,26 @@ class FrontendVersionApi {
     return version;
   }
 
-  /// 判断远程版本是否比当前版本更新
-  /// 当前版本为 'dev' 时始终认为有更新（本地开发环境）
-  static bool _isNewerVersion(String current, String latest) {
-    if (current == 'dev') return true;
+  static DateTime? _parseBuildTime(String buildTime) {
+    if (buildTime.isEmpty || buildTime == 'unknown') return null;
+    return DateTime.tryParse(buildTime.replaceFirst('_', 'T'));
+  }
+
+  /// 判断远程版本是否比当前版本更新。
+  /// dev 客户端只比较 dev prerelease 的发布时间，正式版只比较正式版版本号。
+  static bool _isNewerVersion(
+    String current,
+    String latest, {
+    DateTime? latestBuildTime,
+  }) {
     if (latest.isEmpty) return false;
+    if (current == 'dev') {
+      if (latest != 'dev' || latestBuildTime == null) return false;
+      final currentBuildTime = _parseBuildTime(AppConfig.frontendBuildTime);
+      if (currentBuildTime == null) return true;
+      return latestBuildTime.isAfter(currentBuildTime);
+    }
+    if (latest == 'dev') return false;
 
     // 简单的版本号比较（语义化版本）
     final currentParts =

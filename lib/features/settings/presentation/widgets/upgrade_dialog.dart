@@ -124,6 +124,22 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
     return _checkResult!.availableUpdates.first;
   }
 
+  String _formatCurrentVersion(UpgradeCheck check) {
+    final versionText = check.currentVersion ?? '未知';
+    final details = <String>[];
+    if (check.currentChannel == 'dev') {
+      details.add('开发版');
+    } else if (check.currentChannel == 'stable') {
+      details.add('正式版');
+    }
+    if (check.currentBuildType != null && check.currentBuildType!.isNotEmpty) {
+      details.add(check.currentBuildType!);
+    }
+    return details.isEmpty
+        ? versionText
+        : '$versionText (${details.join(', ')})';
+  }
+
   Future<void> _startUpgrade() async {
     final version = _selectedVersion;
     if (version == null) return;
@@ -342,6 +358,7 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
     final colorScheme = theme.colorScheme;
 
     if (!check.hasUpdate) {
+      final currentVersion = _formatCurrentVersion(check);
       return Center(
         child: Column(
           children: [
@@ -349,10 +366,7 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
             const SizedBox(height: 16),
             const Text('已是最新版本'),
             const SizedBox(height: 8),
-            Text(
-              '当前版本: ${check.currentVersion ?? '未知'}',
-              style: theme.textTheme.bodySmall,
-            ),
+            Text('当前版本: $currentVersion', style: theme.textTheme.bodySmall),
             // 仅 Docker 环境显示回退按钮
             if (check.isDocker) ...[
               const SizedBox(height: 16),
@@ -364,15 +378,13 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
     }
 
     final selectedVersion = _selectedVersion;
+    final currentVersion = _formatCurrentVersion(check);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // 当前版本
-        Text(
-          '当前版本: ${check.currentVersion ?? '未知'}',
-          style: theme.textTheme.bodyMedium,
-        ),
+        Text('当前版本: $currentVersion', style: theme.textTheme.bodyMedium),
         const SizedBox(height: 12),
 
         // 版本选择（多个可用更新时显示，仅 Docker 环境）
