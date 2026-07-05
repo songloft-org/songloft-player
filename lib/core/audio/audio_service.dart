@@ -626,10 +626,16 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
     if (_disposed) return;
     _disposed = true;
 
+    debugPrint('[AudioService] dispose 开始');
     await _interruptionSub?.cancel();
+    debugPrint('[AudioService] interruption subscription canceled');
     await _processingStateSub.cancel();
+    debugPrint('[AudioService] processingState subscription canceled');
     await _playbackLogSub.cancel();
+    debugPrint('[AudioService] playback log subscription canceled');
     await _playbackEventSub.cancel();
+    debugPrint('[AudioService] playback event subscription canceled');
     await _player.dispose();
+    debugPrint('[AudioService] player disposed');
   }
 }

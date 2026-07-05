@@ -44,6 +44,7 @@ TracelyClient? _tracelyClient;
 
 const _desktopPluginStartupTimeout = Duration(seconds: 3);
 const _audioStartupTimeout = Duration(seconds: 5);
+const _windowsMpvTeardownGracePeriod = Duration(seconds: 6);
 
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -311,7 +312,9 @@ void main(List<String> args) async {
         Future<void> Function() cleanup,
       ) async {
         try {
+          debugPrint('[Main] $label 清理开始');
           await cleanup();
+          debugPrint('[Main] $label 清理完成');
         } catch (e, stackTrace) {
           debugPrint('[Main] $label 清理失败，继续退出: $e');
           debugPrint('[Main] Stack trace: $stackTrace');
@@ -323,6 +326,11 @@ void main(List<String> args) async {
       });
       await runCleanup('音频停止', audioHandler.stop);
       await runCleanup('音频释放', audioHandler.dispose);
+      await runCleanup('libmpv 延迟销毁等待', () async {
+        // media_kit 在 Windows 上会在 Player.dispose() 返回后延迟销毁 libmpv。
+        // 窗口/Flutter engine 立即退出时，libmpv 后台线程仍可能触发 Fail Fast。
+        await Future<void>.delayed(_windowsMpvTeardownGracePeriod);
+      });
       await runCleanup('内嵌后端停止', EmbeddedBackendService.stop);
     };
   }

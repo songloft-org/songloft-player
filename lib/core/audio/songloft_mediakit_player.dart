@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:just_audio_platform_interface/just_audio_platform_interface.dart';
 import 'package:media_kit/media_kit.dart';
@@ -412,6 +413,7 @@ class SongloftMediaKitPlayer extends AudioPlayerPlatform {
 
   Future<void> release() async {
     if (_released) return;
+    debugPrint('[SongloftMediaKitPlayer] release 开始');
     _released = true;
     _mediaOpened = false;
 
@@ -423,10 +425,13 @@ class SongloftMediaKitPlayer extends AudioPlayerPlatform {
       await sub.cancel();
     }
     _streamSubscriptions.clear();
+    debugPrint('[SongloftMediaKitPlayer] subscriptions canceled');
 
     await player.dispose();
+    debugPrint('[SongloftMediaKitPlayer] media_kit player disposed');
     await _eventController.close();
     await _dataController.close();
+    debugPrint('[SongloftMediaKitPlayer] controllers closed');
   }
 
   Future<void> _setMpvProperty(String key, dynamic value) async {
