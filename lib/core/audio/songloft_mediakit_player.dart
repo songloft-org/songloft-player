@@ -34,9 +34,18 @@ class SongloftMediaKitPlayer extends AudioPlayerPlatform {
   bool _released = false;
 
   Media? get _currentMedia {
-    var medias = player.state.playlist.medias;
+    final playlist = player.state.playlist;
+    final index = _validPlaylistIndex(playlist);
+    if (index == null) return null;
+    return playlist.medias[index];
+  }
+
+  int? _validPlaylistIndex(Playlist playlist) {
+    final medias = playlist.medias;
     if (medias.isEmpty) return null;
-    return medias[player.state.playlist.index];
+    final index = playlist.index;
+    if (index < 0 || index >= medias.length) return null;
+    return index;
   }
 
   SongloftMediaKitPlayer(super.id) {
@@ -127,15 +136,19 @@ class SongloftMediaKitPlayer extends AudioPlayerPlatform {
       }),
       player.stream.error.listen((error) {
         final errorUri = RegExp(r'Failed to open (.*)\.').firstMatch(error)?[1];
-        if (errorUri == null || errorUri == _currentMedia?.uri) {
+        final currentMedia = _currentMedia;
+        if (errorUri == null ||
+            currentMedia == null ||
+            errorUri == currentMedia.uri) {
           _mediaOpened = false;
           _completeLoadError(Exception(error));
         }
       }),
       player.stream.playlist.listen((playlist) {
-        if (_currentIndex != playlist.index) {
+        final index = _validPlaylistIndex(playlist);
+        if (index != null && _currentIndex != index) {
           _bufferedPosition = _position = Duration.zero;
-          _currentIndex = playlist.index;
+          _currentIndex = index;
         }
         _duration = _currentMedia?.extras?['overrideDuration'];
         _updatePlaybackEvent();
