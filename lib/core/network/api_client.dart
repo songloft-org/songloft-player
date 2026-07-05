@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../config/app_config.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
+import '../backend/run_mode_provider.dart';
 import '../storage/secure_storage.dart';
 import 'auth_interceptor.dart';
 import 'base_url_provider.dart';
@@ -11,7 +12,8 @@ import 'base_url_provider.dart';
 /// 创建并配置 Dio 实例
 Dio createDio({
   required SecureStorageService secureStorage,
-  void Function()? onTokenExpired,
+  Future<void> Function()? onTokenExpired,
+  String? Function()? currentWalletKey,
   String? customBaseUrl,
 }) {
   final dio = Dio(
@@ -32,6 +34,7 @@ Dio createDio({
       secureStorage: secureStorage,
       dio: dio,
       onTokenExpired: onTokenExpired,
+      currentWalletKey: currentWalletKey,
     ),
   );
 
@@ -90,7 +93,9 @@ class ApiClient {
   ApiClient(this.dio);
 
   /// 更新 baseUrl
-  @Deprecated('改走 baseUrlProvider.notifier.set；dioProvider 会自动重建带新 baseUrl 的 Dio')
+  @Deprecated(
+    '改走 baseUrlProvider.notifier.set；dioProvider 会自动重建带新 baseUrl 的 Dio',
+  )
   void updateBaseUrl(String baseUrl) {
     dio.options.baseUrl = baseUrl;
   }
@@ -113,9 +118,15 @@ final dioProvider = Provider<Dio>((ref) {
   return createDio(
     customBaseUrl: baseUrl,
     secureStorage: secureStorage,
-    onTokenExpired: () {
+    onTokenExpired: () async {
       debugPrint('[DioProvider] Token expired, notifying AuthNotifier');
       ref.read(authStateProvider.notifier).onTokenExpired();
+    },
+    currentWalletKey: () {
+      if (ref.read(runModeProvider) == RunMode.local) {
+        return SecureStorageService.localWalletKey;
+      }
+      return SecureStorageService.walletKey(ref.read(baseUrlProvider));
     },
   );
 });

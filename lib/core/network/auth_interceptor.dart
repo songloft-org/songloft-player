@@ -20,7 +20,10 @@ class AuthInterceptor extends Interceptor {
   final Dio _dio;
 
   /// Token 刷新回调（刷新失败时通知外部）
-  final void Function()? onTokenExpired;
+  final Future<void> Function()? onTokenExpired;
+
+  /// 当前服务器的钱包 key（用于刷新成功后同步、刷新失败后清理）
+  final String? Function()? currentWalletKey;
 
   // 不需要认证的路径
   static final _publicPaths = [
@@ -38,6 +41,7 @@ class AuthInterceptor extends Interceptor {
     required SecureStorageService secureStorage,
     required Dio dio,
     this.onTokenExpired,
+    this.currentWalletKey,
   }) : _secureStorage = secureStorage,
        _dio = dio;
 
@@ -154,6 +158,7 @@ class AuthInterceptor extends Interceptor {
           accessToken: tokens.accessToken,
           refreshToken: tokens.refreshToken,
           expiresIn: tokens.expiresIn,
+          walletKey: _readWalletKey(),
         );
         _refreshCompleter!.complete(true);
         return true;
@@ -192,7 +197,20 @@ class AuthInterceptor extends Interceptor {
 
   /// 处理 Token 过期
   Future<void> _handleTokenExpired() async {
+    final walletKey = _readWalletKey();
+    if (walletKey != null && walletKey.isNotEmpty) {
+      await _secureStorage.clearWallet(walletKey);
+    }
     await _secureStorage.clearTokens();
-    onTokenExpired?.call();
+    await onTokenExpired?.call();
+  }
+
+  String? _readWalletKey() {
+    try {
+      return currentWalletKey?.call();
+    } catch (e) {
+      debugPrint('[AuthInterceptor] failed to read wallet key: $e');
+      return null;
+    }
   }
 }

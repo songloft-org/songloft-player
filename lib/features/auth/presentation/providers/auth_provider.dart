@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../config/app_config.dart';
+import '../../../../core/backend/run_mode_provider.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_exceptions.dart';
 import '../../../../core/network/base_url_provider.dart';
@@ -114,15 +115,18 @@ class AuthNotifier extends Notifier<AuthState> {
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
         expiresIn: tokens.expiresIn,
+        walletKey: _currentWalletKey(),
       );
 
       // 登录成功后保存凭证到对应 ServerEntry
       final currentUrl = ref.read(baseUrlProvider);
-      await ref.read(serversProvider.notifier).updateCredentials(
-        currentUrl,
-        username: username,
-        password: password,
-      );
+      await ref
+          .read(serversProvider.notifier)
+          .updateCredentials(
+            currentUrl,
+            username: username,
+            password: password,
+          );
       // 兼容：继续保存全局 last 凭证
       final prefs = await ref.read(appPreferencesProvider.future);
       await prefs.setLastUsername(username);
@@ -165,6 +169,13 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
+  String _currentWalletKey() {
+    if (ref.read(runModeProvider) == RunMode.local) {
+      return SecureStorageService.localWalletKey;
+    }
+    return SecureStorageService.walletKey(ref.read(baseUrlProvider));
+  }
+
   /// 登出（同时清除当前服务器的 wallet 存档）
   Future<void> logout() async {
     state = state.loading();
@@ -176,8 +187,7 @@ class AuthNotifier extends Notifier<AuthState> {
       // 忽略登出错误，仍然清除本地状态
     }
 
-    final currentUrl = ref.read(baseUrlProvider);
-    await _secureStorage.clearWallet(SecureStorageService.walletKey(currentUrl));
+    await _secureStorage.clearWallet(_currentWalletKey());
     await _secureStorage.clearTokens();
     state = state.unauthenticated();
   }

@@ -65,6 +65,7 @@ class SecureStorageService {
     required String accessToken,
     required String refreshToken,
     required int expiresIn,
+    String? walletKey,
   }) async {
     cachedAccessToken = accessToken;
     cachedRefreshToken = refreshToken;
@@ -81,6 +82,10 @@ class SecureStorageService {
     ]);
 
     debugPrint('[SecureStorage] saveTokens: tokens saved');
+    if (walletKey != null && walletKey.isNotEmpty) {
+      await saveWallet(walletKey);
+      debugPrint('[SecureStorage] saveTokens: wallet synced for $walletKey');
+    }
   }
 
   /// 清除所有 Token

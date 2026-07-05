@@ -105,7 +105,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       final currentUrl = ref.read(baseUrlProvider);
       final servers = await ref.read(serversProvider.future);
       final entry = servers.where((e) => e.url == currentUrl).firstOrNull;
-      if (entry != null && entry.username != null && entry.username!.isNotEmpty) {
+      if (entry != null &&
+          entry.username != null &&
+          entry.username!.isNotEmpty) {
         _usernameController.text = entry.username!;
         if (entry.password != null) _passwordController.text = entry.password!;
         return;
@@ -441,9 +443,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             if (_showLocalMode) ...[
                               const SizedBox(height: TvTheme.spacingLarge),
                               OutlinedButton.icon(
-                                onPressed: _isLocalModeBootstrapping
-                                    ? null
-                                    : _handleLocalMode,
+                                onPressed:
+                                    _isLocalModeBootstrapping
+                                        ? null
+                                        : _handleLocalMode,
                                 style: OutlinedButton.styleFrom(
                                   minimumSize: const Size.fromHeight(
                                     TvTheme.minButtonSize,
@@ -453,16 +456,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                     borderRadius: BorderRadius.circular(14),
                                   ),
                                 ),
-                                icon: _isLocalModeBootstrapping
-                                    ? SizedBox(
-                                        height: 28,
-                                        width: 28,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 3,
-                                          color: colorScheme.primary,
-                                        ),
-                                      )
-                                    : const Icon(Icons.phone_android),
+                                icon:
+                                    _isLocalModeBootstrapping
+                                        ? SizedBox(
+                                          height: 28,
+                                          width: 28,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 3,
+                                            color: colorScheme.primary,
+                                          ),
+                                        )
+                                        : const Icon(Icons.phone_android),
                                 label: Text(
                                   _isLocalModeBootstrapping
                                       ? _localModeHint
@@ -511,7 +515,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ),
             ],
           ),
-          child: Image.asset('assets/icons/app_icon.png', width: 160, height: 160, semanticLabel: 'Songloft'),
+          child: Image.asset(
+            'assets/icons/app_icon.png',
+            width: 160,
+            height: 160,
+            semanticLabel: 'Songloft',
+          ),
         ),
         const SizedBox(height: 40),
         Text(
@@ -702,7 +711,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     return Column(
       children: [
         // Logo
-        Image.asset('assets/icons/app_icon.png', width: 80, height: 80, semanticLabel: 'Songloft'),
+        Image.asset(
+          'assets/icons/app_icon.png',
+          width: 80,
+          height: 80,
+          semanticLabel: 'Songloft',
+        ),
         const SizedBox(height: 24),
         Text(
           'Songloft',
@@ -777,26 +791,26 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final servers = ref.watch(serversProvider).value ?? const <ServerEntry>[];
     if (servers.length >= 2) {
       final current = ref.watch(baseUrlProvider);
-      final selected = servers.any((s) => s.url == current)
-          ? current
-          : servers.first.url;
+      final selected =
+          servers.any((s) => s.url == current) ? current : servers.first.url;
       return DropdownButtonFormField<String>(
         initialValue: selected,
         decoration: const InputDecoration(
           labelText: '服务器',
           prefixIcon: Icon(Icons.cloud_outlined),
         ),
-        items: servers
-            .map(
-              (s) => DropdownMenuItem(
-                value: s.url,
-                child: Text(
-                  s.name.isNotEmpty ? '${s.name} (${s.url})' : s.url,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            )
-            .toList(),
+        items:
+            servers
+                .map(
+                  (s) => DropdownMenuItem(
+                    value: s.url,
+                    child: Text(
+                      s.name.isNotEmpty ? '${s.name} (${s.url})' : s.url,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                )
+                .toList(),
         onChanged: (url) {
           if (url != null) ref.read(baseUrlProvider.notifier).set(url);
         },
@@ -892,10 +906,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         dio.close();
       }
 
-      await ref.read(authStateProvider.notifier).login(
-        username: 'admin',
-        password: 'admin',
-      );
+      await ref
+          .read(authStateProvider.notifier)
+          .login(username: 'admin', password: 'admin');
     } catch (e) {
       if (mounted) {
         ResponsiveSnackBar.showError(context, message: '自动登录失败：$e');
@@ -915,19 +928,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           style: OutlinedButton.styleFrom(
             minimumSize: const Size.fromHeight(48),
           ),
-          icon: _isLocalModeBootstrapping
-              ? SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: colorScheme.primary,
-                  ),
-                )
-              : const Icon(Icons.phone_android),
-          label: Text(
-            _isLocalModeBootstrapping ? _localModeHint : '使用本地模式',
-          ),
+          icon:
+              _isLocalModeBootstrapping
+                  ? SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: colorScheme.primary,
+                    ),
+                  )
+                  : const Icon(Icons.phone_android),
+          label: Text(_isLocalModeBootstrapping ? _localModeHint : '使用本地模式'),
         ),
       ],
     );
@@ -981,15 +993,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
       // 尝试恢复本地 session，有效则跳过登录
       final storage = SecureStorageService();
-      final restored = await storage.restoreWallet(SecureStorageService.localWalletKey);
+      final restored = await storage.restoreWallet(
+        SecureStorageService.localWalletKey,
+      );
       if (restored && !await storage.isAccessTokenExpired()) {
         ref.read(authStateProvider.notifier).setAuthenticated();
       } else {
         setState(() => _localModeHint = '正在登录…');
-        final loginDio = Dio(BaseOptions(
-          baseUrl: baseUrl,
-          connectTimeout: const Duration(seconds: 5),
-        ));
+        final loginDio = Dio(
+          BaseOptions(
+            baseUrl: baseUrl,
+            connectTimeout: const Duration(seconds: 5),
+          ),
+        );
         final resp = await loginDio.post(
           '${AppConfig.apiPrefix}/auth/login',
           data: {'username': 'admin', 'password': 'admin'},
@@ -999,6 +1015,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             accessToken: resp.data['access_token'] ?? '',
             refreshToken: resp.data['refresh_token'] ?? '',
             expiresIn: resp.data['expires_in'] ?? 3600,
+            walletKey: SecureStorageService.localWalletKey,
           );
         }
         loginDio.close();

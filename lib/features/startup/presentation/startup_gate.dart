@@ -126,7 +126,9 @@ class _StartupGateState extends ConsumerState<StartupGate>
 
     // 尝试恢复本地 session，有效则跳过 auto-login
     final storage = SecureStorageService();
-    final restored = await storage.restoreWallet(SecureStorageService.localWalletKey);
+    final restored = await storage.restoreWallet(
+      SecureStorageService.localWalletKey,
+    );
     if (!restored || await storage.isAccessTokenExpired()) {
       await _autoLogin(baseUrl);
     }
@@ -136,10 +138,12 @@ class _StartupGateState extends ConsumerState<StartupGate>
 
   Future<void> _autoLogin(String baseUrl) async {
     try {
-      final dio = Dio(BaseOptions(
-        baseUrl: baseUrl,
-        connectTimeout: const Duration(seconds: 5),
-      ));
+      final dio = Dio(
+        BaseOptions(
+          baseUrl: baseUrl,
+          connectTimeout: const Duration(seconds: 5),
+        ),
+      );
       final resp = await dio.post(
         '${AppConfig.apiPrefix}/auth/login',
         data: {'username': 'admin', 'password': 'admin'},
@@ -150,6 +154,7 @@ class _StartupGateState extends ConsumerState<StartupGate>
           accessToken: resp.data['access_token'] ?? '',
           refreshToken: resp.data['refresh_token'] ?? '',
           expiresIn: resp.data['expires_in'] ?? 3600,
+          walletKey: SecureStorageService.localWalletKey,
         );
         debugPrint('[StartupGate] 本地模式自动登录成功');
       }
@@ -182,7 +187,9 @@ class _StartupGateState extends ConsumerState<StartupGate>
       // 恢复选中服务器的 wallet
       final storage = SecureStorageService();
       await storage.restoreWallet(SecureStorageService.walletKey(chosen.url));
-      ref.read(probeOutcomeProvider.notifier).set(
+      ref
+          .read(probeOutcomeProvider.notifier)
+          .set(
             picked == null ? ProbeOutcome.fallbackUsed : ProbeOutcome.success,
           );
     }
@@ -204,7 +211,12 @@ class _StartupGateState extends ConsumerState<StartupGate>
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Image.asset('assets/icons/app_icon.png', width: 64, height: 64, semanticLabel: 'Songloft'),
+              Image.asset(
+                'assets/icons/app_icon.png',
+                width: 64,
+                height: 64,
+                semanticLabel: 'Songloft',
+              ),
               const SizedBox(height: 24),
               const CircularProgressIndicator(),
               const SizedBox(height: 24),
