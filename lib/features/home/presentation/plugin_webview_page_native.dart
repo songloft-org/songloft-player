@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
@@ -27,7 +28,10 @@ class PluginWebViewPage extends ConsumerStatefulWidget {
 
 class _PluginWebViewPageState extends ConsumerState<PluginWebViewPage>
     with WidgetsBindingObserver {
+  static const Duration _pageLoadTimeout = Duration(seconds: 20);
+
   InAppWebViewController? _webViewController;
+  Timer? _loadTimer;
   bool _isLoading = true;
   bool _pageReady = false;
   String? _errorMessage;
@@ -38,10 +42,12 @@ class _PluginWebViewPageState extends ConsumerState<PluginWebViewPage>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _startLoadTimer();
   }
 
   @override
   void dispose() {
+    _loadTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -55,8 +61,47 @@ class _PluginWebViewPageState extends ConsumerState<PluginWebViewPage>
   }
 
   String _buildPluginUrl(String theme) {
-    final separator = widget.pluginUrl.contains('?') ? '&' : '?';
-    return '${widget.pluginUrl}${separator}theme=$theme';
+    final token = SecureStorageService.cachedAccessToken ?? '';
+    final uri = Uri.parse(widget.pluginUrl);
+    final query = Map<String, String>.from(uri.queryParameters)
+      ..['theme'] = theme;
+    if (token.isNotEmpty) {
+      query['access_token'] = token;
+    }
+    return uri.replace(queryParameters: query).toString();
+  }
+
+  void _startLoadTimer() {
+    _loadTimer?.cancel();
+    _loadTimer = Timer(_pageLoadTimeout, () {
+      if (!mounted || !_isLoading) return;
+      setState(() {
+        _isLoading = false;
+        _errorMessage = '页面加载超时，请检查插件是否可用或网络连接';
+      });
+    });
+  }
+
+  void _finishLoading() {
+    _loadTimer?.cancel();
+    _loadTimer = null;
+    if (!mounted) return;
+    setState(() {
+      _isLoading = false;
+      _pageReady = true;
+      _errorMessage = null;
+    });
+  }
+
+  void _finishLoadingWithError(String message) {
+    _loadTimer?.cancel();
+    _loadTimer = null;
+    if (!mounted) return;
+    setState(() {
+      _isLoading = false;
+      _pageReady = false;
+      _errorMessage = message;
+    });
   }
 
   String _buildTokenInjectionScript() {
@@ -71,8 +116,7 @@ class _PluginWebViewPageState extends ConsumerState<PluginWebViewPage>
 
   void _sendThemeToPlugin(String theme) {
     _webViewController?.evaluateJavascript(
-      source:
-          "window.postMessage({type:'songloft-theme',theme:'$theme'},'*')",
+      source: "window.postMessage({type:'songloft-theme',theme:'$theme'},'*')",
     );
   }
 
@@ -126,16 +170,12 @@ class _PluginWebViewPageState extends ConsumerState<PluginWebViewPage>
               tooltip: '在浏览器中打开',
               onPressed: () {
                 final token = SecureStorageService.cachedAccessToken ?? '';
-                final separator =
-                    widget.pluginUrl.contains('?') ? '&' : '?';
+                final separator = widget.pluginUrl.contains('?') ? '&' : '?';
                 var url = widget.pluginUrl;
                 final params = <String>['theme=$theme'];
                 if (token.isNotEmpty) params.add('access_token=$token');
                 url = '$url$separator${params.join('&')}';
-                launchUrl(
-                  Uri.parse(url),
-                  mode: LaunchMode.externalApplication,
-                );
+                launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
               },
             ),
           ],
@@ -183,28 +223,28 @@ class _PluginWebViewPageState extends ConsumerState<PluginWebViewPage>
         },
         onLoadStart: (controller, url) {
           if (mounted) {
+            _startLoadTimer();
             setState(() {
               _isLoading = true;
+              _pageReady = false;
               _errorMessage = null;
             });
           }
         },
         onLoadStop: (controller, url) {
-          if (mounted) {
-            setState(() {
-              _isLoading = false;
-              _pageReady = true;
-            });
-          }
+          _finishLoading();
         },
         onReceivedError: (controller, request, error) {
           if (request.isForMainFrame ?? false) {
-            if (mounted) {
-              setState(() {
-                _isLoading = false;
-                _errorMessage = error.description;
-              });
-            }
+            _finishLoadingWithError(error.description);
+          }
+        },
+        onReceivedHttpError: (controller, request, errorResponse) {
+          if (request.isForMainFrame ?? false) {
+            final status = errorResponse.statusCode;
+            final reason = errorResponse.reasonPhrase;
+            final detail = reason == null || reason.isEmpty ? '' : ' $reason';
+            _finishLoadingWithError('页面加载失败: HTTP $status$detail');
           }
         },
       ),
@@ -237,6 +277,8 @@ class _PluginWebViewPageState extends ConsumerState<PluginWebViewPage>
                 _errorMessage = null;
                 _isLoading = true;
               });
+              _startLoadTimer();
+              _webViewController?.reload();
             },
             icon: const Icon(Icons.refresh),
             label: const Text('重试'),

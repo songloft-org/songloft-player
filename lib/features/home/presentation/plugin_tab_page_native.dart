@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
@@ -27,7 +28,10 @@ class PluginTabPage extends ConsumerStatefulWidget {
 
 class _PluginTabPageState extends ConsumerState<PluginTabPage>
     with WidgetsBindingObserver {
+  static const Duration _pageLoadTimeout = Duration(seconds: 20);
+
   InAppWebViewController? _webViewController;
+  Timer? _loadTimer;
   bool _isLoading = true;
   bool _pageReady = false;
   String? _errorMessage;
@@ -38,6 +42,7 @@ class _PluginTabPageState extends ConsumerState<PluginTabPage>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _startLoadTimer();
   }
 
   @override
@@ -52,6 +57,7 @@ class _PluginTabPageState extends ConsumerState<PluginTabPage>
 
   @override
   void dispose() {
+    _loadTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -64,8 +70,53 @@ class _PluginTabPageState extends ConsumerState<PluginTabPage>
     }
   }
 
-  String _buildPluginUrl(String theme) =>
-      '${AppConfig.baseUrl}${AppConfig.basePath}/api/v1/jsplugin/${widget.entryPath}?embed&theme=$theme';
+  String _buildPluginUrl(String theme) {
+    final token = SecureStorageService.cachedAccessToken ?? '';
+    final uri = Uri.parse(
+      '${AppConfig.baseUrl}${AppConfig.basePath}/api/v1/jsplugin/${widget.entryPath}',
+    );
+    final query =
+        Map<String, String>.from(uri.queryParameters)
+          ..['embed'] = ''
+          ..['theme'] = theme;
+    if (token.isNotEmpty) {
+      query['access_token'] = token;
+    }
+    return uri.replace(queryParameters: query).toString();
+  }
+
+  void _startLoadTimer() {
+    _loadTimer?.cancel();
+    _loadTimer = Timer(_pageLoadTimeout, () {
+      if (!mounted || !_isLoading) return;
+      setState(() {
+        _isLoading = false;
+        _errorMessage = '页面加载超时，请检查插件是否可用或网络连接';
+      });
+    });
+  }
+
+  void _finishLoading() {
+    _loadTimer?.cancel();
+    _loadTimer = null;
+    if (!mounted) return;
+    setState(() {
+      _isLoading = false;
+      _pageReady = true;
+      _errorMessage = null;
+    });
+  }
+
+  void _finishLoadingWithError(String message) {
+    _loadTimer?.cancel();
+    _loadTimer = null;
+    if (!mounted) return;
+    setState(() {
+      _isLoading = false;
+      _pageReady = false;
+      _errorMessage = message;
+    });
+  }
 
   String _buildTokenInjectionScript() {
     final token = SecureStorageService.cachedAccessToken ?? '';
@@ -79,8 +130,7 @@ class _PluginTabPageState extends ConsumerState<PluginTabPage>
 
   void _sendThemeToPlugin(String theme) {
     _webViewController?.evaluateJavascript(
-      source:
-          "window.postMessage({type:'songloft-theme',theme:'$theme'},'*')",
+      source: "window.postMessage({type:'songloft-theme',theme:'$theme'},'*')",
     );
   }
 
@@ -119,14 +169,15 @@ class _PluginTabPageState extends ConsumerState<PluginTabPage>
       offstage: !_windowVisible,
       child: InAppWebView(
         initialUrlRequest: URLRequest(url: WebUri(_buildPluginUrl(theme))),
-        initialUserScripts: tokenScript.isNotEmpty
-            ? UnmodifiableListView([
-                UserScript(
-                  source: tokenScript,
-                  injectionTime: UserScriptInjectionTime.AT_DOCUMENT_START,
-                ),
-              ])
-            : null,
+        initialUserScripts:
+            tokenScript.isNotEmpty
+                ? UnmodifiableListView([
+                  UserScript(
+                    source: tokenScript,
+                    injectionTime: UserScriptInjectionTime.AT_DOCUMENT_START,
+                  ),
+                ])
+                : null,
         initialSettings: InAppWebViewSettings(
           javaScriptEnabled: true,
           allowFileAccessFromFileURLs: true,
@@ -138,28 +189,28 @@ class _PluginTabPageState extends ConsumerState<PluginTabPage>
         },
         onLoadStart: (controller, url) {
           if (mounted) {
+            _startLoadTimer();
             setState(() {
               _isLoading = true;
+              _pageReady = false;
               _errorMessage = null;
             });
           }
         },
         onLoadStop: (controller, url) {
-          if (mounted) {
-            setState(() {
-              _isLoading = false;
-              _pageReady = true;
-            });
-          }
+          _finishLoading();
         },
         onReceivedError: (controller, request, error) {
           if (request.isForMainFrame ?? false) {
-            if (mounted) {
-              setState(() {
-                _isLoading = false;
-                _errorMessage = error.description;
-              });
-            }
+            _finishLoadingWithError(error.description);
+          }
+        },
+        onReceivedHttpError: (controller, request, errorResponse) {
+          if (request.isForMainFrame ?? false) {
+            final status = errorResponse.statusCode;
+            final reason = errorResponse.reasonPhrase;
+            final detail = reason == null || reason.isEmpty ? '' : ' $reason';
+            _finishLoadingWithError('页面加载失败: HTTP $status$detail');
           }
         },
       ),
@@ -181,8 +232,8 @@ class _PluginTabPageState extends ConsumerState<PluginTabPage>
               _errorMessage ?? '未知错误',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
           const SizedBox(height: 24),
@@ -192,6 +243,8 @@ class _PluginTabPageState extends ConsumerState<PluginTabPage>
                 _errorMessage = null;
                 _isLoading = true;
               });
+              _startLoadTimer();
+              _webViewController?.reload();
             },
             icon: const Icon(Icons.refresh),
             label: const Text('重试'),
