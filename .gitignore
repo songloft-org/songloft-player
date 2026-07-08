@@ -52,3 +52,5 @@ pubspec.lock
 /macos/Runner/songloft-server
 /windows/runner/songloft-server.exe
 /linux/runner/songloft-server
+/ios/Songloft.xcframework
+/android/app/libs/*.aar
