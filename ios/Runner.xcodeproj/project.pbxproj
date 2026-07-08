@@ -261,6 +261,7 @@
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				8F293CD53D90E1315145224A /* [CP] Embed Pods Frameworks */,
 				5AEF211E109AB2C6D77C8F56 /* [CP] Copy Pods Resources */,
+				5C0F1A2B3C4D5E6F70819A2B /* Embed Go Backend */,
 			);
 			buildRules = (
 			);
@@ -361,6 +362,21 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		5C0F1A2B3C4D5E6F70819A2B /* Embed Go Backend */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Embed Go Backend";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e\n# gomobile 生成的 Go 后端框架（make build-go-mobile-ios 产出），\n# 存在时才嵌入 Runner.app/Frameworks/，非 bundled 构建无此框架则跳过，\n# 运行时由 SongloftBackendPlugin 通过 dlopen 加载，缺失即优雅降级。\nXCFW=\"$SRCROOT/Songloft.xcframework\"\nif [ ! -d \"$XCFW\" ]; then echo \"Songloft.xcframework 不存在，跳过内嵌 Go 后端\"; exit 0; fi\nSLICE=\"$XCFW/ios-arm64/Songloft.framework\"\nif [ ! -d \"$SLICE\" ]; then echo \"未找到 ios-arm64 slice，跳过内嵌\"; exit 0; fi\nDEST=\"$TARGET_BUILD_DIR/$FRAMEWORKS_FOLDER_PATH\"\nmkdir -p \"$DEST\"\nrm -rf \"$DEST/Songloft.framework\"\ncp -R \"$SLICE\" \"$DEST/Songloft.framework\"\nrm -rf \"$DEST/Songloft.framework/Headers\" \"$DEST/Songloft.framework/Modules\"\nif [ \"${CODE_SIGNING_ALLOWED}\" = \"YES\" ] && [ -n \"${EXPANDED_CODE_SIGN_IDENTITY:-}\" ]; then codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none \"$DEST/Songloft.framework\"; fi\necho \"已内嵌 Go 后端框架: $DEST/Songloft.framework\"\n";
+		};
 		3B06AD1E1E4923F5004D2608 /* Thin Binary */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
