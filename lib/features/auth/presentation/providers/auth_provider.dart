@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -177,19 +179,24 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   /// 登出（同时清除当前服务器的 wallet 存档）
+  ///
+  /// 登出以本地清理为准：先捕获当前 token 并立即清除本地 wallet / token、切到
+  /// 未登录态，保证服务器不可达时也能秒退；服务端 token 吊销通知走 fire-and-forget，
+  /// 显式带上捕获到的 token，成功与否都不阻塞本地登出。
   Future<void> logout() async {
-    state = state.loading();
+    // 清除前捕获 token，供服务端吊销通知使用
+    final accessToken = await _secureStorage.getAccessToken();
 
-    try {
-      final repository = ref.read(authRepositoryProvider);
-      await repository.logout();
-    } catch (e) {
-      // 忽略登出错误，仍然清除本地状态
-    }
-
+    // 立即清本地态并切到未登录（不等待网络）
     await _secureStorage.clearWallet(_currentWalletKey());
     await _secureStorage.clearTokens();
     state = state.unauthenticated();
+
+    // 通知服务端吊销 token：尽力而为，失败忽略，不阻塞登出
+    final repository = ref.read(authRepositoryProvider);
+    unawaited(
+      repository.logout(accessToken: accessToken).catchError((_) {}),
+    );
   }
 
   /// 直接设置为已登录态（wallet 恢复后使用，不发请求）

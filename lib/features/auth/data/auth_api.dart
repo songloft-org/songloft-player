@@ -46,9 +46,18 @@ class AuthApi {
 
   /// 登出
   /// POST /api/v1/auth/logout
-  Future<void> logout() async {
+  ///
+  /// [accessToken] 显式指定用于吊销的 access token。本地登出会先清空 token 缓存，
+  /// 此时拦截器已无法附上 Authorization 头，故由调用方在清除前捕获并显式传入，
+  /// 直接写进请求头以绕过拦截器时序。
+  Future<void> logout({String? accessToken}) async {
     try {
-      await dio.post('${AppConfig.apiPrefix}/auth/logout');
+      await dio.post(
+        '${AppConfig.apiPrefix}/auth/logout',
+        options: (accessToken != null && accessToken.isNotEmpty)
+            ? Options(headers: {'Authorization': 'Bearer $accessToken'})
+            : null,
+      );
     } on DioException catch (e) {
       throw ApiException.fromDioException(e);
     }

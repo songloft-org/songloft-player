@@ -64,15 +64,13 @@ class AuthRepository {
     }
   }
 
-  /// 登出
-  Future<void> logout() async {
-    try {
-      await authApi.logout();
-    } catch (e) {
-      // 即使 API 调用失败，也要清除本地 Token
-    } finally {
-      await secureStorage.clearTokens();
-    }
+  /// 登出：通知服务端吊销 token（尽力而为）
+  ///
+  /// 本地 token / wallet 的清理由上层（AuthNotifier）统一负责并优先执行，
+  /// 保证离线时也能立即登出；本方法仅负责服务端吊销通知，失败可忽略。
+  /// [accessToken] 由调用方在清除本地缓存前捕获并传入，用于携带吊销凭证。
+  Future<void> logout({String? accessToken}) async {
+    await authApi.logout(accessToken: accessToken);
   }
 
   /// 检查是否已认证
