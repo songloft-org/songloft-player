@@ -57,6 +57,9 @@ class DesktopBackendService {
     final process = await Process.start(binary, [
       '-port', '${port > 0 ? port : 0}',
       '-db', dbPath,
+      // 传入用户选择的音乐目录（绝对路径），覆盖后端 DB 中的相对默认值 "music"，
+      // 否则后端会按子进程 CWD 解析相对路径导致扫描失败。
+      if (musicDir.isNotEmpty) ...['-music', musicDir],
       '-username', 'admin',
       '-password', 'admin',
     ]);
