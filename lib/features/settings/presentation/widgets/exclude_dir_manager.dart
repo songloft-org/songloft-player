@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/api_exceptions.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../shared/utils/responsive_snackbar.dart';
-import '../../data/directory_api.dart';
+import '../../../../shared/widgets/directory_tree_selector.dart';
 import '../../data/settings_api.dart';
 import '../providers/settings_provider.dart';
 
@@ -412,10 +412,11 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(AppRadius.sm),
             child: SingleChildScrollView(
-              child: _DirectoryTree(
-                excludePaths: _excludePaths,
-                onTogglePath: (path, excluded) {
-                  if (excluded) {
+              child: DirectoryTreeSelector(
+                mode: DirectoryTreeSelectorMode.exclude,
+                selectedPaths: _excludePaths,
+                onTogglePath: (path, selected) {
+                  if (selected) {
                     _addExcludePath(path);
                   } else {
                     _removeExcludePath(path);
@@ -533,233 +534,6 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
             ],
           ),
         ),
-      ],
-    );
-  }
-}
-
-/// 目录树组件（懒加载）
-class _DirectoryTree extends ConsumerStatefulWidget {
-  final List<String> excludePaths;
-  final void Function(String path, bool excluded) onTogglePath;
-
-  const _DirectoryTree({
-    required this.excludePaths,
-    required this.onTogglePath,
-  });
-
-  @override
-  ConsumerState<_DirectoryTree> createState() => _DirectoryTreeState();
-}
-
-class _DirectoryTreeState extends ConsumerState<_DirectoryTree> {
-  List<DirEntry>? _rootDirs;
-  bool _isLoading = true;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadRootDirs();
-  }
-
-  Future<void> _loadRootDirs() async {
-    try {
-      final directoryApi = ref.read(directoryApiProvider);
-      final result = await directoryApi.getDirectories();
-      setState(() {
-        _rootDirs = result.directories;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Padding(
-        padding: EdgeInsets.all(AppSpacing.lg),
-        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-      );
-    }
-
-    if (_error != null) {
-      return Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Text('加载目录失败: $_error',
-            style: TextStyle(color: Theme.of(context).colorScheme.error)),
-      );
-    }
-
-    if (_rootDirs == null || _rootDirs!.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Text('目录为空',
-            style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant)),
-      );
-    }
-
-    return Column(
-      children: _rootDirs!.map((dir) {
-        return _DirectoryTreeNode(
-          entry: dir,
-          excludePaths: widget.excludePaths,
-          onTogglePath: widget.onTogglePath,
-          depth: 0,
-        );
-      }).toList(),
-    );
-  }
-}
-
-/// 目录树节点组件
-class _DirectoryTreeNode extends ConsumerStatefulWidget {
-  final DirEntry entry;
-  final List<String> excludePaths;
-  final void Function(String path, bool excluded) onTogglePath;
-  final int depth;
-
-  const _DirectoryTreeNode({
-    required this.entry,
-    required this.excludePaths,
-    required this.onTogglePath,
-    required this.depth,
-  });
-
-  @override
-  ConsumerState<_DirectoryTreeNode> createState() =>
-      _DirectoryTreeNodeState();
-}
-
-class _DirectoryTreeNodeState extends ConsumerState<_DirectoryTreeNode> {
-  bool _isExpanded = false;
-  List<DirEntry>? _children;
-  bool _isLoadingChildren = false;
-
-  bool get _isExcluded => widget.excludePaths.contains(widget.entry.path);
-
-  Future<void> _loadChildren() async {
-    if (_children != null) return;
-    setState(() => _isLoadingChildren = true);
-    try {
-      final directoryApi = ref.read(directoryApiProvider);
-      final result =
-          await directoryApi.getDirectories(path: widget.entry.path);
-      setState(() {
-        _children = result.directories;
-        _isLoadingChildren = false;
-      });
-    } catch (e) {
-      setState(() {
-        _children = [];
-        _isLoadingChildren = false;
-      });
-    }
-  }
-
-  void _toggleExpand() {
-    setState(() {
-      _isExpanded = !_isExpanded;
-    });
-    if (_isExpanded && _children == null) {
-      _loadChildren();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Column(
-      children: [
-        InkWell(
-          onTap: widget.entry.hasChildren ? _toggleExpand : null,
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: 8.0 + widget.depth * 24.0,
-              right: 8.0,
-              top: 4.0,
-              bottom: 4.0,
-            ),
-            child: Row(
-              children: [
-                // Checkbox
-                SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: Checkbox(
-                    value: _isExcluded,
-                    onChanged: (value) {
-                      widget.onTogglePath(
-                          widget.entry.path, value ?? false);
-                    },
-                  ),
-                ),
-                const SizedBox(width: 4),
-                // 文件夹图标
-                Icon(
-                  _isExcluded
-                      ? Icons.folder_off_outlined
-                      : (_isExpanded
-                          ? Icons.folder_open
-                          : Icons.folder_outlined),
-                  size: 20,
-                  color: _isExcluded
-                      ? colorScheme.onSurfaceVariant
-                      : colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                // 目录名称
-                Expanded(
-                  child: Text(
-                    widget.entry.name,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: _isExcluded
-                          ? colorScheme.onSurfaceVariant
-                          : colorScheme.onSurface,
-                      decoration:
-                          _isExcluded ? TextDecoration.lineThrough : null,
-                    ),
-                  ),
-                ),
-                // 展开/折叠箭头
-                if (widget.entry.hasChildren)
-                  Icon(
-                    _isExpanded
-                        ? Icons.expand_less
-                        : Icons.expand_more,
-                    size: 20,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                // 加载指示器
-                if (_isLoadingChildren)
-                  const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child:
-                        CircularProgressIndicator(strokeWidth: 2),
-                  ),
-              ],
-            ),
-          ),
-        ),
-        // 子目录
-        if (_isExpanded && _children != null)
-          ..._children!.map((child) {
-            return _DirectoryTreeNode(
-              entry: child,
-              excludePaths: widget.excludePaths,
-              onTogglePath: widget.onTogglePath,
-              depth: widget.depth + 1,
-            );
-          }),
       ],
     );
   }

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/api_exceptions.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../shared/utils/responsive_snackbar.dart';
+import '../../../../shared/widgets/directory_tree_selector.dart';
 import '../../data/scan_api.dart';
 import '../../data/settings_api.dart';
 import '../providers/settings_provider.dart';
@@ -22,6 +23,9 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
   String? _error;
   String _scanMode = 'skip'; // 'skip' 或 'reimport'
   bool _showExcludeDirs = false; // 是否展开排除目录设置
+  bool _showTargetDirs = false; // 是否展开"指定目录"定向扫描
+  // 定向扫描选中的目录（为空=全库扫描）。Issue songloft-org/songloft#262
+  final List<String> _selectedPaths = [];
 
   @override
   void initState() {
@@ -38,9 +42,10 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
     });
 
     try {
-      await ref
-          .read(scanProgressProvider.notifier)
-          .startScan(reimport: _scanMode == 'reimport');
+      await ref.read(scanProgressProvider.notifier).startScan(
+            reimport: _scanMode == 'reimport',
+            paths: _selectedPaths.isEmpty ? null : List.of(_selectedPaths),
+          );
     } on ApiException catch (e) {
       setState(() => _error = e.message);
     } catch (e) {
@@ -236,6 +241,10 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
         ),
         const SizedBox(height: AppSpacing.md),
 
+        // 指定目录（可选）——目录级定向扫描。留空即全库扫描。
+        _buildTargetDirsSection(theme, colorScheme),
+        const SizedBox(height: AppSpacing.md),
+
         // 全宽扫描按钮
         SizedBox(
           width: double.infinity,
@@ -249,11 +258,142 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                     : const Icon(Icons.search),
-            label: Text(_isLoading ? '正在启动...' : '扫描本地音乐'),
+            label: Text(
+              _isLoading
+                  ? '正在启动...'
+                  : (_selectedPaths.isEmpty
+                      ? '扫描本地音乐'
+                      : '扫描选中的 ${_selectedPaths.length} 个目录'),
+            ),
           ),
         ),
       ],
     );
+  }
+
+  /// 构建"指定目录"定向扫描区（可展开/折叠）。
+  /// 勾选目录后仅扫描这些目录（含子目录），且过期记录清理仅收敛到所选目录之内；
+  /// 不勾选时保持全库扫描行为。
+  Widget _buildTargetDirsSection(ThemeData theme, ColorScheme colorScheme) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        side: BorderSide(color: colorScheme.outlineVariant),
+      ),
+      child: Column(
+        children: [
+          ListTile(
+            leading: Icon(
+              Icons.rule_folder_outlined,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            title: const Text('指定目录（可选）'),
+            subtitle: Text(
+              _selectedPaths.isEmpty
+                  ? '仅扫描选中的目录，留空则扫描整个音乐库'
+                  : '已选 ${_selectedPaths.length} 个目录',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            trailing: Icon(
+              _showTargetDirs ? Icons.expand_less : Icons.expand_more,
+            ),
+            onTap: () {
+              setState(() => _showTargetDirs = !_showTargetDirs);
+            },
+          ),
+          if (_showTargetDirs)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                0,
+                AppSpacing.md,
+                AppSpacing.md,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 目录树（勾选=纳入扫描）
+                  Container(
+                    constraints: const BoxConstraints(maxHeight: 300),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: colorScheme.outlineVariant),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                      child: SingleChildScrollView(
+                        child: DirectoryTreeSelector(
+                          selectedPaths: _selectedPaths,
+                          onTogglePath: (path, selected) {
+                            setState(() {
+                              if (selected) {
+                                if (!_selectedPaths.contains(path)) {
+                                  _selectedPaths.add(path);
+                                }
+                              } else {
+                                _selectedPaths.remove(path);
+                              }
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                  // 已选目录（InputChip）+ 清空
+                  if (_selectedPaths.isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '将扫描的目录:',
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () =>
+                              setState(() => _selectedPaths.clear()),
+                          child: const Text('清空'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: _selectedPaths.map((path) {
+                        return InputChip(
+                          label: Text(_dirDisplayName(path)),
+                          avatar: const Icon(Icons.folder_outlined, size: 18),
+                          onDeleted: () =>
+                              setState(() => _selectedPaths.remove(path)),
+                          deleteIconColor: colorScheme.onSurfaceVariant,
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// 取目录路径的末段作为 Chip 展示名（兼容 / 与 \ 分隔）。
+  String _dirDisplayName(String path) {
+    final normalized = path.replaceAll('\\', '/');
+    final trimmed = normalized.endsWith('/')
+        ? normalized.substring(0, normalized.length - 1)
+        : normalized;
+    final idx = trimmed.lastIndexOf('/');
+    final name = idx >= 0 ? trimmed.substring(idx + 1) : trimmed;
+    return name.isEmpty ? path : name;
   }
 
   Widget _buildScanningState(ScanProgress progress) {

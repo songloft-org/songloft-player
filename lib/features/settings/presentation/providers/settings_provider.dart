@@ -183,9 +183,11 @@ class ScanProgressNotifier extends Notifier<ScanProgress> {
   }
 
   /// 开始扫描
-  Future<void> startScan({bool reimport = false}) async {
+  ///
+  /// [paths] 非空时只扫描给定目录（目录级定向扫描），为空/null 时全库扫描。
+  Future<void> startScan({bool reimport = false, List<String>? paths}) async {
     try {
-      await _scanApi.startScan(reimport: reimport);
+      await _scanApi.startScan(reimport: reimport, paths: paths);
       // 开始轮询进度
       _startPolling();
     } catch (e) {
