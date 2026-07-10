@@ -11,6 +11,7 @@ import '../../../settings/data/settings_api.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../data/jsplugin_api.dart';
 import '../providers/jsplugin_provider.dart';
+import 'github_proxy_selection.dart';
 
 /// 官方插件源 URL
 const _kOfficialRegistryUrl =
@@ -43,7 +44,12 @@ class PluginRegistryPage extends ConsumerStatefulWidget {
       _PluginRegistryPageState();
 }
 
-class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
+class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
+    with GithubProxySelectionMixin<PluginRegistryPage> {
+  @override
+  List<String> get proxyPresetValues =>
+      _kGithubProxies.map((e) => e.value).toList();
+
   List<PluginRegistryConfig> _registries = [];
   PluginRegistryConfig? _selectedRegistry;
   String _searchText = '';
@@ -55,33 +61,24 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
   RegistryRefreshResponse? _pluginResponse;
   String? _pluginError;
 
-  int _selectedProxyIndex = 0;
-  final TextEditingController _customProxyController = TextEditingController();
-
-  String get _effectiveProxy {
-    if (_selectedProxyIndex == -1) {
-      return _customProxyController.text.trim();
-    }
-    if (_selectedProxyIndex >= 0 &&
-        _selectedProxyIndex < _kGithubProxies.length) {
-      return _kGithubProxies[_selectedProxyIndex].value;
-    }
-    return '';
-  }
-
   final _searchController = TextEditingController();
   Timer? _searchDebounce;
 
   @override
   void initState() {
     super.initState();
-    _loadRegistries();
+    _init();
+  }
+
+  Future<void> _init() async {
+    // 先恢复上次使用的代理，保证首次刷新用到持久化的代理设置。
+    await restoreGithubProxy();
+    await _loadRegistries();
   }
 
   @override
   void dispose() {
     _searchController.dispose();
-    _customProxyController.dispose();
     _searchDebounce?.cancel();
     super.dispose();
   }
@@ -122,7 +119,7 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
         page: _currentPage,
         pageSize: _pageSize,
         search: _searchText.isEmpty ? null : _searchText,
-        githubProxy: _effectiveProxy.isEmpty ? null : _effectiveProxy,
+        githubProxy: effectiveProxy.isEmpty ? null : effectiveProxy,
         token: _selectedRegistry!.token.isEmpty
             ? null
             : _selectedRegistry!.token,
@@ -177,7 +174,7 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
             PopupMenuButton<int>(
               icon: Icon(
                 Icons.vpn_key_outlined,
-                color: _effectiveProxy.isNotEmpty
+                color: effectiveProxy.isNotEmpty
                     ? theme.colorScheme.primary
                     : null,
               ),
@@ -186,7 +183,8 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
                 if (value == -1) {
                   _showCustomProxyDialog();
                 } else {
-                  setState(() => _selectedProxyIndex = value);
+                  setState(() => selectedProxyIndex = value);
+                  persistGithubProxy();
                   _refreshPlugins();
                 }
               },
@@ -196,7 +194,7 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
                     value: index,
                     child: Row(
                       children: [
-                        if (_selectedProxyIndex == index)
+                        if (selectedProxyIndex == index)
                           Icon(Icons.check,
                               size: 18,
                               color: Theme.of(context).colorScheme.primary)
@@ -213,15 +211,15 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
                   value: -1,
                   child: Row(
                     children: [
-                      if (_selectedProxyIndex == -1)
+                      if (selectedProxyIndex == -1)
                         Icon(Icons.check,
                             size: 18,
                             color: Theme.of(context).colorScheme.primary)
                       else
                         const SizedBox(width: 18),
                       const SizedBox(width: 8),
-                      Text(_selectedProxyIndex == -1
-                          ? '自定义: ${_customProxyController.text}'
+                      Text(selectedProxyIndex == -1
+                          ? '自定义: ${customProxyController.text}'
                           : '自定义代理...'),
                     ],
                   ),
@@ -446,7 +444,7 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
             itemBuilder: (context, index) =>
                 _RegistryPluginItem(
                   entry: plugins[index],
-                  githubProxy: _effectiveProxy,
+                  githubProxy: effectiveProxy,
                   token: _selectedRegistry?.token ?? '',
                   onInstalled: () {
                     _refreshPlugins();
@@ -491,7 +489,7 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
   }
 
   void _showCustomProxyDialog() {
-    final controller = TextEditingController(text: _customProxyController.text);
+    final controller = TextEditingController(text: customProxyController.text);
     showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
@@ -521,8 +519,9 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
       ),
     ).then((value) {
       if (value != null) {
-        _customProxyController.text = value;
-        setState(() => _selectedProxyIndex = -1);
+        customProxyController.text = value;
+        setState(() => selectedProxyIndex = -1);
+        persistGithubProxy();
         _refreshPlugins();
       }
     });
