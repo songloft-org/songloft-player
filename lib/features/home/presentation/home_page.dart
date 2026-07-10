@@ -93,8 +93,8 @@ class HomePage extends ConsumerWidget {
       );
     }
 
-    // 根据屏幕类型选择布局
-    final isWide = context.isWideScreen;
+    // 全站统一的宽屏布局判断（宽屏走网格，窄屏走轮播），见 context.useWideLayout
+    final isWide = context.useWideLayout;
 
     return Center(
       child: ConstrainedBox(

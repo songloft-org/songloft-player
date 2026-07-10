@@ -35,7 +35,7 @@ class SettingsMasterDetail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (context.isWideScreen && !context.isTv && !context.isAuto) {
+    if (context.useWideLayout) {
       return _buildWideLayout(context);
     }
     return _buildMobileLayout(context);

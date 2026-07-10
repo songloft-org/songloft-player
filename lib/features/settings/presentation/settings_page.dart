@@ -97,7 +97,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = !context.isWideScreen || context.isTv;
+    // 与 SettingsMasterDetail 共用同一布局判断，避免漂移导致车机超宽比下渲染
+    // 移动端列表却不响应点击的「按钮失效」(songloft-org/songloft#268)。
+    final isMobile = !context.useWideLayout;
 
     if (isMobile && _mobileDetailIndex != null) {
       final category = _categories[_mobileDetailIndex!];

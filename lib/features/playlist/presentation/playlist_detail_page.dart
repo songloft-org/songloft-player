@@ -387,9 +387,8 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
     Playlist playlist,
     AsyncValue<PaginatedSongsState> songsAsync,
   ) {
-    // Desktop / TV（非车机模式）使用左右分栏布局
-    final useWideLayout =
-        (context.isDesktop || context.isTv) && !context.isAuto;
+    // 全站统一的双栏（主从）布局判断，见 context.useWideLayout
+    final useWideLayout = context.useWideLayout;
     if (useWideLayout) {
       return _buildWideContent(context, playlist, songsAsync);
     }
