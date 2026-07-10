@@ -601,6 +601,16 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ],
           const Divider(height: 1),
           _buildLogLevelTile(),
+          if (kIsWeb) ...[
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.download_outlined),
+              title: const Text('下载客户端 App'),
+              subtitle: const Text('获取手机 / 桌面原生客户端，支持后台播放、缓存等'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push(AppRoutes.clientDownload),
+            ),
+          ],
           const Divider(height: 1),
           ListTile(
             leading: const Icon(Icons.info_outline),

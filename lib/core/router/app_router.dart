@@ -17,6 +17,7 @@ import '../../features/settings/presentation/settings_page.dart';
 import '../../features/settings/presentation/tab_config_page.dart';
 import '../../features/jsplugin/presentation/widgets/plugin_registry.dart';
 import '../../features/settings/presentation/duplicate_check_page.dart';
+import '../../features/settings/presentation/client_download_page.dart';
 import '../../shared/layouts/shell_layout.dart';
 
 /// 路由路径常量
@@ -30,6 +31,7 @@ class AppRoutes {
   static const String servers = '/settings/servers';
   static const String tabConfig = '/settings/tab-config';
   static const String duplicateCheck = '/settings/duplicate-check';
+  static const String clientDownload = '/settings/download';
   static const String pluginRegistry = '/settings/plugin-registry';
   static const String plugin = '/plugin';
   static const String pluginTab = '/plugin-tab/:entryPath';
@@ -166,6 +168,12 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.duplicateCheck,
             builder: (context, state) => const DuplicateCheckPage(),
+          ),
+
+          // 客户端下载（仅 Web 访问时从设置进入）
+          GoRoute(
+            path: AppRoutes.clientDownload,
+            builder: (context, state) => const ClientDownloadPage(),
           ),
 
           // 插件商店

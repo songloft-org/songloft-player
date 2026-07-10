@@ -1,0 +1,463 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../../../config/app_config.dart';
+import '../../../core/theme/app_dimensions.dart';
+import '../../../core/utils/web_os.dart';
+import 'providers/settings_provider.dart';
+import 'widgets/section_card.dart';
+
+/// 客户端下载页（仅 Web 访问时可达）。
+///
+/// 按浏览器 User-Agent 推荐匹配当前设备的原生客户端，并列出全部平台：
+/// - 标准版：连接当前服务器（`songloft-org/songloft-player` releases）
+/// - Bundle 版：内嵌后端、无需服务器（`songloft-org/songloft` releases）
+///
+/// 下载链接自动套用已配置的 GitHub 加速代理（[githubProxyProvider]）。
+class ClientDownloadPage extends ConsumerWidget {
+  const ClientDownloadPage({super.key});
+
+  // release 资产直链前缀
+  static const String _standardBase =
+      'https://github.com/songloft-org/songloft-player/releases/latest/download/';
+  static const String _bundleBase =
+      'https://github.com/songloft-org/songloft/releases/latest/download/';
+
+  // releases 页（兜底：直链资产名变动时仍可手动挑选）
+  static const String _standardReleases = AppConfig.frontendReleasesUrl;
+  static const String _bundleReleases =
+      'https://github.com/songloft-org/songloft/releases/latest';
+
+  static const List<_ClientAsset> _standardAssets = [
+    _ClientAsset(
+      os: WebOS.android,
+      label: 'Android (ARM64)',
+      icon: Icons.android,
+      asset: 'songloft-arm64-v8a.apk',
+    ),
+    _ClientAsset(
+      os: WebOS.android,
+      label: 'Android (ARMv7)',
+      icon: Icons.android,
+      asset: 'songloft-armeabi-v7a.apk',
+    ),
+    _ClientAsset(
+      os: WebOS.ios,
+      label: 'iOS',
+      icon: Icons.phone_iphone,
+      asset: 'songloft-ios-nosign.ipa',
+      note: '未签名，需自行侧载',
+    ),
+    _ClientAsset(
+      os: WebOS.windows,
+      label: 'Windows (x64)',
+      icon: Icons.desktop_windows,
+      asset: 'songloft-windows-x64.zip',
+    ),
+    _ClientAsset(
+      os: WebOS.macos,
+      label: 'macOS',
+      icon: Icons.laptop_mac,
+      asset: 'songloft-macos.dmg',
+    ),
+    _ClientAsset(
+      os: WebOS.linux,
+      label: 'Linux (x64)',
+      icon: Icons.laptop,
+      asset: 'songloft-linux-x64.tar.gz',
+    ),
+  ];
+
+  static const List<_ClientAsset> _bundleAssets = [
+    _ClientAsset(
+      os: WebOS.android,
+      label: 'Android (ARM64)',
+      icon: Icons.android,
+      asset: 'songloft-bundled-android-arm64-v8a.apk',
+    ),
+    _ClientAsset(
+      os: WebOS.android,
+      label: 'Android (ARMv7)',
+      icon: Icons.android,
+      asset: 'songloft-bundled-android-armeabi-v7a.apk',
+    ),
+    _ClientAsset(
+      os: WebOS.ios,
+      label: 'iOS',
+      icon: Icons.phone_iphone,
+      asset: 'songloft-bundled-ios-nosign.ipa',
+      note: '未签名，需自行侧载',
+    ),
+    _ClientAsset(
+      os: WebOS.windows,
+      label: 'Windows (x64)',
+      icon: Icons.desktop_windows,
+      asset: 'songloft-bundled-windows-x64.zip',
+    ),
+    _ClientAsset(
+      os: WebOS.macos,
+      label: 'macOS',
+      icon: Icons.laptop_mac,
+      asset: 'songloft-bundled-macos.zip',
+    ),
+    _ClientAsset(
+      os: WebOS.linux,
+      label: 'Linux (x64)',
+      icon: Icons.laptop,
+      asset: 'songloft-bundled-linux-x64.tar.gz',
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final os = detectWebOS();
+    final proxy = ref.watch(githubProxyProvider).value ?? '';
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('下载客户端 App')),
+      body: ListView(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        children: [
+          Text(
+            '相比 Web 界面，原生客户端支持后台播放、本地缓存、锁屏/通知栏媒体控制等能力。',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          SectionCard(
+            title: '下载加速',
+            icon: Icons.bolt_outlined,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.public),
+                title: const Text('GitHub 加速代理'),
+                subtitle: Text(
+                  proxy.isEmpty ? '未配置（直连 GitHub，国内可能较慢）' : proxy,
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _editProxy(context, ref, proxy),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          if (_recommendedCard(context, os, proxy) case final card?) ...[
+            card,
+            const SizedBox(height: AppSpacing.lg),
+          ],
+          SectionCard(
+            title: '标准版 · 连接当前服务器',
+            icon: Icons.dns_outlined,
+            children: _buildTiles(context, _standardAssets, _standardBase, os, proxy),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          SectionCard(
+            title: 'Bundle 版 · 内嵌后端，无需服务器',
+            icon: Icons.phone_android_outlined,
+            children: _buildTiles(context, _bundleAssets, _bundleBase, os, proxy),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          _releasesLink(context, '标准版全部版本', _standardReleases, proxy),
+          _releasesLink(context, 'Bundle 版全部版本', _bundleReleases, proxy),
+        ],
+      ),
+    );
+  }
+
+  /// 顶部推荐卡片：命中访客 OS 时展示标准版（主）+ Bundle 版（次）快捷下载。
+  Widget? _recommendedCard(BuildContext context, WebOS os, String proxy) {
+    if (os == WebOS.unknown) return null;
+    final standard = _firstFor(_standardAssets, os);
+    final bundle = _firstFor(_bundleAssets, os);
+    if (standard == null && bundle == null) return null;
+
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer,
+        borderRadius: AppRadius.lgAll,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.recommend_outlined, color: colorScheme.onPrimaryContainer),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  '为你的设备推荐：${_osName(os)}',
+                  style: textTheme.titleSmall?.copyWith(
+                    color: colorScheme.onPrimaryContainer,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.sm,
+            children: [
+              if (standard != null)
+                FilledButton.icon(
+                  onPressed: () =>
+                      _launch(_applyProxy(proxy, '$_standardBase${standard.asset}')),
+                  icon: const Icon(Icons.download_outlined, size: 18),
+                  label: Text('标准版（${standard.label}）'),
+                ),
+              if (bundle != null)
+                OutlinedButton.icon(
+                  onPressed: () =>
+                      _launch(_applyProxy(proxy, '$_bundleBase${bundle.asset}')),
+                  icon: const Icon(Icons.download_outlined, size: 18),
+                  label: Text('Bundle 版（${bundle.label}）'),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _buildTiles(
+    BuildContext context,
+    List<_ClientAsset> assets,
+    String base,
+    WebOS os,
+    String proxy,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final tiles = <Widget>[];
+    for (var i = 0; i < assets.length; i++) {
+      final a = assets[i];
+      final highlighted = a.os == os;
+      if (i > 0) tiles.add(const Divider(height: 1));
+      tiles.add(
+        ListTile(
+          leading: Icon(a.icon),
+          title: Text(
+            a.label,
+            style: highlighted
+                ? TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.primary,
+                  )
+                : null,
+          ),
+          subtitle: a.note != null ? Text(a.note!) : null,
+          trailing: highlighted
+              ? Icon(Icons.download_outlined, color: colorScheme.primary)
+              : const Icon(Icons.download_outlined),
+          onTap: () => _launch(_applyProxy(proxy, '$base${a.asset}')),
+        ),
+      );
+    }
+    return tiles;
+  }
+
+  Widget _releasesLink(
+    BuildContext context,
+    String label,
+    String url,
+    String proxy,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return TextButton.icon(
+      onPressed: () => _launch(_applyProxy(proxy, url)),
+      icon: Icon(Icons.open_in_new, size: 16, color: colorScheme.primary),
+      label: Text(label, style: TextStyle(color: colorScheme.primary)),
+    );
+  }
+
+  /// 打开 GitHub 加速代理选择弹窗，选定后持久化到 [githubProxyProvider]（全局生效）。
+  Future<void> _editProxy(
+    BuildContext context,
+    WidgetRef ref,
+    String current,
+  ) async {
+    final result = await showDialog<String>(
+      context: context,
+      builder: (_) => _GithubProxyDialog(current: current),
+    );
+    if (result == null || result == current) return;
+    await ref.read(githubProxyProvider.notifier).setValue(result);
+  }
+
+  static _ClientAsset? _firstFor(List<_ClientAsset> assets, WebOS os) {
+    for (final a in assets) {
+      if (a.os == os) return a;
+    }
+    return null;
+  }
+
+  static String _osName(WebOS os) => switch (os) {
+    WebOS.android => 'Android',
+    WebOS.ios => 'iOS',
+    WebOS.windows => 'Windows',
+    WebOS.macos => 'macOS',
+    WebOS.linux => 'Linux',
+    WebOS.unknown => '',
+  };
+
+  /// 套用 GitHub 加速前缀（与后端 applyProxy 一致：确保结尾 `/` 后拼接原始 URL）。
+  static String _applyProxy(String proxy, String url) {
+    if (proxy.isEmpty) return url;
+    final prefix = proxy.endsWith('/') ? proxy : '$proxy/';
+    return '$prefix$url';
+  }
+
+  static Future<void> _launch(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+}
+
+class _ClientAsset {
+  final WebOS os;
+  final String label;
+  final IconData icon;
+  final String asset;
+  final String? note;
+
+  const _ClientAsset({
+    required this.os,
+    required this.label,
+    required this.icon,
+    required this.asset,
+    this.note,
+  });
+}
+
+/// GitHub 加速代理选择弹窗：预设常用镜像 + 自定义地址，返回选定的代理前缀（空串表示直连）。
+class _GithubProxyDialog extends StatefulWidget {
+  final String current;
+
+  const _GithubProxyDialog({required this.current});
+
+  // 与升级弹窗保持一致的预设镜像
+  static const List<({String label, String value})> _presets = [
+    (label: '直连 GitHub（不加速）', value: ''),
+    (label: 'ghfast.top', value: 'https://ghfast.top/'),
+    (label: 'ghproxy.com', value: 'https://ghproxy.com/'),
+    (label: 'mirror.ghproxy.com', value: 'https://mirror.ghproxy.com/'),
+  ];
+
+  @override
+  State<_GithubProxyDialog> createState() => _GithubProxyDialogState();
+}
+
+class _GithubProxyDialogState extends State<_GithubProxyDialog> {
+  late int _selected;
+  late final TextEditingController _customController;
+
+  @override
+  void initState() {
+    super.initState();
+    const presets = _GithubProxyDialog._presets;
+    final idx = presets.indexWhere((p) => p.value == widget.current);
+    // 命中预设则选中，否则视为自定义（-1）
+    _selected = idx >= 0 ? idx : -1;
+    _customController = TextEditingController(
+      text: idx >= 0 ? '' : widget.current,
+    );
+  }
+
+  @override
+  void dispose() {
+    _customController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    const presets = _GithubProxyDialog._presets;
+
+    return AlertDialog(
+      title: const Text('GitHub 加速代理'),
+      content: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '国内访问 GitHub 较慢时可选择镜像加速。此设置与「检查更新」共用。',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 8),
+            RadioGroup<int>(
+              groupValue: _selected,
+              onChanged: (v) {
+                if (v != null) setState(() => _selected = v);
+              },
+              child: Column(
+                children: [
+                  ...List.generate(presets.length, (i) {
+                    return RadioListTile<int>(
+                      title: Text(
+                        presets[i].label,
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                      value: i,
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact,
+                    );
+                  }),
+                  RadioListTile<int>(
+                    title: Text('自定义代理', style: theme.textTheme.bodyMedium),
+                    value: -1,
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ],
+              ),
+            ),
+            if (_selected == -1)
+              Padding(
+                padding: const EdgeInsets.only(left: 16, top: 4),
+                child: TextField(
+                  controller: _customController,
+                  autofocus: true,
+                  decoration: const InputDecoration(
+                    hintText: 'https://your-proxy.com/',
+                    helperText: '输入代理地址，如 https://ghproxy.com/',
+                    helperMaxLines: 2,
+                    isDense: true,
+                    border: OutlineInputBorder(),
+                  ),
+                  style: theme.textTheme.bodySmall,
+                ),
+              ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('取消'),
+        ),
+        FilledButton(
+          onPressed: () {
+            final value = _selected == -1
+                ? _customController.text.trim()
+                : presets[_selected].value;
+            Navigator.pop(context, value);
+          },
+          child: const Text('保存'),
+        ),
+      ],
+    );
+  }
+}
