@@ -98,9 +98,13 @@ final duplicatesProvider = FutureProvider<DuplicatesResult>((ref) async {
 });
 
 /// 检查服务端更新
+/// 带上已记住的 GitHub 代理，并加 15s 超时，避免网络不通时长时间转圈
 final upgradeCheckProvider = FutureProvider<UpgradeCheck>((ref) async {
   final upgradeApi = ref.watch(upgradeApiProvider);
-  return upgradeApi.checkUpgrade();
+  final proxy = await ref.watch(githubProxyProvider.future);
+  return upgradeApi
+      .checkUpgrade(githubProxy: proxy.isNotEmpty ? proxy : null)
+      .timeout(const Duration(seconds: 15));
 });
 
 /// 获取服务端版本号
@@ -116,11 +120,13 @@ final serverVersionProvider = FutureProvider<String>((ref) async {
 });
 
 /// 检查前端（客户端）更新
+/// 带上已记住的 GitHub 代理（FrontendVersionApi 自带 10s 超时）
 final frontendVersionCheckProvider = FutureProvider<FrontendVersionCheck>((
   ref,
 ) async {
   final api = ref.watch(frontendVersionApiProvider);
-  return api.checkUpdate();
+  final proxy = await ref.watch(githubProxyProvider.future);
+  return api.checkUpdate(githubProxy: proxy.isNotEmpty ? proxy : null);
 });
 
 // ============================================================================
@@ -522,6 +528,40 @@ class HttpProxyNotifier extends AsyncNotifier<String> {
 /// HTTP 代理 Provider
 final httpProxyProvider = AsyncNotifierProvider<HttpProxyNotifier, String>(
   HttpProxyNotifier.new,
+);
+
+/// GitHub 更新代理 Notifier。
+/// 检查更新 / 升级使用的 GitHub 代理前缀，记住上次使用的选择。
+/// 业务端点：GET/PUT /api/v1/settings/github-proxy
+class GithubProxyNotifier extends AsyncNotifier<String> {
+  @override
+  Future<String> build() async {
+    final api = ref.watch(settingsApiProvider);
+    try {
+      return await api.getGithubProxy();
+    } catch (_) {
+      return '';
+    }
+  }
+
+  Future<void> setValue(String value) async {
+    // 与当前值相同时无需重复写入
+    if (state.value == value) return;
+    // 乐观更新，供检查更新等即时读取；保留数据态。
+    state = AsyncValue.data(value);
+    try {
+      final api = ref.read(settingsApiProvider);
+      await api.setGithubProxy(value);
+    } catch (_) {
+      // 持久化失败不影响本次会话使用，保留乐观值即可。
+      // 本 Provider 被 upgradeCheckProvider 依赖，绝不能进入 error 态导致检查更新级联失败。
+    }
+  }
+}
+
+/// GitHub 更新代理 Provider
+final githubProxyProvider = AsyncNotifierProvider<GithubProxyNotifier, String>(
+  GithubProxyNotifier.new,
 );
 
 // ============================================================================

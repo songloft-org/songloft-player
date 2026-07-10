@@ -483,6 +483,31 @@ class SettingsApi {
     }
   }
 
+  // ---------- GitHub 更新代理 ----------
+
+  Future<String> getGithubProxy() async {
+    try {
+      final response = await dio.get(
+        '${AppConfig.apiPrefix}/settings/github-proxy',
+      );
+      final data = response.data as Map<String, dynamic>;
+      return data['proxy'] as String? ?? '';
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  Future<void> setGithubProxy(String proxy) async {
+    try {
+      await dio.put(
+        '${AppConfig.apiPrefix}/settings/github-proxy',
+        data: {'proxy': proxy},
+      );
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
   // ---------- 插件常驻白名单 ----------
 
   Future<List<String>> getPluginKeepAlive() async {

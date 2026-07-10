@@ -73,8 +73,35 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
     super.initState();
     // 使用 addPostFrameCallback 延迟调用，避免在 initState 中访问 inherited widget
     SchedulerBinding.instance.addPostFrameCallback((_) {
-      _checkUpgrade();
+      _initProxyAndCheck();
     });
+  }
+
+  /// 读取已记住的 GitHub 代理作为默认选中，然后检查更新
+  Future<void> _initProxyAndCheck() async {
+    try {
+      final saved = await ref.read(githubProxyProvider.future);
+      if (mounted) setState(() => _applySavedProxy(saved));
+    } catch (_) {
+      // 读取失败则保持默认（直连）
+    }
+    await _checkUpgrade();
+  }
+
+  /// 将已保存的代理值映射到当前选择状态
+  void _applySavedProxy(String saved) {
+    final value = saved.trim();
+    if (value.isEmpty) {
+      _selectedProxyIndex = 0;
+      return;
+    }
+    final index = _presetProxies.indexWhere((p) => p.value == value);
+    if (index >= 0) {
+      _selectedProxyIndex = index;
+    } else {
+      _selectedProxyIndex = -1;
+      _customProxyController.text = value;
+    }
   }
 
   @override
@@ -100,7 +127,10 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
       final result = await upgradeApi
           .checkUpgrade(githubProxy: proxy.isNotEmpty ? proxy : null)
           .timeout(const Duration(seconds: 15));
-      if (mounted) setState(() => _checkResult = result);
+      if (!mounted) return;
+      setState(() => _checkResult = result);
+      // 记住本次使用的代理，下次打开对话框及设置页自动检查都会带上
+      unawaited(ref.read(githubProxyProvider.notifier).setValue(proxy));
     } on ApiException catch (e) {
       if (mounted) setState(() => _error = e.message);
     } on TimeoutException {
@@ -157,6 +187,10 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
             versionType: version.type,
             githubProxy: proxy.isNotEmpty ? proxy : null,
           );
+      // 记住本次升级使用的代理
+      if (mounted) {
+        unawaited(ref.read(githubProxyProvider.notifier).setValue(proxy));
+      }
     } on ApiException catch (e) {
       setState(() => _error = e.message);
     } catch (e) {
