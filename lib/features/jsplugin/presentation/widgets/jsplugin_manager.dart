@@ -9,32 +9,13 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/network/api_exceptions.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/responsive.dart';
+import '../../../../shared/constants/github_proxy.dart';
 import '../../../../shared/utils/responsive_snackbar.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../data/jsplugin_api.dart';
 import '../providers/jsplugin_provider.dart';
 import 'github_proxy_selection.dart';
 import 'plugin_icon.dart';
-
-/// JS 插件远程更新的预设 GitHub 代理选项
-class _JSProxyOption {
-  final String label;
-  final String value;
-
-  const _JSProxyOption({required this.label, required this.value});
-}
-
-/// 预设 GitHub 代理列表（单插件更新和批量更新共用）
-const List<_JSProxyOption> _kGithubProxies = [
-  _JSProxyOption(label: '直连 (不使用代理)', value: ''),
-  _JSProxyOption(label: 'ghproxy.com', value: 'https://ghproxy.com/'),
-  _JSProxyOption(label: 'ghfast.top', value: 'https://ghfast.top/'),
-  _JSProxyOption(label: 'gh.con.sh', value: 'https://gh.con.sh/'),
-  _JSProxyOption(
-    label: 'mirror.ghproxy.com',
-    value: 'https://mirror.ghproxy.com/',
-  ),
-];
 
 /// JS 插件管理组件
 class JSPluginManager extends ConsumerStatefulWidget {
@@ -44,7 +25,30 @@ class JSPluginManager extends ConsumerStatefulWidget {
   ConsumerState<JSPluginManager> createState() => _JSPluginManagerState();
 }
 
-class _JSPluginManagerState extends ConsumerState<JSPluginManager> {
+class _JSPluginManagerState extends ConsumerState<JSPluginManager>
+    with GithubProxySelectionMixin<JSPluginManager> {
+  @override
+  List<String> get proxyPresetValues =>
+      kGithubProxyPresets.map((e) => e.value).toList();
+
+  @override
+  void initState() {
+    super.initState();
+    restoreGithubProxy();
+  }
+
+  /// 当前代理的展示文案
+  String get _proxyLabel {
+    if (selectedProxyIndex == -1) {
+      final v = customProxyController.text.trim();
+      return v.isEmpty ? '自定义代理' : v;
+    }
+    if (selectedProxyIndex >= 0 && selectedProxyIndex < kGithubProxyPresets.length) {
+      return kGithubProxyPresets[selectedProxyIndex].label;
+    }
+    return kGithubProxyPresets.first.label;
+  }
+
   @override
   Widget build(BuildContext context) {
     final pluginsAsync = ref.watch(jsPluginsProvider);
@@ -58,6 +62,9 @@ class _JSPluginManagerState extends ConsumerState<JSPluginManager> {
         if (expanded) ref.invalidate(jsPluginsProvider);
       },
       children: [
+        // 统一的 GitHub 代理选择（更新/批量更新/强制更新共用）
+        _buildProxySelectorTile(),
+        const Divider(height: 1),
         // 顶部操作栏
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -138,6 +145,108 @@ class _JSPluginManagerState extends ConsumerState<JSPluginManager> {
         ),
       ],
     );
+  }
+
+  /// 统一的 GitHub 代理选择入口（下拉菜单）
+  Widget _buildProxySelectorTile() {
+    final theme = Theme.of(context);
+    return PopupMenuButton<int>(
+      tooltip: 'GitHub 代理',
+      onSelected: (value) {
+        if (value == -1) {
+          _showCustomProxyDialog();
+        } else {
+          setState(() => selectedProxyIndex = value);
+          persistGithubProxy();
+        }
+      },
+      itemBuilder: (context) => [
+        ...List.generate(kGithubProxyPresets.length, (index) {
+          return PopupMenuItem<int>(
+            value: index,
+            child: Row(
+              children: [
+                if (selectedProxyIndex == index)
+                  Icon(Icons.check, size: 18, color: theme.colorScheme.primary)
+                else
+                  const SizedBox(width: 18),
+                const SizedBox(width: 8),
+                Text(kGithubProxyPresets[index].label),
+              ],
+            ),
+          );
+        }),
+        const PopupMenuDivider(),
+        PopupMenuItem<int>(
+          value: -1,
+          child: Row(
+            children: [
+              if (selectedProxyIndex == -1)
+                Icon(Icons.check, size: 18, color: theme.colorScheme.primary)
+              else
+                const SizedBox(width: 18),
+              const SizedBox(width: 8),
+              Text(
+                selectedProxyIndex == -1
+                    ? '自定义: ${customProxyController.text}'
+                    : '自定义代理...',
+              ),
+            ],
+          ),
+        ),
+      ],
+      child: ListTile(
+        leading: Icon(
+          Icons.vpn_key_outlined,
+          color: effectiveProxy.isNotEmpty ? theme.colorScheme.primary : null,
+        ),
+        title: const Text('GitHub 代理'),
+        subtitle: Text(
+          effectiveProxy.isEmpty ? '直连（不使用代理）' : _proxyLabel,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        trailing: const Icon(Icons.arrow_drop_down),
+      ),
+    );
+  }
+
+  void _showCustomProxyDialog() {
+    final controller = TextEditingController(text: customProxyController.text);
+    showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('自定义代理'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: 'https://your-proxy.com/',
+            helperText: '输入代理地址，如 https://ghproxy.com/',
+            border: OutlineInputBorder(),
+          ),
+          onSubmitted: (_) =>
+              Navigator.of(context).pop(controller.text.trim()),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () =>
+                Navigator.of(context).pop(controller.text.trim()),
+            child: const Text('确定'),
+          ),
+        ],
+      ),
+    ).then((value) {
+      if (value != null && mounted) {
+        customProxyController.text = value;
+        setState(() => selectedProxyIndex = -1);
+        persistGithubProxy();
+      }
+    });
   }
 
   void _showUploadDialog() {
@@ -549,14 +658,15 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
   }
 
   Future<void> _showForceUpdateDialog() async {
-    final proxy = await showDialog<String>(
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => _ForceUpdateConfirmDialog(
         pluginName: widget.plugin.displayName,
       ),
     );
-    if (proxy == null || !mounted) return;
+    if (confirmed != true || !mounted) return;
 
+    final proxy = ref.read(githubProxyProvider).value ?? '';
     setState(() => _isForceUpdating = true);
     try {
       final api = ref.read(jsPluginApiProvider);
@@ -1056,26 +1166,17 @@ class _JSPluginUpdateDialog extends ConsumerStatefulWidget {
       _JSPluginUpdateDialogState();
 }
 
-class _JSPluginUpdateDialogState extends ConsumerState<_JSPluginUpdateDialog>
-    with GithubProxySelectionMixin<_JSPluginUpdateDialog> {
+class _JSPluginUpdateDialogState extends ConsumerState<_JSPluginUpdateDialog> {
   bool _isChecking = false;
   bool _isUpdating = false;
   String? _error;
   JSPluginUpdateCheck? _checkResult;
 
-  @override
-  List<String> get proxyPresetValues =>
-      _kGithubProxies.map((e) => e.value).toList();
-
-  @override
-  void initState() {
-    super.initState();
-    restoreGithubProxy();
-  }
+  /// 当前生效的 GitHub 代理，来自插件管理顶部的统一选择。
+  String get _proxy => ref.read(githubProxyProvider).value ?? '';
 
   Future<void> _checkUpdate() async {
-    persistGithubProxy();
-    final proxy = effectiveProxy;
+    final proxy = _proxy;
     setState(() {
       _isChecking = true;
       _error = null;
@@ -1102,8 +1203,7 @@ class _JSPluginUpdateDialogState extends ConsumerState<_JSPluginUpdateDialog>
   }
 
   Future<void> _executeUpdate() async {
-    persistGithubProxy();
-    final proxy = effectiveProxy;
+    final proxy = _proxy;
     setState(() {
       _isUpdating = true;
       _error = null;
@@ -1186,8 +1286,6 @@ class _JSPluginUpdateDialogState extends ConsumerState<_JSPluginUpdateDialog>
                   ),
                 ),
 
-              if (!_isUpdating) _buildProxySelector(theme),
-
               if (_isChecking)
                 const Center(
                   child: Column(
@@ -1217,66 +1315,6 @@ class _JSPluginUpdateDialogState extends ConsumerState<_JSPluginUpdateDialog>
         ),
       ),
       actions: _buildActions(),
-    );
-  }
-
-  Widget _buildProxySelector(ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('GitHub 代理', style: theme.textTheme.titleSmall),
-          const SizedBox(height: 8),
-          RadioGroup<int>(
-            groupValue: selectedProxyIndex,
-            onChanged: (value) {
-              if (value != null) setState(() => selectedProxyIndex = value);
-            },
-            child: Column(
-              children: [
-                ...List.generate(_kGithubProxies.length, (index) {
-                  final proxy = _kGithubProxies[index];
-                  return RadioListTile<int>(
-                    title: Text(proxy.label, style: theme.textTheme.bodyMedium),
-                    value: index,
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
-                  );
-                }),
-                RadioListTile<int>(
-                  title: Text('自定义代理', style: theme.textTheme.bodyMedium),
-                  value: -1,
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                  visualDensity: VisualDensity.compact,
-                ),
-              ],
-            ),
-          ),
-          if (selectedProxyIndex == -1)
-            Padding(
-              padding: const EdgeInsets.only(left: 16, top: 4),
-              child: TextField(
-                controller: customProxyController,
-                decoration: const InputDecoration(
-                  hintText: 'https://your-proxy.com/',
-                  helperText: '输入代理地址，如 https://ghproxy.com/',
-                  helperMaxLines: 2,
-                  isDense: true,
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                ),
-                style: theme.textTheme.bodySmall,
-              ),
-            ),
-          const Divider(height: 24),
-        ],
-      ),
     );
   }
 
@@ -1444,25 +1482,16 @@ class _JSPluginBatchUpdateDialog extends ConsumerStatefulWidget {
 }
 
 class _JSPluginBatchUpdateDialogState
-    extends ConsumerState<_JSPluginBatchUpdateDialog>
-    with GithubProxySelectionMixin<_JSPluginBatchUpdateDialog> {
+    extends ConsumerState<_JSPluginBatchUpdateDialog> {
   bool _isUpdating = false;
   JSPluginBatchUpdateResponse? _response;
   String? _error;
 
-  @override
-  List<String> get proxyPresetValues =>
-      _kGithubProxies.map((e) => e.value).toList();
-
-  @override
-  void initState() {
-    super.initState();
-    restoreGithubProxy();
-  }
+  /// 当前生效的 GitHub 代理，来自插件管理顶部的统一选择。
+  String get _proxy => ref.read(githubProxyProvider).value ?? '';
 
   Future<void> _executeBatchUpdate() async {
-    persistGithubProxy();
-    final proxy = effectiveProxy;
+    final proxy = _proxy;
     setState(() {
       _isUpdating = true;
       _error = null;
@@ -1536,7 +1565,6 @@ class _JSPluginBatchUpdateDialogState
                     ],
                   ),
                 ),
-              if (_response == null && !_isUpdating) _buildProxySelector(theme),
               if (_isUpdating)
                 const Center(
                   child: Column(
@@ -1556,65 +1584,6 @@ class _JSPluginBatchUpdateDialogState
         ),
       ),
       actions: _buildActions(),
-    );
-  }
-
-  Widget _buildProxySelector(ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('GitHub 代理', style: theme.textTheme.titleSmall),
-          const SizedBox(height: 8),
-          RadioGroup<int>(
-            groupValue: selectedProxyIndex,
-            onChanged: (value) {
-              if (value != null) setState(() => selectedProxyIndex = value);
-            },
-            child: Column(
-              children: [
-                ...List.generate(_kGithubProxies.length, (index) {
-                  final proxy = _kGithubProxies[index];
-                  return RadioListTile<int>(
-                    title: Text(proxy.label, style: theme.textTheme.bodyMedium),
-                    value: index,
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
-                  );
-                }),
-                RadioListTile<int>(
-                  title: Text('自定义代理', style: theme.textTheme.bodyMedium),
-                  value: -1,
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                  visualDensity: VisualDensity.compact,
-                ),
-              ],
-            ),
-          ),
-          if (selectedProxyIndex == -1)
-            Padding(
-              padding: const EdgeInsets.only(left: 16, top: 4),
-              child: TextField(
-                controller: customProxyController,
-                decoration: const InputDecoration(
-                  hintText: 'https://your-proxy.com/',
-                  helperText: '输入代理地址，如 https://ghproxy.com/',
-                  helperMaxLines: 2,
-                  isDense: true,
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                ),
-                style: theme.textTheme.bodySmall,
-              ),
-            ),
-        ],
-      ),
     );
   }
 
@@ -1731,29 +1700,12 @@ class _JSPluginBatchUpdateDialogState
   }
 }
 
-/// 强制更新确认对话框：选择代理后返回代理字符串，取消返回 null
-class _ForceUpdateConfirmDialog extends ConsumerStatefulWidget {
+/// 强制更新确认对话框：确认返回 true，取消返回 null。
+/// GitHub 代理沿用插件管理顶部的统一选择，此处不再单独选择。
+class _ForceUpdateConfirmDialog extends StatelessWidget {
   final String pluginName;
 
   const _ForceUpdateConfirmDialog({required this.pluginName});
-
-  @override
-  ConsumerState<_ForceUpdateConfirmDialog> createState() =>
-      _ForceUpdateConfirmDialogState();
-}
-
-class _ForceUpdateConfirmDialogState
-    extends ConsumerState<_ForceUpdateConfirmDialog>
-    with GithubProxySelectionMixin<_ForceUpdateConfirmDialog> {
-  @override
-  List<String> get proxyPresetValues =>
-      _kGithubProxies.map((e) => e.value).toList();
-
-  @override
-  void initState() {
-    super.initState();
-    restoreGithubProxy();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -1766,76 +1718,16 @@ class _ForceUpdateConfirmDialogState
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              '强制更新 - ${widget.pluginName}',
+              '强制更新 - $pluginName',
               overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
       ),
-      content: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: context.responsiveDialogMaxWidth,
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '将忽略版本检查，重新下载并安装插件。',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.outline,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text('GitHub 代理', style: theme.textTheme.titleSmall),
-              const SizedBox(height: 8),
-              RadioGroup<int>(
-                groupValue: selectedProxyIndex,
-                onChanged: (value) {
-                  if (value != null) setState(() => selectedProxyIndex = value);
-                },
-                child: Column(
-                  children: [
-                    ...List.generate(_kGithubProxies.length, (index) {
-                      final proxy = _kGithubProxies[index];
-                      return RadioListTile<int>(
-                        title: Text(proxy.label, style: theme.textTheme.bodyMedium),
-                        value: index,
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                        visualDensity: VisualDensity.compact,
-                      );
-                    }),
-                    RadioListTile<int>(
-                      title: Text('自定义代理', style: theme.textTheme.bodyMedium),
-                      value: -1,
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                      visualDensity: VisualDensity.compact,
-                    ),
-                  ],
-                ),
-              ),
-              if (selectedProxyIndex == -1)
-                Padding(
-                  padding: const EdgeInsets.only(left: 16, top: 4),
-                  child: TextField(
-                    controller: customProxyController,
-                    decoration: const InputDecoration(
-                      hintText: 'https://your-proxy.com/',
-                      isDense: true,
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                    ),
-                    style: theme.textTheme.bodySmall,
-                  ),
-                ),
-            ],
-          ),
+      content: Text(
+        '将忽略版本检查，重新下载并安装插件。',
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: theme.colorScheme.outline,
         ),
       ),
       actions: [
@@ -1847,10 +1739,7 @@ class _ForceUpdateConfirmDialogState
           child: const Text('取消'),
         ),
         FilledButton(
-          onPressed: () {
-            persistGithubProxy();
-            Navigator.pop(context, effectiveProxy);
-          },
+          onPressed: () => Navigator.pop(context, true),
           style: FilledButton.styleFrom(
             minimumSize: context.responsiveButtonMinSize,
           ),

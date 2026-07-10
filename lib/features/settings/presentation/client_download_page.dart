@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../config/app_config.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/utils/web_os.dart';
+import '../../../shared/constants/github_proxy.dart';
 import 'providers/settings_provider.dart';
 import 'widgets/section_card.dart';
 
@@ -342,14 +343,6 @@ class _GithubProxyDialog extends StatefulWidget {
 
   const _GithubProxyDialog({required this.current});
 
-  // 与升级弹窗保持一致的预设镜像
-  static const List<({String label, String value})> _presets = [
-    (label: '直连 GitHub（不加速）', value: ''),
-    (label: 'ghfast.top', value: 'https://ghfast.top/'),
-    (label: 'ghproxy.com', value: 'https://ghproxy.com/'),
-    (label: 'mirror.ghproxy.com', value: 'https://mirror.ghproxy.com/'),
-  ];
-
   @override
   State<_GithubProxyDialog> createState() => _GithubProxyDialogState();
 }
@@ -361,7 +354,7 @@ class _GithubProxyDialogState extends State<_GithubProxyDialog> {
   @override
   void initState() {
     super.initState();
-    const presets = _GithubProxyDialog._presets;
+    const presets = kGithubProxyPresets;
     final idx = presets.indexWhere((p) => p.value == widget.current);
     // 命中预设则选中，否则视为自定义（-1）
     _selected = idx >= 0 ? idx : -1;
@@ -379,7 +372,7 @@ class _GithubProxyDialogState extends State<_GithubProxyDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    const presets = _GithubProxyDialog._presets;
+    const presets = kGithubProxyPresets;
 
     return AlertDialog(
       title: const Text('GitHub 加速代理'),

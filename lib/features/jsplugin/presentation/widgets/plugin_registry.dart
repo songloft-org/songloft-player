@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../core/network/api_exceptions.dart';
 import '../../../../core/theme/app_dimensions.dart';
+import '../../../../shared/constants/github_proxy.dart';
 import '../../../../shared/utils/responsive_snackbar.dart';
 import '../../../settings/data/settings_api.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
@@ -16,24 +17,6 @@ import 'github_proxy_selection.dart';
 /// 官方插件源 URL
 const _kOfficialRegistryUrl =
     'https://raw.githubusercontent.com/songloft-org/songloft-plugin-registry/main/registry.json';
-
-/// 预设 GitHub 代理列表
-const List<_ProxyOption> _kGithubProxies = [
-  _ProxyOption(label: '直连 (不使用代理)', value: ''),
-  _ProxyOption(label: 'ghproxy.com', value: 'https://ghproxy.com/'),
-  _ProxyOption(label: 'ghfast.top', value: 'https://ghfast.top/'),
-  _ProxyOption(label: 'gh.con.sh', value: 'https://gh.con.sh/'),
-  _ProxyOption(
-    label: 'mirror.ghproxy.com',
-    value: 'https://mirror.ghproxy.com/',
-  ),
-];
-
-class _ProxyOption {
-  final String label;
-  final String value;
-  const _ProxyOption({required this.label, required this.value});
-}
 
 /// 插件商店页面
 class PluginRegistryPage extends ConsumerStatefulWidget {
@@ -48,7 +31,7 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
     with GithubProxySelectionMixin<PluginRegistryPage> {
   @override
   List<String> get proxyPresetValues =>
-      _kGithubProxies.map((e) => e.value).toList();
+      kGithubProxyPresets.map((e) => e.value).toList();
 
   List<PluginRegistryConfig> _registries = [];
   PluginRegistryConfig? _selectedRegistry;
@@ -171,61 +154,6 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
         appBar: AppBar(
           title: const Text('插件商店'),
           actions: [
-            PopupMenuButton<int>(
-              icon: Icon(
-                Icons.vpn_key_outlined,
-                color: effectiveProxy.isNotEmpty
-                    ? theme.colorScheme.primary
-                    : null,
-              ),
-              tooltip: 'GitHub 代理',
-              onSelected: (value) {
-                if (value == -1) {
-                  _showCustomProxyDialog();
-                } else {
-                  setState(() => selectedProxyIndex = value);
-                  persistGithubProxy();
-                  _refreshPlugins();
-                }
-              },
-              itemBuilder: (context) => [
-                ...List.generate(_kGithubProxies.length, (index) {
-                  return PopupMenuItem<int>(
-                    value: index,
-                    child: Row(
-                      children: [
-                        if (selectedProxyIndex == index)
-                          Icon(Icons.check,
-                              size: 18,
-                              color: Theme.of(context).colorScheme.primary)
-                        else
-                          const SizedBox(width: 18),
-                        const SizedBox(width: 8),
-                        Text(_kGithubProxies[index].label),
-                      ],
-                    ),
-                  );
-                }),
-                const PopupMenuDivider(),
-                PopupMenuItem<int>(
-                  value: -1,
-                  child: Row(
-                    children: [
-                      if (selectedProxyIndex == -1)
-                        Icon(Icons.check,
-                            size: 18,
-                            color: Theme.of(context).colorScheme.primary)
-                      else
-                        const SizedBox(width: 18),
-                      const SizedBox(width: 8),
-                      Text(selectedProxyIndex == -1
-                          ? '自定义: ${customProxyController.text}'
-                          : '自定义代理...'),
-                    ],
-                  ),
-                ),
-              ],
-            ),
             if (_selectedRegistry != null)
               IconButton(
                 icon: const Icon(Icons.refresh),
@@ -244,6 +172,82 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
             : _registries.isEmpty
                 ? _buildEmptyState(theme)
                 : _buildContent(theme),
+    );
+  }
+
+  /// 当前代理的展示文案
+  String get _proxyLabel {
+    if (selectedProxyIndex == -1) {
+      final v = customProxyController.text.trim();
+      return v.isEmpty ? '自定义代理' : v;
+    }
+    if (selectedProxyIndex >= 0 && selectedProxyIndex < kGithubProxyPresets.length) {
+      return kGithubProxyPresets[selectedProxyIndex].label;
+    }
+    return kGithubProxyPresets.first.label;
+  }
+
+  /// 统一的 GitHub 代理选择入口（下拉菜单），与插件管理样式一致
+  Widget _buildProxySelectorTile(ThemeData theme) {
+    return PopupMenuButton<int>(
+      tooltip: 'GitHub 代理',
+      onSelected: (value) {
+        if (value == -1) {
+          _showCustomProxyDialog();
+        } else {
+          setState(() => selectedProxyIndex = value);
+          persistGithubProxy();
+          _refreshPlugins();
+        }
+      },
+      itemBuilder: (context) => [
+        ...List.generate(kGithubProxyPresets.length, (index) {
+          return PopupMenuItem<int>(
+            value: index,
+            child: Row(
+              children: [
+                if (selectedProxyIndex == index)
+                  Icon(Icons.check, size: 18, color: theme.colorScheme.primary)
+                else
+                  const SizedBox(width: 18),
+                const SizedBox(width: 8),
+                Text(kGithubProxyPresets[index].label),
+              ],
+            ),
+          );
+        }),
+        const PopupMenuDivider(),
+        PopupMenuItem<int>(
+          value: -1,
+          child: Row(
+            children: [
+              if (selectedProxyIndex == -1)
+                Icon(Icons.check, size: 18, color: theme.colorScheme.primary)
+              else
+                const SizedBox(width: 18),
+              const SizedBox(width: 8),
+              Text(
+                selectedProxyIndex == -1
+                    ? '自定义: ${customProxyController.text}'
+                    : '自定义代理...',
+              ),
+            ],
+          ),
+        ),
+      ],
+      child: ListTile(
+        leading: Icon(
+          Icons.vpn_key_outlined,
+          color: effectiveProxy.isNotEmpty ? theme.colorScheme.primary : null,
+        ),
+        title: const Text('GitHub 代理'),
+        subtitle: Text(
+          effectiveProxy.isEmpty ? '直连（不使用代理）' : _proxyLabel,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        trailing: const Icon(Icons.arrow_drop_down),
+      ),
     );
   }
 
@@ -278,7 +282,10 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
 
     return Column(
       children: [
-        // 订阅源选择 + 代理 + 搜索
+        // GitHub 代理（统一下拉选择）
+        _buildProxySelectorTile(theme),
+        const Divider(height: 1),
+        // 订阅源选择 + 搜索
         Padding(
           padding: const EdgeInsets.all(16),
           child: Column(

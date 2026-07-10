@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/network/api_exceptions.dart';
 import '../../../../core/theme/responsive.dart';
+import '../../../../shared/constants/github_proxy.dart';
 import '../../data/upgrade_api.dart';
 import '../providers/settings_provider.dart';
 
@@ -28,18 +29,6 @@ class UpgradeDialog extends ConsumerStatefulWidget {
 }
 
 class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
-  /// 预设的 GitHub 代理列表
-  static const List<_ProxyOption> _presetProxies = [
-    _ProxyOption(label: '直连 (不使用代理)', value: ''),
-    _ProxyOption(label: 'ghproxy.com', value: 'https://ghproxy.com/'),
-    _ProxyOption(label: 'ghfast.top', value: 'https://ghfast.top/'),
-    _ProxyOption(label: 'gh.con.sh', value: 'https://gh.con.sh/'),
-    _ProxyOption(
-      label: 'mirror.ghproxy.com',
-      value: 'https://mirror.ghproxy.com/',
-    ),
-  ];
-
   bool _isChecking = true;
   bool _isStarting = false;
   bool _isResetting = false;
@@ -62,8 +51,8 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
       return _customProxyController.text.trim();
     }
     if (_selectedProxyIndex >= 0 &&
-        _selectedProxyIndex < _presetProxies.length) {
-      return _presetProxies[_selectedProxyIndex].value;
+        _selectedProxyIndex < kGithubProxyPresets.length) {
+      return kGithubProxyPresets[_selectedProxyIndex].value;
     }
     return '';
   }
@@ -95,7 +84,7 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
       _selectedProxyIndex = 0;
       return;
     }
-    final index = _presetProxies.indexWhere((p) => p.value == value);
+    final index = kGithubProxyPresets.indexWhere((p) => p.value == value);
     if (index >= 0) {
       _selectedProxyIndex = index;
     } else {
@@ -340,8 +329,8 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
             },
             child: Column(
               children: [
-                ...List.generate(_presetProxies.length, (index) {
-                  final proxy = _presetProxies[index];
+                ...List.generate(kGithubProxyPresets.length, (index) {
+                  final proxy = kGithubProxyPresets[index];
                   return RadioListTile<int>(
                     title: Text(proxy.label, style: theme.textTheme.bodyMedium),
                     value: index,
@@ -770,12 +759,4 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
 
     return [];
   }
-}
-
-/// GitHub 代理选项
-class _ProxyOption {
-  final String label;
-  final String value;
-
-  const _ProxyOption({required this.label, required this.value});
 }

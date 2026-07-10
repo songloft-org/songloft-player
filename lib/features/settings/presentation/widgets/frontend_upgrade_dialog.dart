@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../config/app_config.dart';
 import '../../../../core/theme/responsive.dart';
+import '../../../../shared/constants/github_proxy.dart';
 import '../../data/frontend_version_api.dart';
 import '../providers/settings_provider.dart';
 
@@ -29,17 +30,6 @@ class FrontendUpgradeDialog extends ConsumerStatefulWidget {
 }
 
 class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
-  static const List<_ProxyOption> _presetProxies = [
-    _ProxyOption(label: '直连 (不使用代理)', value: ''),
-    _ProxyOption(label: 'ghproxy.com', value: 'https://ghproxy.com/'),
-    _ProxyOption(label: 'ghfast.top', value: 'https://ghfast.top/'),
-    _ProxyOption(label: 'gh.con.sh', value: 'https://gh.con.sh/'),
-    _ProxyOption(
-      label: 'mirror.ghproxy.com',
-      value: 'https://mirror.ghproxy.com/',
-    ),
-  ];
-
   bool _isChecking = true;
   String? _error;
   FrontendVersionCheck? _checkResult;
@@ -54,8 +44,8 @@ class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
       return _customProxyController.text.trim();
     }
     if (_selectedProxyIndex >= 0 &&
-        _selectedProxyIndex < _presetProxies.length) {
-      return _presetProxies[_selectedProxyIndex].value;
+        _selectedProxyIndex < kGithubProxyPresets.length) {
+      return kGithubProxyPresets[_selectedProxyIndex].value;
     }
     return '';
   }
@@ -191,8 +181,8 @@ class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
             },
             child: Column(
               children: [
-                ...List.generate(_presetProxies.length, (index) {
-                  final proxy = _presetProxies[index];
+                ...List.generate(kGithubProxyPresets.length, (index) {
+                  final proxy = kGithubProxyPresets[index];
                   return RadioListTile<int>(
                     title: Text(proxy.label, style: theme.textTheme.bodyMedium),
                     value: index,
@@ -448,11 +438,4 @@ class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
 
     return [];
   }
-}
-
-class _ProxyOption {
-  final String label;
-  final String value;
-
-  const _ProxyOption({required this.label, required this.value});
 }
