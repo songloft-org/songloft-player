@@ -30,6 +30,11 @@ class ShellLayout extends ConsumerStatefulWidget {
 class _ShellLayoutState extends ConsumerState<ShellLayout> {
   final _visitedPluginTabs = <String>{};
 
+  /// 稳定 GlobalKey：跨响应式断点重建布局时，让 body 子树（含插件 WebView 原生表面）
+  /// 被 reparent 而非 dispose+重建，避免拖窗跨断点导致 InAppWebView reload
+  /// （songloft-org/songloft-player#20）
+  final _bodyKey = GlobalKey();
+
   /// 根据当前路由路径计算导航索引
   int _getCurrentIndex(String location, ActiveDestinations activeDest) {
     // 精确匹配
@@ -141,7 +146,7 @@ class _ShellLayoutState extends ConsumerState<ShellLayout> {
     }
 
     return AdaptiveScaffold(
-      body: body,
+      body: KeyedSubtree(key: _bodyKey, child: body),
       currentIndex: currentIndex,
       destinations: activeDest.destinations,
       onDestinationSelected: (index) {
