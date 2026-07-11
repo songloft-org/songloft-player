@@ -1,6 +1,20 @@
 import Flutter
 import Foundation
 
+#if HAS_SONGLOFT_BACKEND
+@_silgen_name("MobileStart")
+private func linkedMobileStart(
+    _ dataDir: UnsafeRawPointer?,
+    _ musicDir: UnsafeRawPointer?,
+    _ port: Int,
+    _ ret0: UnsafeMutablePointer<Int>?,
+    _ error: UnsafeMutableRawPointer?
+) -> ObjCBool
+@_silgen_name("MobileStop") private func linkedMobileStop()
+@_silgen_name("MobileIsRunning") private func linkedMobileIsRunning() -> ObjCBool
+@_silgen_name("MobileGetPort") private func linkedMobileGetPort() -> Int
+#endif
+
 /// Go 后端 MethodChannel 桥接层（iOS）。
 ///
 /// gomobile bind 对包级函数生成的是 **C 函数**（不是 ObjC 类方法）：
@@ -8,9 +22,8 @@ import Foundation
 ///   void MobileStop(void);  BOOL MobileIsRunning(void);  long MobileGetPort(void);
 /// 其中 MobileStart 返回是否成功，真实端口经 ret0_ 出参返回。
 ///
-/// Songloft.xcframework 由构建期的 Run Script 可选地嵌入 Runner.app/Frameworks/，
-/// 这里用 dlopen 打开、dlsym 取符号；框架未嵌入（非 bundled 构建）时
-/// dlopen 返回 nil，isAvailable 为 false，本地模式优雅降级不可用。
+/// Songloft.xcframework 是静态 framework，bundled 构建通过可选 xcconfig 将其
+/// 链接进 Runner 可执行文件。普通构建未启用 HAS_SONGLOFT_BACKEND 时优雅降级。
 class SongloftBackendPlugin: NSObject {
     static let shared = SongloftBackendPlugin()
 
@@ -32,22 +45,17 @@ class SongloftBackendPlugin: NSObject {
     private let getPortFn: GetPortFn?
 
     private override init() {
-        // 打开嵌入的 Go 后端框架：Runner.app/Frameworks/Songloft.framework/Songloft
-        var handle: UnsafeMutableRawPointer?
-        if let fwDir = Bundle.main.privateFrameworksPath {
-            let binPath = (fwDir as NSString).appendingPathComponent("Songloft.framework/Songloft")
-            handle = dlopen(binPath, RTLD_NOW)
-        }
-
-        func load<T>(_ name: String, _ type: T.Type) -> T? {
-            guard let handle = handle, let sym = dlsym(handle, name) else { return nil }
-            return unsafeBitCast(sym, to: type)
-        }
-
-        startFn = load("MobileStart", StartFn.self)
-        stopFn = load("MobileStop", StopFn.self)
-        isRunningFn = load("MobileIsRunning", IsRunningFn.self)
-        getPortFn = load("MobileGetPort", GetPortFn.self)
+#if HAS_SONGLOFT_BACKEND
+        startFn = linkedMobileStart
+        stopFn = linkedMobileStop
+        isRunningFn = linkedMobileIsRunning
+        getPortFn = linkedMobileGetPort
+#else
+        startFn = nil
+        stopFn = nil
+        isRunningFn = nil
+        getPortFn = nil
+#endif
         super.init()
     }
 
