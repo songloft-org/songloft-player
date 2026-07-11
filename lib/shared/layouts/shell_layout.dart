@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/responsive.dart';
 import '../../features/home/presentation/plugin_tab_page.dart';
+import '../../features/jsplugin/presentation/providers/jsplugin_provider.dart';
 import '../../features/library/presentation/providers/favorite_provider.dart';
 import '../../features/player/domain/player_state.dart';
 import '../../features/player/presentation/providers/player_provider.dart';
@@ -12,6 +13,9 @@ import '../../features/player/presentation/widgets/desktop_player.dart';
 import '../../features/player/presentation/widgets/mini_player.dart';
 import '../../features/player/presentation/widgets/playlist_drawer.dart';
 import '../../features/player/presentation/widgets/tv_player.dart';
+import '../../features/settings/data/settings_api.dart';
+import '../../features/settings/presentation/providers/settings_provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../utils/responsive_snackbar.dart';
 import 'active_destinations.dart';
 import 'adaptive_scaffold.dart';
@@ -66,7 +70,14 @@ class _ShellLayoutState extends ConsumerState<ShellLayout> {
 
   @override
   Widget build(BuildContext context) {
-    final activeDest = ref.watch(activeDestinationsProvider);
+    final tabConfig =
+        ref.watch(tabConfigProvider).value ?? TabConfig.defaultConfig();
+    final plugins = ref.watch(jsPluginsProvider).value ?? [];
+    final activeDest = ActiveDestinations.compute(
+      tabConfig,
+      plugins,
+      AppLocalizations.of(context),
+    );
 
     // 获取当前路由位置
     final location = GoRouterState.of(context).uri.path;
@@ -108,10 +119,11 @@ class _ShellLayoutState extends ConsumerState<ShellLayout> {
       }
 
       // 清理已移除/禁用的插件
-      final validPaths = activeDest.indexToRoute
-          .where((r) => r.startsWith('/plugin-tab/'))
-          .map((r) => r.replaceFirst('/plugin-tab/', ''))
-          .toSet();
+      final validPaths =
+          activeDest.indexToRoute
+              .where((r) => r.startsWith('/plugin-tab/'))
+              .map((r) => r.replaceFirst('/plugin-tab/', ''))
+              .toSet();
       _visitedPluginTabs.retainAll(validPaths);
 
       if (_visitedPluginTabs.isEmpty) {
@@ -119,10 +131,7 @@ class _ShellLayoutState extends ConsumerState<ShellLayout> {
       } else {
         body = Stack(
           children: [
-            Offstage(
-              offstage: isPluginTab,
-              child: widget.child,
-            ),
+            Offstage(offstage: isPluginTab, child: widget.child),
             for (final ep in _visitedPluginTabs)
               Offstage(
                 offstage: currentEntryPath != ep,
@@ -154,7 +163,8 @@ class _ShellLayoutState extends ConsumerState<ShellLayout> {
           context.go(activeDest.indexToRoute[index]);
         }
       },
-      bottomPlayer: (isPluginTab || isSettings) ? null : _buildBottomPlayer(context),
+      bottomPlayer:
+          (isPluginTab || isSettings) ? null : _buildBottomPlayer(context),
       playlistDrawer: showPlaylistDrawer ? const PlaylistDrawer() : null,
     );
   }
