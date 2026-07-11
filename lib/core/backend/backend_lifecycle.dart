@@ -44,7 +44,9 @@ class BackendLifecycle with WidgetsBindingObserver {
     final running = await EmbeddedBackendService.isRunning();
     if (running) return;
 
-    final musicDir = ref.read(localMusicDirProvider);
+    final musicDir = await EmbeddedBackendService.resolveMusicDir(
+      ref.read(localMusicDirProvider),
+    );
     if (musicDir == null || musicDir.isEmpty) return;
 
     try {

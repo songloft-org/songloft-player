@@ -94,13 +94,16 @@ class _StartupGateState extends ConsumerState<StartupGate>
   Future<void> _bootstrapLocal() async {
     setState(() => _hint = '正在启动本地后端…');
 
-    final musicDir = ref.read(localMusicDirProvider);
+    final musicDir = await EmbeddedBackendService.resolveMusicDir(
+      ref.read(localMusicDirProvider),
+    );
     if (musicDir == null || musicDir.isEmpty) {
       debugPrint('[StartupGate] 本地模式未配置音乐目录，回退到远程模式');
       await ref.read(runModeProvider.notifier).set(RunMode.remote);
       await _bootstrapRemote();
       return;
     }
+    await ref.read(localMusicDirProvider.notifier).set(musicDir);
 
     await EmbeddedBackendService.ensureStoragePermission();
 

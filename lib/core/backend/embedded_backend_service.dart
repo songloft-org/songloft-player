@@ -1,7 +1,9 @@
 import 'dart:io' show Platform;
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'desktop_backend_service.dart';
@@ -59,6 +61,40 @@ class EmbeddedBackendService {
       status = await Permission.storage.request();
       debugPrint('[Backend] storage permission: $status');
     }
+  }
+
+  /// iOS 本地模式的音乐目录是否固定（不允许用户手动选择外部目录）。
+  ///
+  /// iOS 沙盒禁止内嵌后端读取 file_picker 选中的外部目录（security scope 在
+  /// 选择器关闭后即释放），因此本地模式固定使用 app 自身的 Documents 目录，
+  /// 通过「文件」App / Finder 文件共享（Info.plist `UIFileSharingEnabled` +
+  /// `LSSupportsOpeningDocumentsInPlace`）让用户把音乐放进来。沙盒内目录可被
+  /// 内嵌后端直接遍历，无需 security-scoped 访问。
+  static bool get usesFixedMusicDir => !kIsWeb && Platform.isIOS;
+
+  /// 解析本地模式实际使用的音乐目录（不弹出选择器）。
+  /// - iOS：固定返回 app Documents 目录，忽略传入的 [current]。
+  /// - 其他平台：返回已选目录（为空时返回 null）。
+  ///
+  /// 用于自动登录 / 生命周期重启等不应打断用户的场景。
+  static Future<String?> resolveMusicDir(String? current) async {
+    if (usesFixedMusicDir) {
+      return (await getApplicationDocumentsDirectory()).path;
+    }
+    return (current != null && current.isNotEmpty) ? current : null;
+  }
+
+  /// 解析音乐目录，必要时弹出目录选择器。
+  /// - iOS：等同 [resolveMusicDir]，直接返回 Documents 目录，不弹选择器。
+  /// - 其他平台：已有 [current] 直接返回；否则弹出 file_picker，用户取消返回 null。
+  ///
+  /// 用于用户主动开启本地模式 / 切换音乐目录的场景。
+  static Future<String?> pickMusicDir(String? current) async {
+    if (usesFixedMusicDir) {
+      return (await getApplicationDocumentsDirectory()).path;
+    }
+    if (current != null && current.isNotEmpty) return current;
+    return FilePicker.platform.getDirectoryPath(dialogTitle: '选择音乐文件夹');
   }
 
   /// 启动内嵌后端，返回实际监听端口

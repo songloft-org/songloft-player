@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -557,13 +556,25 @@ class _LocalModeCardState extends ConsumerState<_LocalModeCard> {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  FilledButton.tonal(
-                    onPressed: () => _pickMusicDir(),
-                    child: const Text('选择'),
-                  ),
+                  // iOS 固定使用 app Documents 目录，不提供手动选择。
+                  if (!EmbeddedBackendService.usesFixedMusicDir) ...[
+                    const SizedBox(width: 8),
+                    FilledButton.tonal(
+                      onPressed: () => _pickMusicDir(),
+                      child: const Text('选择'),
+                    ),
+                  ],
                 ],
               ),
+              if (EmbeddedBackendService.usesFixedMusicDir) ...[
+                const SizedBox(height: 8),
+                Text(
+                  '通过「文件」App 或电脑（Finder / iTunes 文件共享）把音乐放入 Songloft 文件夹，然后重新扫描。',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ],
             ],
           ],
         ),
@@ -591,15 +602,11 @@ class _LocalModeCardState extends ConsumerState<_LocalModeCard> {
   }
 
   Future<void> _switchToLocal() async {
-    var musicDir = ref.read(localMusicDirProvider);
-    if (musicDir == null || musicDir.isEmpty) {
-      final result = await FilePicker.platform.getDirectoryPath(
-        dialogTitle: '选择音乐文件夹',
-      );
-      if (result == null) return;
-      await ref.read(localMusicDirProvider.notifier).set(result);
-      musicDir = result;
-    }
+    final musicDir = await EmbeddedBackendService.pickMusicDir(
+      ref.read(localMusicDirProvider),
+    );
+    if (musicDir == null || musicDir.isEmpty) return;
+    await ref.read(localMusicDirProvider.notifier).set(musicDir);
 
     // 存档当前远程 session
     final storage = SecureStorageService();
@@ -670,9 +677,8 @@ class _LocalModeCardState extends ConsumerState<_LocalModeCard> {
   }
 
   Future<void> _pickMusicDir() async {
-    final result = await FilePicker.platform.getDirectoryPath(
-      dialogTitle: '选择音乐文件夹',
-    );
+    // 传 null 强制在非 iOS 平台弹出选择器重新选目录；iOS 固定 Documents 目录。
+    final result = await EmbeddedBackendService.pickMusicDir(null);
     if (result != null) {
       await ref.read(localMusicDirProvider.notifier).set(result);
       if (mounted) {

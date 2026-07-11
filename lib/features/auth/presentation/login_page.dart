@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -881,8 +880,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     try {
       final running = await EmbeddedBackendService.isRunning();
       if (!running) {
-        final musicDir = ref.read(localMusicDirProvider);
+        final musicDir = await EmbeddedBackendService.resolveMusicDir(
+          ref.read(localMusicDirProvider),
+        );
         if (musicDir == null || musicDir.isEmpty) return;
+        await ref.read(localMusicDirProvider.notifier).set(musicDir);
         setState(() => _localModeHint = '正在启动本地后端…');
         final dataDir = (await getApplicationSupportDirectory()).path;
         final port = await EmbeddedBackendService.start(
@@ -952,18 +954,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     });
 
     try {
-      var musicDir = ref.read(localMusicDirProvider);
+      final musicDir = await EmbeddedBackendService.pickMusicDir(
+        ref.read(localMusicDirProvider),
+      );
       if (musicDir == null || musicDir.isEmpty) {
-        final result = await FilePicker.platform.getDirectoryPath(
-          dialogTitle: '选择音乐文件夹',
-        );
-        if (result == null) {
-          setState(() => _isLocalModeBootstrapping = false);
-          return;
-        }
-        await ref.read(localMusicDirProvider.notifier).set(result);
-        musicDir = result;
+        setState(() => _isLocalModeBootstrapping = false);
+        return;
       }
+      await ref.read(localMusicDirProvider.notifier).set(musicDir);
 
       await ref.read(runModeProvider.notifier).set(RunMode.local);
       await EmbeddedBackendService.ensureStoragePermission();
