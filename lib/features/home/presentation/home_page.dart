@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/router/app_router.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/responsive.dart';
 import '../../../core/utils/url_helper.dart';
@@ -73,6 +74,7 @@ class HomePage extends ConsumerWidget {
     required int normalTotalCount,
     required int radioTotalCount,
   }) {
+    final l10n = AppLocalizations.of(context);
     final currentPlaylistId = ref.watch(sourcePlaylistIdProvider);
     final isPlaying = ref.watch(isPlayingProvider);
 
@@ -84,11 +86,11 @@ class HomePage extends ConsumerWidget {
     if (playlists.isEmpty) {
       return EmptyState(
         icon: Icons.library_music_outlined,
-        title: '暂无歌单',
-        subtitle: '创建你的第一个歌单开始收藏音乐',
+        title: l10n.homeEmptyPlaylists,
+        subtitle: l10n.homeEmptyPlaylistsSubtitle,
         action: FilledButton.tonal(
           onPressed: () => context.go(AppRoutes.playlists),
-          child: const Text('创建歌单'),
+          child: Text(l10n.homeCreatePlaylist),
         ),
       );
     }
@@ -107,8 +109,8 @@ class HomePage extends ConsumerWidget {
         // 我的歌单区域
         if (normalPlaylists.isNotEmpty) ...[
           SectionHeader(
-            title: '我的歌单',
-            actionText: '查看全部',
+            title: l10n.homeMyPlaylists,
+            actionText: l10n.homeViewAll,
             onAction: () => context.go(AppRoutes.playlists),
           ),
           const SizedBox(height: AppSpacing.md),
@@ -132,8 +134,8 @@ class HomePage extends ConsumerWidget {
 
         // 电台歌单区域
         if (radioPlaylists.isNotEmpty) ...[
-          const SectionHeader(
-            title: '我的电台',
+          SectionHeader(
+            title: l10n.homeMyRadios,
             icon: Icons.radio_rounded,
           ),
           const SizedBox(height: AppSpacing.md),
@@ -191,7 +193,7 @@ class _GreetingAppBar extends StatelessWidget {
       pinned: true,
       flexibleSpace: FlexibleSpaceBar(
         title: Text(
-          _getGreeting(),
+          _getGreeting(context),
           style: TextStyle(
             fontSize: context.responsive<double>(
               mobile: 20,
@@ -213,18 +215,19 @@ class _GreetingAppBar extends StatelessWidget {
   }
 
   /// 获取问候语
-  String _getGreeting() {
+  String _getGreeting(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final hour = DateTime.now().hour;
     if (hour < 6) {
-      return '夜深了';
+      return l10n.homeGreetingLateNight;
     } else if (hour < 12) {
-      return '早上好';
+      return l10n.homeGreetingMorning;
     } else if (hour < 14) {
-      return '中午好';
+      return l10n.homeGreetingNoon;
     } else if (hour < 18) {
-      return '下午好';
+      return l10n.homeGreetingAfternoon;
     } else {
-      return '晚上好';
+      return l10n.homeGreetingEvening;
     }
   }
 }
@@ -300,12 +303,13 @@ class _GridPlaylistCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     return Semantics(
       button: true,
-      label: '打开歌单 ${playlist.name}',
+      label: l10n.homeOpenPlaylistNamed(playlist.name),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -366,7 +370,7 @@ class _GridPlaylistCard extends StatelessWidget {
               ),
               // 歌曲数
               Text(
-                '${playlist.songCount} 首',
+                l10n.homeSongCountShort(playlist.songCount),
                 style: textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -456,6 +460,7 @@ class _ErrorContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -467,7 +472,7 @@ class _ErrorContent extends StatelessWidget {
           children: [
             Icon(Icons.error_outline, size: 64, color: colorScheme.error),
             const SizedBox(height: 16),
-            Text('加载失败', style: textTheme.titleMedium),
+            Text(l10n.commonLoadFailed, style: textTheme.titleMedium),
             const SizedBox(height: 8),
             Text(
               error,
@@ -480,7 +485,7 @@ class _ErrorContent extends StatelessWidget {
             FilledButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh),
-              label: const Text('重试'),
+              label: Text(l10n.commonRetry),
             ),
           ],
         ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/responsive.dart';
+import '../../l10n/app_localizations.dart';
 
 /// 确认对话框组件
 class ConfirmDialog extends StatelessWidget {
@@ -10,11 +11,11 @@ class ConfirmDialog extends StatelessWidget {
   /// 对话框内容（可选）
   final String? content;
 
-  /// 确认按钮文字
-  final String confirmText;
+  /// 确认按钮文字（为空时使用「确认」）
+  final String? confirmText;
 
-  /// 取消按钮文字
-  final String cancelText;
+  /// 取消按钮文字（为空时使用「取消」）
+  final String? cancelText;
 
   /// 是否为破坏性操作（确认按钮显示为红色）
   final bool isDestructive;
@@ -23,14 +24,15 @@ class ConfirmDialog extends StatelessWidget {
     super.key,
     required this.title,
     this.content,
-    this.confirmText = '确认',
-    this.cancelText = '取消',
+    this.confirmText,
+    this.cancelText,
     this.isDestructive = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return AlertDialog(
       title: Text(title),
@@ -49,7 +51,7 @@ class ConfirmDialog extends StatelessWidget {
           style: TextButton.styleFrom(
             minimumSize: context.responsiveButtonMinSize,
           ),
-          child: Text(cancelText),
+          child: Text(cancelText ?? l10n.commonCancel),
         ),
         TextButton(
           onPressed: () => Navigator.of(context).pop(true),
@@ -57,7 +59,7 @@ class ConfirmDialog extends StatelessWidget {
             minimumSize: context.responsiveButtonMinSize,
             foregroundColor: isDestructive ? theme.colorScheme.error : null,
           ),
-          child: Text(confirmText),
+          child: Text(confirmText ?? l10n.commonConfirm),
         ),
       ],
     );
@@ -69,8 +71,8 @@ class ConfirmDialog extends StatelessWidget {
     BuildContext context, {
     required String title,
     String? content,
-    String confirmText = '确认',
-    String cancelText = '取消',
+    String? confirmText,
+    String? cancelText,
     bool isDestructive = false,
   }) async {
     final result = await showDialog<bool>(

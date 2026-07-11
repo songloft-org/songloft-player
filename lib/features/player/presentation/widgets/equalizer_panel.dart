@@ -1,8 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/equalizer_setting.dart';
 import '../providers/equalizer_provider.dart';
+
+/// 均衡器预设内部 key 到本地化显示名的映射
+String equalizerPresetLabel(AppLocalizations l10n, String key) {
+  switch (key) {
+    case 'flat':
+      return l10n.playerEqPresetFlat;
+    case 'rock':
+      return l10n.playerEqPresetRock;
+    case 'pop':
+      return l10n.playerEqPresetPop;
+    case 'jazz':
+      return l10n.playerEqPresetJazz;
+    case 'classical':
+      return l10n.playerEqPresetClassical;
+    case 'bass_boost':
+      return l10n.playerEqPresetBassBoost;
+    case 'treble_boost':
+      return l10n.playerEqPresetTrebleBoost;
+    case 'vocal':
+      return l10n.playerEqPresetVocal;
+    case 'custom':
+      return l10n.playerEqPresetCustom;
+    default:
+      return key;
+  }
+}
 
 class EqualizerPanel extends ConsumerWidget {
   const EqualizerPanel({super.key});
@@ -22,7 +49,7 @@ class EqualizerPanel extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Text(
-              '当前平台暂不支持均衡器',
+              AppLocalizations.of(context).playerEqNotSupported,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -48,7 +75,10 @@ class EqualizerPanel extends ConsumerWidget {
       children: [
         Icon(Icons.equalizer, color: theme.colorScheme.primary),
         const SizedBox(width: 8),
-        Text('均衡器', style: theme.textTheme.titleMedium),
+        Text(
+          AppLocalizations.of(context).playerEqualizer,
+          style: theme.textTheme.titleMedium,
+        ),
         const Spacer(),
         Switch(
           value: setting.enabled,
@@ -64,20 +94,21 @@ class EqualizerPanel extends ConsumerWidget {
     EqualizerNotifier notifier,
     ThemeData theme,
   ) {
+    final l10n = AppLocalizations.of(context);
     return SizedBox(
       height: 36,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        children: EqualizerSetting.presetLabels.entries.map((entry) {
-          final isSelected = setting.preset == entry.key;
+        children: EqualizerSetting.presetOrder.map((key) {
+          final isSelected = setting.preset == key;
           return Padding(
             padding: const EdgeInsets.only(right: 8),
             child: ChoiceChip(
-              label: Text(entry.value),
+              label: Text(equalizerPresetLabel(l10n, key)),
               selected: isSelected,
-              onSelected: entry.key == 'custom'
+              onSelected: key == 'custom'
                   ? null
-                  : (_) => notifier.setPreset(entry.key),
+                  : (_) => notifier.setPreset(key),
             ),
           );
         }).toList(),

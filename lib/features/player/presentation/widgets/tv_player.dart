@@ -6,6 +6,8 @@ import '../../../../core/theme/tv_theme.dart';
 import '../../../../core/utils/color_extraction.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/url_helper.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../../../../l10n/l10n_holder.dart';
 import '../../../../shared/widgets/tv_focusable.dart';
 import '../../domain/player_state.dart';
 import '../providers/player_provider.dart';
@@ -135,7 +137,7 @@ class _TvPlayerState extends ConsumerState<TvPlayer> {
           // 返回按钮（带标签）
           _TvPlayerControlButton(
             icon: Icons.arrow_back_rounded,
-            label: '返回',
+            label: AppLocalizations.of(context).playerBack,
             onPressed: () {
               notifier.closeFullPlayer();
               Navigator.of(context).maybePop();
@@ -146,7 +148,7 @@ class _TvPlayerState extends ConsumerState<TvPlayer> {
           const Spacer(),
           // 正在播放标题
           Text(
-            '正在播放',
+            AppLocalizations.of(context).playerNowPlaying,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               fontSize: TvTheme.fontSizeBody,
               fontWeight: FontWeight.w500,
@@ -209,7 +211,7 @@ class _TvPlayerState extends ConsumerState<TvPlayer> {
 
     if (!state.hasSong) {
       return Text(
-        '无播放内容',
+        AppLocalizations.of(context).playerNoContent,
         style: TvTheme.titleStyle(context).copyWith(
           color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
         ),
@@ -231,7 +233,7 @@ class _TvPlayerState extends ConsumerState<TvPlayer> {
         const SizedBox(height: TvTheme.spacingSmall),
         // 艺术家
         Text(
-          song.artist ?? '未知艺术家',
+          song.artist ?? AppLocalizations.of(context).playerUnknownArtist,
           style: TvTheme.captionStyle(context),
           textAlign: TextAlign.center,
           maxLines: 1,
@@ -280,7 +282,7 @@ class _TvPlayerState extends ConsumerState<TvPlayer> {
             builder:
                 (buttonContext) => _TvPlayerControlButton(
                   icon: _getPlayModeIcon(state.playMode),
-                  label: '播放模式',
+                  label: AppLocalizations.of(context).playerPlayMode,
                   onPressed:
                       () => _showPlayModeOverlay(
                         buttonContext,
@@ -300,7 +302,7 @@ class _TvPlayerState extends ConsumerState<TvPlayer> {
           // 音量减
           _TvPlayerControlButton(
             icon: Icons.volume_down_rounded,
-            label: '音量-',
+            label: AppLocalizations.of(context).playerVolumeDown,
             onPressed: () {
               final newVolume = (state.volume - 10).clamp(0.0, 100.0);
               notifier.setVolume(newVolume);
@@ -322,7 +324,7 @@ class _TvPlayerState extends ConsumerState<TvPlayer> {
           // 音量加
           _TvPlayerControlButton(
             icon: Icons.volume_up_rounded,
-            label: '音量+',
+            label: AppLocalizations.of(context).playerVolumeUp,
             onPressed: () {
               final newVolume = (state.volume + 10).clamp(0.0, 100.0);
               notifier.setVolume(newVolume);
@@ -334,7 +336,7 @@ class _TvPlayerState extends ConsumerState<TvPlayer> {
           // 上一首
           _TvPlayerControlButton(
             icon: Icons.skip_previous_rounded,
-            label: '上一首',
+            label: AppLocalizations.of(context).playerPrevious,
             onPressed: state.hasPrev ? notifier.playPrev : null,
             size: TvTheme.minButtonSize,
             iconSize: 40,
@@ -347,7 +349,7 @@ class _TvPlayerState extends ConsumerState<TvPlayer> {
           // 下一首
           _TvPlayerControlButton(
             icon: Icons.skip_next_rounded,
-            label: '下一首',
+            label: AppLocalizations.of(context).playerNext,
             onPressed: state.hasNext ? notifier.playNext : null,
             size: TvTheme.minButtonSize,
             iconSize: 40,
@@ -356,7 +358,7 @@ class _TvPlayerState extends ConsumerState<TvPlayer> {
           // 播放列表
           _TvPlayerControlButton(
             icon: Icons.queue_music_rounded,
-            label: '播放列表',
+            label: AppLocalizations.of(context).playerPlaylist,
             focusNode: _playlistButtonFocusNode,
             onPressed: () {
               final wasOpen = state.showPlaylistDrawer;
@@ -406,7 +408,7 @@ class _TvPlayerState extends ConsumerState<TvPlayer> {
           ),
           const SizedBox(height: 6),
           Text(
-            '缓冲中',
+            AppLocalizations.of(context).playerBuffering,
             style: TextStyle(
               fontSize: TvTheme.fontSizeCaption,
               color: Colors.white.withValues(alpha: 0.7),
@@ -440,15 +442,15 @@ class _TvPlayerState extends ConsumerState<TvPlayer> {
   String _getPlayModeTooltip(PlayMode mode) {
     switch (mode) {
       case PlayMode.order:
-        return '顺序播放';
+        return l10n.playerModeOrder;
       case PlayMode.loop:
-        return '列表循环';
+        return l10n.playerModeLoop;
       case PlayMode.single:
-        return '单曲循环';
+        return l10n.playerModeSingle;
       case PlayMode.random:
-        return '随机播放';
+        return l10n.playerModeRandom;
       case PlayMode.singlePlay:
-        return '单曲播放';
+        return l10n.playerModeSinglePlay;
     }
   }
 
@@ -650,7 +652,9 @@ class _TvPlayPauseButtonState extends State<_TvPlayPauseButton> {
           duration: TvTheme.focusAnimationDuration,
           curve: TvTheme.focusAnimationCurve,
           child: Text(
-            widget.isPlaying ? '暂停' : '播放',
+            widget.isPlaying
+                ? AppLocalizations.of(context).playerPause
+                : AppLocalizations.of(context).playerPlay,
             style: TextStyle(
               fontSize: TvTheme.fontSizeCaption,
               color: Colors.white.withValues(alpha: 0.7),
@@ -729,7 +733,7 @@ class _TvFocusableProgressBarState extends State<_TvFocusableProgressBar> {
       },
       child: Semantics(
         slider: true,
-        label: '播放进度',
+        label: AppLocalizations.of(context).playerProgress,
         child: GestureDetector(
           onTap: () => _focusNode.requestFocus(),
           child: AnimatedContainer(
@@ -763,7 +767,7 @@ class _TvFocusableProgressBarState extends State<_TvFocusableProgressBar> {
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 4),
                   child: Text(
-                    '← → 快进/快退',
+                    AppLocalizations.of(context).playerSeekHint,
                     style: TextStyle(
                       fontSize: TvTheme.fontSizeCaption,
                       color: theme.colorScheme.primary.withValues(alpha: 0.8),
@@ -901,7 +905,7 @@ class _TvPlayModeOverlayPanel extends StatelessWidget {
         // 透明背景层，点击关闭
         Positioned.fill(
           child: Semantics(
-            label: '关闭',
+            label: AppLocalizations.of(context).playerClose,
             child: GestureDetector(
               onTap: onDismiss,
               behavior: HitTestBehavior.opaque,
@@ -1052,7 +1056,7 @@ class TvMiniPlayer extends ConsumerWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      song.artist ?? '未知艺术家',
+                      song.artist ?? AppLocalizations.of(context).playerUnknownArtist,
                       style: TvTheme.captionStyle(context),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

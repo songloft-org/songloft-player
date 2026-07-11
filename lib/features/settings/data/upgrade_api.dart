@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 
 import '../../../config/app_config.dart';
 import '../../../core/network/api_exceptions.dart';
+import '../../../l10n/l10n_holder.dart';
 
 /// 版本信息模型
 class VersionInfo {
@@ -53,7 +54,10 @@ class UpdateVersionInfo {
   }
 
   /// 显示标签
-  String get label => type == 'stable' ? '稳定版' : '开发版';
+  String get label =>
+      type == 'stable'
+          ? l10n.settingsUpgradeStatusStable
+          : l10n.settingsUpgradeStatusDev;
 
   @override
   String toString() => 'UpdateVersionInfo(type: $type, version: $version)';
@@ -168,22 +172,22 @@ class UpgradeProgress {
   String get statusText {
     switch (status) {
       case 'downloading':
-        return '正在下载...';
+        return l10n.settingsUpgradeStatusDownloading;
       case 'testing':
-        return '正在验证...';
+        return l10n.settingsUpgradeStatusTesting;
       case 'replacing':
-        return '正在替换...';
+        return l10n.settingsUpgradeStatusReplacing;
       case 'resetting':
-        return '正在回退...';
+        return l10n.settingsUpgradeStatusResetting;
       case 'restarting':
-        return '正在重启...';
+        return l10n.settingsUpgradeStatusRestarting;
       case 'completed':
-        return '升级完成';
+        return l10n.settingsUpgradeStatusCompleted;
       case 'error':
       case 'failed':
-        return '升级失败';
+        return l10n.settingsUpgradeStatusFailed;
       default:
-        return '空闲';
+        return l10n.settingsUpgradeStatusIdle;
     }
   }
 

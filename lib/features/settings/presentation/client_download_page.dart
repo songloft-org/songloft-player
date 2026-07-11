@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../config/app_config.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/utils/web_os.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/constants/github_proxy.dart';
 import 'providers/settings_provider.dart';
 import 'widgets/section_card.dart';
@@ -48,7 +49,7 @@ class ClientDownloadPage extends ConsumerWidget {
       label: 'iOS',
       icon: Icons.phone_iphone,
       asset: 'songloft-ios-nosign.ipa',
-      note: '未签名，需自行侧载',
+      unsigned: true,
     ),
     _ClientAsset(
       os: WebOS.windows,
@@ -88,7 +89,7 @@ class ClientDownloadPage extends ConsumerWidget {
       label: 'iOS',
       icon: Icons.phone_iphone,
       asset: 'songloft-bundled-ios-nosign.ipa',
-      note: '未签名，需自行侧载',
+      unsigned: true,
     ),
     _ClientAsset(
       os: WebOS.windows,
@@ -115,28 +116,31 @@ class ClientDownloadPage extends ConsumerWidget {
     final os = detectWebOS();
     final proxy = ref.watch(githubProxyProvider).value ?? '';
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('下载客户端 App')),
+      appBar: AppBar(title: Text(l10n.settingsClientDownloadTitle)),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
           Text(
-            '相比 Web 界面，原生客户端支持后台播放、本地缓存、锁屏/通知栏媒体控制等能力。',
+            l10n.settingsClientDownloadIntro,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
           SectionCard(
-            title: '下载加速',
+            title: l10n.settingsClientDownloadAccelSection,
             icon: Icons.bolt_outlined,
             children: [
               ListTile(
                 leading: const Icon(Icons.public),
-                title: const Text('GitHub 加速代理'),
+                title: Text(l10n.settingsClientDownloadGithubProxy),
                 subtitle: Text(
-                  proxy.isEmpty ? '未配置（直连 GitHub，国内可能较慢）' : proxy,
+                  proxy.isEmpty
+                      ? l10n.settingsClientDownloadProxyNotConfigured
+                      : proxy,
                 ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _editProxy(context, ref, proxy),
@@ -149,19 +153,29 @@ class ClientDownloadPage extends ConsumerWidget {
             const SizedBox(height: AppSpacing.lg),
           ],
           SectionCard(
-            title: '标准版 · 连接当前服务器',
+            title: l10n.settingsClientDownloadStandardSection,
             icon: Icons.dns_outlined,
             children: _buildTiles(context, _standardAssets, _standardBase, os, proxy),
           ),
           const SizedBox(height: AppSpacing.lg),
           SectionCard(
-            title: 'Bundle 版 · 内嵌后端，无需服务器',
+            title: l10n.settingsClientDownloadBundleSection,
             icon: Icons.phone_android_outlined,
             children: _buildTiles(context, _bundleAssets, _bundleBase, os, proxy),
           ),
           const SizedBox(height: AppSpacing.lg),
-          _releasesLink(context, '标准版全部版本', _standardReleases, proxy),
-          _releasesLink(context, 'Bundle 版全部版本', _bundleReleases, proxy),
+          _releasesLink(
+            context,
+            l10n.settingsClientDownloadStandardAllVersions,
+            _standardReleases,
+            proxy,
+          ),
+          _releasesLink(
+            context,
+            l10n.settingsClientDownloadBundleAllVersions,
+            _bundleReleases,
+            proxy,
+          ),
         ],
       ),
     );
@@ -176,6 +190,7 @@ class ClientDownloadPage extends ConsumerWidget {
 
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -192,7 +207,7 @@ class ClientDownloadPage extends ConsumerWidget {
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
-                  '为你的设备推荐：${_osName(os)}',
+                  l10n.settingsClientDownloadRecommendFor(_osName(os)),
                   style: textTheme.titleSmall?.copyWith(
                     color: colorScheme.onPrimaryContainer,
                   ),
@@ -210,14 +225,18 @@ class ClientDownloadPage extends ConsumerWidget {
                   onPressed: () =>
                       _launch(_applyProxy(proxy, '$_standardBase${standard.asset}')),
                   icon: const Icon(Icons.download_outlined, size: 18),
-                  label: Text('标准版（${standard.label}）'),
+                  label: Text(
+                    l10n.settingsClientDownloadStandardBtn(standard.label),
+                  ),
                 ),
               if (bundle != null)
                 OutlinedButton.icon(
                   onPressed: () =>
                       _launch(_applyProxy(proxy, '$_bundleBase${bundle.asset}')),
                   icon: const Icon(Icons.download_outlined, size: 18),
-                  label: Text('Bundle 版（${bundle.label}）'),
+                  label: Text(
+                    l10n.settingsClientDownloadBundleBtn(bundle.label),
+                  ),
                 ),
             ],
           ),
@@ -234,6 +253,7 @@ class ClientDownloadPage extends ConsumerWidget {
     String proxy,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     final tiles = <Widget>[];
     for (var i = 0; i < assets.length; i++) {
       final a = assets[i];
@@ -251,7 +271,9 @@ class ClientDownloadPage extends ConsumerWidget {
                   )
                 : null,
           ),
-          subtitle: a.note != null ? Text(a.note!) : null,
+          subtitle: a.unsigned
+              ? Text(l10n.settingsClientDownloadNoteUnsigned)
+              : null,
           trailing: highlighted
               ? Icon(Icons.download_outlined, color: colorScheme.primary)
               : const Icon(Icons.download_outlined),
@@ -326,14 +348,14 @@ class _ClientAsset {
   final String label;
   final IconData icon;
   final String asset;
-  final String? note;
+  final bool unsigned;
 
   const _ClientAsset({
     required this.os,
     required this.label,
     required this.icon,
     required this.asset,
-    this.note,
+    this.unsigned = false,
   });
 }
 
@@ -372,17 +394,18 @@ class _GithubProxyDialogState extends State<_GithubProxyDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     const presets = kGithubProxyPresets;
 
     return AlertDialog(
-      title: const Text('GitHub 加速代理'),
+      title: Text(l10n.settingsClientDownloadGithubProxy),
       content: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              '国内访问 GitHub 较慢时可选择镜像加速。此设置与「检查更新」共用。',
+              l10n.settingsClientDownloadProxyDialogDesc,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -398,7 +421,9 @@ class _GithubProxyDialogState extends State<_GithubProxyDialog> {
                   ...List.generate(presets.length, (i) {
                     return RadioListTile<int>(
                       title: Text(
-                        presets[i].label,
+                        presets[i].value.isEmpty
+                            ? l10n.githubProxyDirect
+                            : presets[i].label,
                         style: theme.textTheme.bodyMedium,
                       ),
                       value: i,
@@ -408,7 +433,10 @@ class _GithubProxyDialogState extends State<_GithubProxyDialog> {
                     );
                   }),
                   RadioListTile<int>(
-                    title: Text('自定义代理', style: theme.textTheme.bodyMedium),
+                    title: Text(
+                      l10n.settingsClientDownloadCustomProxy,
+                      style: theme.textTheme.bodyMedium,
+                    ),
                     value: -1,
                     dense: true,
                     contentPadding: EdgeInsets.zero,
@@ -423,12 +451,12 @@ class _GithubProxyDialogState extends State<_GithubProxyDialog> {
                 child: TextField(
                   controller: _customController,
                   autofocus: true,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     hintText: 'https://your-proxy.com/',
-                    helperText: '输入代理地址，如 https://ghproxy.com/',
+                    helperText: l10n.settingsClientDownloadCustomProxyHelper,
                     helperMaxLines: 2,
                     isDense: true,
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
                   ),
                   style: theme.textTheme.bodySmall,
                 ),
@@ -439,7 +467,7 @@ class _GithubProxyDialogState extends State<_GithubProxyDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('取消'),
+          child: Text(l10n.commonCancel),
         ),
         FilledButton(
           onPressed: () {
@@ -448,7 +476,7 @@ class _GithubProxyDialogState extends State<_GithubProxyDialog> {
                 : presets[_selected].value;
             Navigator.pop(context, value);
           },
-          child: const Text('保存'),
+          child: Text(l10n.settingsClientDownloadSave),
         ),
       ],
     );

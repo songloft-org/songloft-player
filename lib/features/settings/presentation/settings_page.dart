@@ -32,6 +32,8 @@ import 'widgets/scan_manager.dart';
 import 'widgets/section_card.dart';
 import 'widgets/settings_master_detail.dart';
 import 'widgets/theme_selector.dart';
+import 'widgets/language_selector.dart';
+import '../../../l10n/app_localizations.dart';
 import 'widgets/frontend_upgrade_dialog.dart';
 import 'widgets/upgrade_dialog.dart';
 import 'providers/settings_provider.dart';
@@ -47,62 +49,64 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   int _selectedCategory = 0;
   int? _mobileDetailIndex;
 
-  static const _categories = [
+  List<SettingsCategory> _buildCategories(AppLocalizations l10n) => [
     SettingsCategory(
       icon: Icons.palette_outlined,
-      title: '外观设置',
-      subtitle: '主题、菜单和显示',
+      title: l10n.settingsCategoryAppearanceTitle,
+      subtitle: l10n.settingsCategoryAppearanceSubtitle,
     ),
     SettingsCategory(
       icon: Icons.play_circle_outlined,
-      title: '播放设置',
-      subtitle: '音质',
+      title: l10n.settingsCategoryPlaybackTitle,
+      subtitle: l10n.settingsCategoryPlaybackSubtitle,
     ),
     SettingsCategory(
       icon: Icons.library_music_outlined,
-      title: '音乐库管理',
-      subtitle: '扫描、导入和转换',
+      title: l10n.settingsCategoryLibraryTitle,
+      subtitle: l10n.settingsCategoryLibrarySubtitle,
     ),
     SettingsCategory(
       icon: Icons.extension_outlined,
-      title: '扩展',
-      subtitle: '插件管理',
+      title: l10n.settingsCategoryExtensionsTitle,
+      subtitle: l10n.settingsCategoryExtensionsSubtitle,
     ),
     SettingsCategory(
       icon: Icons.storage_outlined,
-      title: '缓存管理',
-      subtitle: '服务端和本地缓存',
+      title: l10n.settingsCategoryCacheTitle,
+      subtitle: l10n.settingsCategoryCacheSubtitle,
     ),
     SettingsCategory(
       icon: Icons.language_outlined,
-      title: '网络设置',
-      subtitle: '代理配置',
+      title: l10n.settingsCategoryNetworkTitle,
+      subtitle: l10n.settingsCategoryNetworkSubtitle,
     ),
     SettingsCategory(
       icon: Icons.backup_outlined,
-      title: '数据管理',
-      subtitle: '歌单导出与导入',
+      title: l10n.settingsCategoryDataTitle,
+      subtitle: l10n.settingsCategoryDataSubtitle,
     ),
     SettingsCategory(
       icon: Icons.system_update_outlined,
-      title: '关于与更新',
-      subtitle: '版本和日志',
+      title: l10n.settingsCategoryAboutTitle,
+      subtitle: l10n.settingsCategoryAboutSubtitle,
     ),
     SettingsCategory(
       icon: Icons.account_circle_outlined,
-      title: '账户',
-      subtitle: '服务器和登录',
+      title: l10n.settingsCategoryAccountTitle,
+      subtitle: l10n.settingsCategoryAccountSubtitle,
     ),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final categories = _buildCategories(l10n);
     // 与 SettingsMasterDetail 共用同一布局判断，避免漂移导致车机超宽比下渲染
     // 移动端列表却不响应点击的「按钮失效」(songloft-org/songloft#268)。
     final isMobile = !context.useWideLayout;
 
     if (isMobile && _mobileDetailIndex != null) {
-      final category = _categories[_mobileDetailIndex!];
+      final category = categories[_mobileDetailIndex!];
       return PopScope(
         canPop: false,
         onPopInvokedWithResult: (didPop, _) {
@@ -123,9 +127,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('设置')),
+      appBar: AppBar(title: Text(l10n.navSettings)),
       body: SettingsMasterDetail(
-        categories: _categories,
+        categories: categories,
         selectedIndex: _selectedCategory,
         onCategorySelected: (i) {
           setState(() {
@@ -142,6 +146,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   Widget _buildServerInfoCard() {
+    final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final currentUrl = ref.watch(baseUrlProvider);
@@ -151,7 +156,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         versionText == null
             ? null
             : versionText == 'dev'
-            ? '开发版'
+            ? l10n.settingsDevVersion
             : 'v$versionText';
 
     return Container(
@@ -184,7 +189,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   AppConfig.isEmbedded
                       ? 'Songloft'
                       : ref.watch(runModeProvider) == RunMode.local
-                      ? '本地模式'
+                      ? l10n.settingsLocalMode
                       : currentUrl,
                   style: textTheme.titleSmall?.copyWith(
                     color: colorScheme.onPrimaryContainer,
@@ -213,7 +218,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              child: const Text('管理'),
+              child: Text(l10n.settingsManage),
             ),
         ],
       ),
@@ -272,18 +277,19 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             .toList();
     final usedCount = _fixedTabs + config.optionalCount;
     final atLimit = usedCount >= _maxTabs;
+    final l10n = AppLocalizations.of(context);
 
     return [
-      const SectionCard(
-        title: '主题',
+      SectionCard(
+        title: l10n.themeTitle,
         icon: Icons.palette_outlined,
         children: [
           ListTile(
-            leading: Icon(Icons.brightness_6),
-            title: Text('主题模式'),
-            subtitle: Text('选择应用的主题外观'),
+            leading: const Icon(Icons.brightness_6),
+            title: Text(l10n.themeModeTitle),
+            subtitle: Text(l10n.themeModeSubtitle),
           ),
-          Padding(
+          const Padding(
             padding: EdgeInsets.fromLTRB(
               AppSpacing.md,
               0,
@@ -295,12 +301,27 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         ],
       ),
       SectionCard(
-        title: '菜单设置',
+        title: l10n.language,
+        icon: Icons.translate_outlined,
+        children: [
+          const Padding(
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              AppSpacing.md,
+              AppSpacing.md,
+              AppSpacing.md,
+            ),
+            child: LanguageSelector(),
+          ),
+        ],
+      ),
+      SectionCard(
+        title: l10n.settingsMenuTitle,
         icon: Icons.tab_outlined,
         children: [
           SwitchListTile(
             secondary: const Icon(Icons.library_music_outlined),
-            title: const Text('歌曲库'),
+            title: Text(l10n.settingsMenuLibrary),
             value: config.showLibrary,
             onChanged:
                 atLimit && !config.showLibrary
@@ -313,7 +334,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           const Divider(height: 1),
           SwitchListTile(
             secondary: const Icon(Icons.queue_music_outlined),
-            title: const Text('歌单'),
+            title: Text(l10n.settingsMenuPlaylists),
             value: config.showPlaylists,
             onChanged:
                 atLimit && !config.showPlaylists
@@ -332,8 +353,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             padding: const EdgeInsets.all(AppSpacing.sm),
             child: Center(
               child: Text(
-                '已启用 $usedCount 个标签（首页和设置固定显示）'
-                '${usedCount > 5 ? '\n移动端超出 5 个时将折叠到「更多」菜单' : ''}',
+                l10n.settingsTabsEnabledCount(usedCount) +
+                    (usedCount > 5 ? '\n${l10n.settingsTabsCollapseHint}' : ''),
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -401,44 +422,52 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   Future<void> _updateTabConfig(TabConfig config, bool wouldExceedLimit) async {
+    final l10n = AppLocalizations.of(context);
     if (wouldExceedLimit) {
-      ResponsiveSnackBar.showError(context, message: '最多显示 $_maxTabs 个标签');
+      ResponsiveSnackBar.showError(
+        context,
+        message: l10n.settingsMaxTabsLimit(_maxTabs),
+      );
       return;
     }
     try {
       await ref.read(tabConfigProvider.notifier).updateConfig(config);
     } catch (e) {
       if (!mounted) return;
-      ResponsiveSnackBar.showError(context, message: '保存失败: $e');
+      ResponsiveSnackBar.showError(
+        context,
+        message: l10n.settingsSaveFailed(e.toString()),
+      );
     }
   }
 
   // ── 播放设置 ──
 
   List<Widget> _buildPlaybackItems() {
+    final l10n = AppLocalizations.of(context);
     final quality = ref.watch(audioQualityProvider);
-    const labels = {
-      'original': '原始音质',
-      '128': '低 (128kbps)',
-      '192': '中 (192kbps)',
-      '320': '高 (320kbps)',
+    final labels = {
+      'original': l10n.settingsQualityOriginal,
+      '128': l10n.settingsQualityLow,
+      '192': l10n.settingsQualityMedium,
+      '320': l10n.settingsQualityHigh,
     };
     return [
       SectionCard(
-        title: '播放设置',
+        title: l10n.settingsCategoryPlaybackTitle,
         icon: Icons.play_circle_outlined,
         children: [
           ListTile(
             leading: const Icon(Icons.high_quality_outlined),
-            title: const Text('音质'),
-            subtitle: Text(labels[quality] ?? '原始音质'),
+            title: Text(l10n.settingsQualityTitle),
+            subtitle: Text(labels[quality] ?? l10n.settingsQualityOriginal),
             trailing: const Icon(Icons.chevron_right),
             onTap: () async {
               final picked = await showDialog<String>(
                 context: context,
                 builder:
                     (ctx) => SimpleDialog(
-                      title: const Text('选择音质'),
+                      title: Text(l10n.settingsQualityDialogTitle),
                       children: [
                         RadioGroup<String>(
                           groupValue: quality,
@@ -452,8 +481,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                         title: Text(e.value),
                                         subtitle:
                                             e.key == 'original'
-                                                ? const Text('不转码，使用文件原始码率')
-                                                : const Text('转码为 MP3，适合弱网环境'),
+                                                ? Text(
+                                                  l10n.settingsQualityOriginalDesc,
+                                                )
+                                                : Text(
+                                                  l10n.settingsQualityTranscodeDesc,
+                                                ),
                                         value: e.key,
                                       ),
                                     )
@@ -471,11 +504,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 if (!mounted) return;
                 ResponsiveSnackBar.show(
                   context,
-                  message: '音质已切换为${labels[picked]}',
+                  message: l10n.settingsQualitySwitched(labels[picked] ?? ''),
                 );
               } catch (e) {
                 if (!mounted) return;
-                ResponsiveSnackBar.showError(context, message: '切换失败: $e');
+                ResponsiveSnackBar.showError(
+                  context,
+                  message: l10n.settingsSwitchFailed(e.toString()),
+                );
               }
             },
           ),
@@ -487,9 +523,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   // ── 音乐库管理 ──
 
   List<Widget> _buildLibraryItems() {
+    final l10n = AppLocalizations.of(context);
     return [
       SectionCard(
-        title: '音乐库管理',
+        title: l10n.settingsCategoryLibraryTitle,
         icon: Icons.library_music_outlined,
         children: [
           const Padding(padding: EdgeInsets.all(16), child: ScanManager()),
@@ -498,8 +535,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           const Divider(height: 1),
           ListTile(
             leading: const Icon(Icons.fingerprint),
-            title: const Text('重复歌曲检测'),
-            subtitle: const Text('通过音频指纹识别内容相同的重复文件'),
+            title: Text(l10n.settingsLibraryDuplicateTitle),
+            subtitle: Text(l10n.settingsLibraryDuplicateSubtitle),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push(AppRoutes.duplicateCheck),
           ),
@@ -511,15 +548,16 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   // ── 扩展 ──
 
   List<Widget> _buildExtensionsItems() {
+    final l10n = AppLocalizations.of(context);
     return [
       SectionCard(
-        title: '扩展',
+        title: l10n.settingsCategoryExtensionsTitle,
         icon: Icons.extension_outlined,
         children: [
           ListTile(
             leading: const Icon(Icons.store_outlined),
-            title: const Text('插件商店'),
-            subtitle: const Text('浏览和安装插件'),
+            title: Text(l10n.settingsPluginStoreTitle),
+            subtitle: Text(l10n.settingsPluginStoreSubtitle),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push(AppRoutes.pluginRegistry),
           ),
@@ -533,11 +571,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   // ── 缓存管理 ──
 
   List<Widget> _buildCacheItems() {
+    final l10n = AppLocalizations.of(context);
     return [
-      const SectionCard(
-        title: '缓存管理',
+      SectionCard(
+        title: l10n.settingsCategoryCacheTitle,
         icon: Icons.storage_outlined,
-        children: [CacheManager()],
+        children: const [CacheManager()],
       ),
     ];
   }
@@ -545,9 +584,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   // ── 网络设置 ──
 
   List<Widget> _buildNetworkItems() {
+    final l10n = AppLocalizations.of(context);
     return [
       SectionCard(
-        title: '网络设置',
+        title: l10n.settingsCategoryNetworkTitle,
         icon: Icons.language_outlined,
         children: [
           _buildHttpProxyTile(),
@@ -561,23 +601,24 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   // ── 数据管理 ──
 
   List<Widget> _buildDataItems() {
+    final l10n = AppLocalizations.of(context);
     return [
       SectionCard(
-        title: '数据管理',
+        title: l10n.settingsCategoryDataTitle,
         icon: Icons.backup_outlined,
         children: [
           ListTile(
             leading: const Icon(Icons.file_download_outlined),
-            title: const Text('导出歌单'),
-            subtitle: const Text('将所有歌单数据备份为 JSON 文件'),
+            title: Text(l10n.settingsExportPlaylistTitle),
+            subtitle: Text(l10n.settingsExportPlaylistSubtitle),
             trailing: const Icon(Icons.chevron_right),
             onTap: _exportPlaylists,
           ),
           const Divider(height: 1),
           ListTile(
             leading: const Icon(Icons.file_upload_outlined),
-            title: const Text('导入歌单'),
-            subtitle: const Text('从 JSON 备份文件还原歌单数据'),
+            title: Text(l10n.settingsImportPlaylistTitle),
+            subtitle: Text(l10n.settingsImportPlaylistSubtitle),
             trailing: const Icon(Icons.chevron_right),
             onTap: _importPlaylists,
           ),
@@ -589,9 +630,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   // ── 关于与更新 ──
 
   List<Widget> _buildAboutItems() {
+    final l10n = AppLocalizations.of(context);
     return [
       SectionCard(
-        title: '关于与更新',
+        title: l10n.settingsCategoryAboutTitle,
         icon: Icons.system_update_outlined,
         children: [
           _buildServerVersionTile(),
@@ -605,8 +647,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             const Divider(height: 1),
             ListTile(
               leading: const Icon(Icons.download_outlined),
-              title: const Text('下载客户端 App'),
-              subtitle: const Text('获取手机 / 桌面原生客户端，支持后台播放、缓存等'),
+              title: Text(l10n.settingsDownloadAppTitle),
+              subtitle: Text(l10n.settingsDownloadAppSubtitle),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => context.push(AppRoutes.clientDownload),
             ),
@@ -614,8 +656,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           const Divider(height: 1),
           ListTile(
             leading: const Icon(Icons.info_outline),
-            title: const Text('关于'),
-            subtitle: const Text('版本信息和许可证'),
+            title: Text(l10n.settingsAboutTitle),
+            subtitle: Text(l10n.settingsAboutSubtitle),
             trailing: const Icon(Icons.chevron_right),
             onTap: _showAboutDialog,
           ),
@@ -627,9 +669,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   // ── 账户 ──
 
   List<Widget> _buildAccountItems() {
+    final l10n = AppLocalizations.of(context);
     return [
       SectionCard(
-        title: '账户',
+        title: l10n.settingsCategoryAccountTitle,
         icon: Icons.account_circle_outlined,
         children: [
           if (!AppConfig.isEmbedded) ...[
@@ -640,12 +683,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     : Icons.link,
               ),
               title: Text(
-                ref.watch(runModeProvider) == RunMode.local ? '本地模式' : '服务器',
+                ref.watch(runModeProvider) == RunMode.local
+                    ? l10n.settingsLocalMode
+                    : l10n.settingsAccountServer,
               ),
               subtitle:
                   ref.watch(runModeProvider) == RunMode.local
                       ? Text(
-                        ref.watch(localMusicDirProvider) ?? '未选择音乐目录',
+                        ref.watch(localMusicDirProvider) ??
+                            l10n.settingsNoMusicDir,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       )
@@ -661,7 +707,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               color: Theme.of(context).colorScheme.error,
             ),
             title: Text(
-              '退出登录',
+              l10n.settingsLogout,
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
             trailing: const Icon(Icons.chevron_right),
@@ -675,10 +721,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   // ── 业务逻辑方法（保持不变） ──
 
   Future<void> _exportPlaylists() async {
+    final l10n = AppLocalizations.of(context);
     final token = SecureStorageService.cachedAccessToken;
     if (token == null || token.isEmpty) {
       if (!mounted) return;
-      ResponsiveSnackBar.showError(context, message: '未登录，无法导出');
+      ResponsiveSnackBar.showError(
+        context,
+        message: l10n.settingsExportNotLoggedIn,
+      );
       return;
     }
     final url =
@@ -687,11 +737,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     } catch (e) {
       if (!mounted) return;
-      ResponsiveSnackBar.showError(context, message: '导出失败: $e');
+      ResponsiveSnackBar.showError(
+        context,
+        message: l10n.settingsExportFailed(e.toString()),
+      );
     }
   }
 
   Future<void> _importPlaylists() async {
+    final l10n = AppLocalizations.of(context);
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.any,
@@ -705,7 +759,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       if (kIsWeb) {
         if (file.bytes == null) {
           if (!mounted) return;
-          ResponsiveSnackBar.showError(context, message: '无法读取文件内容');
+          ResponsiveSnackBar.showError(
+            context,
+            message: l10n.settingsImportReadFailed,
+          );
           return;
         }
         multipartFile = MultipartFile.fromBytes(
@@ -715,7 +772,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       } else {
         if (file.path == null) {
           if (!mounted) return;
-          ResponsiveSnackBar.showError(context, message: '无法获取文件路径');
+          ResponsiveSnackBar.showError(
+            context,
+            message: l10n.settingsImportPathFailed,
+          );
           return;
         }
         multipartFile = await MultipartFile.fromFile(
@@ -740,9 +800,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
       ResponsiveSnackBar.show(
         context,
-        message:
-            '导入完成: 新建歌单 $created, 合并歌单 $merged, '
-            '新建歌曲 $songsCreated, 匹配歌曲 $songsMatched',
+        message: l10n.settingsImportComplete(
+          created,
+          merged,
+          songsCreated,
+          songsMatched,
+        ),
       );
 
       ref.invalidate(playlistListProvider);
@@ -752,32 +815,36 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           (e.response?.data as Map<String, dynamic>?)?['error'] as String?;
       ResponsiveSnackBar.showError(
         context,
-        message: '导入失败: ${detail ?? e.message}',
+        message: l10n.settingsImportFailed(detail ?? e.message ?? ''),
       );
     } catch (e) {
       if (!mounted) return;
-      ResponsiveSnackBar.showError(context, message: '导入失败: $e');
+      ResponsiveSnackBar.showError(
+        context,
+        message: l10n.settingsImportFailed(e.toString()),
+      );
     }
   }
 
   Future<void> _showLogoutDialog() async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('确认退出'),
-            content: const Text('确定要退出当前账户吗？'),
+            title: Text(l10n.settingsLogoutConfirmTitle),
+            content: Text(l10n.settingsLogoutConfirmContent),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('取消'),
+                child: Text(l10n.commonCancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(context, true),
                 style: FilledButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.error,
                 ),
-                child: const Text('确认退出'),
+                child: Text(l10n.settingsLogoutButton),
               ),
             ],
           ),
@@ -789,6 +856,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   Widget _buildServerVersionTile() {
+    final l10n = AppLocalizations.of(context);
     final upgradeCheck = ref.watch(upgradeCheckProvider);
 
     return upgradeCheck.when(
@@ -797,12 +865,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         final hasUpdate = check.hasUpdate && check.availableUpdates.isNotEmpty;
         final subtitle =
             hasUpdate
-                ? '发现新版本: ${check.availableUpdates.first.version}'
-                : '当前版本: $currentVersion (已是最新)';
+                ? l10n.settingsUpdateAvailable(
+                  check.availableUpdates.first.version,
+                )
+                : l10n.settingsCurrentVersionLatest(currentVersion);
 
         return ListTile(
           leading: const Icon(Icons.dns),
-          title: const Text('检查服务端更新'),
+          title: Text(l10n.settingsCheckServerUpdate),
           subtitle: Text(
             subtitle,
             style:
@@ -824,11 +894,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         );
       },
       loading:
-          () => const ListTile(
-            leading: Icon(Icons.dns),
-            title: Text('检查服务端更新'),
-            subtitle: Text('正在检查更新...'),
-            trailing: SizedBox(
+          () => ListTile(
+            leading: const Icon(Icons.dns),
+            title: Text(l10n.settingsCheckServerUpdate),
+            subtitle: Text(l10n.settingsCheckingUpdate),
+            trailing: const SizedBox(
               width: 20,
               height: 20,
               child: CircularProgressIndicator(strokeWidth: 2),
@@ -837,8 +907,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       error:
           (_, _) => ListTile(
             leading: const Icon(Icons.dns),
-            title: const Text('检查服务端更新'),
-            subtitle: const Text('检查更新失败'),
+            title: Text(l10n.settingsCheckServerUpdate),
+            subtitle: Text(l10n.settingsCheckUpdateFailed),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => UpgradeDialog.show(context),
           ),
@@ -846,12 +916,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   String _formatServerUpgradeVersion(UpgradeCheck check) {
-    final versionText = check.currentVersion ?? '未知';
+    final l10n = AppLocalizations.of(context);
+    final versionText = check.currentVersion ?? l10n.commonUnknown;
     final details = <String>[];
     if (check.currentChannel == 'dev') {
-      details.add('开发版');
+      details.add(l10n.settingsDevVersion);
     } else if (check.currentChannel == 'stable') {
-      details.add('正式版');
+      details.add(l10n.settingsStableVersion);
     }
     if (check.currentBuildType != null && check.currentBuildType!.isNotEmpty) {
       details.add(check.currentBuildType!);
@@ -862,6 +933,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   Widget _buildFrontendUpdateTile() {
+    final l10n = AppLocalizations.of(context);
     final frontendCheck = ref.watch(frontendVersionCheckProvider);
     final versionDisplay = AppConfig.frontendVersionDisplay;
 
@@ -869,12 +941,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       data: (check) {
         final subtitle =
             check.hasUpdate
-                ? '发现新版本: ${check.latestVersionDisplay}'
-                : '当前版本: $versionDisplay (已是最新)';
+                ? l10n.settingsUpdateAvailable(check.latestVersionDisplay)
+                : l10n.settingsCurrentVersionLatest(versionDisplay);
 
         return ListTile(
           leading: const Icon(Icons.phone_android),
-          title: const Text('检查客户端更新'),
+          title: Text(l10n.settingsCheckClientUpdate),
           subtitle: Text(
             subtitle,
             style:
@@ -898,8 +970,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       loading:
           () => ListTile(
             leading: const Icon(Icons.phone_android),
-            title: const Text('检查客户端更新'),
-            subtitle: Text('当前版本: $versionDisplay'),
+            title: Text(l10n.settingsCheckClientUpdate),
+            subtitle: Text(l10n.settingsCurrentVersion(versionDisplay)),
             trailing: const SizedBox(
               width: 20,
               height: 20,
@@ -909,8 +981,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       error:
           (_, _) => ListTile(
             leading: const Icon(Icons.phone_android),
-            title: const Text('检查客户端更新'),
-            subtitle: Text('当前版本: $versionDisplay'),
+            title: Text(l10n.settingsCheckClientUpdate),
+            subtitle: Text(l10n.settingsCurrentVersion(versionDisplay)),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => FrontendUpgradeDialog.show(context),
           ),
@@ -918,16 +990,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   Widget _buildHlsProxyTile() {
+    final l10n = AppLocalizations.of(context);
     final enabledAsync = ref.watch(hlsProxyEnabledProvider);
     final enabled = enabledAsync.value ?? false;
 
     return SwitchListTile(
       secondary: const Icon(Icons.cell_tower_outlined),
-      title: const Text('HLS 电台后端代理'),
-      subtitle: const Text(
-        '开启后服务端拉取电台 m3u8 并代理切片,可绕过 Referer 防盗链 / CORS。'
-        '所有切片走本机带宽,注意流量成本',
-      ),
+      title: Text(l10n.settingsHlsProxyTitle),
+      subtitle: Text(l10n.settingsHlsProxySubtitle),
       value: enabled,
       onChanged:
           enabledAsync.isLoading
@@ -940,24 +1010,31 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   if (!mounted) return;
                   ResponsiveSnackBar.show(
                     context,
-                    message: value ? '已开启 HLS 代理' : '已关闭 HLS 代理',
+                    message:
+                        value
+                            ? l10n.settingsHlsProxyEnabled
+                            : l10n.settingsHlsProxyDisabled,
                   );
                 } catch (e) {
                   if (!mounted) return;
-                  ResponsiveSnackBar.showError(context, message: '保存失败: $e');
+                  ResponsiveSnackBar.showError(
+                    context,
+                    message: l10n.settingsSaveFailed(e.toString()),
+                  );
                 }
               },
     );
   }
 
   Widget _buildHttpProxyTile() {
+    final l10n = AppLocalizations.of(context);
     final proxyAsync = ref.watch(httpProxyProvider);
     final proxy = proxyAsync.value ?? '';
 
     return ListTile(
       leading: const Icon(Icons.vpn_lock_outlined),
-      title: const Text('HTTP 代理'),
-      subtitle: Text(proxy.isEmpty ? '未配置（直连）' : proxy),
+      title: Text(l10n.settingsHttpProxyTitle),
+      subtitle: Text(proxy.isEmpty ? l10n.settingsHttpProxyNotConfigured : proxy),
       trailing: const Icon(Icons.chevron_right),
       enabled: !proxyAsync.isLoading,
       onTap: () async {
@@ -966,23 +1043,21 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           context: context,
           builder:
               (ctx) => AlertDialog(
-                title: const Text('HTTP 代理'),
+                title: Text(l10n.settingsHttpProxyTitle),
                 content: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      '设置全局 HTTP 代理，所有后端外发请求（插件下载、升级检查等）将通过此代理转发。留空则直连。',
-                    ),
+                    Text(l10n.settingsHttpProxyDialogDesc),
                     const SizedBox(height: 16),
                     TextField(
                       controller: controller,
-                      decoration: const InputDecoration(
-                        labelText: '代理地址',
+                      decoration: InputDecoration(
+                        labelText: l10n.settingsHttpProxyAddressLabel,
                         hintText: 'http://192.168.1.1:7890',
-                        helperText: '支持 HTTP/HTTPS/SOCKS5 代理',
+                        helperText: l10n.settingsHttpProxyHelper,
                         helperMaxLines: 2,
-                        border: OutlineInputBorder(),
+                        border: const OutlineInputBorder(),
                       ),
                       autofocus: true,
                       onSubmitted: (v) => Navigator.pop(ctx, v.trim()),
@@ -992,16 +1067,16 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(ctx),
-                    child: const Text('取消'),
+                    child: Text(l10n.commonCancel),
                   ),
                   if (proxy.isNotEmpty)
                     TextButton(
                       onPressed: () => Navigator.pop(ctx, ''),
-                      child: const Text('清除'),
+                      child: Text(l10n.settingsClear),
                     ),
                   FilledButton(
                     onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-                    child: const Text('保存'),
+                    child: Text(l10n.settingsSave),
                   ),
                 ],
               ),
@@ -1012,28 +1087,35 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           if (!mounted) return;
           ResponsiveSnackBar.show(
             context,
-            message: result.isEmpty ? '已清除 HTTP 代理' : 'HTTP 代理已设置为 $result',
+            message:
+                result.isEmpty
+                    ? l10n.settingsHttpProxyCleared
+                    : l10n.settingsHttpProxySet(result),
           );
         } catch (e) {
           if (!mounted) return;
-          ResponsiveSnackBar.showError(context, message: '保存失败: $e');
+          ResponsiveSnackBar.showError(
+            context,
+            message: l10n.settingsSaveFailed(e.toString()),
+          );
         }
       },
     );
   }
 
   Widget _buildLogLevelTile() {
+    final l10n = AppLocalizations.of(context);
     final levelAsync = ref.watch(logLevelProvider);
     final level = levelAsync.value ?? 'info';
-    const labels = {
-      'debug': 'Debug（详细，调试用）',
-      'info': 'Info（默认）',
-      'warn': 'Warn',
-      'error': 'Error（仅错误）',
+    final labels = {
+      'debug': l10n.settingsLogLevelDebug,
+      'info': l10n.settingsLogLevelInfo,
+      'warn': l10n.settingsLogLevelWarn,
+      'error': l10n.settingsLogLevelError,
     };
     return ListTile(
       leading: const Icon(Icons.bug_report_outlined),
-      title: const Text('日志等级'),
+      title: Text(l10n.settingsLogLevelTitle),
       subtitle: Text(labels[level] ?? level),
       trailing: const Icon(Icons.chevron_right),
       enabled: !levelAsync.isLoading,
@@ -1042,7 +1124,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           context: context,
           builder:
               (ctx) => SimpleDialog(
-                title: const Text('选择日志等级'),
+                title: Text(l10n.settingsLogLevelDialogTitle),
                 children: [
                   RadioGroup<String>(
                     groupValue: level,
@@ -1069,31 +1151,35 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           if (!mounted) return;
           ResponsiveSnackBar.show(
             context,
-            message: '日志等级已切换为 ${labels[picked] ?? picked}',
+            message: l10n.settingsLogLevelSwitched(labels[picked] ?? picked),
           );
         } catch (e) {
           if (!mounted) return;
-          ResponsiveSnackBar.showError(context, message: '切换失败: $e');
+          ResponsiveSnackBar.showError(
+            context,
+            message: l10n.settingsSwitchFailed(e.toString()),
+          );
         }
       },
     );
   }
 
   Widget _buildApiUrlSubtitle() {
+    final l10n = AppLocalizations.of(context);
     final serversAsync = ref.watch(serversProvider);
     final currentUrl = ref.watch(baseUrlProvider);
     return serversAsync.when(
       data: (servers) {
-        if (servers.isEmpty) return const Text('未配置 · 点击添加');
+        if (servers.isEmpty) return Text(l10n.settingsAccountUrlNotConfigured);
         final current = servers.firstWhere(
           (s) => s.url == currentUrl,
           orElse: () => servers.first,
         );
         final label = current.name.isNotEmpty ? current.name : current.url;
-        return Text('${servers.length} 个地址 · 当前: $label');
+        return Text(l10n.settingsAccountUrlSummary(servers.length, label));
       },
-      loading: () => const Text('加载中...'),
-      error: (_, _) => const Text('加载失败'),
+      loading: () => Text(l10n.settingsAccountLoading),
+      error: (_, _) => Text(l10n.commonLoadFailed),
     );
   }
 
@@ -1126,6 +1212,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
     if (!mounted) return;
 
+    final l10n = AppLocalizations.of(context);
     showAboutDialog(
       context: context,
       applicationName: 'Songloft',
@@ -1142,9 +1229,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       applicationLegalese: '© 2024-2026 Songloft. All rights reserved.',
       children: [
         const SizedBox(height: 16),
-        const Text('Songloft 是一个开源的个人音乐服务器应用。'),
+        Text(l10n.settingsAboutDesc1),
         const SizedBox(height: 8),
-        const Text('支持本地音乐库管理、在线播放和插件扩展。'),
+        Text(l10n.settingsAboutDesc2),
         if (gitCommit != null) ...[
           const SizedBox(height: 8),
           Text(
@@ -1155,7 +1242,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         const SizedBox(height: 16),
         Semantics(
           link: true,
-          label: '打开 GitHub 页面',
+          label: l10n.settingsAboutGithubSemantics,
           child: InkWell(
             onTap: () => _launchUrl('https://github.com/songloft-org/songloft'),
             child: Row(

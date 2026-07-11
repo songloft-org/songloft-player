@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/storage/lyric_cache_service.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/models/song.dart';
 import '../../library/presentation/providers/songs_provider.dart';
 import '../domain/lyric_parser.dart';
@@ -110,10 +111,11 @@ class _LyricAdjustPageState extends ConsumerState<LyricAdjustPage> {
 
       if (!mounted) return;
 
+      final l10n = AppLocalizations.of(context);
       final msg = switch (result.fileWriteStatus) {
-        'written' => '已保存，已写入音频文件',
-        'failed' => '已保存到数据库，但写入音频文件失败',
-        _ => '已保存到数据库（文件未更新）',
+        'written' => l10n.playerLyricSavedWritten,
+        'failed' => l10n.playerLyricSavedWriteFailed,
+        _ => l10n.playerLyricSavedDbOnly,
       };
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(msg), duration: const Duration(seconds: 2)),
@@ -122,7 +124,7 @@ class _LyricAdjustPageState extends ConsumerState<LyricAdjustPage> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('保存失败：$e')),
+        SnackBar(content: Text(AppLocalizations.of(context).playerSaveFailedDetail('$e'))),
       );
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -131,19 +133,20 @@ class _LyricAdjustPageState extends ConsumerState<LyricAdjustPage> {
 
   Future<bool> _confirmDiscard() async {
     if (!_hasChanges) return true;
+    final l10n = AppLocalizations.of(context);
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('放弃修改？'),
-        content: const Text('当前调整尚未保存，确定要离开吗？'),
+        title: Text(l10n.playerDiscardChangesTitle),
+        content: Text(l10n.playerDiscardChangesContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('继续编辑'),
+            child: Text(l10n.playerContinueEditing),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('放弃'),
+            child: Text(l10n.playerDiscard),
           ),
         ],
       ),
@@ -152,6 +155,7 @@ class _LyricAdjustPageState extends ConsumerState<LyricAdjustPage> {
   }
 
   Widget _buildGlobalOffsetCard(ThemeData theme) {
+    final l10n = AppLocalizations.of(context);
     final sign = _globalOffsetMs >= 0 ? '+' : '';
     return Card(
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -163,7 +167,7 @@ class _LyricAdjustPageState extends ConsumerState<LyricAdjustPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('全局偏移', style: theme.textTheme.titleSmall),
+                Text(l10n.playerGlobalOffset, style: theme.textTheme.titleSmall),
                 Text(
                   '$sign$_globalOffsetMs ms',
                   style: theme.textTheme.titleMedium?.copyWith(
@@ -183,7 +187,8 @@ class _LyricAdjustPageState extends ConsumerState<LyricAdjustPage> {
               ),
               label: '$sign$_globalOffsetMs ms',
               onChanged: (v) => setState(() => _globalOffsetMs = v.round()),
-              semanticFormatterCallback: (value) => '歌词偏移 ${value.round()} 毫秒',
+              semanticFormatterCallback: (value) =>
+                  l10n.playerLyricOffsetSemantics(value.round()),
             ),
             Wrap(
               spacing: 8,
@@ -205,7 +210,7 @@ class _LyricAdjustPageState extends ConsumerState<LyricAdjustPage> {
             ),
             const SizedBox(height: 4),
             Text(
-              '提示：歌词整体早出现，用负偏移（-）；整体晚出现，用正偏移（+）',
+              l10n.playerOffsetHint,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -217,6 +222,7 @@ class _LyricAdjustPageState extends ConsumerState<LyricAdjustPage> {
   }
 
   Widget _buildLine(int index, ThemeData theme) {
+    final l10n = AppLocalizations.of(context);
     final base = _baseLines[index];
     final delta = _perLineDeltaMs[index] ?? 0;
     final adjusted = _adjustedTime(index);
@@ -242,14 +248,16 @@ class _LyricAdjustPageState extends ConsumerState<LyricAdjustPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  base.text.isEmpty ? '(空行)' : base.text,
+                  base.text.isEmpty ? l10n.playerEmptyLine : base.text,
                   style: theme.textTheme.bodyMedium,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (delta != 0)
                   Text(
-                    '行偏移 ${delta > 0 ? '+' : ''}${delta}ms',
+                    l10n.playerLineOffset(
+                      '${delta > 0 ? '+' : ''}${delta}ms',
+                    ),
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: theme.colorScheme.tertiary,
                     ),
@@ -284,6 +292,7 @@ class _LyricAdjustPageState extends ConsumerState<LyricAdjustPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return PopScope(
       canPop: !_hasChanges,
@@ -296,11 +305,11 @@ class _LyricAdjustPageState extends ConsumerState<LyricAdjustPage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('调整歌词'),
+          title: Text(l10n.playerAdjustLyrics),
           actions: [
             IconButton(
               icon: const Icon(Icons.refresh),
-              tooltip: '重置',
+              tooltip: l10n.playerReset,
               onPressed: _hasChanges ? _resetAll : null,
             ),
             TextButton(
@@ -311,12 +320,12 @@ class _LyricAdjustPageState extends ConsumerState<LyricAdjustPage> {
                       height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('保存'),
+                  : Text(l10n.playerSave),
             ),
           ],
         ),
         body: _baseLines.isEmpty
-            ? const Center(child: Text('暂无可调整的歌词'))
+            ? Center(child: Text(l10n.playerNoLyricsToAdjust))
             : Column(
                 children: [
                   _buildGlobalOffsetCard(theme),

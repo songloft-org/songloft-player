@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../../../core/network/api_client.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../core/storage/lyric_cache_service.dart';
 import '../../../../core/storage/preference_sync_service.dart';
 import '../../../../core/utils/web_cache_clearer.dart' as web_cache;
@@ -90,7 +91,9 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
       pushPreferencesToServer(ref.read(dioProvider));
     } catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '保存配置失败: $e');
+        ResponsiveSnackBar.showError(context,
+            message: AppLocalizations.of(context).settingsCacheSaveConfigFailed(
+                e.toString()));
       }
     }
   }
@@ -143,9 +146,10 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
 
   /// 清理服务端缓存
   Future<void> _cleanServerCache() async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await _showConfirmDialog(
-      title: '清理服务端缓存',
-      content: '确定要清理服务端的所有音乐缓存吗？清理后需要重新下载。',
+      title: l10n.settingsCacheCleanServerTitle,
+      content: l10n.settingsCacheCleanServerContent,
     );
     if (confirmed != true) return;
 
@@ -156,11 +160,14 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
       // 刷新统计数据
       ref.invalidate(serverCacheStatsProvider);
       if (mounted) {
-        ResponsiveSnackBar.show(context, message: '服务端缓存已清理');
+        ResponsiveSnackBar.show(context,
+            message: AppLocalizations.of(context).settingsCacheServerCleaned);
       }
     } catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '清理失败: $e');
+        ResponsiveSnackBar.showError(context,
+            message: AppLocalizations.of(context)
+                .settingsCacheCleanFailed(e.toString()));
       }
     } finally {
       if (mounted) setState(() => _isCleaningServer = false);
@@ -169,9 +176,10 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
 
   /// 清理本地缓存
   Future<void> _cleanLocalCache() async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await _showConfirmDialog(
-      title: '清理本地缓存',
-      content: '确定要清理所有本地缓存吗？包括音频缓存、图片缓存和歌词缓存。',
+      title: l10n.settingsCacheCleanLocalTitle,
+      content: l10n.settingsCacheCleanLocalContent,
     );
     if (confirmed != true) return;
 
@@ -207,11 +215,14 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
       await _loadLocalCacheSize();
 
       if (mounted) {
-        ResponsiveSnackBar.show(context, message: '本地缓存已清理');
+        ResponsiveSnackBar.show(context,
+            message: AppLocalizations.of(context).settingsCacheLocalCleaned);
       }
     } catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '清理失败: $e');
+        ResponsiveSnackBar.showError(context,
+            message: AppLocalizations.of(context)
+                .settingsCacheCleanFailed(e.toString()));
       }
     } finally {
       if (mounted) setState(() => _isCleaningLocal = false);
@@ -220,9 +231,10 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
 
   /// 清理浏览器缓存（Cache Storage + Service Worker）
   Future<void> _cleanBrowserCache() async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await _showConfirmDialog(
-      title: '清理浏览器缓存',
-      content: '将清除所有前端静态资源缓存并刷新页面。不会影响登录状态和服务端数据。',
+      title: l10n.settingsCacheCleanBrowserTitle,
+      content: l10n.settingsCacheCleanBrowserContent,
     );
     if (confirmed != true) return;
 
@@ -233,7 +245,9 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
     } catch (e) {
       if (mounted) {
         setState(() => _isCleaningBrowser = false);
-        ResponsiveSnackBar.showError(context, message: '清理失败: $e');
+        ResponsiveSnackBar.showError(context,
+            message: AppLocalizations.of(context)
+                .settingsCacheCleanFailed(e.toString()));
       }
     }
   }
@@ -251,7 +265,9 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
       ref.invalidate(serverCacheStatsProvider);
     } catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '更新配置失败: $e');
+        ResponsiveSnackBar.showError(context,
+            message: AppLocalizations.of(context)
+                .settingsCacheUpdateConfigFailed(e.toString()));
       }
     }
   }
@@ -277,14 +293,19 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
       ref.invalidate(serverCacheConfigProvider);
       ref.invalidate(serverCacheStatsProvider);
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ResponsiveSnackBar.show(
           context,
-          message: result.isEmpty ? '已恢复默认缓存目录' : '缓存目录已更新',
+          message: result.isEmpty
+              ? l10n.settingsCacheDirRestored
+              : l10n.settingsCacheDirUpdated,
         );
       }
     } catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '更新失败: $e');
+        ResponsiveSnackBar.showError(context,
+            message: AppLocalizations.of(context)
+                .settingsCacheUpdateFailed(e.toString()));
       }
     }
   }
@@ -296,23 +317,26 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
   }) {
     return showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(content),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
+      builder: (context) {
+        final l10n = AppLocalizations.of(context);
+        return AlertDialog(
+          title: Text(title),
+          content: Text(content),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(l10n.commonCancel),
             ),
-            child: const Text('确认清理'),
-          ),
-        ],
-      ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+              child: Text(l10n.settingsCacheConfirmClean),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -360,6 +384,7 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
 
   /// 构建服务端缓存区域
   Widget _buildServerCacheSection(ThemeData theme, ColorScheme colorScheme) {
+    final l10n = AppLocalizations.of(context);
     final statsAsync = ref.watch(serverCacheStatsProvider);
     final configAsync = ref.watch(serverCacheConfigProvider);
 
@@ -372,7 +397,7 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                '服务端音乐缓存',
+                l10n.settingsCacheServerTitle,
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -385,7 +410,8 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
                 _serverExpanded ? Icons.expand_less : Icons.tune,
                 size: 18,
               ),
-              label: Text(_serverExpanded ? '收起' : '管理'),
+              label:
+                  Text(_serverExpanded ? l10n.collapse : l10n.settingsCacheManage),
               style: TextButton.styleFrom(
                 visualDensity: VisualDensity.compact,
               ),
@@ -402,7 +428,7 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
                 maxSize > 0 ? (stats.totalSize / maxSize).clamp(0.0, 1.0) : 0.0;
             final sizeText = maxSize > 0
                 ? '${_formatSize(stats.totalSize)} / ${_formatSize(maxSize)}'
-                : '${_formatSize(stats.totalSize)} (无上限)';
+                : l10n.settingsCacheNoLimit(_formatSize(stats.totalSize));
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -412,7 +438,7 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
                   children: [
                     Text(sizeText, style: theme.textTheme.bodyMedium),
                     Text(
-                      '${stats.fileCount} 个文件',
+                      l10n.settingsCacheFileCount(stats.fileCount),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -443,7 +469,7 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
             child: LinearProgressIndicator(),
           ),
           error: (e, _) => Text(
-            '获取缓存信息失败',
+            l10n.settingsCacheStatsLoadFailed,
             style: TextStyle(color: colorScheme.error),
           ),
         ),
@@ -465,9 +491,9 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
                   return ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.folder_outlined),
-                    title: const Text('缓存目录'),
+                    title: Text(l10n.settingsCacheDirTitle),
                     subtitle: Text(
-                      dir.isNotEmpty ? dir : '未配置',
+                      dir.isNotEmpty ? dir : l10n.settingsCacheNotConfigured,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -489,7 +515,8 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '最大缓存大小: ${_cacheSizeOptions[currentIndex].label}',
+                            l10n.settingsCacheMaxSize(
+                                _cacheSizeOptions[currentIndex].label),
                             style: theme.textTheme.bodyMedium,
                           ),
                           Slider(
@@ -535,8 +562,9 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.delete_outline),
-                  label:
-                      Text(_isCleaningServer ? '清理中...' : '清理服务端缓存'),
+                  label: Text(_isCleaningServer
+                      ? l10n.settingsCacheCleaning
+                      : l10n.settingsCacheCleanServerButton),
                 ),
               ),
             ],
@@ -552,6 +580,7 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
 
   /// 构建本地缓存区域
   Widget _buildLocalCacheSection(ThemeData theme, ColorScheme colorScheme) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -565,7 +594,7 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                '本地缓存',
+                l10n.settingsCacheLocalTitle,
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -578,7 +607,8 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
                 _localExpanded ? Icons.expand_less : Icons.tune,
                 size: 18,
               ),
-              label: Text(_localExpanded ? '收起' : '管理'),
+              label:
+                  Text(_localExpanded ? l10n.collapse : l10n.settingsCacheManage),
               style: TextButton.styleFrom(
                 visualDensity: VisualDensity.compact,
               ),
@@ -592,13 +622,13 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              '缓存大小',
+              l10n.settingsCacheSize,
               style: theme.textTheme.bodyMedium,
             ),
             Text(
               _localCacheSizeLoaded
                   ? _formatSize(_localCacheSize)
-                  : '计算中...',
+                  : l10n.settingsCacheCalculating,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -607,7 +637,7 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
         ),
         const SizedBox(height: 4),
         Text(
-          '包含音频缓存、图片缓存和歌词缓存',
+          l10n.settingsCacheLocalDesc,
           style: theme.textTheme.bodySmall?.copyWith(
             color: colorScheme.onSurfaceVariant,
           ),
@@ -624,7 +654,8 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
               // 最大本地缓存大小滑动条
               if (_localConfigLoaded) ...[
                 Text(
-                  '最大本地缓存大小: ${_cacheSizeOptions[_localCacheMaxSizeIndex].label}',
+                  l10n.settingsCacheMaxLocalSize(
+                      _cacheSizeOptions[_localCacheMaxSizeIndex].label),
                   style: theme.textTheme.bodyMedium,
                 ),
                 Slider(
@@ -661,7 +692,9 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.delete_outline),
-                  label: Text(_isCleaningLocal ? '清理中...' : '清理本地缓存'),
+                  label: Text(_isCleaningLocal
+                      ? l10n.settingsCacheCleaning
+                      : l10n.settingsCacheCleanLocalButton),
                 ),
               ),
             ],
@@ -677,6 +710,7 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
 
   /// 构建浏览器缓存区域（仅 Web 平台）
   Widget _buildBrowserCacheSection(ThemeData theme, ColorScheme colorScheme) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -685,7 +719,7 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
             Icon(Icons.language_outlined, size: 18, color: colorScheme.primary),
             const SizedBox(width: 8),
             Text(
-              '浏览器缓存',
+              l10n.settingsCacheBrowserTitle,
               style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -694,7 +728,7 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
         ),
         const SizedBox(height: 12),
         Text(
-          '清除浏览器中缓存的前端资源文件，解决更新后页面异常的问题',
+          l10n.settingsCacheBrowserDesc,
           style: theme.textTheme.bodySmall?.copyWith(
             color: colorScheme.onSurfaceVariant,
           ),
@@ -711,7 +745,9 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.refresh_outlined),
-            label: Text(_isCleaningBrowser ? '清理中...' : '清理浏览器缓存'),
+            label: Text(_isCleaningBrowser
+                ? l10n.settingsCacheCleaning
+                : l10n.settingsCacheCleanBrowserButton),
           ),
         ),
       ],
@@ -779,18 +815,19 @@ class _CacheDirDialogState extends State<_CacheDirDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     return AlertDialog(
-      title: const Text('缓存目录'),
+      title: Text(l10n.settingsCacheDirTitle),
       content: SizedBox(
         width: 400,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('设置服务端音乐缓存的存储目录。留空则使用默认目录。切换目录不会自动迁移旧缓存文件。'),
+            Text(l10n.settingsCacheDirDialogDesc),
             const SizedBox(height: 16),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -799,9 +836,9 @@ class _CacheDirDialogState extends State<_CacheDirDialog> {
                   child: TextField(
                     controller: _controller,
                     decoration: InputDecoration(
-                      labelText: '缓存目录（绝对路径）',
+                      labelText: l10n.settingsCacheDirLabel,
                       hintText: widget.defaultDir,
-                      helperText: '默认: ${widget.defaultDir}',
+                      helperText: l10n.settingsCacheDirDefault(widget.defaultDir),
                       helperMaxLines: 2,
                       border: const OutlineInputBorder(),
                     ),
@@ -823,7 +860,7 @@ class _CacheDirDialogState extends State<_CacheDirDialog> {
                             height: 16,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text('验证'),
+                        : Text(l10n.settingsCacheValidate),
                   ),
                 ),
               ],
@@ -838,22 +875,23 @@ class _CacheDirDialogState extends State<_CacheDirDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('取消'),
+          child: Text(l10n.commonCancel),
         ),
         if (widget.currentDir.isNotEmpty)
           TextButton(
             onPressed: () => Navigator.pop(context, ''),
-            child: const Text('恢复默认'),
+            child: Text(l10n.settingsCacheRestoreDefault),
           ),
         FilledButton(
           onPressed: () => Navigator.pop(context, _controller.text.trim()),
-          child: const Text('保存'),
+          child: Text(l10n.settingsCacheSave),
         ),
       ],
     );
   }
 
   Widget _buildValidateResult(ColorScheme colorScheme, TextTheme textTheme) {
+    final l10n = AppLocalizations.of(context);
     final result = _validateResult!;
     if (!result.valid) {
       return Container(
@@ -868,7 +906,7 @@ class _CacheDirDialogState extends State<_CacheDirDialog> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                result.error ?? '目录不可用',
+                result.error ?? l10n.settingsCacheDirUnavailable,
                 style: textTheme.bodySmall?.copyWith(
                   color: colorScheme.onErrorContainer,
                 ),
@@ -880,10 +918,10 @@ class _CacheDirDialogState extends State<_CacheDirDialog> {
     }
 
     final parts = <String>[];
-    if (result.created) parts.add('目录已自动创建');
+    if (result.created) parts.add(l10n.settingsCacheDirCreated);
     if (result.totalSize > 0) {
-      parts.add('磁盘总量 ${_formatSize(result.totalSize)}');
-      parts.add('可用 ${_formatSize(result.freeSize)}');
+      parts.add(l10n.settingsCacheDiskTotal(_formatSize(result.totalSize)));
+      parts.add(l10n.settingsCacheDiskFree(_formatSize(result.freeSize)));
     }
 
     return Container(
@@ -898,7 +936,7 @@ class _CacheDirDialogState extends State<_CacheDirDialog> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              '目录可用${parts.isNotEmpty ? '  ·  ${parts.join('  ·  ')}' : ''}',
+              '${l10n.settingsCacheDirAvailable}${parts.isNotEmpty ? '  ·  ${parts.join('  ·  ')}' : ''}',
               style: textTheme.bodySmall?.copyWith(
                 color: colorScheme.onPrimaryContainer,
               ),

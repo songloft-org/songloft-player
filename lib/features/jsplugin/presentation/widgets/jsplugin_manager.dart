@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/network/api_exceptions.dart';
 import '../../../../core/theme/app_dimensions.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../core/theme/responsive.dart';
 import '../../../../shared/constants/github_proxy.dart';
 import '../../../../shared/utils/responsive_snackbar.dart';
@@ -41,7 +42,7 @@ class _JSPluginManagerState extends ConsumerState<JSPluginManager>
   String get _proxyLabel {
     if (selectedProxyIndex == -1) {
       final v = customProxyController.text.trim();
-      return v.isEmpty ? '自定义代理' : v;
+      return v.isEmpty ? AppLocalizations.of(context).jspluginCustomProxy : v;
     }
     if (selectedProxyIndex >= 0 && selectedProxyIndex < kGithubProxyPresets.length) {
       return kGithubProxyPresets[selectedProxyIndex].label;
@@ -51,12 +52,13 @@ class _JSPluginManagerState extends ConsumerState<JSPluginManager>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final pluginsAsync = ref.watch(jsPluginsProvider);
 
     return ExpansionTile(
       leading: const Icon(Icons.javascript),
-      title: const Text('JS 插件管理'),
-      subtitle: const Text('管理已安装的 JS 插件'),
+      title: Text(l10n.jspluginManagerTitle),
+      subtitle: Text(l10n.jspluginManagerSubtitle),
       initiallyExpanded: true,
       onExpansionChanged: (expanded) {
         if (expanded) ref.invalidate(jsPluginsProvider);
@@ -77,17 +79,17 @@ class _JSPluginManagerState extends ConsumerState<JSPluginManager>
                       OutlinedButton.icon(
                         onPressed: _showUploadDialog,
                         icon: const Icon(Icons.upload_file),
-                        label: const Text('上传插件'),
+                        label: Text(l10n.jspluginUploadPlugin),
                       ),
                       OutlinedButton.icon(
                         onPressed: _showBatchUpdateDialog,
                         icon: const Icon(Icons.system_update),
-                        label: const Text('全部更新'),
+                        label: Text(l10n.jspluginUpdateAll),
                       ),
                       OutlinedButton.icon(
                         onPressed: _cleanupOrphanStorage,
                         icon: const Icon(Icons.cleaning_services_outlined),
-                        label: const Text('清理数据'),
+                        label: Text(l10n.jspluginCleanupData),
                       ),
                     ],
                   )
@@ -96,19 +98,19 @@ class _JSPluginManagerState extends ConsumerState<JSPluginManager>
                       OutlinedButton.icon(
                         onPressed: _showUploadDialog,
                         icon: const Icon(Icons.upload_file),
-                        label: const Text('上传插件'),
+                        label: Text(l10n.jspluginUploadPlugin),
                       ),
                       const SizedBox(width: 8),
                       OutlinedButton.icon(
                         onPressed: _showBatchUpdateDialog,
                         icon: const Icon(Icons.system_update),
-                        label: const Text('全部更新'),
+                        label: Text(l10n.jspluginUpdateAll),
                       ),
                       const SizedBox(width: 8),
                       OutlinedButton.icon(
                         onPressed: _cleanupOrphanStorage,
                         icon: const Icon(Icons.cleaning_services_outlined),
-                        label: const Text('清理数据'),
+                        label: Text(l10n.jspluginCleanupData),
                       ),
                     ],
                   ),
@@ -129,7 +131,7 @@ class _JSPluginManagerState extends ConsumerState<JSPluginManager>
                 child: Column(
                   children: [
                     Text(
-                      error is ApiException ? error.message : '加载失败',
+                      error is ApiException ? error.message : l10n.commonLoadFailed,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.error,
                       ),
@@ -137,7 +139,7 @@ class _JSPluginManagerState extends ConsumerState<JSPluginManager>
                     const SizedBox(height: 8),
                     TextButton(
                       onPressed: () => ref.invalidate(jsPluginsProvider),
-                      child: const Text('重试'),
+                      child: Text(l10n.commonRetry),
                     ),
                   ],
                 ),
@@ -149,9 +151,10 @@ class _JSPluginManagerState extends ConsumerState<JSPluginManager>
 
   /// 统一的 GitHub 代理选择入口（下拉菜单）
   Widget _buildProxySelectorTile() {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     return PopupMenuButton<int>(
-      tooltip: 'GitHub 代理',
+      tooltip: l10n.jspluginGithubProxy,
       onSelected: (value) {
         if (value == -1) {
           _showCustomProxyDialog();
@@ -171,7 +174,11 @@ class _JSPluginManagerState extends ConsumerState<JSPluginManager>
                 else
                   const SizedBox(width: 18),
                 const SizedBox(width: 8),
-                Text(kGithubProxyPresets[index].label),
+                Text(
+                  kGithubProxyPresets[index].value.isEmpty
+                      ? l10n.githubProxyDirect
+                      : kGithubProxyPresets[index].label,
+                ),
               ],
             ),
           );
@@ -188,8 +195,8 @@ class _JSPluginManagerState extends ConsumerState<JSPluginManager>
               const SizedBox(width: 8),
               Text(
                 selectedProxyIndex == -1
-                    ? '自定义: ${customProxyController.text}'
-                    : '自定义代理...',
+                    ? l10n.jspluginCustomProxyWith(customProxyController.text)
+                    : l10n.jspluginCustomProxyEllipsis,
               ),
             ],
           ),
@@ -200,9 +207,9 @@ class _JSPluginManagerState extends ConsumerState<JSPluginManager>
           Icons.vpn_key_outlined,
           color: effectiveProxy.isNotEmpty ? theme.colorScheme.primary : null,
         ),
-        title: const Text('GitHub 代理'),
+        title: Text(l10n.jspluginGithubProxy),
         subtitle: Text(
-          effectiveProxy.isEmpty ? '直连（不使用代理）' : _proxyLabel,
+          effectiveProxy.isEmpty ? l10n.githubProxyDirect : _proxyLabel,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
@@ -212,18 +219,19 @@ class _JSPluginManagerState extends ConsumerState<JSPluginManager>
   }
 
   void _showCustomProxyDialog() {
+    final l10n = AppLocalizations.of(context);
     final controller = TextEditingController(text: customProxyController.text);
     showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('自定义代理'),
+        title: Text(l10n.jspluginCustomProxy),
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             hintText: 'https://your-proxy.com/',
-            helperText: '输入代理地址，如 https://ghproxy.com/',
-            border: OutlineInputBorder(),
+            helperText: l10n.jspluginProxyHelper,
+            border: const OutlineInputBorder(),
           ),
           onSubmitted: (_) =>
               Navigator.of(context).pop(controller.text.trim()),
@@ -231,12 +239,12 @@ class _JSPluginManagerState extends ConsumerState<JSPluginManager>
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('取消'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () =>
                 Navigator.of(context).pop(controller.text.trim()),
-            child: const Text('确定'),
+            child: Text(l10n.jspluginOk),
           ),
         ],
       ),
@@ -274,20 +282,21 @@ class _JSPluginManagerState extends ConsumerState<JSPluginManager>
   }
 
   Future<void> _cleanupOrphanStorage() async {
+    final l10n = AppLocalizations.of(context);
     final confirm = await showDialog<bool>(
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('清理孤儿数据'),
-            content: const Text('将清理已卸载插件遗留的持久化存储数据，此操作不可撤销。'),
+            title: Text(l10n.jspluginCleanupOrphanTitle),
+            content: Text(l10n.jspluginCleanupOrphanContent),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('取消'),
+                child: Text(l10n.commonCancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('清理'),
+                child: Text(l10n.jspluginCleanup),
               ),
             ],
           ),
@@ -303,25 +312,31 @@ class _JSPluginManagerState extends ConsumerState<JSPluginManager>
       }
     } on ApiException catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '清理失败: ${e.message}');
+        ResponsiveSnackBar.showError(
+          context,
+          message: l10n.jspluginCleanupFailed(e.message),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '清理失败: $e');
+        ResponsiveSnackBar.showError(
+          context,
+          message: l10n.jspluginCleanupFailed(e.toString()),
+        );
       }
     }
   }
 
   Widget _buildPluginList(List<JSPlugin> plugins) {
     if (plugins.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(32),
+      return Padding(
+        padding: const EdgeInsets.all(32),
         child: Center(
           child: Column(
             children: [
-              Icon(Icons.extension_off, size: 48, color: Colors.grey),
-              SizedBox(height: 8),
-              Text('暂无已安装的 JS 插件'),
+              const Icon(Icons.extension_off, size: 48, color: Colors.grey),
+              const SizedBox(height: 8),
+              Text(AppLocalizations.of(context).jspluginNoInstalled),
             ],
           ),
         ),
@@ -382,7 +397,10 @@ class _JSPluginUploadDialogState extends State<_JSPluginUploadDialog> {
       }
     } catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '选择文件失败: $e');
+        ResponsiveSnackBar.showError(
+          context,
+          message: AppLocalizations.of(context).jspluginPickFileFailed(e.toString()),
+        );
       }
     }
   }
@@ -392,6 +410,7 @@ class _JSPluginUploadDialogState extends State<_JSPluginUploadDialog> {
     final file = _selectedFile;
     if (file == null) return;
 
+    final l10n = AppLocalizations.of(context);
     setState(() => _uploading = true);
 
     try {
@@ -400,13 +419,13 @@ class _JSPluginUploadDialogState extends State<_JSPluginUploadDialog> {
       if (kIsWeb) {
         final bytes = file.bytes;
         if (bytes == null) {
-          throw ApiException(message: '无法读取文件数据');
+          throw ApiException(message: l10n.jspluginCannotReadFile);
         }
         response = await widget.pluginApi.uploadPluginBytes(bytes, file.name);
       } else {
         final path = file.path;
         if (path == null) {
-          throw ApiException(message: '无法获取文件路径');
+          throw ApiException(message: l10n.jspluginCannotGetPath);
         }
         response = await widget.pluginApi.uploadPlugin(path, file.name);
       }
@@ -421,7 +440,7 @@ class _JSPluginUploadDialogState extends State<_JSPluginUploadDialog> {
             message:
                 response.message.isNotEmpty
                     ? response.message
-                    : '上传成功：${response.success} 个插件',
+                    : l10n.jspluginUploadSuccess(response.success),
           );
         } else if (response.failed > 0) {
           final failedResults =
@@ -431,8 +450,11 @@ class _JSPluginUploadDialogState extends State<_JSPluginUploadDialog> {
               .join('\n');
           ResponsiveSnackBar.show(
             context,
-            message:
-                '成功 ${response.success} 个，失败 ${response.failed} 个\n$errorMsg',
+            message: l10n.jspluginUploadPartial(
+              response.success,
+              response.failed,
+              errorMsg,
+            ),
             backgroundColor: Colors.orange,
             duration: const Duration(seconds: 5),
           );
@@ -440,11 +462,17 @@ class _JSPluginUploadDialogState extends State<_JSPluginUploadDialog> {
       }
     } on ApiException catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '上传失败: ${e.message}');
+        ResponsiveSnackBar.showError(
+          context,
+          message: l10n.jspluginUploadFailed(e.message),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '上传失败: $e');
+        ResponsiveSnackBar.showError(
+          context,
+          message: l10n.jspluginUploadFailed(e.toString()),
+        );
       }
     } finally {
       if (mounted) {
@@ -455,11 +483,12 @@ class _JSPluginUploadDialogState extends State<_JSPluginUploadDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
     return AlertDialog(
-      title: const Text('上传 JS 插件'),
+      title: Text(l10n.jspluginUploadDialogTitle),
       content: SizedBox(
         width: 400,
         child: Column(
@@ -469,7 +498,7 @@ class _JSPluginUploadDialogState extends State<_JSPluginUploadDialog> {
             // 文件选择区域
             Semantics(
               button: true,
-              label: '选择插件文件上传',
+              label: l10n.jspluginSelectFileSemantics,
               child: InkWell(
               onTap: _uploading ? null : _pickFile,
               borderRadius: BorderRadius.circular(12),
@@ -498,10 +527,10 @@ class _JSPluginUploadDialogState extends State<_JSPluginUploadDialog> {
                       color: colorScheme.onSurfaceVariant,
                     ),
                     const SizedBox(height: 8),
-                    Text('点击选择文件', style: theme.textTheme.bodyMedium),
+                    Text(l10n.jspluginTapToSelectFile, style: theme.textTheme.bodyMedium),
                     const SizedBox(height: 4),
                     Text(
-                      '支持 .jsplugin.zip 格式；上传同名插件将覆盖现有版本（手动更新）',
+                      l10n.jspluginUploadHint,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -557,7 +586,7 @@ class _JSPluginUploadDialogState extends State<_JSPluginUploadDialog> {
                           _uploading
                               ? null
                               : () => setState(() => _selectedFile = null),
-                      tooltip: '移除',
+                      tooltip: l10n.jspluginRemove,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(
                         minWidth: 32,
@@ -574,7 +603,7 @@ class _JSPluginUploadDialogState extends State<_JSPluginUploadDialog> {
       actions: [
         TextButton(
           onPressed: _uploading ? null : () => Navigator.pop(context),
-          child: const Text('取消'),
+          child: Text(l10n.commonCancel),
         ),
         FilledButton.icon(
           onPressed: _selectedFile != null && !_uploading ? _uploadFile : null,
@@ -589,7 +618,7 @@ class _JSPluginUploadDialogState extends State<_JSPluginUploadDialog> {
                     ),
                   )
                   : const Icon(Icons.upload),
-          label: Text(_uploading ? '上传中...' : '上传'),
+          label: Text(_uploading ? l10n.jspluginUploading : l10n.jspluginUpload),
         ),
       ],
     );
@@ -624,11 +653,17 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
       ref.invalidate(jsPluginsProvider);
     } on ApiException catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '操作失败: ${e.message}');
+        ResponsiveSnackBar.showError(
+          context,
+          message: AppLocalizations.of(context).jspluginOperationFailed(e.message),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '操作失败: $e');
+        ResponsiveSnackBar.showError(
+          context,
+          message: AppLocalizations.of(context).jspluginOperationFailed(e.toString()),
+        );
       }
     } finally {
       if (mounted) {
@@ -642,7 +677,10 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else if (mounted) {
-      ResponsiveSnackBar.show(context, message: '无法打开链接: $url');
+      ResponsiveSnackBar.show(
+        context,
+        message: AppLocalizations.of(context).jspluginCannotOpenLink(url),
+      );
     }
   }
 
@@ -677,15 +715,24 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
       );
       ref.invalidate(jsPluginsProvider);
       if (mounted) {
-        ResponsiveSnackBar.showSuccess(context, message: '插件已强制更新');
+        ResponsiveSnackBar.showSuccess(
+          context,
+          message: AppLocalizations.of(context).jspluginForceUpdateSuccess,
+        );
       }
     } on ApiException catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '强制更新失败: ${e.message}');
+        ResponsiveSnackBar.showError(
+          context,
+          message: AppLocalizations.of(context).jspluginForceUpdateFailed(e.message),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '强制更新失败: $e');
+        ResponsiveSnackBar.showError(
+          context,
+          message: AppLocalizations.of(context).jspluginForceUpdateFailed(e.toString()),
+        );
       }
     } finally {
       if (mounted) setState(() => _isForceUpdating = false);
@@ -708,16 +755,23 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
       ref.invalidate(pluginKeepAliveProvider);
     } on ApiException catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '操作失败: ${e.message}');
+        ResponsiveSnackBar.showError(
+          context,
+          message: AppLocalizations.of(context).jspluginOperationFailed(e.message),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '操作失败: $e');
+        ResponsiveSnackBar.showError(
+          context,
+          message: AppLocalizations.of(context).jspluginOperationFailed(e.toString()),
+        );
       }
     }
   }
 
   Future<void> _deletePlugin() async {
+    final l10n = AppLocalizations.of(context);
     final result = await showDialog<({bool confirmed, bool keepData})>(
       context: context,
       builder: (context) {
@@ -725,18 +779,18 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: const Text('确认删除'),
+              title: Text(l10n.jspluginConfirmDelete),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('确定要删除插件 "${widget.plugin.displayName}" 吗？'),
+                  Text(l10n.jspluginDeleteConfirmContent(widget.plugin.displayName)),
                   const SizedBox(height: 12),
                   CheckboxListTile(
                     value: keepData,
                     onChanged: (v) => setDialogState(() => keepData = v!),
-                    title: const Text('保留插件数据'),
-                    subtitle: const Text('保留文件存储数据，方便日后重装'),
+                    title: Text(l10n.jspluginKeepData),
+                    subtitle: Text(l10n.jspluginKeepDataSubtitle),
                     contentPadding: EdgeInsets.zero,
                     dense: true,
                     controlAffinity: ListTileControlAffinity.leading,
@@ -750,7 +804,7 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
                         context,
                         (confirmed: false, keepData: false),
                       ),
-                  child: const Text('取消'),
+                  child: Text(l10n.commonCancel),
                 ),
                 FilledButton(
                   onPressed:
@@ -761,7 +815,7 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
                   style: FilledButton.styleFrom(
                     backgroundColor: Theme.of(context).colorScheme.error,
                   ),
-                  child: const Text('删除'),
+                  child: Text(l10n.commonDelete),
                 ),
               ],
             );
@@ -779,15 +833,21 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
       await api.deletePlugin(widget.plugin.id, keepData: result.keepData);
       ref.invalidate(jsPluginsProvider);
       if (mounted) {
-        ResponsiveSnackBar.show(context, message: '插件已删除');
+        ResponsiveSnackBar.show(context, message: l10n.jspluginDeleted);
       }
     } on ApiException catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '删除失败: ${e.message}');
+        ResponsiveSnackBar.showError(
+          context,
+          message: l10n.jspluginDeleteFailed(e.message),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '删除失败: $e');
+        ResponsiveSnackBar.showError(
+          context,
+          message: l10n.jspluginDeleteFailed(e.toString()),
+        );
       }
     } finally {
       if (mounted) {
@@ -798,6 +858,7 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final plugin = widget.plugin;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -855,7 +916,7 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
                   _buildVersionBadge(plugin.version!, theme),
                 if (plugin.author != null)
                   Text(
-                    '作者: ${plugin.author}',
+                    l10n.jspluginAuthor(plugin.author!),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -884,7 +945,7 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
               padding: const EdgeInsets.only(left: 48, top: 4),
               child: Semantics(
                 link: true,
-                label: '打开插件主页',
+                label: l10n.jspluginOpenHomepageSemantics,
                 child: GestureDetector(
                 onTap: () => _openHomepage(plugin.homepage!),
                 child: Text(
@@ -908,16 +969,17 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
 
   /// 状态胶囊
   Widget _buildStatusChip(JSPlugin plugin, ColorScheme colorScheme) {
+    final l10n = AppLocalizations.of(context);
     final String label;
     final Color color;
     if (plugin.isError) {
-      label = '错误';
+      label = l10n.jspluginStatusError;
       color = Colors.red;
     } else if (plugin.isActive) {
-      label = '已启用';
+      label = l10n.jspluginStatusEnabled;
       color = Colors.green;
     } else {
-      label = '已禁用';
+      label = l10n.jspluginStatusDisabled;
       color = Colors.grey;
     }
 
@@ -963,6 +1025,7 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
 
   /// 标题行右侧的操作区
   List<Widget> _buildTrailingActions(bool isMobile) {
+    final l10n = AppLocalizations.of(context);
     final plugin = widget.plugin;
     final colorScheme = Theme.of(context).colorScheme;
     final keepAliveList =
@@ -983,7 +1046,7 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
         switchOrLoader,
         PopupMenuButton<String>(
           icon: const Icon(Icons.more_vert),
-          tooltip: '更多操作',
+          tooltip: l10n.jspluginMoreActions,
           onSelected: (value) {
             switch (value) {
               case 'homepage':
@@ -1001,11 +1064,11 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
           itemBuilder:
               (context) => [
                 if (plugin.homepage != null && plugin.homepage!.isNotEmpty) ...[
-                  const PopupMenuItem<String>(
+                  PopupMenuItem<String>(
                     value: 'homepage',
                     child: ListTile(
-                      leading: Icon(Icons.open_in_new),
-                      title: Text('打开主页'),
+                      leading: const Icon(Icons.open_in_new),
+                      title: Text(l10n.jspluginOpenHomepage),
                       dense: true,
                       contentPadding: EdgeInsets.zero,
                     ),
@@ -1021,7 +1084,7 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
                             ? Icons.push_pin
                             : Icons.push_pin_outlined,
                       ),
-                      title: const Text('常驻运行'),
+                      title: Text(l10n.jspluginKeepAlive),
                       trailing: isKeepAlive
                           ? const Icon(Icons.check, size: 18)
                           : null,
@@ -1029,11 +1092,11 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),
-                const PopupMenuItem<String>(
+                PopupMenuItem<String>(
                   value: 'update',
                   child: ListTile(
-                    leading: Icon(Icons.system_update_alt),
-                    title: Text('检查更新'),
+                    leading: const Icon(Icons.system_update_alt),
+                    title: Text(l10n.jspluginCheckUpdate),
                     dense: true,
                     contentPadding: EdgeInsets.zero,
                   ),
@@ -1050,7 +1113,7 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                             : const Icon(Icons.refresh),
-                    title: const Text('强制更新'),
+                    title: Text(l10n.jspluginForceUpdate),
                     dense: true,
                     contentPadding: EdgeInsets.zero,
                   ),
@@ -1071,7 +1134,7 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
                               color: colorScheme.error,
                             ),
                     title: Text(
-                      '删除',
+                      l10n.commonDelete,
                       style: TextStyle(color: colorScheme.error),
                     ),
                     dense: true,
@@ -1092,7 +1155,7 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
             isKeepAlive ? Icons.push_pin : Icons.push_pin_outlined,
           ),
           onPressed: _toggleKeepAlive,
-          tooltip: isKeepAlive ? '取消常驻运行' : '常驻运行',
+          tooltip: isKeepAlive ? l10n.jspluginCancelKeepAlive : l10n.jspluginKeepAlive,
         ),
       PopupMenuButton<String>(
         icon:
@@ -1103,7 +1166,7 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
                 : const Icon(Icons.system_update_alt),
-        tooltip: '更新',
+        tooltip: l10n.jspluginUpdate,
         onSelected: (value) {
           switch (value) {
             case 'update':
@@ -1113,20 +1176,20 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
           }
         },
         itemBuilder: (context) => [
-          const PopupMenuItem<String>(
+          PopupMenuItem<String>(
             value: 'update',
             child: ListTile(
-              leading: Icon(Icons.system_update_alt),
-              title: Text('检查更新'),
+              leading: const Icon(Icons.system_update_alt),
+              title: Text(l10n.jspluginCheckUpdate),
               dense: true,
               contentPadding: EdgeInsets.zero,
             ),
           ),
-          const PopupMenuItem<String>(
+          PopupMenuItem<String>(
             value: 'force_update',
             child: ListTile(
-              leading: Icon(Icons.refresh),
-              title: Text('强制更新'),
+              leading: const Icon(Icons.refresh),
+              title: Text(l10n.jspluginForceUpdate),
               dense: true,
               contentPadding: EdgeInsets.zero,
             ),
@@ -1143,7 +1206,7 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
                 )
                 : const Icon(Icons.delete_outline),
         onPressed: _isDeleting ? null : _deletePlugin,
-        tooltip: '删除',
+        tooltip: l10n.commonDelete,
       ),
     ];
   }
@@ -1194,9 +1257,13 @@ class _JSPluginUpdateDialogState extends ConsumerState<_JSPluginUpdateDialog> {
     } on ApiException catch (e) {
       if (mounted) setState(() => _error = e.message);
     } on TimeoutException {
-      if (mounted) setState(() => _error = '检查更新超时，请尝试切换代理后重试');
+      if (mounted) {
+        setState(() => _error = AppLocalizations.of(context).jspluginCheckUpdateTimeout);
+      }
     } catch (e) {
-      if (mounted) setState(() => _error = '检查更新失败: $e');
+      if (mounted) {
+        setState(() => _error = AppLocalizations.of(context).jspluginCheckUpdateFailed(e.toString()));
+      }
     } finally {
       if (mounted) setState(() => _isChecking = false);
     }
@@ -1219,14 +1286,23 @@ class _JSPluginUpdateDialogState extends ConsumerState<_JSPluginUpdateDialog> {
       if (mounted) {
         Navigator.pop(context);
         widget.onUpdateComplete();
-        ResponsiveSnackBar.showSuccess(context, message: '插件更新成功');
+        ResponsiveSnackBar.showSuccess(
+          context,
+          message: AppLocalizations.of(context).jspluginUpdateSuccess,
+        );
       }
     } on ApiException catch (e) {
-      if (mounted) setState(() => _error = '更新失败: ${e.message}');
+      if (mounted) {
+        setState(() => _error = AppLocalizations.of(context).jspluginUpdateFailed(e.message));
+      }
     } on TimeoutException {
-      if (mounted) setState(() => _error = '更新超时，请重试');
+      if (mounted) {
+        setState(() => _error = AppLocalizations.of(context).jspluginUpdateTimeout);
+      }
     } catch (e) {
-      if (mounted) setState(() => _error = '更新失败: $e');
+      if (mounted) {
+        setState(() => _error = AppLocalizations.of(context).jspluginUpdateFailed(e.toString()));
+      }
     } finally {
       if (mounted) setState(() => _isUpdating = false);
     }
@@ -1234,6 +1310,7 @@ class _JSPluginUpdateDialogState extends ConsumerState<_JSPluginUpdateDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -1244,7 +1321,7 @@ class _JSPluginUpdateDialogState extends ConsumerState<_JSPluginUpdateDialog> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              '更新插件 - ${widget.plugin.displayName}',
+              l10n.jspluginUpdateDialogTitle(widget.plugin.displayName),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -1287,24 +1364,24 @@ class _JSPluginUpdateDialogState extends ConsumerState<_JSPluginUpdateDialog> {
                 ),
 
               if (_isChecking)
-                const Center(
+                Center(
                   child: Column(
                     children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 16),
-                      Text('正在检查更新...'),
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 16),
+                      Text(l10n.jspluginCheckingUpdate),
                     ],
                   ),
                 )
               else if (_isUpdating)
-                const Center(
+                Center(
                   child: Column(
                     children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 16),
-                      Text('正在下载并更新插件...'),
-                      SizedBox(height: 8),
-                      Text('请勿关闭此对话框', style: TextStyle(color: Colors.grey)),
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 16),
+                      Text(l10n.jspluginDownloadingUpdate),
+                      const SizedBox(height: 8),
+                      Text(l10n.jspluginDoNotCloseDialog, style: const TextStyle(color: Colors.grey)),
                     ],
                   ),
                 )
@@ -1319,6 +1396,7 @@ class _JSPluginUpdateDialogState extends ConsumerState<_JSPluginUpdateDialog> {
   }
 
   Widget _buildCheckResult(JSPluginUpdateCheck check) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -1328,10 +1406,10 @@ class _JSPluginUpdateDialogState extends ConsumerState<_JSPluginUpdateDialog> {
           children: [
             const Icon(Icons.check_circle, color: Colors.green, size: 48),
             const SizedBox(height: 16),
-            const Text('已是最新版本'),
+            Text(l10n.jspluginAlreadyLatest),
             const SizedBox(height: 8),
             Text(
-              '当前版本: ${check.currentVersion}',
+              l10n.jspluginCurrentVersion(check.currentVersion),
               style: theme.textTheme.bodySmall,
             ),
           ],
@@ -1352,7 +1430,7 @@ class _JSPluginUpdateDialogState extends ConsumerState<_JSPluginUpdateDialog> {
             children: [
               Icon(Icons.new_releases, color: colorScheme.primary),
               const SizedBox(width: 8),
-              const Expanded(child: Text('发现新版本')),
+              Expanded(child: Text(l10n.jspluginNewVersionFound)),
             ],
           ),
           const SizedBox(height: 12),
@@ -1386,6 +1464,7 @@ class _JSPluginUpdateDialogState extends ConsumerState<_JSPluginUpdateDialog> {
   }
 
   List<Widget> _buildActions() {
+    final l10n = AppLocalizations.of(context);
     if (_isUpdating) {
       return [];
     }
@@ -1397,7 +1476,7 @@ class _JSPluginUpdateDialogState extends ConsumerState<_JSPluginUpdateDialog> {
           style: TextButton.styleFrom(
             minimumSize: context.responsiveButtonMinSize,
           ),
-          child: const Text('取消'),
+          child: Text(l10n.commonCancel),
         ),
       ];
     }
@@ -1409,21 +1488,21 @@ class _JSPluginUpdateDialogState extends ConsumerState<_JSPluginUpdateDialog> {
           style: TextButton.styleFrom(
             minimumSize: context.responsiveButtonMinSize,
           ),
-          child: const Text('取消'),
+          child: Text(l10n.commonCancel),
         ),
         OutlinedButton(
           onPressed: _checkUpdate,
           style: OutlinedButton.styleFrom(
             minimumSize: context.responsiveButtonMinSize,
           ),
-          child: const Text('重新检查'),
+          child: Text(l10n.jspluginRecheck),
         ),
         FilledButton(
           onPressed: _executeUpdate,
           style: FilledButton.styleFrom(
             minimumSize: context.responsiveButtonMinSize,
           ),
-          child: const Text('立即更新'),
+          child: Text(l10n.jspluginUpdateNow),
         ),
       ];
     }
@@ -1435,14 +1514,14 @@ class _JSPluginUpdateDialogState extends ConsumerState<_JSPluginUpdateDialog> {
           style: TextButton.styleFrom(
             minimumSize: context.responsiveButtonMinSize,
           ),
-          child: const Text('关闭'),
+          child: Text(l10n.jspluginClose),
         ),
         FilledButton(
           onPressed: _checkUpdate,
           style: FilledButton.styleFrom(
             minimumSize: context.responsiveButtonMinSize,
           ),
-          child: const Text('重新检查'),
+          child: Text(l10n.jspluginRecheck),
         ),
       ];
     }
@@ -1453,14 +1532,14 @@ class _JSPluginUpdateDialogState extends ConsumerState<_JSPluginUpdateDialog> {
         style: TextButton.styleFrom(
           minimumSize: context.responsiveButtonMinSize,
         ),
-        child: const Text('取消'),
+        child: Text(l10n.commonCancel),
       ),
       FilledButton(
         onPressed: _checkUpdate,
         style: FilledButton.styleFrom(
           minimumSize: context.responsiveButtonMinSize,
         ),
-        child: const Text('检查更新'),
+        child: Text(l10n.jspluginCheckUpdate),
       ),
     ];
   }
@@ -1507,11 +1586,17 @@ class _JSPluginBatchUpdateDialogState
         widget.onUpdateComplete();
       }
     } on ApiException catch (e) {
-      if (mounted) setState(() => _error = '批量更新失败: ${e.message}');
+      if (mounted) {
+        setState(() => _error = AppLocalizations.of(context).jspluginBatchUpdateFailed(e.message));
+      }
     } on TimeoutException {
-      if (mounted) setState(() => _error = '批量更新超时，请重试');
+      if (mounted) {
+        setState(() => _error = AppLocalizations.of(context).jspluginBatchUpdateTimeout);
+      }
     } catch (e) {
-      if (mounted) setState(() => _error = '批量更新失败: $e');
+      if (mounted) {
+        setState(() => _error = AppLocalizations.of(context).jspluginBatchUpdateFailed(e.toString()));
+      }
     } finally {
       if (mounted) setState(() => _isUpdating = false);
     }
@@ -1519,15 +1604,16 @@ class _JSPluginBatchUpdateDialogState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
     return AlertDialog(
-      title: const Row(
+      title: Row(
         children: [
-          Icon(Icons.system_update),
-          SizedBox(width: 8),
-          Text('全部更新'),
+          const Icon(Icons.system_update),
+          const SizedBox(width: 8),
+          Text(l10n.jspluginUpdateAll),
         ],
       ),
       content: ConstrainedBox(
@@ -1566,14 +1652,14 @@ class _JSPluginBatchUpdateDialogState
                   ),
                 ),
               if (_isUpdating)
-                const Center(
+                Center(
                   child: Column(
                     children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 16),
-                      Text('正在检查并更新所有插件...'),
-                      SizedBox(height: 8),
-                      Text('请勿关闭此对话框', style: TextStyle(color: Colors.grey)),
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 16),
+                      Text(l10n.jspluginBatchUpdating),
+                      const SizedBox(height: 8),
+                      Text(l10n.jspluginDoNotCloseDialog, style: const TextStyle(color: Colors.grey)),
                     ],
                   ),
                 )
@@ -1588,6 +1674,7 @@ class _JSPluginBatchUpdateDialogState
   }
 
   Widget _buildResults(JSPluginBatchUpdateResponse response) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -1603,9 +1690,9 @@ class _JSPluginBatchUpdateDialogState
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildStatItem('已更新', response.updated, Colors.green),
-              _buildStatItem('失败', response.failed, colorScheme.error),
-              _buildStatItem('无需更新', response.skipped, Colors.grey),
+              _buildStatItem(l10n.jspluginStatUpdated, response.updated, Colors.green),
+              _buildStatItem(l10n.jspluginStatFailed, response.failed, colorScheme.error),
+              _buildStatItem(l10n.jspluginStatSkipped, response.skipped, Colors.grey),
             ],
           ),
         ),
@@ -1632,6 +1719,7 @@ class _JSPluginBatchUpdateDialogState
   }
 
   Widget _buildResultItem(JSPluginBatchUpdateResult r, ThemeData theme) {
+    final l10n = AppLocalizations.of(context);
     final IconData icon;
     final Color color;
     final String subtitle;
@@ -1643,7 +1731,7 @@ class _JSPluginBatchUpdateDialogState
     } else if (r.hasUpdate) {
       icon = Icons.error;
       color = theme.colorScheme.error;
-      subtitle = r.error ?? '更新失败';
+      subtitle = r.error ?? l10n.jspluginUpdateFailedShort;
     } else if (r.error != null) {
       icon = Icons.warning;
       color = Colors.orange;
@@ -1651,7 +1739,7 @@ class _JSPluginBatchUpdateDialogState
     } else {
       icon = Icons.check;
       color = Colors.grey;
-      subtitle = 'v${r.currentVersion} 已是最新';
+      subtitle = l10n.jspluginVersionLatest(r.currentVersion);
     }
 
     return ListTile(
@@ -1667,6 +1755,7 @@ class _JSPluginBatchUpdateDialogState
   }
 
   List<Widget> _buildActions() {
+    final l10n = AppLocalizations.of(context);
     if (_isUpdating) return [];
 
     if (_response != null) {
@@ -1676,7 +1765,7 @@ class _JSPluginBatchUpdateDialogState
           style: FilledButton.styleFrom(
             minimumSize: context.responsiveButtonMinSize,
           ),
-          child: const Text('关闭'),
+          child: Text(l10n.jspluginClose),
         ),
       ];
     }
@@ -1687,14 +1776,14 @@ class _JSPluginBatchUpdateDialogState
         style: TextButton.styleFrom(
           minimumSize: context.responsiveButtonMinSize,
         ),
-        child: const Text('取消'),
+        child: Text(l10n.commonCancel),
       ),
       FilledButton(
         onPressed: _executeBatchUpdate,
         style: FilledButton.styleFrom(
           minimumSize: context.responsiveButtonMinSize,
         ),
-        child: const Text('开始更新'),
+        child: Text(l10n.jspluginStartUpdate),
       ),
     ];
   }
@@ -1709,6 +1798,7 @@ class _ForceUpdateConfirmDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     return AlertDialog(
@@ -1718,14 +1808,14 @@ class _ForceUpdateConfirmDialog extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              '强制更新 - $pluginName',
+              l10n.jspluginForceUpdateDialogTitle(pluginName),
               overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
       ),
       content: Text(
-        '将忽略版本检查，重新下载并安装插件。',
+        l10n.jspluginForceUpdateContent,
         style: theme.textTheme.bodyMedium?.copyWith(
           color: theme.colorScheme.outline,
         ),
@@ -1736,14 +1826,14 @@ class _ForceUpdateConfirmDialog extends StatelessWidget {
           style: TextButton.styleFrom(
             minimumSize: context.responsiveButtonMinSize,
           ),
-          child: const Text('取消'),
+          child: Text(l10n.commonCancel),
         ),
         FilledButton(
           onPressed: () => Navigator.pop(context, true),
           style: FilledButton.styleFrom(
             minimumSize: context.responsiveButtonMinSize,
           ),
-          child: const Text('确认更新'),
+          child: Text(l10n.jspluginConfirmUpdate),
         ),
       ],
     );

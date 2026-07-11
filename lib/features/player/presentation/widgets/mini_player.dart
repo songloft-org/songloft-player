@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/utils/url_helper.dart';
+import '../../../../l10n/app_localizations.dart';
 
 import '../providers/player_provider.dart';
 import '../../../dlna/presentation/providers/dlna_provider.dart';
@@ -51,7 +52,7 @@ class MiniPlayer extends ConsumerWidget {
             color: theme.colorScheme.surface,
             elevation: 2,
             child: Semantics(
-            label: '展开播放器',
+            label: AppLocalizations.of(context).playerExpandPlayer,
             button: true,
             child: InkWell(
               onTap:
@@ -99,7 +100,10 @@ class MiniPlayer extends ConsumerWidget {
                                   ),
                                 Expanded(
                                   child: Text(
-                                    song.artist ?? '未知艺术家',
+                                    song.artist ??
+                                        AppLocalizations.of(
+                                          context,
+                                        ).playerUnknownArtist,
                                     style: theme.textTheme.bodySmall?.copyWith(
                                       color: theme.colorScheme.onSurfaceVariant,
                                     ),

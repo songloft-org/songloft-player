@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../config/constants.dart';
 import '../../features/library/presentation/providers/favorite_provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../utils/responsive_snackbar.dart';
 
 class FavoriteButton extends ConsumerStatefulWidget {
@@ -81,17 +82,19 @@ class _FavoriteButtonState extends ConsumerState<FavoriteButton>
       widget.onToggle?.call(newState);
 
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ResponsiveSnackBar.show(
           context,
-          message: newState ? '已添加到收藏' : '已取消收藏',
+          message: newState ? l10n.favoriteAdded : l10n.favoriteRemoved,
           duration: const Duration(seconds: 1),
         );
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ResponsiveSnackBar.showError(
           context,
-          message: isFavorited ? '取消收藏失败' : '收藏失败',
+          message: isFavorited ? l10n.favoriteRemoveFailed : l10n.favoriteAddFailed,
         );
       }
     } finally {
@@ -124,7 +127,10 @@ class _FavoriteButtonState extends ConsumerState<FavoriteButton>
                   ? Colors.red
                   : Theme.of(context).colorScheme.onSurfaceVariant,
         ),
-        tooltip: isFavorited ? '取消收藏' : '收藏',
+        tooltip:
+            isFavorited
+                ? AppLocalizations.of(context).unfavorite
+                : AppLocalizations.of(context).favorite,
       ),
     );
   }

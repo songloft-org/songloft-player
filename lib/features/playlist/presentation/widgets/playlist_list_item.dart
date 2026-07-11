@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/utils/url_helper.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/playlist.dart';
 
 /// 歌单列表项组件（列表视图）
@@ -40,6 +41,7 @@ class PlaylistListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -142,7 +144,7 @@ class PlaylistListItem extends StatelessWidget {
                               borderRadius: BorderRadius.circular(AppRadius.sm),
                             ),
                             child: Text(
-                              '电台',
+                              l10n.songTypeRadio,
                               style: textTheme.labelSmall?.copyWith(
                                 color: colorScheme.onSecondary,
                                 fontSize: 10,
@@ -156,7 +158,7 @@ class PlaylistListItem extends StatelessWidget {
 
                     // 第二行：歌曲数量 · 描述
                     Text(
-                      _buildSubtitle(),
+                      _buildSubtitle(l10n),
                       style: textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -186,12 +188,12 @@ class PlaylistListItem extends StatelessWidget {
                   IconButton(
                     onPressed: onPlayAll,
                     icon: const Icon(Icons.play_arrow),
-                    tooltip: '播放全部',
+                    tooltip: l10n.playlistPlayAll,
                   ),
                 IconButton(
                   onPressed: _showMoreMenu(context),
                   icon: const Icon(Icons.more_vert),
-                  tooltip: '更多操作',
+                  tooltip: l10n.playlistMoreActions,
                 ),
               ],
             ],
@@ -202,8 +204,8 @@ class PlaylistListItem extends StatelessWidget {
   }
 
   /// 构建副标题：歌曲数量 · 描述
-  String _buildSubtitle() {
-    final parts = <String>['${playlist.songCount} 首歌曲'];
+  String _buildSubtitle(AppLocalizations l10n) {
+    final parts = <String>[l10n.songsCount(playlist.songCount)];
     if (playlist.description?.isNotEmpty == true) {
       parts.add(playlist.description!);
     }
@@ -226,21 +228,22 @@ class PlaylistListItem extends StatelessWidget {
   Widget _buildLabel(BuildContext context, String label) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
 
     String displayLabel;
     Color backgroundColor;
 
     switch (label) {
       case 'built_in':
-        displayLabel = '内置';
+        displayLabel = l10n.playlistLabelBuiltIn;
         backgroundColor = colorScheme.primaryContainer;
         break;
       case 'auto_created':
-        displayLabel = '自动';
+        displayLabel = l10n.playlistLabelAuto;
         backgroundColor = colorScheme.secondaryContainer;
         break;
       case 'hidden':
-        displayLabel = '已隐藏';
+        displayLabel = l10n.playlistLabelHidden;
         backgroundColor = colorScheme.errorContainer;
         break;
       default:
@@ -289,13 +292,14 @@ class PlaylistListItem extends StatelessWidget {
 
   /// 构建菜单项
   List<PopupMenuEntry<void>> _buildMenuItems(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return [
       if (onEdit != null)
         PopupMenuItem(
           onTap: onEdit,
-          child: const ListTile(
-            leading: Icon(Icons.edit),
-            title: Text('编辑'),
+          child: ListTile(
+            leading: const Icon(Icons.edit),
+            title: Text(l10n.playlistEditAction),
             dense: true,
             contentPadding: EdgeInsets.zero,
           ),
@@ -309,7 +313,7 @@ class PlaylistListItem extends StatelessWidget {
                   ? Icons.visibility
                   : Icons.visibility_off,
             ),
-            title: Text(playlist.isHidden ? '取消隐藏' : '隐藏歌单'),
+            title: Text(playlist.isHidden ? l10n.playlistUnhide : l10n.playlistHide),
             dense: true,
             contentPadding: EdgeInsets.zero,
           ),
@@ -323,7 +327,7 @@ class PlaylistListItem extends StatelessWidget {
               color: Theme.of(context).colorScheme.error,
             ),
             title: Text(
-              '删除',
+              l10n.commonDelete,
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
             dense: true,

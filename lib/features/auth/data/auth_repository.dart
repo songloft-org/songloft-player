@@ -1,5 +1,6 @@
 import '../../../core/network/api_exceptions.dart';
 import '../../../core/storage/secure_storage.dart';
+import '../../../l10n/l10n_holder.dart';
 import '../domain/auth_state.dart';
 import 'auth_api.dart';
 
@@ -43,7 +44,7 @@ class AuthRepository {
   Future<AuthTokens> refreshToken() async {
     final refreshToken = await secureStorage.getRefreshToken();
     if (refreshToken == null || refreshToken.isEmpty) {
-      throw UnauthorizedException(message: '没有可用的刷新令牌');
+      throw UnauthorizedException(message: l10n.authNoRefreshToken);
     }
 
     try {

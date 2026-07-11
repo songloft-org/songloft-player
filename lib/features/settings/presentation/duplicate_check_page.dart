@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../config/app_config.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/theme/app_dimensions.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/utils/responsive_snackbar.dart';
 import '../data/scan_api.dart';
 import 'providers/settings_provider.dart';
@@ -169,11 +170,13 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
         },
       );
       if (!mounted) return;
-      ResponsiveSnackBar.show(context, message: '已删除 ${toDelete.length} 首重复歌曲');
+      ResponsiveSnackBar.show(context,
+          message: AppLocalizations.of(context).settingsDuplicateDeleted(toDelete.length));
       _loadDuplicates();
     } catch (e) {
       if (!mounted) return;
-      ResponsiveSnackBar.showError(context, message: '删除失败: $e');
+      ResponsiveSnackBar.showError(context,
+          message: AppLocalizations.of(context).settingsDuplicateDeleteFailed('$e'));
     }
   }
 
@@ -204,31 +207,34 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
         },
       );
       if (!mounted) return;
-      ResponsiveSnackBar.show(context, message: '已删除 ${allToDelete.length} 首重复歌曲');
+      ResponsiveSnackBar.show(context,
+          message: AppLocalizations.of(context).settingsDuplicateDeleted(allToDelete.length));
       _loadDuplicates();
     } catch (e) {
       if (!mounted) return;
-      ResponsiveSnackBar.showError(context, message: '删除失败: $e');
+      ResponsiveSnackBar.showError(context,
+          message: AppLocalizations.of(context).settingsDuplicateDeleteFailed('$e'));
     }
   }
 
   Future<bool?> _showDeleteConfirm(int count) {
+    final l10n = AppLocalizations.of(context);
     return showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('确认删除'),
-        content: Text('将删除 $count 首重复歌曲及其对应的音频文件，保留每组中选中的版本。此操作不可撤销。'),
+        title: Text(l10n.settingsDuplicateConfirmTitle),
+        content: Text(l10n.settingsDuplicateConfirmMessage(count)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('取消'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('确认删除'),
+            child: Text(l10n.settingsDuplicateConfirmTitle),
           ),
         ],
       ),
@@ -237,8 +243,9 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('重复歌曲检测')),
+      appBar: AppBar(title: Text(l10n.settingsDuplicateTitle)),
       body: _loading && _phase == _PagePhase.status
           ? const Center(child: CircularProgressIndicator())
           : ListView(
@@ -255,6 +262,7 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
 
   Widget _buildError() {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Container(
@@ -272,7 +280,7 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
             ),
             IconButton(
               icon: const Icon(Icons.close),
-              tooltip: '关闭提示',
+              tooltip: l10n.settingsDuplicateDismissError,
               onPressed: () => setState(() => _error = null),
               iconSize: 20,
             ),
@@ -286,12 +294,13 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
     final colorScheme = Theme.of(context).colorScheme;
     final theme = Theme.of(context);
     final status = _status;
+    final l10n = AppLocalizations.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '通过音频指纹识别内容相同的重复文件。不同文件名、不同格式的同一首歌都能被识别。',
+          l10n.settingsDuplicateIntro,
           style: theme.textTheme.bodyMedium?.copyWith(
             color: colorScheme.onSurfaceVariant,
           ),
@@ -313,13 +322,17 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
                     children: [
                       Icon(Icons.bar_chart, size: 20, color: colorScheme.primary),
                       const SizedBox(width: 8),
-                      Text('指纹统计', style: theme.textTheme.titleSmall),
+                      Text(l10n.settingsDuplicateFingerprintStats,
+                          style: theme.textTheme.titleSmall),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  _statRow('本地歌曲', '${status.total} 首'),
-                  _statRow('已有指纹', '${status.computed} 首'),
-                  _statRow('待计算', '${status.missing} 首'),
+                  _statRow(l10n.settingsDuplicateLocalSongs,
+                      l10n.settingsDuplicateSongCount(status.total)),
+                  _statRow(l10n.settingsDuplicateComputed,
+                      l10n.settingsDuplicateSongCount(status.computed)),
+                  _statRow(l10n.settingsDuplicatePending,
+                      l10n.settingsDuplicateSongCount(status.missing)),
                 ],
               ),
             ),
@@ -338,7 +351,7 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      '需要安装 ffmpeg（含 chromaprint 支持）才能使用音频指纹检测。Docker 用户升级到最新镜像即可。',
+                      l10n.settingsDuplicateChromaprintMissing,
                       style: TextStyle(color: colorScheme.onSecondaryContainer),
                     ),
                   ),
@@ -354,7 +367,9 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
                   ? (status.missing > 0 ? _startCompute : _loadDuplicates)
                   : null,
               icon: const Icon(Icons.fingerprint),
-              label: Text(status.missing > 0 ? '开始计算并检测' : '检测重复'),
+              label: Text(status.missing > 0
+                  ? l10n.settingsDuplicateStartCompute
+                  : l10n.settingsDuplicateCheck),
             ),
           ),
           if (status.chromaprintAvailable && status.computed > 0) ...[
@@ -364,7 +379,7 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
               child: TextButton.icon(
                 onPressed: () => _startCompute(recomputeAll: true),
                 icon: const Icon(Icons.refresh, size: 18),
-                label: const Text('重新计算全部指纹'),
+                label: Text(l10n.settingsDuplicateRecomputeAll),
               ),
             ),
           ],
@@ -393,6 +408,7 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
     final total = progress?.total ?? _status?.missing ?? 0;
     final computed = progress?.computed ?? 0;
     final ratio = total > 0 ? computed / total : 0.0;
+    final l10n = AppLocalizations.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -404,19 +420,19 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
         ),
         const SizedBox(height: 12),
         Text(
-          '正在计算音频指纹... $computed/$total',
+          l10n.settingsDuplicateComputing(computed, total),
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         if (progress != null && progress.failed > 0)
           Text(
-            '失败: ${progress.failed}',
+            l10n.settingsDuplicateFailed(progress.failed),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.error,
             ),
           ),
         const SizedBox(height: 8),
         Text(
-          '计算完成后将自动检测重复歌曲',
+          l10n.settingsDuplicateAutoDetect,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
@@ -449,7 +465,7 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
           child: OutlinedButton.icon(
             onPressed: _recheck,
             icon: const Icon(Icons.refresh),
-            label: const Text('重新检测'),
+            label: Text(AppLocalizations.of(context).settingsDuplicateRecheck),
           ),
         ),
         const SizedBox(height: AppSpacing.lg),
@@ -459,18 +475,19 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
 
   Widget _buildNoResults() {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     return Column(
       children: [
         const SizedBox(height: 32),
         Icon(Icons.check_circle_outline, size: 64, color: colorScheme.primary),
         const SizedBox(height: 16),
         Text(
-          '未发现重复歌曲',
+          l10n.settingsDuplicateNoResults,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 8),
         Text(
-          '音乐库很干净！',
+          l10n.settingsDuplicateNoResultsHint,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: colorScheme.onSurfaceVariant,
           ),
@@ -479,7 +496,7 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
         OutlinedButton.icon(
           onPressed: _recheck,
           icon: const Icon(Icons.refresh),
-          label: const Text('重新检测'),
+          label: Text(l10n.settingsDuplicateRecheck),
         ),
       ],
     );
@@ -489,6 +506,7 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
     final colorScheme = Theme.of(context).colorScheme;
     final totalToDelete = _countTotalToDelete();
     final ignoredCount = _ignoredGroups.length;
+    final l10n = AppLocalizations.of(context);
 
     return Card(
       elevation: 0,
@@ -502,7 +520,8 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '发现 ${duplicates.totalGroups} 组重复（共 ${duplicates.totalDuplicates} 首歌曲）',
+              l10n.settingsDuplicateSummary(
+                  duplicates.totalGroups, duplicates.totalDuplicates),
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 color: colorScheme.onSecondaryContainer,
               ),
@@ -510,7 +529,7 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
             if (ignoredCount > 0) ...[
               const SizedBox(height: 4),
               Text(
-                '已忽略 $ignoredCount 组',
+                l10n.settingsDuplicateIgnoredCount(ignoredCount),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSecondaryContainer,
                 ),
@@ -523,7 +542,7 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
                 child: FilledButton.icon(
                   onPressed: _deleteAllDuplicates,
                   icon: const Icon(Icons.delete_sweep),
-                  label: Text('清理全部重复（删除 $totalToDelete 首）'),
+                  label: Text(l10n.settingsDuplicateCleanAll(totalToDelete)),
                   style: FilledButton.styleFrom(
                     backgroundColor: colorScheme.error,
                     foregroundColor: colorScheme.onError,
@@ -554,6 +573,7 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
     final keepId = _selectedKeep[groupIndex] ?? _recommendedSongId(group);
     final recommendedId = _recommendedSongId(group);
     final isIgnored = _ignoredGroups.contains(groupIndex);
+    final l10n = AppLocalizations.of(context);
 
     return Opacity(
       opacity: isIgnored ? 0.5 : 1.0,
@@ -572,7 +592,7 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
                 children: [
                   Expanded(
                     child: Text(
-                      '重复组 ${groupIndex + 1}',
+                      l10n.settingsDuplicateGroupLabel(groupIndex + 1),
                       style: theme.textTheme.titleSmall?.copyWith(
                         color: colorScheme.primary,
                       ),
@@ -592,7 +612,9 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
                       isIgnored ? Icons.visibility : Icons.visibility_off,
                       size: 20,
                     ),
-                    tooltip: isIgnored ? '取消忽略' : '忽略此组',
+                    tooltip: isIgnored
+                        ? l10n.settingsDuplicateUnignore
+                        : l10n.settingsDuplicateIgnore,
                     visualDensity: VisualDensity.compact,
                   ),
                 ],
@@ -620,7 +642,7 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
                     onPressed: () => _deleteGroupDuplicates(groupIndex),
                     icon: Icon(Icons.delete_outline, color: colorScheme.error),
                     label: Text(
-                      '删除未选中',
+                      l10n.settingsDuplicateDeleteUnselected,
                       style: TextStyle(color: colorScheme.error),
                     ),
                   ),
@@ -673,7 +695,7 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
-                            '推荐',
+                            AppLocalizations.of(context).settingsDuplicateRecommended,
                             style: theme.textTheme.labelSmall?.copyWith(
                               color: colorScheme.onPrimaryContainer,
                             ),

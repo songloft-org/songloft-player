@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 
+import '../../../l10n/l10n_holder.dart';
 import '../../../shared/models/song.dart';
 import '../domain/playlist.dart';
 import 'playlist_api.dart';
@@ -207,7 +208,7 @@ class PlaylistRepository {
     if (response != null) {
       final statusCode = response.statusCode;
       final data = response.data;
-      String message = '请求失败';
+      String message = l10n.playlistErrRequestFailed;
       if (data is Map<String, dynamic> && data.containsKey('error')) {
         message = data['error'] as String;
       } else if (data is Map<String, dynamic> && data.containsKey('message')) {
@@ -219,16 +220,16 @@ class PlaylistRepository {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
-        return PlaylistException('网络连接超时');
+        return PlaylistException(l10n.playlistErrTimeout);
       case DioExceptionType.connectionError:
-        return PlaylistException('网络连接失败');
+        return PlaylistException(l10n.errorNetworkFailed);
       case DioExceptionType.cancel:
-        return PlaylistException('请求已取消');
+        return PlaylistException(l10n.playlistErrCancelled);
       default:
         if (e.type.name == 'transformTimeout') {
-          return PlaylistException('网络连接超时');
+          return PlaylistException(l10n.playlistErrTimeout);
         }
-        return PlaylistException('网络错误: ${e.message}');
+        return PlaylistException(l10n.playlistErrNetwork('${e.message}'));
     }
   }
 }

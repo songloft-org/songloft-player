@@ -12,6 +12,7 @@ import '../../../core/network/server_entry.dart';
 import '../../../core/network/server_probe.dart';
 import '../../../core/network/servers_provider.dart';
 import '../../../core/storage/secure_storage.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/utils/responsive_snackbar.dart';
 import '../../auth/presentation/providers/auth_provider.dart';
 
@@ -24,14 +25,15 @@ class ServersPage extends ConsumerWidget {
     final currentUrl = ref.watch(baseUrlProvider);
     final statuses = ref.watch(probeStatusProvider);
     final isLocal = ref.watch(runModeProvider) == RunMode.local;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('服务器'),
+        title: Text(l10n.settingsServersTitle),
         actions: [
           if (!isLocal)
             IconButton(
-              tooltip: '全部测试',
+              tooltip: l10n.settingsServersTestAll,
               icon: const Icon(Icons.network_check),
               onPressed: () => _probeAll(context, ref),
             ),
@@ -39,7 +41,7 @@ class ServersPage extends ConsumerWidget {
       ),
       body: serversAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('加载失败: $e')),
+        error: (e, _) => Center(child: Text(l10n.commonLoadFailedDetail('$e'))),
         data: (servers) {
           const showLocalMode = !kIsWeb && AppConfig.hasEmbeddedBackend;
           const localModeCard = showLocalMode
@@ -68,12 +70,12 @@ class ServersPage extends ConsumerWidget {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            '尚未添加服务器',
+                            l10n.settingsServersEmptyTitle,
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            '点击右下角「+」添加 API 地址。\n启动时会按顺序探测，优先使用排在前面的可达项。',
+                            l10n.settingsServersEmptyHint,
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
@@ -123,7 +125,7 @@ class ServersPage extends ConsumerWidget {
       ),
       floatingActionButton: isLocal ? null : FloatingActionButton(
         onPressed: () => _showEditDialog(context, ref, null),
-        tooltip: '添加服务器',
+        tooltip: l10n.settingsServersAdd,
         child: const Icon(Icons.add),
       ),
     );
@@ -134,6 +136,7 @@ class ServersPage extends ConsumerWidget {
     WidgetRef ref,
     ServerEntry? existing,
   ) async {
+    final l10n = AppLocalizations.of(context);
     final nameController = TextEditingController(text: existing?.name ?? '');
     final urlController = TextEditingController(text: existing?.url ?? '');
     // 新建时默认继承当前凭证，编辑时显示已保存的凭证
@@ -157,7 +160,9 @@ class ServersPage extends ConsumerWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(existing == null ? '添加服务器' : '编辑服务器'),
+        title: Text(existing == null
+            ? l10n.settingsServersAdd
+            : l10n.settingsServersEditTitle),
         content: Form(
           key: formKey,
           child: SingleChildScrollView(
@@ -166,20 +171,20 @@ class ServersPage extends ConsumerWidget {
               children: [
                 TextFormField(
                   controller: nameController,
-                  decoration: const InputDecoration(
-                    labelText: '名称（可选）',
-                    hintText: '局域网 / 广域网 / 备用',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.settingsServersNameLabel,
+                    hintText: l10n.settingsServersNameHint,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: urlController,
                   keyboardType: TextInputType.url,
-                  decoration: const InputDecoration(
-                    labelText: 'API 地址',
+                  decoration: InputDecoration(
+                    labelText: l10n.settingsServersUrlLabel,
                     hintText: 'http://192.168.1.10:58091',
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
                   ),
                   validator: (v) {
                     try {
@@ -193,18 +198,18 @@ class ServersPage extends ConsumerWidget {
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: usernameController,
-                  decoration: const InputDecoration(
-                    labelText: '用户名',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.settingsServersUsername,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: passwordController,
                   obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: '密码',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.settingsServersPassword,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
               ],
@@ -214,7 +219,7 @@ class ServersPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('取消'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () {
@@ -222,7 +227,7 @@ class ServersPage extends ConsumerWidget {
                 Navigator.pop(ctx, true);
               }
             },
-            child: const Text('保存'),
+            child: Text(l10n.settingsServersSave),
           ),
         ],
       ),
@@ -258,7 +263,7 @@ class ServersPage extends ConsumerWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ResponsiveSnackBar.showError(context, message: '保存失败: $e');
+        ResponsiveSnackBar.showError(context, message: l10n.settingsServersSaveFailed('$e'));
       }
     }
   }
@@ -269,26 +274,27 @@ class ServersPage extends ConsumerWidget {
     ServerEntry entry,
     bool isCurrent,
   ) async {
+    final l10n = AppLocalizations.of(context);
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('删除服务器'),
+        title: Text(l10n.settingsServersDeleteTitle),
         content: Text(
           isCurrent
-              ? '此为当前正在使用的服务器，删除后下次启动将重新探测列表中其他项。是否继续？'
-              : '确定要删除「${entry.displayName}」吗？',
+              ? l10n.settingsServersDeleteCurrentConfirm
+              : l10n.settingsServersDeleteConfirm(entry.displayName),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('取消'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('删除'),
+            child: Text(l10n.commonDelete),
           ),
         ],
       ),
@@ -302,6 +308,7 @@ class ServersPage extends ConsumerWidget {
     WidgetRef ref,
     ServerEntry entry,
   ) async {
+    final l10n = AppLocalizations.of(context);
     _setStatus(ref, entry.id, ProbeStatus.probing);
     final result = await ServerProbe.probeOne(entry);
     _setStatus(ref, entry.id, result.ok ? ProbeStatus.ok : ProbeStatus.fail);
@@ -309,13 +316,14 @@ class ServersPage extends ConsumerWidget {
       ResponsiveSnackBar.show(
         context,
         message: result.ok
-            ? '${entry.displayName} 可达'
-            : '${entry.displayName} 不可达',
+            ? l10n.settingsServersReachable(entry.displayName)
+            : l10n.settingsServersUnreachable(entry.displayName),
       );
     }
   }
 
   Future<void> _probeAll(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
     final servers = ref.read(serversProvider).value ?? const <ServerEntry>[];
     if (servers.isEmpty) return;
     for (final s in servers) {
@@ -329,7 +337,7 @@ class ServersPage extends ConsumerWidget {
       final okCount = results.where((r) => r.ok).length;
       ResponsiveSnackBar.show(
         context,
-        message: '探测完成：$okCount / ${results.length} 可达',
+        message: l10n.settingsServersProbeResult(okCount, results.length),
       );
     }
   }
@@ -340,15 +348,16 @@ class ServersPage extends ConsumerWidget {
     ServerEntry entry,
     bool isCurrent,
   ) async {
+    final l10n = AppLocalizations.of(context);
     if (isCurrent) {
-      ResponsiveSnackBar.show(context, message: '已是当前使用的服务器');
+      ResponsiveSnackBar.show(context, message: l10n.settingsServersAlreadyCurrent);
       return;
     }
     await applyServerSelection(ref, entry);
     if (context.mounted) {
       ResponsiveSnackBar.show(
         context,
-        message: '已切换到 ${entry.displayName}，请重新登录',
+        message: l10n.settingsServersSwitched(entry.displayName),
       );
     }
   }
@@ -383,6 +392,7 @@ class _ServerTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     return ListTile(
       leading: SizedBox(
         width: 40,
@@ -410,7 +420,7 @@ class _ServerTile extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           PopupMenuButton<String>(
-            tooltip: '更多',
+            tooltip: l10n.more,
             onSelected: (v) {
               switch (v) {
                 case 'edit':
@@ -424,12 +434,12 @@ class _ServerTile extends StatelessWidget {
               }
             },
             itemBuilder: (_) => [
-              const PopupMenuItem(value: 'switch', child: Text('切换到此项')),
-              const PopupMenuItem(value: 'test', child: Text('测试连接')),
-              const PopupMenuItem(value: 'edit', child: Text('编辑')),
-              const PopupMenuItem(
+              PopupMenuItem(value: 'switch', child: Text(l10n.settingsServersSwitchTo)),
+              PopupMenuItem(value: 'test', child: Text(l10n.settingsServersTestConnection)),
+              PopupMenuItem(value: 'edit', child: Text(l10n.settingsServersEditAction)),
+              PopupMenuItem(
                 value: 'delete',
-                child: Text('删除'),
+                child: Text(l10n.commonDelete),
               ),
             ],
           ),
@@ -492,6 +502,7 @@ class _LocalModeCardState extends ConsumerState<_LocalModeCard> {
     final musicDir = ref.watch(localMusicDirProvider);
     final isLocal = runMode == RunMode.local;
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return Card(
       child: Padding(
@@ -505,7 +516,7 @@ class _LocalModeCardState extends ConsumerState<_LocalModeCard> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '本地模式',
+                    l10n.settingsServersLocalMode,
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                 ),
@@ -519,7 +530,7 @@ class _LocalModeCardState extends ConsumerState<_LocalModeCard> {
             ),
             const SizedBox(height: 4),
             Text(
-              '开启后在设备上运行后端，无需网络即可播放本地音乐。',
+              l10n.settingsServersLocalModeDesc,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -539,12 +550,12 @@ class _LocalModeCardState extends ConsumerState<_LocalModeCard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '音乐目录',
+                          l10n.settingsServersMusicDir,
                           style: Theme.of(context).textTheme.labelMedium,
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          musicDir ?? '未选择',
+                          musicDir ?? l10n.settingsServersNotSelected,
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: musicDir != null
                                     ? colorScheme.onSurface
@@ -561,7 +572,7 @@ class _LocalModeCardState extends ConsumerState<_LocalModeCard> {
                     const SizedBox(width: 8),
                     FilledButton.tonal(
                       onPressed: () => _pickMusicDir(),
-                      child: const Text('选择'),
+                      child: Text(l10n.settingsServersSelect),
                     ),
                   ],
                 ],
@@ -569,7 +580,7 @@ class _LocalModeCardState extends ConsumerState<_LocalModeCard> {
               if (EmbeddedBackendService.usesFixedMusicDir) ...[
                 const SizedBox(height: 8),
                 Text(
-                  '通过「文件」App 或电脑（Finder / iTunes 文件共享）把音乐放入 Songloft 文件夹，然后重新扫描。',
+                  l10n.settingsServersFixedMusicDirHint,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -592,7 +603,8 @@ class _LocalModeCardState extends ConsumerState<_LocalModeCard> {
       }
     } catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '切换失败：$e');
+        ResponsiveSnackBar.showError(context,
+            message: AppLocalizations.of(context).settingsServersSwitchFailed('$e'));
       }
     } finally {
       if (mounted) {
@@ -648,7 +660,8 @@ class _LocalModeCardState extends ConsumerState<_LocalModeCard> {
     }
 
     if (mounted) {
-      ResponsiveSnackBar.show(context, message: '已切换到本地模式');
+      ResponsiveSnackBar.show(context,
+          message: AppLocalizations.of(context).settingsServersSwitchedLocal);
     }
   }
 
@@ -682,7 +695,8 @@ class _LocalModeCardState extends ConsumerState<_LocalModeCard> {
     if (result != null) {
       await ref.read(localMusicDirProvider.notifier).set(result);
       if (mounted) {
-        ResponsiveSnackBar.show(context, message: '音乐目录已更新');
+        ResponsiveSnackBar.show(context,
+            message: AppLocalizations.of(context).settingsServersMusicDirUpdated);
       }
     }
   }

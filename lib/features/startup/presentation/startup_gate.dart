@@ -12,6 +12,7 @@ import '../../../core/network/server_entry.dart';
 import '../../../core/network/server_probe.dart';
 import '../../../core/network/servers_provider.dart';
 import '../../../core/storage/secure_storage.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// 启动时显示一个简单 Splash，期间完成：
 /// 1. 读取持久化的服务器列表
@@ -29,10 +30,21 @@ class StartupGate extends ConsumerStatefulWidget {
   ConsumerState<StartupGate> createState() => _StartupGateState();
 }
 
+/// 启动 Splash 的提示阶段。文案在 [build] 中通过 [AppLocalizations] 解析，
+/// 因为 Splash 的 MaterialApp 在 SongloftApp 之外，设置文案时尚无可用的
+/// BuildContext / 全局 l10n。
+enum _StartupHint {
+  starting,
+  startingLocalBackend,
+  connectingLocalBackend,
+  connectingTo,
+}
+
 class _StartupGateState extends ConsumerState<StartupGate>
     with WidgetsBindingObserver {
   bool _ready = false;
-  String _hint = '正在启动…';
+  _StartupHint _hint = _StartupHint.starting;
+  String _connectingTarget = '';
 
   @override
   void initState() {
@@ -92,7 +104,7 @@ class _StartupGateState extends ConsumerState<StartupGate>
   }
 
   Future<void> _bootstrapLocal() async {
-    setState(() => _hint = '正在启动本地后端…');
+    setState(() => _hint = _StartupHint.startingLocalBackend);
 
     final musicDir = await EmbeddedBackendService.resolveMusicDir(
       ref.read(localMusicDirProvider),
@@ -116,7 +128,7 @@ class _StartupGateState extends ConsumerState<StartupGate>
     final baseUrl = 'http://127.0.0.1:$port';
     ref.read(baseUrlProvider.notifier).set(baseUrl);
 
-    setState(() => _hint = '正在连接本地后端…');
+    setState(() => _hint = _StartupHint.connectingLocalBackend);
 
     // 等待后端 health 端点就绪
     final dio = Dio(BaseOptions(connectTimeout: const Duration(seconds: 2)));
@@ -184,7 +196,8 @@ class _StartupGateState extends ConsumerState<StartupGate>
       ref.read(probeOutcomeProvider.notifier).set(ProbeOutcome.success);
     } else {
       setState(() {
-        _hint = '正在连接 ${_describe(servers.first)}…';
+        _hint = _StartupHint.connectingTo;
+        _connectingTarget = _describe(servers.first);
       });
 
       final picked = await ServerProbe.pickFirstReachable(servers);
@@ -211,25 +224,40 @@ class _StartupGateState extends ConsumerState<StartupGate>
     if (_ready) return widget.child;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.asset(
-                'assets/icons/app_icon.png',
-                width: 64,
-                height: 64,
-                semanticLabel: 'Songloft',
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      home: Builder(
+        builder: (context) {
+          final l10n = AppLocalizations.of(context);
+          final hintText = switch (_hint) {
+            _StartupHint.starting => l10n.startupStarting,
+            _StartupHint.startingLocalBackend => l10n.startupStartingLocalBackend,
+            _StartupHint.connectingLocalBackend =>
+              l10n.startupConnectingLocalBackend,
+            _StartupHint.connectingTo =>
+              l10n.startupConnectingTo(_connectingTarget),
+          };
+          return Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    'assets/icons/app_icon.png',
+                    width: 64,
+                    height: 64,
+                    semanticLabel: 'Songloft',
+                  ),
+                  const SizedBox(height: 24),
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 24),
+                  Text(hintText),
+                ],
               ),
-              const SizedBox(height: 24),
-              const CircularProgressIndicator(),
-              const SizedBox(height: 24),
-              Text(_hint),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }

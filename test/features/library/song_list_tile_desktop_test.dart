@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:songloft_flutter/features/library/presentation/providers/favorite_provider.dart';
 import 'package:songloft_flutter/features/library/presentation/widgets/song_list_tile.dart';
+import 'package:songloft_flutter/l10n/app_localizations.dart';
 import 'package:songloft_flutter/shared/models/song.dart';
 
 Song _localSong() => Song(
@@ -25,6 +27,9 @@ Future<void> _pump(WidgetTester tester, double width) async {
         isRadioFavoritedProvider.overrideWith((ref, id) => false),
       ],
       child: MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: Center(
             child: SizedBox(

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:songloft_flutter/features/home/presentation/tv_home_page.dart';
 import 'package:songloft_flutter/features/player/presentation/providers/player_provider.dart';
 import 'package:songloft_flutter/features/playlist/presentation/providers/playlist_provider.dart';
+import 'package:songloft_flutter/l10n/app_localizations.dart';
 
 void main() {
   testWidgets('TvHomePage renders quick navigation cards', (
@@ -27,7 +29,12 @@ void main() {
           isPlayingProvider.overrideWith((ref) => false),
           sourcePlaylistIdProvider.overrideWith((ref) => null),
         ],
-        child: const MaterialApp(home: TvHomePage()),
+        child: const MaterialApp(
+          locale: Locale('zh'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: TvHomePage(),
+        ),
       ),
     );
 

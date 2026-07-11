@@ -15,6 +15,7 @@ import '../../../core/network/servers_provider.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/storage/secure_storage.dart';
 import '../../../core/theme/tv_theme.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/utils/responsive_snackbar.dart';
 import '../domain/auth_state.dart';
 import 'providers/auth_provider.dart';
@@ -346,7 +347,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      '登录',
+                                      AppLocalizations.of(context).authLogin,
                                       style: theme.textTheme.headlineLarge
                                           ?.copyWith(
                                             fontSize: 36,
@@ -358,7 +359,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                       height: TvTheme.spacingSmall,
                                     ),
                                     Text(
-                                      '使用您的账号登录 Songloft',
+                                      AppLocalizations.of(context).authTvSubtitle,
                                       style: TvTheme.captionStyle(context),
                                     ),
                                   ],
@@ -385,15 +386,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               nextFocusNode: _passwordFocusNode,
                               previousFocusNode: null,
                               colorScheme: colorScheme,
-                              labelText: '用户名',
-                              hintText: '请输入用户名',
+                              labelText: AppLocalizations.of(context).authUsername,
+                              hintText: AppLocalizations.of(context).authUsernameHint,
                               prefixIcon: Icons.person_outline,
                               autofocus: true,
                               isLastField: false,
                               autofillHints: const [AutofillHints.username],
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
-                                  return '请输入用户名';
+                                  return AppLocalizations.of(
+                                    context,
+                                  ).authUsernameRequired;
                                 }
                                 return null;
                               },
@@ -413,7 +416,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                 nextFocusNode: _loginButtonFocusNode,
                                 previousFocusNode: _passwordFocusNode,
                                 colorScheme: colorScheme,
-                                labelText: 'API 地址',
+                                labelText: AppLocalizations.of(context).authApiUrl,
                                 hintText: AppConfig.baseUrl,
                                 prefixIcon: Icons.cloud_outlined,
                                 keyboardType: TextInputType.url,
@@ -423,7 +426,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   if (value != null && value.isNotEmpty) {
                                     if (!value.startsWith('http://') &&
                                         !value.startsWith('https://')) {
-                                      return '请输入有效的 URL（以 http:// 或 https:// 开头）';
+                                      return AppLocalizations.of(
+                                        context,
+                                      ).authInvalidUrl;
                                     }
                                   }
                                   return null;
@@ -469,7 +474,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                 label: Text(
                                   _isLocalModeBootstrapping
                                       ? _localModeHint
-                                      : '使用本地模式',
+                                      : AppLocalizations.of(
+                                          context,
+                                        ).authUseLocalMode,
                                 ),
                               ),
                             ],
@@ -478,7 +485,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
                             // 底部提示
                             Text(
-                              '© ${DateTime.now().year} Songloft',
+                              AppLocalizations.of(
+                                context,
+                              ).authCopyright(DateTime.now().year),
                               textAlign: TextAlign.center,
                               style: TvTheme.captionStyle(context),
                             ),
@@ -532,7 +541,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         ),
         const SizedBox(height: 16),
         Text(
-          '自托管本地音乐服务',
+          AppLocalizations.of(context).authTagline,
           style: theme.textTheme.titleLarge?.copyWith(
             color: colorScheme.onSurfaceVariant,
             fontSize: TvTheme.fontSizeBody,
@@ -596,8 +605,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       previousFocusNode: _usernameFocusNode,
       isLastField: isLast,
       colorScheme: colorScheme,
-      labelText: '密码',
-      hintText: '请输入密码',
+      labelText: AppLocalizations.of(context).authPassword,
+      hintText: AppLocalizations.of(context).authPasswordHint,
       prefixIcon: Icons.lock_outline,
       obscureText: _obscurePassword,
       autofillHints: const [AutofillHints.password],
@@ -617,7 +626,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   hasFocus ? colorScheme.primary : colorScheme.onSurfaceVariant,
             ),
             iconSize: 28,
-            tooltip: _obscurePassword ? '显示密码' : '隐藏密码',
+            tooltip: _obscurePassword
+                ? AppLocalizations.of(context).authShowPassword
+                : AppLocalizations.of(context).authHidePassword,
             onPressed: () {
               setState(() {
                 _obscurePassword = !_obscurePassword;
@@ -626,7 +637,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           ),
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return '请输入密码';
+          return AppLocalizations.of(context).authPasswordRequired;
         }
         return null;
       },
@@ -695,7 +706,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             color: colorScheme.onPrimary,
                           ),
                         )
-                        : Text(hasFocus ? '按确认键登录' : '登录'),
+                        : Text(
+                          hasFocus
+                              ? AppLocalizations.of(context).authTvPressToLogin
+                              : AppLocalizations.of(context).authLogin,
+                        ),
               ),
             ),
           );
@@ -726,7 +741,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         ),
         const SizedBox(height: 8),
         Text(
-          '登录以继续',
+          AppLocalizations.of(context).authLoginToContinue,
           style: theme.textTheme.bodyLarge?.copyWith(
             color: colorScheme.onSurfaceVariant,
           ),
@@ -738,16 +753,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget _buildUsernameField(ColorScheme colorScheme) {
     return TextFormField(
       controller: _usernameController,
-      decoration: const InputDecoration(
-        labelText: '用户名',
-        hintText: '请输入用户名',
-        prefixIcon: Icon(Icons.person_outline),
+      decoration: InputDecoration(
+        labelText: AppLocalizations.of(context).authUsername,
+        hintText: AppLocalizations.of(context).authUsernameHint,
+        prefixIcon: const Icon(Icons.person_outline),
       ),
       textInputAction: TextInputAction.next,
       autofillHints: const [AutofillHints.username],
       validator: (value) {
         if (value == null || value.trim().isEmpty) {
-          return '请输入用户名';
+          return AppLocalizations.of(context).authUsernameRequired;
         }
         return null;
       },
@@ -759,14 +774,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       controller: _passwordController,
       obscureText: _obscurePassword,
       decoration: InputDecoration(
-        labelText: '密码',
-        hintText: '请输入密码',
+        labelText: AppLocalizations.of(context).authPassword,
+        hintText: AppLocalizations.of(context).authPasswordHint,
         prefixIcon: const Icon(Icons.lock_outline),
         suffixIcon: IconButton(
           icon: Icon(
             _obscurePassword ? Icons.visibility_off : Icons.visibility,
           ),
-          tooltip: _obscurePassword ? '显示密码' : '隐藏密码',
+          tooltip: _obscurePassword
+              ? AppLocalizations.of(context).authShowPassword
+              : AppLocalizations.of(context).authHidePassword,
           onPressed: () {
             setState(() {
               _obscurePassword = !_obscurePassword;
@@ -779,7 +796,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       onFieldSubmitted: (_) => _handleLogin(),
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return '请输入密码';
+          return AppLocalizations.of(context).authPasswordRequired;
         }
         return null;
       },
@@ -794,9 +811,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           servers.any((s) => s.url == current) ? current : servers.first.url;
       return DropdownButtonFormField<String>(
         initialValue: selected,
-        decoration: const InputDecoration(
-          labelText: '服务器',
-          prefixIcon: Icon(Icons.cloud_outlined),
+        decoration: InputDecoration(
+          labelText: AppLocalizations.of(context).authServer,
+          prefixIcon: const Icon(Icons.cloud_outlined),
         ),
         items:
             servers
@@ -818,7 +835,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     return TextFormField(
       controller: _apiUrlController,
       decoration: InputDecoration(
-        labelText: 'API 地址',
+        labelText: AppLocalizations.of(context).authApiUrl,
         hintText: AppConfig.baseUrl,
         prefixIcon: const Icon(Icons.cloud_outlined),
       ),
@@ -826,10 +843,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       textInputAction: TextInputAction.done,
       validator: (value) {
         if (value == null || value.trim().isEmpty) {
-          return '请输入 API 地址';
+          return AppLocalizations.of(context).authApiUrlRequired;
         }
         if (!value.startsWith('http://') && !value.startsWith('https://')) {
-          return '请输入有效的 URL（以 http:// 或 https:// 开头）';
+          return AppLocalizations.of(context).authInvalidUrl;
         }
         return null;
       },
@@ -850,13 +867,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   color: colorScheme.onPrimary,
                 ),
               )
-              : const Text('登录'),
+              : Text(AppLocalizations.of(context).authLogin),
     );
   }
 
   Widget _buildFooter(ThemeData theme) {
     return Text(
-      '© ${DateTime.now().year} Songloft',
+      AppLocalizations.of(context).authCopyright(DateTime.now().year),
       textAlign: TextAlign.center,
       style: theme.textTheme.bodySmall?.copyWith(
         color: theme.colorScheme.onSurfaceVariant,
@@ -874,7 +891,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     setState(() {
       _isLocalModeBootstrapping = true;
-      _localModeHint = '正在自动登录…';
+      _localModeHint = AppLocalizations.of(context).authAutoLoggingIn;
     });
 
     try {
@@ -885,7 +902,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         );
         if (musicDir == null || musicDir.isEmpty) return;
         await ref.read(localMusicDirProvider.notifier).set(musicDir);
-        setState(() => _localModeHint = '正在启动本地后端…');
+        setState(
+          () => _localModeHint =
+              AppLocalizations.of(context).authStartingLocalBackend,
+        );
         final dataDir = (await getApplicationSupportDirectory()).path;
         final port = await EmbeddedBackendService.start(
           dataDir: dataDir,
@@ -913,7 +933,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           .login(username: 'admin', password: 'admin');
     } catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '自动登录失败：$e');
+        ResponsiveSnackBar.showError(
+          context,
+          message: AppLocalizations.of(context).authAutoLoginFailed(e.toString()),
+        );
       }
     } finally {
       if (mounted) {
@@ -941,7 +964,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ),
                   )
                   : const Icon(Icons.phone_android),
-          label: Text(_isLocalModeBootstrapping ? _localModeHint : '使用本地模式'),
+          label: Text(
+            _isLocalModeBootstrapping
+                ? _localModeHint
+                : AppLocalizations.of(context).authUseLocalMode,
+          ),
         ),
       ],
     );
@@ -950,7 +977,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Future<void> _handleLocalMode() async {
     setState(() {
       _isLocalModeBootstrapping = true;
-      _localModeHint = '正在准备…';
+      _localModeHint = AppLocalizations.of(context).authPreparing;
     });
 
     try {
@@ -966,7 +993,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       await ref.read(runModeProvider.notifier).set(RunMode.local);
       await EmbeddedBackendService.ensureStoragePermission();
 
-      setState(() => _localModeHint = '正在启动本地后端…');
+      setState(
+        () => _localModeHint =
+            AppLocalizations.of(context).authStartingLocalBackend,
+      );
       final dataDir = (await getApplicationSupportDirectory()).path;
       final port = await EmbeddedBackendService.start(
         dataDir: dataDir,
@@ -976,7 +1006,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       final baseUrl = 'http://127.0.0.1:$port';
       ref.read(baseUrlProvider.notifier).set(baseUrl);
 
-      setState(() => _localModeHint = '正在连接…');
+      setState(() => _localModeHint = AppLocalizations.of(context).authConnecting);
       final dio = Dio(BaseOptions(connectTimeout: const Duration(seconds: 2)));
       for (var i = 0; i < 10; i++) {
         try {
@@ -997,7 +1027,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       if (restored && !await storage.isAccessTokenExpired()) {
         ref.read(authStateProvider.notifier).setAuthenticated();
       } else {
-        setState(() => _localModeHint = '正在登录…');
+        setState(
+          () => _localModeHint = AppLocalizations.of(context).authLoggingIn,
+        );
         final loginDio = Dio(
           BaseOptions(
             baseUrl: baseUrl,
@@ -1021,7 +1053,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       }
     } catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '本地模式启动失败：$e');
+        ResponsiveSnackBar.showError(
+          context,
+          message: AppLocalizations.of(context).authLocalModeFailed(e.toString()),
+        );
       }
     } finally {
       if (mounted) {

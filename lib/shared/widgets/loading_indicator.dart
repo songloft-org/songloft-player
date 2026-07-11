@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_dimensions.dart';
+import '../../l10n/app_localizations.dart';
 
 /// 加载指示器组件
 class LoadingIndicator extends StatelessWidget {
@@ -188,7 +189,7 @@ class LoadingOverlay extends StatelessWidget {
                   overlayColor ??
                   Theme.of(context).colorScheme.surface.withAlpha(200),
               child: Semantics(
-                label: '正在加载',
+                label: AppLocalizations.of(context).commonLoading,
                 child: LoadingIndicator(message: message),
               ),
             ),

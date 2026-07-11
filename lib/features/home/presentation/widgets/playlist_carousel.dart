@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/responsive.dart';
 import '../../../../core/utils/url_helper.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../playlist/domain/playlist.dart';
 
 /// 横向歌单轮播组件
@@ -81,7 +82,7 @@ class _PlaylistCarouselItem extends StatelessWidget {
 
     return Semantics(
       button: true,
-      label: '打开歌单',
+      label: AppLocalizations.of(context).homeOpenPlaylist,
       child: GestureDetector(
       onTap: onTap,
       child: SizedBox(

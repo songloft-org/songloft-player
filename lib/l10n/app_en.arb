@@ -1,0 +1,2277 @@
+{
+  "@@locale": "en",
+  "language": "Language",
+  "languageSimplifiedChinese": "简体中文",
+  "languageEnglish": "English",
+  "languageSystem": "Follow system",
+  "themeTitle": "Theme",
+  "themeModeTitle": "Theme mode",
+  "themeModeSubtitle": "Choose the app appearance",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "themeSystem": "System",
+  "commonConfirm": "Confirm",
+  "commonCancel": "Cancel",
+  "commonDelete": "Delete",
+  "commonRetry": "Retry",
+  "commonLoading": "Loading",
+  "commonUnknown": "Unknown",
+  "errorNetworkFailed": "Network connection failed",
+  "errorGeneric": "Something went wrong",
+  "deleteAlsoLocalFile": "Also delete local file",
+  "deleteIrreversible": "This cannot be undone",
+  "navHome": "Home",
+  "navLibrary": "Library",
+  "navPlaylists": "Playlists",
+  "navSettings": "Settings",
+  "favoriteAdded": "Added to favorites",
+  "favoriteRemoved": "Removed from favorites",
+  "favoriteAddFailed": "Failed to add favorite",
+  "favoriteRemoveFailed": "Failed to remove favorite",
+  "favorite": "Favorite",
+  "unfavorite": "Unfavorite",
+  "commonCreate": "Create",
+  "commonConfirmWithCount": "OK ({count})",
+  "commonLoadFailed": "Failed to load",
+  "commonLoadFailedDetail": "Failed to load: {error}",
+  "clearSearch": "Clear search",
+  "selectAll": "Select all",
+  "selectFolder": "Select folder",
+  "more": "More",
+  "expand": "Expand",
+  "collapse": "Collapse",
+  "songTypeLocal": "Local",
+  "songTypeRemote": "Remote",
+  "songTypeRadio": "Radio",
+  "filterAll": "All",
+  "pickerSelectSongs": "Select songs",
+  "pickerSearchHint": "Search songs, artists or albums",
+  "pickerNoMatchInFolder": "No matching songs in this folder",
+  "pickerNoMatch": "No matching songs",
+  "pickerNoSongsInFolder": "No songs in this folder",
+  "pickerNoSongs": "No songs yet",
+  "pickerFetchListFailed": "Failed to fetch list: {error}",
+  "pickerSelectingAll": "Selecting all...",
+  "pickerDeselectAllWithCount": "Deselect all ({count} selected)",
+  "pickerSelectAllCount": "Select all {count}",
+  "loadFailedTapRetry": "Failed to load, tap to retry",
+  "loadedAllHint": "— All loaded —",
+  "addToPlaylist": "Add to playlist",
+  "newPlaylist": "New playlist",
+  "playlistNameLabel": "Playlist name",
+  "noPlaylists": "No playlists yet",
+  "songsCount": "{count, plural, =1{1 song} other{{count} songs}}",
+  "@songsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addFailed": "Failed to add",
+  "addFailedDetail": "Failed to add: {error}",
+  "addedToPlaylist": "Added {added} song(s) to \"{name}\"",
+  "addedToPlaylistWithSkip": "Added {added} to \"{name}\", skipped {skipped}",
+  "createdPlaylistAdded": "Created playlist \"{name}\" and added {added} song(s)",
+  "createdPlaylistWithSkip": "Created playlist \"{name}\" and added {added}, skipped {skipped}",
+  "createPlaylistFailed": "Failed to create playlist",
+  "createPlaylistFailedDetail": "Failed to create playlist: {error}",
+  "selectAllFiles": "Select all files",
+  "allSongs": "All songs",
+  "musicDirEmpty": "Music directory is empty",
+  "dirEmpty": "Directory is empty",
+  "loadDirFailed": "Failed to load directory: {error}",
+  "githubProxyDirect": "Direct (no proxy)",
+  "coreErrorConnectionTimeout": "Unable to connect to {target} (connection timed out). Please check: (1) whether the backend service is running, (2) whether the URL and port are correct, (3) if accessing via ZeroTier/VPN, make sure the VPN is connected and \"global routing\" is enabled.",
+  "@coreErrorConnectionTimeout": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "coreErrorConnectionFailed": "Unable to connect to {target}. Please check that the URL is correct; if accessing via ZeroTier/VPN, make sure the VPN is enabled.",
+  "@coreErrorConnectionFailed": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "coreErrorBadCertificate": "Certificate verification failed",
+  "coreErrorRequestCancelled": "Request cancelled",
+  "coreErrorUnknownNetwork": "Unknown network error",
+  "coreErrorNoResponse": "No response from server",
+  "coreErrorRequestFailed": "Request failed",
+  "coreErrorUnauthorized": "Your session has expired, please log in again",
+  "coreErrorForbidden": "Access denied",
+  "coreErrorNotFound": "The requested resource does not exist",
+  "coreErrorServer": "Server error, please try again later",
+  "coreNotFoundPageTitle": "Page not found",
+  "coreBackToHome": "Back to home",
+  "coreNotificationChannel": "Songloft Playback Control",
+  "coreVersionDev": "Development build",
+  "jspluginManagerTitle": "JS Plugin Management",
+  "jspluginManagerSubtitle": "Manage installed JS plugins",
+  "jspluginUploadPlugin": "Upload Plugin",
+  "jspluginUpdateAll": "Update All",
+  "jspluginCleanupData": "Clean Up Data",
+  "jspluginGithubProxy": "GitHub Proxy",
+  "jspluginCustomProxy": "Custom Proxy",
+  "jspluginCustomProxyEllipsis": "Custom proxy...",
+  "jspluginCustomProxyWith": "Custom: {proxy}",
+  "@jspluginCustomProxyWith": {
+    "placeholders": {
+      "proxy": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginProxyHelper": "Enter a proxy URL, e.g. https://ghproxy.com/",
+  "jspluginOk": "OK",
+  "jspluginCleanupOrphanTitle": "Clean Up Orphan Data",
+  "jspluginCleanupOrphanContent": "This will remove persistent storage data left by uninstalled plugins. This action cannot be undone.",
+  "jspluginCleanup": "Clean Up",
+  "jspluginCleanupFailed": "Cleanup failed: {error}",
+  "@jspluginCleanupFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginNoInstalled": "No JS plugins installed",
+  "jspluginPickFileFailed": "Failed to pick file: {error}",
+  "@jspluginPickFileFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginCannotReadFile": "Unable to read file data",
+  "jspluginCannotGetPath": "Unable to get file path",
+  "jspluginUploadSuccess": "Uploaded {count} plugin(s) successfully",
+  "@jspluginUploadSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "jspluginUploadPartial": "{success} succeeded, {failed} failed\n{error}",
+  "@jspluginUploadPartial": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginUploadFailed": "Upload failed: {error}",
+  "@jspluginUploadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginUploadDialogTitle": "Upload JS Plugin",
+  "jspluginSelectFileSemantics": "Select a plugin file to upload",
+  "jspluginTapToSelectFile": "Tap to select a file",
+  "jspluginUploadHint": "Supports .jsplugin.zip format; uploading a plugin with the same name overwrites the existing version (manual update)",
+  "jspluginRemove": "Remove",
+  "jspluginUploading": "Uploading...",
+  "jspluginUpload": "Upload",
+  "jspluginOperationFailed": "Operation failed: {error}",
+  "@jspluginOperationFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginCannotOpenLink": "Cannot open link: {url}",
+  "@jspluginCannotOpenLink": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginForceUpdateSuccess": "Plugin force-updated",
+  "jspluginForceUpdateFailed": "Force update failed: {error}",
+  "@jspluginForceUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginConfirmDelete": "Confirm Deletion",
+  "jspluginDeleteConfirmContent": "Are you sure you want to delete plugin \"{name}\"?",
+  "@jspluginDeleteConfirmContent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginKeepData": "Keep plugin data",
+  "jspluginKeepDataSubtitle": "Keep file storage data for easy reinstallation later",
+  "jspluginDeleted": "Plugin deleted",
+  "jspluginDeleteFailed": "Delete failed: {error}",
+  "@jspluginDeleteFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginAuthor": "Author: {author}",
+  "@jspluginAuthor": {
+    "placeholders": {
+      "author": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginOpenHomepageSemantics": "Open plugin homepage",
+  "jspluginStatusError": "Error",
+  "jspluginStatusEnabled": "Enabled",
+  "jspluginStatusDisabled": "Disabled",
+  "jspluginMoreActions": "More actions",
+  "jspluginOpenHomepage": "Open Homepage",
+  "jspluginKeepAlive": "Keep Running",
+  "jspluginCancelKeepAlive": "Stop Keeping Running",
+  "jspluginCheckUpdate": "Check for Updates",
+  "jspluginForceUpdate": "Force Update",
+  "jspluginUpdate": "Update",
+  "jspluginCheckUpdateTimeout": "Update check timed out. Try switching proxy and retry.",
+  "jspluginCheckUpdateFailed": "Update check failed: {error}",
+  "@jspluginCheckUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginUpdateSuccess": "Plugin updated successfully",
+  "jspluginUpdateFailed": "Update failed: {error}",
+  "@jspluginUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginUpdateTimeout": "Update timed out. Please retry.",
+  "jspluginUpdateDialogTitle": "Update Plugin - {name}",
+  "@jspluginUpdateDialogTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginCheckingUpdate": "Checking for updates...",
+  "jspluginDownloadingUpdate": "Downloading and updating plugin...",
+  "jspluginDoNotCloseDialog": "Do not close this dialog",
+  "jspluginAlreadyLatest": "Already up to date",
+  "jspluginCurrentVersion": "Current version: {version}",
+  "@jspluginCurrentVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginNewVersionFound": "New version available",
+  "jspluginRecheck": "Recheck",
+  "jspluginUpdateNow": "Update Now",
+  "jspluginClose": "Close",
+  "jspluginBatchUpdateFailed": "Batch update failed: {error}",
+  "@jspluginBatchUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginBatchUpdateTimeout": "Batch update timed out. Please retry.",
+  "jspluginBatchUpdating": "Checking and updating all plugins...",
+  "jspluginStatUpdated": "Updated",
+  "jspluginStatFailed": "Failed",
+  "jspluginStatSkipped": "Up to date",
+  "jspluginUpdateFailedShort": "Update failed",
+  "jspluginVersionLatest": "v{version} is up to date",
+  "@jspluginVersionLatest": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginStartUpdate": "Start Update",
+  "jspluginForceUpdateDialogTitle": "Force Update - {name}",
+  "@jspluginForceUpdateDialogTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginForceUpdateContent": "This ignores the version check and re-downloads and reinstalls the plugin.",
+  "jspluginConfirmUpdate": "Confirm Update",
+  "jspluginStoreTitle": "Plugin Store",
+  "jspluginRefreshList": "Refresh plugin list",
+  "jspluginManageRegistries": "Manage Sources",
+  "jspluginNoRegistries": "No sources added yet",
+  "jspluginNoRegistriesHint": "Add a source to browse and install plugins",
+  "jspluginAddRegistry": "Add Source",
+  "jspluginRegistry": "Source",
+  "jspluginOfficial": "Official",
+  "jspluginSearchHint": "Search plugins...",
+  "jspluginLoadingList": "Loading plugin list…",
+  "jspluginNoMatch": "No matching plugins found",
+  "jspluginRegistryEmpty": "This source has no plugins",
+  "jspluginPrevPage": "Previous page",
+  "jspluginNextPage": "Next page",
+  "jspluginInstallFailed": "Installation failed: {error}",
+  "@jspluginInstallFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginReinstall": "Reinstall",
+  "jspluginUpdateTo": "Update to v{version}",
+  "@jspluginUpdateTo": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginInstall": "Install",
+  "jspluginSaveFailed": "Save failed: {error}",
+  "@jspluginSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginEditRegistry": "Edit Source",
+  "jspluginDeleteRegistry": "Delete Source",
+  "jspluginNameOptional": "Name (optional)",
+  "jspluginRegistryNameHint": "My plugin source",
+  "jspluginTokenOptional": "Token (optional)",
+  "jspluginSave": "Save",
+  "jspluginAdd": "Add",
+  "jspluginAuthConfigured": "Authentication configured",
+  "jspluginGridTitle": "JS Plugins",
+  "jspluginCleanupDone": "Cleanup complete",
+  "libraryPlayFailed": "Playback failed",
+  "libraryNoPlayableSongs": "No songs to play",
+  "libraryPlayingAllSongs": "Playing all {total} songs",
+  "@libraryPlayingAllSongs": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryDismissError": "Dismiss",
+  "libraryExitSelection": "Exit selection",
+  "librarySelectedCount": "{count} selected",
+  "@librarySelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryDeleteWithCount": "Delete ({count})",
+  "@libraryDeleteWithCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryDeselectAll": "Deselect all",
+  "libraryTitle": "Library",
+  "libraryPlayAll": "Play all",
+  "librarySort": "Sort",
+  "librarySortAddedAt": "Recently added",
+  "librarySortFileTime": "File time",
+  "libraryColumnTitle": "Title",
+  "libraryColumnArtist": "Artist",
+  "libraryColumnAlbum": "Album",
+  "libraryColumnType": "Type",
+  "libraryColumnDuration": "Duration",
+  "librarySelectMode": "Multi-select",
+  "libraryMore": "More",
+  "libraryAddRemoteSong": "Add remote song",
+  "libraryAddRadio": "Add radio",
+  "libraryHideHiddenSongs": "Hide hidden songs",
+  "libraryShowHiddenSongs": "Show hidden songs",
+  "libraryCleanInvalidSongs": "Clean invalid songs",
+  "librarySearchHint": "Search songs...",
+  "libraryNoMatchingSongs": "No matching songs found",
+  "libraryEmpty": "Library is empty",
+  "libraryTryOtherKeywords": "Try other keywords",
+  "libraryEmptyHint": "Add some songs to get started",
+  "libraryDeleteConfirmTitle": "Confirm deletion",
+  "libraryDeleteConfirmContent": "Are you sure you want to delete this song?",
+  "libraryCleanTitle": "Clean songs",
+  "libraryCleanContent": "This will clean up invalid song records (such as local songs whose files have been deleted).",
+  "libraryCleanedCount": "Cleaned {count} invalid songs",
+  "@libraryCleanedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryClean": "Clean",
+  "libraryBatchDeleteTitle": "Batch delete",
+  "libraryBatchDeleteContent": "Are you sure you want to delete the selected {count} songs?",
+  "@libraryBatchDeleteContent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryDeletedCount": "Deleted {count} songs",
+  "@libraryDeletedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryDeleteFailed": "Delete failed",
+  "librarySongCount": "{count} songs",
+  "@librarySongCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryUnknownArtist": "Unknown artist",
+  "libraryUnknownAlbum": "Unknown album",
+  "libraryPlay": "Play",
+  "libraryEdit": "Edit",
+  "libraryEditLocalSong": "Edit local song",
+  "libraryEditRadio": "Edit radio",
+  "libraryEditRemoteSong": "Edit remote song",
+  "librarySave": "Save",
+  "libraryFileInfoReadonly": "File info (read-only)",
+  "libraryServerEndpointReadonly": "Server endpoint (read-only)",
+  "libraryReadonlyFile": "File",
+  "libraryReadonlyCover": "Cover",
+  "libraryReadonlyLyric": "Lyrics",
+  "libraryEditTitleLabel": "Title *",
+  "libraryEditTitleRequired": "Please enter a title",
+  "libraryEditArtistHint": "Please enter an artist",
+  "libraryEditAlbumHint": "Please enter an album",
+  "libraryRenameFileTitle": "Rename file in sync",
+  "libraryRenameFileSubtitle": "Rename the local audio file to the new title and write the title tag",
+  "libraryEditSourceUrlLabel": "Source audio URL *",
+  "libraryEditUrlLabel": "URL *",
+  "libraryEditUrlHint": "Please enter an audio link",
+  "libraryEditUrlRequired": "Please enter a URL",
+  "libraryEditUrlInvalid": "Please enter a valid URL",
+  "libraryEditSourceCoverUrlLabel": "Source cover URL",
+  "libraryEditCoverUrlLabel": "Cover URL",
+  "libraryEditCoverUrlHint": "Please enter a cover image link",
+  "libraryEditDurationLabel": "Duration (seconds)",
+  "libraryEditDurationHint": "Please enter duration",
+  "libraryEditLyricRemoteUrlLabel": "Lyrics remote URL",
+  "libraryEditLyricUrlLabel": "Lyrics URL",
+  "libraryEditLyricUrlHint": "Please enter a lyrics API link",
+  "libraryCoverPreview": "Cover preview:",
+  "libraryCopied": "Copied",
+  "libraryCopy": "Copy",
+  "librarySaveSuccess": "Saved successfully",
+  "libraryAddSuccess": "Added successfully",
+  "libraryOperationFailed": "Operation failed: {error}",
+  "@libraryOperationFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "libraryErrorBadRequest": "Invalid request parameters",
+  "libraryErrorUnauthorized": "Unauthorized, please log in again",
+  "libraryErrorForbidden": "You do not have permission to perform this action",
+  "libraryErrorNotFound": "Song not found",
+  "libraryErrorServer": "Server error, please try again later",
+  "libraryErrorRequestFailed": "Request failed: {code}",
+  "@libraryErrorRequestFailed": {
+    "placeholders": {
+      "code": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryErrorTimeout": "Network connection timed out, please check your network",
+  "libraryErrorConnection": "Network connection failed, please check your network",
+  "libraryErrorNetwork": "Network error: {message}",
+  "@libraryErrorNetwork": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "libraryFavoritePlaylistNotFound": "Favorites playlist does not exist",
+  "libraryRadioFavoritePlaylistNotFound": "Radio favorites playlist does not exist",
+  "homeEmptyPlaylists": "No playlists yet",
+  "homeEmptyPlaylistsSubtitle": "Create your first playlist to start collecting music",
+  "homeCreatePlaylist": "Create playlist",
+  "homeMyPlaylists": "My Playlists",
+  "homeViewAll": "View all",
+  "homeMyRadios": "My Radios",
+  "homeGreetingLateNight": "It's late",
+  "homeGreetingMorning": "Good morning",
+  "homeGreetingNoon": "Good afternoon",
+  "homeGreetingAfternoon": "Good afternoon",
+  "homeGreetingEvening": "Good evening",
+  "homeTvGreetingLateNight": "It's late, how about some music",
+  "homeOpenPlaylist": "Open playlist",
+  "homeOpenPlaylistNamed": "Open playlist {name}",
+  "@homeOpenPlaylistNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "homeSongCountShort": "{count} songs",
+  "@homeSongCountShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeSongCount": "{count} songs",
+  "@homeSongCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeStatPlaylistsCount": "{count} playlists",
+  "@homeStatPlaylistsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeStatRadiosCount": "{count} radios",
+  "@homeStatRadiosCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeStatTotal": "Total",
+  "homeTvLocalMusic": "Local Music",
+  "homeTvPlaylist": "Playlists",
+  "homeTvEmptySubtitle": "Use quick navigation to browse local music",
+  "homeHeroSemanticLabel": "{name} - {count} songs",
+  "@homeHeroSemanticLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeNowPlaying": "Now Playing",
+  "homeRecommendedPlaylist": "Recommended",
+  "homePlayNow": "Play Now",
+  "homePluginLoadTimeout": "Page load timed out. Check whether the plugin is available or your network connection.",
+  "homePluginClose": "Close",
+  "homePluginOpenInBrowser": "Open in browser",
+  "homePluginLoadFailed": "Failed to load page",
+  "homePluginLoadFailedHttp": "Failed to load page: HTTP {status}{detail}",
+  "@homePluginLoadFailedHttp": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      },
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "homePluginUnknownError": "Unknown error",
+  "homePluginWebOpenInNewTab": "On the web, please open the plugin in a new tab",
+  "authLogin": "Log in",
+  "authTvSubtitle": "Log in to Songloft with your account",
+  "authLoginToContinue": "Log in to continue",
+  "authTagline": "Self-hosted local music service",
+  "authUsername": "Username",
+  "authUsernameHint": "Enter username",
+  "authUsernameRequired": "Please enter your username",
+  "authPassword": "Password",
+  "authPasswordHint": "Enter password",
+  "authPasswordRequired": "Please enter your password",
+  "authShowPassword": "Show password",
+  "authHidePassword": "Hide password",
+  "authApiUrl": "API address",
+  "authApiUrlRequired": "Please enter the API address",
+  "authInvalidUrl": "Please enter a valid URL (starting with http:// or https://)",
+  "authServer": "Server",
+  "authTvPressToLogin": "Press OK to log in",
+  "authUseLocalMode": "Use local mode",
+  "authCopyright": "© {year} Songloft",
+  "@authCopyright": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "authAutoLoggingIn": "Logging in automatically…",
+  "authStartingLocalBackend": "Starting local backend…",
+  "authPreparing": "Preparing…",
+  "authConnecting": "Connecting…",
+  "authLoggingIn": "Logging in…",
+  "authAutoLoginFailed": "Auto login failed: {error}",
+  "@authAutoLoginFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authLocalModeFailed": "Failed to start local mode: {error}",
+  "@authLocalModeFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authLoginFailed": "Login failed: {error}",
+  "@authLoginFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authSessionExpired": "Your session has expired. Please log in again.",
+  "authNoRefreshToken": "No refresh token available",
+  "dlnaCast": "Cast",
+  "dlnaCasting": "Casting",
+  "dlnaDisconnect": "Disconnect",
+  "dlnaConnected": "Connected",
+  "dlnaSearching": "Searching for devices...",
+  "dlnaSearchingLan": "Searching for LAN devices...",
+  "dlnaNoDevices": "No DLNA devices found",
+  "startupStarting": "Starting…",
+  "startupStartingLocalBackend": "Starting local backend…",
+  "startupConnectingLocalBackend": "Connecting to local backend…",
+  "startupConnectingTo": "Connecting to {target}…",
+  "@startupConnectingTo": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "playerModeOrder": "Sequential",
+  "playerModeLoop": "Repeat all",
+  "playerModeSingle": "Repeat one",
+  "playerModeRandom": "Shuffle",
+  "playerModeSinglePlay": "Play once",
+  "playerClose": "Close",
+  "playerSleepTimer": "Sleep timer",
+  "playerSleepTimerWithStatus": "Sleep timer: {status}",
+  "@playerSleepTimerWithStatus": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "playerSleepTimerCancel": "Cancel timer",
+  "playerSleepTimerByDuration": "By duration",
+  "playerHours": "{count} h",
+  "@playerHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playerMinutes": "{count} min",
+  "@playerMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playerCustom": "Custom",
+  "playerCustomDuration": "Custom duration",
+  "playerUnitMinutes": "min",
+  "playerSleepTimerBySongs": "By songs",
+  "playerSongsUnit": "{count} songs",
+  "@playerSongsUnit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playerCustomSongCount": "Custom song count",
+  "playerUnitSongs": "songs",
+  "playerRemainingSongs": "{count} songs left",
+  "@playerRemainingSongs": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playerEnterNumber": "Please enter a number",
+  "playerEnterValidInteger": "Please enter a valid integer",
+  "playerEnterIntegerInRange": "Enter an integer between {min} and {max}",
+  "@playerEnterIntegerInRange": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "playerBack": "Back",
+  "playerNowPlaying": "Now playing",
+  "playerNoContent": "Nothing playing",
+  "playerUnknownArtist": "Unknown artist",
+  "playerPlayMode": "Play mode",
+  "playerVolumeDown": "Volume down",
+  "playerVolumeUp": "Volume up",
+  "playerPrevious": "Previous",
+  "playerNext": "Next",
+  "playerPlaylist": "Playlist",
+  "playerBuffering": "Buffering",
+  "playerPause": "Pause",
+  "playerPlay": "Play",
+  "playerSeekHint": "← → Seek",
+  "playerProgress": "Playback progress",
+  "playerQueueTitle": "Play queue",
+  "playerClearPlaylist": "Clear playlist",
+  "playerQueueEmpty": "Queue is empty",
+  "playerDrawerEmptyHint": "Add songs to start playing",
+  "playerQueueEmptyHint": "Add songs to the queue to start playing",
+  "playerRemovedSong": "Removed \"{title}\"",
+  "@playerRemovedSong": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "playerClearQueueTitle": "Clear play queue",
+  "playerClearQueueConfirm": "Clear the play queue?",
+  "playerClear": "Clear",
+  "playerRemoveFromPlaylist": "Remove from playlist",
+  "playerRemoveFromQueue": "Remove from queue",
+  "playerMute": "Mute",
+  "playerUnmute": "Unmute",
+  "playerVolumePercent": "Volume {value}%",
+  "@playerVolumePercent": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "playerVolume": "Volume",
+  "playerCloseVolumePanel": "Close volume panel",
+  "playerOpenFullPlayer": "Open full-screen player",
+  "playerEqualizer": "Equalizer",
+  "playerLyrics": "Lyrics",
+  "playerCollapse": "Collapse",
+  "playerSleepTimerOn": "Sleep timer (on)",
+  "playerDeleteCurrentSong": "Delete current song",
+  "playerExpandPlayer": "Expand player",
+  "playerBufferingSemantic": "Buffering",
+  "playerLyricsLoading": "Loading lyrics...",
+  "playerLyricsLoadFailed": "Failed to load lyrics",
+  "playerLyricsEmpty": "No lyrics",
+  "playerLyricsSeekTo": "Seek to this lyric",
+  "playerAdjustLyrics": "Adjust lyrics",
+  "playerEqNotSupported": "Equalizer is not supported on this platform",
+  "playerEqPresetFlat": "Flat",
+  "playerEqPresetRock": "Rock",
+  "playerEqPresetPop": "Pop",
+  "playerEqPresetJazz": "Jazz",
+  "playerEqPresetClassical": "Classical",
+  "playerEqPresetBassBoost": "Bass boost",
+  "playerEqPresetTrebleBoost": "Treble boost",
+  "playerEqPresetVocal": "Vocal",
+  "playerEqPresetCustom": "Custom",
+  "playerLyricSavedWritten": "Saved and written to audio file",
+  "playerLyricSavedWriteFailed": "Saved to database, but writing to the audio file failed",
+  "playerLyricSavedDbOnly": "Saved to database (file not updated)",
+  "playerSaveFailedDetail": "Save failed: {error}",
+  "@playerSaveFailedDetail": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "playerDiscardChangesTitle": "Discard changes?",
+  "playerDiscardChangesContent": "Your changes haven't been saved. Leave anyway?",
+  "playerContinueEditing": "Keep editing",
+  "playerDiscard": "Discard",
+  "playerGlobalOffset": "Global offset",
+  "playerLyricOffsetSemantics": "Lyric offset {value} ms",
+  "@playerLyricOffsetSemantics": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "playerOffsetHint": "Tip: if lyrics appear too early overall, use a negative offset (-); if too late, use a positive offset (+)",
+  "playerEmptyLine": "(empty line)",
+  "playerLineOffset": "Line offset {offset}",
+  "@playerLineOffset": {
+    "placeholders": {
+      "offset": {
+        "type": "String"
+      }
+    }
+  },
+  "playerReset": "Reset",
+  "playerSave": "Save",
+  "playerNoLyricsToAdjust": "No lyrics to adjust",
+  "playerDeleteSongTitle": "Delete song",
+  "playerDeleteSongConfirm": "Delete \"{title}\" from your library?",
+  "@playerDeleteSongConfirm": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "playerSongDeleted": "Song deleted",
+  "playerDeleteFailed": "Delete failed",
+  "playerUnknownSong": "Unknown song",
+  "playerPlayFailedNamed": "Failed to play \"{title}\"",
+  "@playerPlayFailedNamed": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "playerConsecutiveFailures": "{count} songs in a row failed to play. Playback stopped—please check your network connection.",
+  "@playerConsecutiveFailures": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playerPlayFailedTryingNext": "Failed to play \"{title}\", trying the next song...",
+  "@playerPlayFailedTryingNext": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "playerPlayFailedNoOthers": "Playback failed—no other songs to play",
+  "playerPlayFailedEndOfList": "Playback failed—reached the end of the playlist",
+  "playlistBack": "Back",
+  "playlistSearch": "Search",
+  "playlistSearchHint": "Search songs...",
+  "playlistMultiSelect": "Multi-select",
+  "playlistMore": "More",
+  "playlistDone": "Done",
+  "playlistSort": "Sort",
+  "playlistSortModeTitle": "Reorder playlists",
+  "playlistSortSaved": "Sort order saved",
+  "playlistSortSaveFailed": "Failed to save sort order",
+  "playlistSortFailed": "Sort failed",
+  "playlistAlreadySortedSongs": "Songs are already in this order",
+  "playlistAlreadySortedPlaylists": "Playlists are already in this order",
+  "playlistSortedByNameAsc": "Sorted by name (A→Z)",
+  "playlistSortedByNameDesc": "Sorted by name (Z→A)",
+  "playlistSortedByNumber": "Sorted by number prefix",
+  "playlistSortCustom": "Custom order",
+  "playlistSortRecentlyAdded": "Recently added",
+  "playlistSortFileTime": "File time",
+  "playlistSortTitle": "Title",
+  "playlistSortArtist": "Artist",
+  "playlistSortDuration": "Duration",
+  "playlistSortNameAsc": "Sort by name A→Z",
+  "playlistSortNameDesc": "Sort by name Z→A",
+  "playlistSortNumberPrefix": "Sort by number prefix",
+  "playlistSortManual": "Sort manually",
+  "playlistPlayAll": "Play all",
+  "playlistAddSongs": "Add songs",
+  "playlistAddSongsFailed": "Failed to add songs",
+  "playlistAddedWithSkipped": "Added {added}, skipped {skipped} (already exists or incompatible type)",
+  "@playlistAddedWithSkipped": {
+    "placeholders": {
+      "added": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistAddedCount": "{count, plural, =1{Added 1 song} other{Added {count} songs}}",
+  "@playlistAddedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistLoadMoreRetry": "Failed to load more, tap to retry",
+  "playlistAllLoaded": "— All loaded ({count}) —",
+  "@playlistAllLoaded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistDeselectAll": "Deselect all",
+  "playlistRemove": "Remove",
+  "playlistRemoveFromPlaylist": "Remove from playlist",
+  "playlistDeleteFromLibrary": "Delete from library",
+  "playlistActionsCount": "Actions ({count})",
+  "@playlistActionsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistBatchRemoveTitle": "Remove in bulk",
+  "playlistBatchRemoveConfirm": "{count, plural, =1{Remove 1 song from this playlist?} other{Remove {count} songs from this playlist?}}",
+  "@playlistBatchRemoveConfirm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistRemovedCount": "{count, plural, =1{Removed 1 song} other{Removed {count} songs}}",
+  "@playlistRemovedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistRemoveFailed": "Failed to remove",
+  "playlistEditCover": "Change cover",
+  "playlistEditPlaylist": "Edit playlist",
+  "playlistEditAction": "Edit",
+  "playlistDelete": "Delete playlist",
+  "playlistEmptySongs": "No songs in this playlist",
+  "playlistEmptySongsSubtitle": "Add some music you love",
+  "playlistLabelBuiltIn": "Built-in",
+  "playlistLabelAutoCreated": "Auto-created",
+  "playlistLabelAuto": "Auto",
+  "playlistLabelHidden": "Hidden",
+  "playlistConfirmDelete": "Confirm deletion",
+  "playlistDeleteConfirm": "Delete playlist \"{name}\"? This cannot be undone.",
+  "@playlistDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistDeleted": "Playlist deleted",
+  "playlistEmpty": "Playlist is empty",
+  "playlistPlayFailed": "Playback failed",
+  "playlistPlayingCount": "{count, plural, =1{Playing 1 song} other{Playing all {count} songs}}",
+  "@playlistPlayingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistPlayingSong": "Playing: {title}",
+  "@playlistPlayingSong": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistRemoveSongTitle": "Remove song",
+  "playlistRemoveSongConfirm": "Remove \"{title}\" from this playlist?",
+  "@playlistRemoveSongConfirm": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistSongRemoved": "Song removed",
+  "playlistDeleteSong": "Delete song",
+  "playlistDeleteSongConfirm": "Delete \"{title}\" from the library?",
+  "@playlistDeleteSongConfirm": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistSongDeleted": "Song deleted",
+  "playlistDeleteFailed": "Failed to delete",
+  "playlistBatchDelete": "Delete in bulk",
+  "playlistBatchDeleteSongsConfirm": "{count, plural, =1{Delete the selected song from the library?} other{Delete the selected {count} songs from the library?}}",
+  "@playlistBatchDeleteSongsConfirm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistDeletedSongsCount": "{count, plural, =1{Deleted 1 song} other{Deleted {count} songs}}",
+  "@playlistDeletedSongsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistUnknownArtist": "Unknown artist",
+  "playlistPickImageFailed": "Failed to pick image: {error}",
+  "@playlistPickImageFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistNameRequired": "Please enter a playlist name",
+  "playlistNameHint": "Please enter a playlist name",
+  "playlistDescLabel": "Playlist description",
+  "playlistDescHint": "Enter a description (optional)",
+  "playlistCoverUploadFailed": "Failed to upload cover",
+  "playlistSaveFailed": "Failed to save: {error}",
+  "@playlistSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistUploadImage": "Upload image",
+  "playlistPickFromSongs": "Pick from songs",
+  "playlistClear": "Clear",
+  "playlistSave": "Save",
+  "playlistOk": "OK",
+  "playlistTitle": "Playlists",
+  "playlistSwitchToListView": "Switch to list view",
+  "playlistSwitchToGridView": "Switch to grid view",
+  "playlistCreate": "Create playlist",
+  "playlistCreated": "Playlist created",
+  "playlistUpdated": "Playlist updated",
+  "playlistShowHidden": "Show hidden playlists",
+  "playlistHideHidden": "Hide hidden playlists",
+  "playlistEmptyHint": "Tap the button in the top-right to create a playlist",
+  "playlistConfirmBatchDelete": "Confirm bulk deletion",
+  "playlistBatchDeleteConfirm": "{count, plural, =1{Delete the selected playlist? This cannot be undone.} other{Delete the selected {count} playlists? This cannot be undone.}}",
+  "@playlistBatchDeleteConfirm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistDeletedCount": "{count, plural, =1{Deleted 1 playlist} other{Deleted {count} playlists}}",
+  "@playlistDeletedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistHidden": "Playlist hidden",
+  "playlistUnhidden": "Playlist unhidden",
+  "playlistPlayingMultiple": "{count, plural, =1{Playing 1 playlist} other{Playing {count} playlists}}",
+  "@playlistPlayingMultiple": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistExitMultiSelect": "Exit selection",
+  "playlistSelectedCount": "{count} selected",
+  "@playlistSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistPlayCount": "Play ({count})",
+  "@playlistPlayCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistDeleteCount": "Delete ({count})",
+  "@playlistDeleteCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistTypeNormalOption": "Regular playlist",
+  "playlistTypeRadioOption": "Radio playlist",
+  "playlistMoreActions": "More actions",
+  "playlistHide": "Hide playlist",
+  "playlistUnhide": "Unhide",
+  "playlistPickCoverTitle": "Choose a song cover",
+  "playlistClose": "Close",
+  "playlistNoCoveredSongs": "No songs with covers in this playlist",
+  "playlistLoadRetry": "Failed to load, tap to retry",
+  "playlistNoCoverLoadMore": "No covers on this page, load more",
+  "playlistAllLoadedSimple": "— All loaded —",
+  "playlistSelectThisCover": "Select this cover",
+  "playlistErrRequestFailed": "Request failed",
+  "playlistErrTimeout": "Network connection timed out",
+  "playlistErrCancelled": "Request cancelled",
+  "playlistErrNetwork": "Network error: {message}",
+  "@playlistErrNetwork": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheSaveConfigFailed": "Failed to save config: {error}",
+  "@settingsCacheSaveConfigFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheCleanServerTitle": "Clear Server Cache",
+  "settingsCacheCleanServerContent": "Clear all music cache on the server? Files will need to be downloaded again.",
+  "settingsCacheServerCleaned": "Server cache cleared",
+  "settingsCacheCleanFailed": "Clear failed: {error}",
+  "@settingsCacheCleanFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheCleanLocalTitle": "Clear Local Cache",
+  "settingsCacheCleanLocalContent": "Clear all local cache? This includes audio, image and lyrics cache.",
+  "settingsCacheLocalCleaned": "Local cache cleared",
+  "settingsCacheCleanBrowserTitle": "Clear Browser Cache",
+  "settingsCacheCleanBrowserContent": "This will clear all cached frontend assets and reload the page. Your login and server data will not be affected.",
+  "settingsCacheUpdateConfigFailed": "Failed to update config: {error}",
+  "@settingsCacheUpdateConfigFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheDirRestored": "Default cache directory restored",
+  "settingsCacheDirUpdated": "Cache directory updated",
+  "settingsCacheUpdateFailed": "Update failed: {error}",
+  "@settingsCacheUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheConfirmClean": "Confirm",
+  "settingsCacheServerTitle": "Server Music Cache",
+  "settingsCacheManage": "Manage",
+  "settingsCacheNoLimit": "{size} (unlimited)",
+  "@settingsCacheNoLimit": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheFileCount": "{count} files",
+  "@settingsCacheFileCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsCacheStatsLoadFailed": "Failed to load cache info",
+  "settingsCacheDirTitle": "Cache Directory",
+  "settingsCacheNotConfigured": "Not configured",
+  "settingsCacheMaxSize": "Max cache size: {size}",
+  "@settingsCacheMaxSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheCleaning": "Clearing...",
+  "settingsCacheCleanServerButton": "Clear Server Cache",
+  "settingsCacheLocalTitle": "Local Cache",
+  "settingsCacheSize": "Cache size",
+  "settingsCacheCalculating": "Calculating...",
+  "settingsCacheLocalDesc": "Includes audio, image and lyrics cache",
+  "settingsCacheMaxLocalSize": "Max local cache size: {size}",
+  "@settingsCacheMaxLocalSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheCleanLocalButton": "Clear Local Cache",
+  "settingsCacheBrowserTitle": "Browser Cache",
+  "settingsCacheBrowserDesc": "Clear cached frontend assets in the browser to fix page issues after an update",
+  "settingsCacheCleanBrowserButton": "Clear Browser Cache",
+  "settingsCacheDirDialogDesc": "Set the storage directory for the server music cache. Leave empty to use the default. Switching directories does not migrate existing cache files.",
+  "settingsCacheDirLabel": "Cache directory (absolute path)",
+  "settingsCacheDirDefault": "Default: {dir}",
+  "@settingsCacheDirDefault": {
+    "placeholders": {
+      "dir": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheValidate": "Validate",
+  "settingsCacheRestoreDefault": "Restore Default",
+  "settingsCacheSave": "Save",
+  "settingsCacheDirUnavailable": "Directory unavailable",
+  "settingsCacheDirCreated": "Directory created automatically",
+  "settingsCacheDiskTotal": "Total {size}",
+  "@settingsCacheDiskTotal": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheDiskFree": "Free {size}",
+  "@settingsCacheDiskFree": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheDirAvailable": "Directory available",
+  "settingsMetadataUseTagTitle": "Use tags to override title",
+  "settingsMetadataUseTagOn": "Override titles with audio tags when refreshing remote song metadata",
+  "settingsMetadataUseTagOff": "Keep filenames as remote song titles, do not override with tags",
+  "settingsMetadataSaved": "Saved",
+  "settingsMetadataSaveFailed": "Save failed: {error}",
+  "@settingsMetadataSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsMetadataRefreshTitle": "Refresh remote song metadata",
+  "settingsMetadataRefreshSubtitle": "Probe all remote songs with missing metadata",
+  "settingsMetadataStart": "Start",
+  "settingsMetadataPreparing": "Preparing...",
+  "settingsMetadataRefreshing": "Refreshing metadata",
+  "settingsMetadataStatusCancelled": "Cancelled",
+  "settingsMetadataStatusFailed": "Failed",
+  "settingsMetadataStatusDone": "Done",
+  "settingsMetadataSuccess": "{count} succeeded",
+  "@settingsMetadataSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsMetadataFailedCount": ", {count} failed",
+  "@settingsMetadataFailedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsMetadataRefreshResult": "Metadata refresh {status}",
+  "@settingsMetadataRefreshResult": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsMetadataRefreshAgain": "Refresh Again",
+  "settingsClientDownloadTitle": "Download Client App",
+  "settingsClientDownloadIntro": "Compared with the web interface, the native client supports background playback, local caching, lock-screen/notification media controls and more.",
+  "settingsClientDownloadAccelSection": "Download Acceleration",
+  "settingsClientDownloadGithubProxy": "GitHub Proxy",
+  "settingsClientDownloadProxyNotConfigured": "Not configured (direct GitHub connection, may be slow in some regions)",
+  "settingsClientDownloadStandardSection": "Standard · Connects to current server",
+  "settingsClientDownloadBundleSection": "Bundle · Embedded backend, no server needed",
+  "settingsClientDownloadStandardAllVersions": "All standard versions",
+  "settingsClientDownloadBundleAllVersions": "All bundle versions",
+  "settingsClientDownloadRecommendFor": "Recommended for your device: {os}",
+  "@settingsClientDownloadRecommendFor": {
+    "placeholders": {
+      "os": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsClientDownloadStandardBtn": "Standard ({label})",
+  "@settingsClientDownloadStandardBtn": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsClientDownloadBundleBtn": "Bundle ({label})",
+  "@settingsClientDownloadBundleBtn": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsClientDownloadNoteUnsigned": "Unsigned, requires manual sideloading",
+  "settingsClientDownloadProxyDialogDesc": "If GitHub is slow in your region, you can choose a mirror to speed it up. This setting is shared with \"Check for updates\".",
+  "settingsClientDownloadCustomProxy": "Custom proxy",
+  "settingsClientDownloadCustomProxyHelper": "Enter a proxy address, e.g. https://ghproxy.com/",
+  "settingsClientDownloadSave": "Save",
+  "settingsTabConfigTitle": "Menu Settings",
+  "settingsTabConfigBuiltInSection": "Built-in Pages",
+  "settingsTabConfigLibrary": "Library",
+  "settingsTabConfigPlaylists": "Playlists",
+  "settingsTabConfigPluginEntry": "Plugin Entries",
+  "settingsTabConfigNoPlugins": "No plugins available",
+  "settingsTabConfigNoPluginsHint": "Please install and enable plugins in settings first",
+  "settingsTabConfigPluginOrder": "Plugin Order",
+  "settingsTabConfigEnabledCount": "{count} tab(s) enabled (Home and Settings are always shown)",
+  "@settingsTabConfigEnabledCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsTabConfigCollapseHint": "On mobile, tabs beyond 5 will collapse into the \"More\" menu",
+  "settingsTabConfigMaxTabs": "Show at most {count} tabs",
+  "@settingsTabConfigMaxTabs": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsTabConfigSaveFailed": "Failed to save: {error}",
+  "@settingsTabConfigSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsUpgradeStatusStable": "Stable",
+  "settingsUpgradeStatusDev": "Dev",
+  "settingsUpgradeStatusDownloading": "Downloading...",
+  "settingsUpgradeStatusTesting": "Verifying...",
+  "settingsUpgradeStatusReplacing": "Replacing...",
+  "settingsUpgradeStatusResetting": "Rolling back...",
+  "settingsUpgradeStatusRestarting": "Restarting...",
+  "settingsUpgradeStatusCompleted": "Upgrade complete",
+  "settingsUpgradeStatusFailed": "Upgrade failed",
+  "settingsUpgradeStatusIdle": "Idle",
+  "settingsFrontendVerDevVersion": "Dev version",
+  "settingsFrontendVerCheckFailed": "Failed to check for client updates: {error}",
+  "@settingsFrontendVerCheckFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsScanScanFailed": "Scan failed: {error}",
+  "@settingsScanScanFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsScanCancelFailed": "Cancel failed: {error}",
+  "@settingsScanCancelFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsScanModeSkipDesc": "Only import newly discovered music files",
+  "settingsScanModeReimportDesc": "Rescan and overwrite all music info",
+  "settingsScanDismiss": "Dismiss",
+  "settingsScanExcludeDirTitle": "Exclude directory settings",
+  "settingsScanExcludeDirSubtitle": "Configure directories to ignore during scan",
+  "settingsScanModeSkip": "Skip existing",
+  "settingsScanModeReimport": "Reimport",
+  "settingsScanStarting": "Starting...",
+  "settingsScanScanLocal": "Scan local music",
+  "settingsScanScanSelectedDirs": "Scan {count} selected directories",
+  "@settingsScanScanSelectedDirs": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsScanTargetDirsTitle": "Specific directories (optional)",
+  "settingsScanTargetDirsSubtitle": "Only scan selected directories; leave empty to scan the whole library",
+  "settingsScanTargetDirsSelected": "{count} directories selected",
+  "@settingsScanTargetDirsSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsScanDirsToScan": "Directories to scan:",
+  "settingsScanClear": "Clear",
+  "settingsScanCreatingPlaylists": "Auto-creating playlists by directory...",
+  "settingsScanSplittingCue": "Splitting whole track (CUE)...",
+  "settingsScanSplittingCueProgress": "Splitting whole track (CUE): {count} sources processed",
+  "@settingsScanSplittingCueProgress": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsScanDiscovering": "Discovering files...",
+  "settingsScanDiscoveringProgress": "Discovering files: {count} found",
+  "@settingsScanDiscoveringProgress": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsScanScanningFile": "Scanning: {file}",
+  "@settingsScanScanningFile": {
+    "placeholders": {
+      "file": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsScanProgressStats": "Processed: {scanned}/{total}, imported: {imported}, skipped: {skipped}, failed: {failed}",
+  "@settingsScanProgressStats": {
+    "placeholders": {
+      "scanned": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsScanCancelScan": "Cancel scan",
+  "settingsScanAutoCreatePlaylists": "Auto-create playlists after scan",
+  "settingsScanAutoCreatePlaylistsDesc": "Auto-generate playlists by directory structure",
+  "settingsScanLoadingConfig": "Loading...",
+  "settingsScanReadConfigFailed": "Failed to read config",
+  "settingsScanSaveFailed": "Save failed: {error}",
+  "@settingsScanSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsScanPlaylistModeDirectory": "By folder",
+  "settingsScanPlaylistModeDirectoryDesc": "Generate a separate playlist for each folder",
+  "settingsScanPlaylistModeTopLevel": "By top-level folder",
+  "settingsScanPlaylistModeTopLevelDesc": "Merge songs from subfolders into the top-level folder playlist",
+  "settingsScanPlaylistModeBubbleUp": "Include subdirectories",
+  "settingsScanPlaylistModeBubbleUpDesc": "Songs appear in all ancestor folder playlists",
+  "settingsScanPlaylistModeTitle": "Playlist creation mode",
+  "settingsScanPlaylistModeDisabled": "Auto-create playlists is off; this option has no effect",
+  "settingsScanTitleSource": "Use filename as title",
+  "settingsScanTitleSourceFilenameDesc": "Use the filename (without extension) as the song title; suitable when filenames are already numbered",
+  "settingsScanTitleSourceTagDesc": "Prefer audio tag info for the song title",
+  "settingsScanTitleSourceSaved": "Saved; takes effect after scanning in 'Reimport' mode",
+  "settingsScanInterval10Min": "10 minutes",
+  "settingsScanInterval30Min": "30 minutes",
+  "settingsScanInterval1Hour": "1 hour",
+  "settingsScanInterval3Hour": "3 hours",
+  "settingsScanInterval6Hour": "6 hours",
+  "settingsScanInterval12Hour": "12 hours",
+  "settingsScanInterval24Hour": "24 hours",
+  "settingsScanIntervalSeconds": "{count} seconds",
+  "@settingsScanIntervalSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsScanAutoScan": "Auto scan",
+  "settingsScanAutoScanInterval": "Auto scan every {interval}",
+  "@settingsScanAutoScanInterval": {
+    "placeholders": {
+      "interval": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsScanAutoScanOff": "Off",
+  "settingsScanScanInterval": "Scan interval",
+  "settingsScanCompletedSummary": "Scan complete, {count} local songs in total",
+  "@settingsScanCompletedSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsScanCompletedStats": "Imported {imported}, skipped {skipped}, failed {failed}",
+  "@settingsScanCompletedStats": {
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsScanRescan": "Rescan",
+  "settingsScanCancelledSummary": "Scan cancelled ({count} files processed)",
+  "@settingsScanCancelledSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsScanErrorTitle": "Scan error",
+  "settingsExcludeDirLoadFailed": "Failed to load config: {error}",
+  "@settingsExcludeDirLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsExcludeDirSaved": "Exclude directory settings saved; cleaning up songs in excluded directories in the background",
+  "settingsExcludeDirSaveFailed": "Save failed: {error}",
+  "@settingsExcludeDirSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsExcludeDirTabName": "By name",
+  "settingsExcludeDirTabPath": "By path",
+  "settingsExcludeDirTabPlaylist": "Playlist exclude",
+  "settingsExcludeDirSaving": "Saving...",
+  "settingsExcludeDirSaveConfig": "Save exclude settings",
+  "settingsExcludeDirSaveHint": "After saving, imported songs in excluded directories will be cleaned up automatically",
+  "settingsExcludeDirInputName": "Enter directory name",
+  "settingsExcludeDirInputHint": "Type and select, or press Enter to add",
+  "settingsExcludeDirLoadingCandidates": "Loading candidates...",
+  "settingsExcludeDirAdd": "Add",
+  "settingsExcludeDirExcludedNames": "Excluded directory names:",
+  "settingsExcludeDirNameHint": "Any directory containing this name at any path level will be excluded",
+  "settingsExcludeDirMusicDir": "Music directory: {path}",
+  "@settingsExcludeDirMusicDir": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsExcludeDirExcludedPaths": "Excluded paths:",
+  "settingsExcludeDirAutoCreateExcluded": "Directories excluded from auto-created playlists:",
+  "settingsExcludeDirAutoCreateHint": "Directories containing this name at any path level will not be auto-created as playlists",
+  "settingsServersTitle": "Servers",
+  "settingsServersTestAll": "Test all",
+  "settingsServersEmptyTitle": "No servers added yet",
+  "settingsServersEmptyHint": "Tap the \"+\" button to add an API address.\nOn startup, servers are probed in order and the first reachable one is used.",
+  "settingsServersAdd": "Add server",
+  "settingsServersEditTitle": "Edit server",
+  "settingsServersNameLabel": "Name (optional)",
+  "settingsServersNameHint": "LAN / WAN / Backup",
+  "settingsServersUrlLabel": "API address",
+  "settingsServersUsername": "Username",
+  "settingsServersPassword": "Password",
+  "settingsServersSave": "Save",
+  "settingsServersSaveFailed": "Save failed: {error}",
+  "@settingsServersSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsServersDeleteTitle": "Delete server",
+  "settingsServersDeleteCurrentConfirm": "This is the server currently in use. After deletion, the remaining servers in the list will be probed again on next startup. Continue?",
+  "settingsServersDeleteConfirm": "Delete \"{name}\"?",
+  "@settingsServersDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsServersReachable": "{name} is reachable",
+  "@settingsServersReachable": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsServersUnreachable": "{name} is unreachable",
+  "@settingsServersUnreachable": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsServersProbeResult": "Probe complete: {ok} / {total} reachable",
+  "@settingsServersProbeResult": {
+    "placeholders": {
+      "ok": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsServersAlreadyCurrent": "Already the current server",
+  "settingsServersSwitched": "Switched to {name}, please sign in again",
+  "@settingsServersSwitched": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsServersSwitchTo": "Switch to this",
+  "settingsServersTestConnection": "Test connection",
+  "settingsServersEditAction": "Edit",
+  "settingsServersLocalMode": "Local mode",
+  "settingsServersLocalModeDesc": "When enabled, the backend runs on this device so you can play local music without a network.",
+  "settingsServersMusicDir": "Music folder",
+  "settingsServersNotSelected": "Not selected",
+  "settingsServersSelect": "Select",
+  "settingsServersFixedMusicDirHint": "Put music into the Songloft folder via the Files app or a computer (Finder / iTunes file sharing), then rescan.",
+  "settingsServersSwitchFailed": "Switch failed: {error}",
+  "@settingsServersSwitchFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsServersSwitchedLocal": "Switched to local mode",
+  "settingsServersMusicDirUpdated": "Music folder updated",
+  "settingsDuplicateTitle": "Duplicate detection",
+  "settingsDuplicateDismissError": "Dismiss",
+  "settingsDuplicateIntro": "Identify duplicate files with identical content using audio fingerprints. The same song is recognized even across different file names and formats.",
+  "settingsDuplicateFingerprintStats": "Fingerprint stats",
+  "settingsDuplicateLocalSongs": "Local songs",
+  "settingsDuplicateComputed": "Fingerprinted",
+  "settingsDuplicatePending": "Pending",
+  "settingsDuplicateSongCount": "{count}",
+  "@settingsDuplicateSongCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDuplicateChromaprintMissing": "Audio fingerprint detection requires ffmpeg with chromaprint support. Docker users can simply upgrade to the latest image.",
+  "settingsDuplicateStartCompute": "Compute and detect",
+  "settingsDuplicateCheck": "Detect duplicates",
+  "settingsDuplicateRecomputeAll": "Recompute all fingerprints",
+  "settingsDuplicateComputing": "Computing audio fingerprints... {computed}/{total}",
+  "@settingsDuplicateComputing": {
+    "placeholders": {
+      "computed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDuplicateFailed": "Failed: {count}",
+  "@settingsDuplicateFailed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDuplicateAutoDetect": "Duplicates will be detected automatically once computation finishes",
+  "settingsDuplicateRecheck": "Recheck",
+  "settingsDuplicateNoResults": "No duplicate songs found",
+  "settingsDuplicateNoResultsHint": "Your music library is clean!",
+  "settingsDuplicateSummary": "Found {groups} duplicate groups ({songs} songs total)",
+  "@settingsDuplicateSummary": {
+    "placeholders": {
+      "groups": {
+        "type": "int"
+      },
+      "songs": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDuplicateIgnoredCount": "{count} groups ignored",
+  "@settingsDuplicateIgnoredCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDuplicateCleanAll": "Clean all duplicates (delete {count})",
+  "@settingsDuplicateCleanAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDuplicateGroupLabel": "Duplicate group {index}",
+  "@settingsDuplicateGroupLabel": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDuplicateUnignore": "Unignore",
+  "settingsDuplicateIgnore": "Ignore this group",
+  "settingsDuplicateDeleteUnselected": "Delete unselected",
+  "settingsDuplicateRecommended": "Recommended",
+  "settingsDuplicateConfirmTitle": "Confirm deletion",
+  "settingsDuplicateConfirmMessage": "This will delete {count} duplicate songs and their audio files, keeping the selected version in each group. This action cannot be undone.",
+  "@settingsDuplicateConfirmMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDuplicateDeleted": "Deleted {count} duplicate songs",
+  "@settingsDuplicateDeleted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDuplicateDeleteFailed": "Delete failed: {error}",
+  "@settingsDuplicateDeleteFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCategoryAppearanceTitle": "Appearance",
+  "settingsCategoryAppearanceSubtitle": "Theme, menu and display",
+  "settingsCategoryPlaybackTitle": "Playback",
+  "settingsCategoryPlaybackSubtitle": "Audio quality",
+  "settingsCategoryLibraryTitle": "Library",
+  "settingsCategoryLibrarySubtitle": "Scan, import and convert",
+  "settingsCategoryExtensionsTitle": "Extensions",
+  "settingsCategoryExtensionsSubtitle": "Plugin management",
+  "settingsCategoryCacheTitle": "Cache",
+  "settingsCategoryCacheSubtitle": "Server and local cache",
+  "settingsCategoryNetworkTitle": "Network",
+  "settingsCategoryNetworkSubtitle": "Proxy configuration",
+  "settingsCategoryDataTitle": "Data",
+  "settingsCategoryDataSubtitle": "Playlist export and import",
+  "settingsCategoryAboutTitle": "About & Updates",
+  "settingsCategoryAboutSubtitle": "Version and logs",
+  "settingsCategoryAccountTitle": "Account",
+  "settingsCategoryAccountSubtitle": "Server and login",
+  "settingsDevVersion": "Dev build",
+  "settingsStableVersion": "Stable",
+  "settingsLocalMode": "Local mode",
+  "settingsManage": "Manage",
+  "settingsMenuTitle": "Menu settings",
+  "settingsMenuLibrary": "Library",
+  "settingsMenuPlaylists": "Playlists",
+  "settingsTabsEnabledCount": "{count} tabs enabled (Home and Settings are always shown)",
+  "@settingsTabsEnabledCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsTabsCollapseHint": "On mobile, tabs beyond 5 collapse into the \"More\" menu",
+  "settingsMaxTabsLimit": "You can show at most {count} tabs",
+  "@settingsMaxTabsLimit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsSaveFailed": "Save failed: {error}",
+  "@settingsSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsQualityOriginal": "Original quality",
+  "settingsQualityLow": "Low (128kbps)",
+  "settingsQualityMedium": "Medium (192kbps)",
+  "settingsQualityHigh": "High (320kbps)",
+  "settingsQualityTitle": "Audio quality",
+  "settingsQualityDialogTitle": "Select audio quality",
+  "settingsQualityOriginalDesc": "No transcoding, use the file's original bitrate",
+  "settingsQualityTranscodeDesc": "Transcode to MP3, suited for weak networks",
+  "settingsQualitySwitched": "Audio quality switched to {quality}",
+  "@settingsQualitySwitched": {
+    "placeholders": {
+      "quality": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSwitchFailed": "Switch failed: {error}",
+  "@settingsSwitchFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsLibraryDuplicateTitle": "Duplicate detection",
+  "settingsLibraryDuplicateSubtitle": "Identify duplicate files with identical content via audio fingerprint",
+  "settingsPluginStoreTitle": "Plugin store",
+  "settingsPluginStoreSubtitle": "Browse and install plugins",
+  "settingsExportPlaylistTitle": "Export playlists",
+  "settingsExportPlaylistSubtitle": "Back up all playlist data to a JSON file",
+  "settingsImportPlaylistTitle": "Import playlists",
+  "settingsImportPlaylistSubtitle": "Restore playlist data from a JSON backup file",
+  "settingsDownloadAppTitle": "Download the app",
+  "settingsDownloadAppSubtitle": "Get the mobile / desktop native client with background playback, caching and more",
+  "settingsAboutTitle": "About",
+  "settingsAboutSubtitle": "Version info and license",
+  "settingsAccountServer": "Server",
+  "settingsNoMusicDir": "No music folder selected",
+  "settingsLogout": "Log out",
+  "settingsLogoutConfirmTitle": "Confirm log out",
+  "settingsLogoutConfirmContent": "Are you sure you want to log out of the current account?",
+  "settingsLogoutButton": "Log out",
+  "settingsExportNotLoggedIn": "Not logged in, cannot export",
+  "settingsExportFailed": "Export failed: {error}",
+  "@settingsExportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsImportReadFailed": "Unable to read file content",
+  "settingsImportPathFailed": "Unable to get file path",
+  "settingsImportComplete": "Import complete: {created} playlists created, {merged} merged, {songsCreated} songs created, {songsMatched} matched",
+  "@settingsImportComplete": {
+    "placeholders": {
+      "created": {},
+      "merged": {},
+      "songsCreated": {},
+      "songsMatched": {}
+    }
+  },
+  "settingsImportFailed": "Import failed: {error}",
+  "@settingsImportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCheckServerUpdate": "Check for server updates",
+  "settingsUpdateAvailable": "New version available: {version}",
+  "@settingsUpdateAvailable": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCurrentVersionLatest": "Current version: {version} (up to date)",
+  "@settingsCurrentVersionLatest": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCheckingUpdate": "Checking for updates...",
+  "settingsCheckUpdateFailed": "Failed to check for updates",
+  "settingsCheckClientUpdate": "Check for client updates",
+  "settingsCurrentVersion": "Current version: {version}",
+  "@settingsCurrentVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsHlsProxyTitle": "HLS radio backend proxy",
+  "settingsHlsProxySubtitle": "When enabled, the server fetches radio m3u8 and proxies segments, bypassing Referer hotlink protection / CORS. All segments use this machine's bandwidth—mind the traffic cost.",
+  "settingsHlsProxyEnabled": "HLS proxy enabled",
+  "settingsHlsProxyDisabled": "HLS proxy disabled",
+  "settingsHttpProxyTitle": "HTTP proxy",
+  "settingsHttpProxyNotConfigured": "Not configured (direct)",
+  "settingsHttpProxyDialogDesc": "Set a global HTTP proxy. All outbound backend requests (plugin downloads, update checks, etc.) will be forwarded through it. Leave empty for a direct connection.",
+  "settingsHttpProxyAddressLabel": "Proxy address",
+  "settingsHttpProxyHelper": "Supports HTTP/HTTPS/SOCKS5 proxies",
+  "settingsClear": "Clear",
+  "settingsSave": "Save",
+  "settingsHttpProxyCleared": "HTTP proxy cleared",
+  "settingsHttpProxySet": "HTTP proxy set to {proxy}",
+  "@settingsHttpProxySet": {
+    "placeholders": {
+      "proxy": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsLogLevelDebug": "Debug (verbose, for debugging)",
+  "settingsLogLevelInfo": "Info (default)",
+  "settingsLogLevelWarn": "Warn",
+  "settingsLogLevelError": "Error (errors only)",
+  "settingsLogLevelTitle": "Log level",
+  "settingsLogLevelDialogTitle": "Select log level",
+  "settingsLogLevelSwitched": "Log level switched to {level}",
+  "@settingsLogLevelSwitched": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsAccountUrlNotConfigured": "Not configured · Tap to add",
+  "settingsAccountUrlSummary": "{count} addresses · Current: {label}",
+  "@settingsAccountUrlSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsAccountLoading": "Loading...",
+  "settingsAboutDesc1": "Songloft is an open-source personal music server app.",
+  "settingsAboutDesc2": "Supports local library management, online playback and plugin extensions.",
+  "settingsAboutGithubSemantics": "Open the GitHub page",
+  "settingsUpgradeCheckTimeout": "Update check timed out. Try switching the proxy and retry.",
+  "settingsUpgradeCheckFailed": "Failed to check for updates: {error}",
+  "@settingsUpgradeCheckFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsUpgradeChannelDev": "Dev build",
+  "settingsUpgradeChannelStable": "Stable build",
+  "settingsUpgradeVersionWithDetails": "{version} ({details})",
+  "@settingsUpgradeVersionWithDetails": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "details": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsUpgradeStartFailed": "Failed to start upgrade: {error}",
+  "@settingsUpgradeStartFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsUpgradeConfirmReset": "Confirm rollback",
+  "settingsUpgradeConfirmResetContent": "Roll back to the base image version of the Docker image?\n\nThe service will restart automatically after rollback.",
+  "settingsUpgradeResetFailed": "Rollback failed: {error}",
+  "@settingsUpgradeResetFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsUpgradeTitle": "Check for updates",
+  "settingsUpgradeChecking": "Checking for updates...",
+  "settingsUpgradeGithubProxy": "GitHub proxy",
+  "settingsUpgradeCustomProxy": "Custom proxy",
+  "settingsUpgradeProxyHelper": "Enter a proxy address, e.g. https://ghproxy.com/",
+  "settingsUpgradeUpToDate": "You're on the latest version",
+  "settingsUpgradeCurrentVersion": "Current version: {version}",
+  "@settingsUpgradeCurrentVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsUpgradeSelectVersion": "Select version to upgrade:",
+  "settingsUpgradeBuildTime": "Build time: {time}",
+  "@settingsUpgradeBuildTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsUpgradeReleaseNotes": "Release notes:",
+  "settingsUpgradeResetting": "Rolling back...",
+  "settingsUpgradeResetButton": "Roll back to base version",
+  "settingsUpgradeCompleted": "Upgrade complete",
+  "settingsUpgradeRestartSoon": "The app will restart shortly",
+  "settingsUpgradeFailed": "Upgrade failed",
+  "settingsUpgradeClose": "Close",
+  "settingsUpgradeRecheck": "Check again",
+  "settingsUpgradeLater": "Later",
+  "settingsUpgradeGoDownload": "Go to download",
+  "settingsUpgradeUpgradeNow": "Upgrade now",
+  "settingsFrontendUpgradeCheckTimeout": "Update check timed out. Try switching the proxy and retry.",
+  "settingsFrontendUpgradeTitle": "Client update",
+  "settingsFrontendUpgradeChecking": "Checking for updates...",
+  "settingsFrontendUpgradeGithubProxy": "GitHub proxy",
+  "settingsFrontendUpgradeCustomProxy": "Custom proxy",
+  "settingsFrontendUpgradeProxyHelper": "Enter a proxy address, e.g. https://ghproxy.com/",
+  "settingsFrontendUpgradeUpToDate": "You're on the latest version",
+  "settingsFrontendUpgradeCurrentVersion": "Current version: {version}",
+  "@settingsFrontendUpgradeCurrentVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsFrontendUpgradeLatestVersion": "Latest version: {version}",
+  "@settingsFrontendUpgradeLatestVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsFrontendUpgradePublishedAt": "Published: {date}",
+  "@settingsFrontendUpgradePublishedAt": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsFrontendUpgradeReleaseNotes": "Release notes:",
+  "settingsFrontendUpgradeRecheck": "Check again",
+  "settingsFrontendUpgradeClose": "Close",
+  "settingsFrontendUpgradeLater": "Later",
+  "settingsFrontendUpgradeGoDownload": "Go to download",
+  "settingsConfigTitle": "Configuration",
+  "settingsConfigSubtitle": "Manage system configuration items",
+  "settingsConfigAdd": "Add config",
+  "settingsConfigRefresh": "Refresh",
+  "settingsConfigEmpty": "No configuration items",
+  "settingsConfigEmptyHint": "Tap \"Add config\" to create a new item",
+  "settingsConfigKeyLabel": "Config key",
+  "settingsConfigKeyHint": "e.g. app.setting.name",
+  "settingsConfigKeyRequired": "Please enter a config key",
+  "settingsConfigValueLabel": "Config value",
+  "settingsConfigValueHint": "Config value (multi-line supported)",
+  "settingsConfigValueRequired": "Please enter a config value",
+  "settingsConfigAddButton": "Add",
+  "settingsConfigAdded": "Config added",
+  "settingsConfigAddFailed": "Failed to add: {error}",
+  "@settingsConfigAddFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsConfigEditTitle": "Edit config: {key}",
+  "@settingsConfigEditTitle": {
+    "placeholders": {
+      "key": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsConfigKeyDisplay": "Config key: {key}",
+  "@settingsConfigKeyDisplay": {
+    "placeholders": {
+      "key": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsConfigSave": "Save",
+  "settingsConfigUpdated": "Config updated",
+  "settingsConfigUpdateFailed": "Failed to update: {error}",
+  "@settingsConfigUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsConfigConfirmDelete": "Confirm deletion",
+  "settingsConfigDeleteConfirm": "Delete config \"{key}\"?",
+  "@settingsConfigDeleteConfirm": {
+    "placeholders": {
+      "key": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsConfigDeleted": "Config deleted",
+  "settingsConfigDeleteFailed": "Failed to delete: {error}",
+  "@settingsConfigDeleteFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsConfigEdit": "Edit",
+  "settingsTokenTitle": "Token management",
+  "settingsTokenSubtitle": "Manage login tokens",
+  "settingsTokenEmpty": "No tokens",
+  "settingsTokenConfirmRevoke": "Confirm revocation",
+  "settingsTokenRevokeConfirm": "Revoking this token will invalidate the corresponding login session. Continue?",
+  "settingsTokenRevoke": "Revoke",
+  "settingsTokenRevoked": "Token revoked",
+  "settingsTokenRevokeFailed": "Failed to revoke: {error}",
+  "@settingsTokenRevokeFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsTokenStatusRevoked": "Revoked",
+  "settingsTokenStatusExpired": "Expired",
+  "settingsTokenStatusActive": "Active",
+  "settingsTokenType": "Type: {type}",
+  "@settingsTokenType": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsTokenTypeAccess": "Access token",
+  "settingsTokenTypeRefresh": "Refresh token",
+  "settingsTokenClient": "Client: {info}",
+  "@settingsTokenClient": {
+    "placeholders": {
+      "info": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsTokenExpiresAt": "Expires: {time}",
+  "@settingsTokenExpiresAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "coreTrayOpen": "Open Songloft",
+  "coreTrayOpenLogs": "Open log directory",
+  "coreTrayExit": "Exit",
+  "coreUrlEmpty": "URL cannot be empty",
+  "coreUrlInvalid": "Enter a valid URL (including http:// or https://)",
+  "corePickMusicDir": "Select music folder"
+}

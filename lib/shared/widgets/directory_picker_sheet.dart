@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/settings/data/directory_api.dart';
 import '../../features/settings/presentation/providers/settings_provider.dart';
+import '../../l10n/app_localizations.dart';
 
 /// 单选目录选择器（底部弹窗）。
 ///
@@ -103,14 +104,17 @@ class _DirectoryPickerSheetState extends ConsumerState<DirectoryPickerSheet> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
-                const Text(
-                  '选择文件夹',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Text(
+                  AppLocalizations.of(context).selectFolder,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const Spacer(),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('取消'),
+                  child: Text(AppLocalizations.of(context).commonCancel),
                 ),
               ],
             ),
@@ -133,7 +137,7 @@ class _DirectoryPickerSheetState extends ConsumerState<DirectoryPickerSheet> {
         padding: const EdgeInsets.all(16),
         child: Center(
           child: Text(
-            '加载目录失败：$_error',
+            AppLocalizations.of(context).loadDirFailed('$_error'),
             style: TextStyle(color: theme.colorScheme.error),
           ),
         ),
@@ -152,7 +156,7 @@ class _DirectoryPickerSheetState extends ConsumerState<DirectoryPickerSheet> {
             padding: const EdgeInsets.all(24),
             child: Center(
               child: Text(
-                '音乐目录为空',
+                AppLocalizations.of(context).musicDirEmpty,
                 style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
               ),
             ),
@@ -183,7 +187,7 @@ class _AllRow extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     return Semantics(
       button: true,
-      label: '选择全部文件',
+      label: AppLocalizations.of(context).selectAllFiles,
       child: InkWell(
         onTap: onTap,
         child: Padding(
@@ -198,7 +202,7 @@ class _AllRow extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  '全部歌曲',
+                  AppLocalizations.of(context).allSongs,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: selected ? FontWeight.bold : FontWeight.normal,
                     color: selected ? colorScheme.primary : null,
@@ -298,7 +302,10 @@ class _DirectoryNodeState extends ConsumerState<_DirectoryNode> {
                                 : Icons.keyboard_arrow_right,
                             size: 20,
                           ),
-                          tooltip: _isExpanded ? '收起' : '展开',
+                          tooltip:
+                              _isExpanded
+                                  ? AppLocalizations.of(context).collapse
+                                  : AppLocalizations.of(context).expand,
                           onPressed: _toggleExpand,
                         )
                       : const SizedBox.shrink(),

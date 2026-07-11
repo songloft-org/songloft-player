@@ -19,6 +19,7 @@ import '../../../../core/network/api_client.dart';
 import '../../../../core/storage/playback_state_storage.dart';
 import '../../../../core/storage/secure_storage.dart';
 import '../../../../core/utils/url_helper.dart';
+import '../../../../l10n/l10n_holder.dart';
 import '../../../../main.dart';
 import '../../../../shared/models/song.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -1545,7 +1546,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
     }
 
     _consecutiveFailures++;
-    final failedSong = state.currentSong?.title ?? '未知歌曲';
+    final failedSong = state.currentSong?.title ?? l10n.playerUnknownSong;
 
     debugPrint(
       '[Player] Song failed after retries: $failedSong, '
@@ -1558,7 +1559,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
       debugPrint('[Player] Single mode, not skipping to next');
       state = state.copyWith(
         isPlaying: false,
-        errorMessage: '"$failedSong" 播放失败',
+        errorMessage: l10n.playerPlayFailedNamed(failedSong),
       );
       _audioHandler.stop();
       _consecutiveFailures = 0; // 单曲模式不累计连续失败
@@ -1570,14 +1571,16 @@ class PlayerNotifier extends Notifier<PlayerState> {
       debugPrint('[Player] Too many consecutive failures, stopping');
       state = state.copyWith(
         isPlaying: false,
-        errorMessage: '连续 $_consecutiveFailures 首歌曲播放失败，已停止播放，请检查网络连接',
+        errorMessage: l10n.playerConsecutiveFailures(_consecutiveFailures),
       );
       _audioHandler.stop();
       return;
     }
 
     // 第二层：自动切到下一首（仅 order/loop/random 模式）
-    state = state.copyWith(errorMessage: '"$failedSong" 播放失败，正在尝试下一首...');
+    state = state.copyWith(
+      errorMessage: l10n.playerPlayFailedTryingNext(failedSong),
+    );
     _skipToNextOnFailure();
   }
 
@@ -1586,7 +1589,10 @@ class PlayerNotifier extends Notifier<PlayerState> {
   Future<void> _skipToNextOnFailure() async {
     if (state.playlist.isEmpty || state.playlist.length <= 1) {
       // 只有一首歌或空列表，无法切歌
-      state = state.copyWith(errorMessage: '播放失败，无其他可播放的歌曲', isPlaying: false);
+      state = state.copyWith(
+        errorMessage: l10n.playerPlayFailedNoOthers,
+        isPlaying: false,
+      );
       _audioHandler.stop();
       return;
     }
@@ -1600,7 +1606,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
         if (state.playMode == PlayMode.order) {
           // 顺序模式已到末尾，停止
           state = state.copyWith(
-            errorMessage: '播放失败，已到播放列表末尾',
+            errorMessage: l10n.playerPlayFailedEndOfList,
             isPlaying: false,
           );
           _audioHandler.stop();

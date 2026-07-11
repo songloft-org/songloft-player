@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_dimensions.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// 播放控制按钮组
 class PlayControls extends StatelessWidget {
@@ -44,7 +45,7 @@ class PlayControls extends StatelessWidget {
         IconButton(
           onPressed: hasPrev ? onPrev : null,
           icon: Icon(Icons.skip_previous_rounded, size: iconSize),
-          tooltip: '上一首',
+          tooltip: AppLocalizations.of(context).playerPrevious,
           style: IconButton.styleFrom(
             foregroundColor: theme.colorScheme.onSurface,
             disabledForegroundColor: theme.colorScheme.onSurface.withValues(
@@ -60,7 +61,7 @@ class PlayControls extends StatelessWidget {
         IconButton(
           onPressed: hasNext ? onNext : null,
           icon: Icon(Icons.skip_next_rounded, size: iconSize),
-          tooltip: '下一首',
+          tooltip: AppLocalizations.of(context).playerNext,
           style: IconButton.styleFrom(
             foregroundColor: theme.colorScheme.onSurface,
             disabledForegroundColor: theme.colorScheme.onSurface.withValues(
@@ -81,7 +82,7 @@ class PlayControls extends StatelessWidget {
 
     if (isBuffering) {
       button = Semantics(
-        label: '正在缓冲',
+        label: AppLocalizations.of(context).playerBufferingSemantic,
         child: Material(
           color: theme.colorScheme.primary,
           borderRadius: borderRadius,
@@ -103,7 +104,9 @@ class PlayControls extends StatelessWidget {
     } else {
       button = Semantics(
         button: true,
-        label: isPlaying ? '暂停' : '播放',
+        label: isPlaying
+            ? AppLocalizations.of(context).playerPause
+            : AppLocalizations.of(context).playerPlay,
         child: Material(
           color: theme.colorScheme.primary,
           borderRadius: borderRadius,
@@ -162,7 +165,7 @@ class CompactPlayButton extends StatelessWidget {
 
     if (isBuffering) {
       return Semantics(
-        label: '正在缓冲',
+        label: AppLocalizations.of(context).playerBufferingSemantic,
         child: SizedBox(
           width: size,
           height: size,
@@ -185,7 +188,9 @@ class CompactPlayButton extends StatelessWidget {
         isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
         size: size * 0.6,
       ),
-      tooltip: isPlaying ? '暂停' : '播放',
+      tooltip: isPlaying
+          ? AppLocalizations.of(context).playerPause
+          : AppLocalizations.of(context).playerPlay,
       style: IconButton.styleFrom(foregroundColor: theme.colorScheme.primary),
     );
   }

@@ -13,6 +13,7 @@ import '../../../../core/network/servers_provider.dart';
 import '../../../../core/storage/app_preferences.dart';
 import '../../../../core/storage/preference_sync_service.dart';
 import '../../../../core/storage/secure_storage.dart';
+import '../../../../l10n/l10n_holder.dart';
 import '../../../player/presentation/providers/equalizer_provider.dart';
 import '../../data/auth_api.dart';
 import '../../data/auth_repository.dart';
@@ -148,7 +149,7 @@ class AuthNotifier extends Notifier<AuthState> {
     } on ApiException catch (e) {
       state = state.unauthenticated(e.message);
     } catch (e) {
-      state = state.unauthenticated('登录失败：$e');
+      state = state.unauthenticated(l10n.authLoginFailed(e.toString()));
     }
   }
 
@@ -211,7 +212,7 @@ class AuthNotifier extends Notifier<AuthState> {
 
   /// Token 过期处理
   void onTokenExpired() {
-    state = state.unauthenticated('登录已过期，请重新登录');
+    state = state.unauthenticated(l10n.authSessionExpired);
   }
 }
 

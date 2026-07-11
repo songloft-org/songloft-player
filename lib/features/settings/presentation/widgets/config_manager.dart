@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/api_exceptions.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/utils/responsive_snackbar.dart';
 import '../../data/config_api.dart';
 import '../providers/settings_provider.dart';
@@ -13,11 +14,12 @@ class ConfigManager extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final configsAsync = ref.watch(configsProvider);
+    final l10n = AppLocalizations.of(context);
 
     return ExpansionTile(
       leading: const Icon(Icons.tune),
-      title: const Text('配置管理'),
-      subtitle: const Text('管理系统配置项'),
+      title: Text(l10n.settingsConfigTitle),
+      subtitle: Text(l10n.settingsConfigSubtitle),
       children: [
         // 添加按钮
         Padding(
@@ -27,13 +29,13 @@ class ConfigManager extends ConsumerWidget {
               OutlinedButton.icon(
                 onPressed: () => _showAddConfigDialog(context, ref),
                 icon: const Icon(Icons.add),
-                label: const Text('添加配置'),
+                label: Text(l10n.settingsConfigAdd),
               ),
               const SizedBox(width: 8),
               IconButton(
                 icon: const Icon(Icons.refresh),
                 onPressed: () => ref.invalidate(configsProvider),
-                tooltip: '刷新',
+                tooltip: l10n.settingsConfigRefresh,
               ),
             ],
           ),
@@ -54,7 +56,9 @@ class ConfigManager extends ConsumerWidget {
                 child: Column(
                   children: [
                     Text(
-                      error is ApiException ? error.message : '加载失败',
+                      error is ApiException
+                          ? error.message
+                          : AppLocalizations.of(context).commonLoadFailed,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.error,
                       ),
@@ -62,7 +66,7 @@ class ConfigManager extends ConsumerWidget {
                     const SizedBox(height: 8),
                     TextButton(
                       onPressed: () => ref.invalidate(configsProvider),
-                      child: const Text('重试'),
+                      child: Text(AppLocalizations.of(context).commonRetry),
                     ),
                   ],
                 ),
@@ -78,18 +82,19 @@ class ConfigManager extends ConsumerWidget {
     List<Config> configs,
   ) {
     if (configs.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(32),
+      final l10n = AppLocalizations.of(context);
+      return Padding(
+        padding: const EdgeInsets.all(32),
         child: Center(
           child: Column(
             children: [
-              Icon(Icons.settings_outlined, size: 48, color: Colors.grey),
-              SizedBox(height: 8),
-              Text('暂无配置项'),
-              SizedBox(height: 4),
+              const Icon(Icons.settings_outlined, size: 48, color: Colors.grey),
+              const SizedBox(height: 8),
+              Text(l10n.settingsConfigEmpty),
+              const SizedBox(height: 4),
               Text(
-                '点击「添加配置」创建新的配置项',
-                style: TextStyle(color: Colors.grey, fontSize: 12),
+                l10n.settingsConfigEmptyHint,
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
               ),
             ],
           ),
@@ -110,6 +115,7 @@ class ConfigManager extends ConsumerWidget {
   }
 
   Future<void> _showAddConfigDialog(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
     final keyController = TextEditingController();
     final valueController = TextEditingController();
     final formKey = GlobalKey<FormState>();
@@ -118,7 +124,7 @@ class ConfigManager extends ConsumerWidget {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('添加配置'),
+            title: Text(l10n.settingsConfigAdd),
             content: Form(
               key: formKey,
               child: Column(
@@ -126,14 +132,14 @@ class ConfigManager extends ConsumerWidget {
                 children: [
                   TextFormField(
                     controller: keyController,
-                    decoration: const InputDecoration(
-                      labelText: '配置键',
-                      hintText: '例如: app.setting.name',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.settingsConfigKeyLabel,
+                      hintText: l10n.settingsConfigKeyHint,
+                      border: const OutlineInputBorder(),
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return '请输入配置键';
+                        return l10n.settingsConfigKeyRequired;
                       }
                       return null;
                     },
@@ -141,15 +147,15 @@ class ConfigManager extends ConsumerWidget {
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: valueController,
-                    decoration: const InputDecoration(
-                      labelText: '配置值',
-                      hintText: '配置值（支持多行）',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.settingsConfigValueLabel,
+                      hintText: l10n.settingsConfigValueHint,
+                      border: const OutlineInputBorder(),
                     ),
                     maxLines: 3,
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return '请输入配置值';
+                        return l10n.settingsConfigValueRequired;
                       }
                       return null;
                     },
@@ -160,7 +166,7 @@ class ConfigManager extends ConsumerWidget {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('取消'),
+                child: Text(l10n.commonCancel),
               ),
               FilledButton(
                 onPressed: () {
@@ -168,7 +174,7 @@ class ConfigManager extends ConsumerWidget {
                     Navigator.pop(context, true);
                   }
                 },
-                child: const Text('添加'),
+                child: Text(l10n.settingsConfigAddButton),
               ),
             ],
           ),
@@ -184,15 +190,26 @@ class ConfigManager extends ConsumerWidget {
       );
       ref.invalidate(configsProvider);
       if (context.mounted) {
-        ResponsiveSnackBar.showSuccess(context, message: '配置已添加');
+        ResponsiveSnackBar.showSuccess(
+          context,
+          message: AppLocalizations.of(context).settingsConfigAdded,
+        );
       }
     } on ApiException catch (e) {
       if (context.mounted) {
-        ResponsiveSnackBar.showError(context, message: '添加失败: ${e.message}');
+        ResponsiveSnackBar.showError(
+          context,
+          message: AppLocalizations.of(
+            context,
+          ).settingsConfigAddFailed(e.message),
+        );
       }
     } catch (e) {
       if (context.mounted) {
-        ResponsiveSnackBar.showError(context, message: '添加失败: $e');
+        ResponsiveSnackBar.showError(
+          context,
+          message: AppLocalizations.of(context).settingsConfigAddFailed('$e'),
+        );
       }
     }
   }
@@ -211,19 +228,20 @@ class _ConfigItemState extends ConsumerState<_ConfigItem> {
   bool _isDeleting = false;
 
   Future<void> _editConfig() async {
+    final l10n = AppLocalizations.of(context);
     final valueController = TextEditingController(text: widget.config.value);
 
     final result = await showDialog<bool>(
       context: context,
       builder:
           (context) => AlertDialog(
-            title: Text('编辑配置: ${widget.config.key}'),
+            title: Text(l10n.settingsConfigEditTitle(widget.config.key)),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '配置键: ${widget.config.key}',
+                  l10n.settingsConfigKeyDisplay(widget.config.key),
                   style: Theme.of(
                     context,
                   ).textTheme.bodySmall?.copyWith(color: Colors.grey),
@@ -231,9 +249,9 @@ class _ConfigItemState extends ConsumerState<_ConfigItem> {
                 const SizedBox(height: 16),
                 TextField(
                   controller: valueController,
-                  decoration: const InputDecoration(
-                    labelText: '配置值',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.settingsConfigValueLabel,
+                    border: const OutlineInputBorder(),
                   ),
                   maxLines: 5,
                 ),
@@ -242,11 +260,11 @@ class _ConfigItemState extends ConsumerState<_ConfigItem> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('取消'),
+                child: Text(l10n.commonCancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('保存'),
+                child: Text(l10n.settingsConfigSave),
               ),
             ],
           ),
@@ -262,37 +280,51 @@ class _ConfigItemState extends ConsumerState<_ConfigItem> {
       );
       ref.invalidate(configsProvider);
       if (mounted) {
-        ResponsiveSnackBar.showSuccess(context, message: '配置已更新');
+        ResponsiveSnackBar.showSuccess(
+          context,
+          message: AppLocalizations.of(context).settingsConfigUpdated,
+        );
       }
     } on ApiException catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '更新失败: ${e.message}');
+        ResponsiveSnackBar.showError(
+          context,
+          message: AppLocalizations.of(
+            context,
+          ).settingsConfigUpdateFailed(e.message),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '更新失败: $e');
+        ResponsiveSnackBar.showError(
+          context,
+          message: AppLocalizations.of(
+            context,
+          ).settingsConfigUpdateFailed('$e'),
+        );
       }
     }
   }
 
   Future<void> _deleteConfig() async {
+    final l10n = AppLocalizations.of(context);
     final confirm = await showDialog<bool>(
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('确认删除'),
-            content: Text('确定要删除配置 "${widget.config.key}" 吗？'),
+            title: Text(l10n.settingsConfigConfirmDelete),
+            content: Text(l10n.settingsConfigDeleteConfirm(widget.config.key)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('取消'),
+                child: Text(l10n.commonCancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(context, true),
                 style: FilledButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.error,
                 ),
-                child: const Text('删除'),
+                child: Text(l10n.commonDelete),
               ),
             ],
           ),
@@ -307,15 +339,28 @@ class _ConfigItemState extends ConsumerState<_ConfigItem> {
       await configApi.deleteConfig(widget.config.key);
       ref.invalidate(configsProvider);
       if (mounted) {
-        ResponsiveSnackBar.showSuccess(context, message: '配置已删除');
+        ResponsiveSnackBar.showSuccess(
+          context,
+          message: AppLocalizations.of(context).settingsConfigDeleted,
+        );
       }
     } on ApiException catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '删除失败: ${e.message}');
+        ResponsiveSnackBar.showError(
+          context,
+          message: AppLocalizations.of(
+            context,
+          ).settingsConfigDeleteFailed(e.message),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '删除失败: $e');
+        ResponsiveSnackBar.showError(
+          context,
+          message: AppLocalizations.of(
+            context,
+          ).settingsConfigDeleteFailed('$e'),
+        );
       }
     } finally {
       if (mounted) {
@@ -328,6 +373,7 @@ class _ConfigItemState extends ConsumerState<_ConfigItem> {
   Widget build(BuildContext context) {
     final config = widget.config;
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return ListTile(
       leading: CircleAvatar(
@@ -355,7 +401,7 @@ class _ConfigItemState extends ConsumerState<_ConfigItem> {
           IconButton(
             icon: const Icon(Icons.edit_outlined),
             onPressed: _editConfig,
-            tooltip: '编辑',
+            tooltip: l10n.settingsConfigEdit,
           ),
           // 删除按钮
           IconButton(
@@ -368,7 +414,7 @@ class _ConfigItemState extends ConsumerState<_ConfigItem> {
                     )
                     : const Icon(Icons.delete_outline),
             onPressed: _isDeleting ? null : _deleteConfig,
-            tooltip: '删除',
+            tooltip: l10n.commonDelete,
           ),
         ],
       ),

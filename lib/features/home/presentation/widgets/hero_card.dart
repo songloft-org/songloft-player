@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/responsive.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../core/utils/url_helper.dart';
 import '../../../playlist/domain/playlist.dart';
 
@@ -33,6 +34,7 @@ class HeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -59,7 +61,7 @@ class HeroCard extends StatelessWidget {
       ),
       child: Semantics(
         button: true,
-        label: '${playlist.name} - ${playlist.songCount} 首歌曲',
+        label: l10n.homeHeroSemanticLabel(playlist.name, playlist.songCount),
         child: GestureDetector(
           onTap: onTap,
           child: Container(
@@ -114,7 +116,9 @@ class HeroCard extends StatelessWidget {
                     children: [
                       // 小标签
                       Text(
-                        isPlaying ? '正在播放' : '推荐歌单',
+                        isPlaying
+                            ? l10n.homeNowPlaying
+                            : l10n.homeRecommendedPlaylist,
                         style: textTheme.labelSmall?.copyWith(
                           color: Colors.white.withValues(alpha: 0.8),
                           letterSpacing: 2,
@@ -156,7 +160,7 @@ class HeroCard extends StatelessWidget {
                       ),
                       // 歌曲数
                       Text(
-                        '${playlist.songCount} 首歌曲',
+                        l10n.homeSongCount(playlist.songCount),
                         style: textTheme.bodySmall?.copyWith(
                           color: Colors.white.withValues(alpha: 0.75),
                           fontSize: context.responsive<double>(
@@ -263,7 +267,11 @@ class _PlayButton extends StatelessWidget {
         isPlaying ? Icons.equalizer_rounded : Icons.play_arrow_rounded,
         size: 20,
       ),
-      label: Text(isPlaying ? '正在播放' : '立即播放'),
+      label: Text(
+        isPlaying
+            ? AppLocalizations.of(context).homeNowPlaying
+            : AppLocalizations.of(context).homePlayNow,
+      ),
     );
   }
 }

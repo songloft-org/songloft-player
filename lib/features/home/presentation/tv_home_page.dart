@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/router/app_router.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/tv_theme.dart';
 import '../../../core/utils/url_helper.dart';
 import '../../../shared/widgets/tv_focusable.dart';
@@ -60,6 +61,7 @@ class _TvHomeContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final currentPlaylistId = ref.watch(sourcePlaylistIdProvider);
@@ -96,7 +98,7 @@ class _TvHomeContent extends ConsumerWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        _getGreeting(),
+                        _getGreeting(context),
                         style: textTheme.titleMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -124,7 +126,7 @@ class _TvHomeContent extends ConsumerWidget {
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          '$normalCount 歌单',
+                          l10n.homeStatPlaylistsCount(normalCount),
                           style: TvTheme.bodyStyle(context),
                         ),
                         const SizedBox(width: TvTheme.spacingLarge),
@@ -135,7 +137,7 @@ class _TvHomeContent extends ConsumerWidget {
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          '$radioCount 电台',
+                          l10n.homeStatRadiosCount(radioCount),
                           style: TvTheme.bodyStyle(context),
                         ),
                       ],
@@ -156,20 +158,20 @@ class _TvHomeContent extends ConsumerWidget {
                   scrollDirection: Axis.horizontal,
                   children: [
                     _TvQuickNavCard(
-                      title: '本地音乐',
+                      title: l10n.homeTvLocalMusic,
                       icon: Icons.library_music_rounded,
                       autofocus: playlists.isEmpty,
                       onSelect: () => context.go(AppRoutes.library),
                     ),
                     const SizedBox(width: TvTheme.spacingMedium),
                     _TvQuickNavCard(
-                      title: '播放列表',
+                      title: l10n.homeTvPlaylist,
                       icon: Icons.queue_music_rounded,
                       onSelect: () => context.go(AppRoutes.playlists),
                     ),
                     const SizedBox(width: TvTheme.spacingMedium),
                     _TvQuickNavCard(
-                      title: '设置',
+                      title: l10n.navSettings,
                       icon: Icons.settings_rounded,
                       onSelect: () => context.go(AppRoutes.settings),
                     ),
@@ -187,7 +189,7 @@ class _TvHomeContent extends ConsumerWidget {
                   bottom: TvTheme.spacingMedium,
                 ),
                 child: Text(
-                  '我的歌单',
+                  l10n.homeMyPlaylists,
                   style: TvTheme.titleStyle(context),
                 ),
               ),
@@ -237,7 +239,7 @@ class _TvHomeContent extends ConsumerWidget {
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      '我的电台',
+                      l10n.homeMyRadios,
                       style: TvTheme.titleStyle(context),
                     ),
                   ],
@@ -285,12 +287,12 @@ class _TvHomeContent extends ConsumerWidget {
                     ),
                     const SizedBox(height: TvTheme.spacingLarge),
                     Text(
-                      '暂无歌单',
+                      l10n.homeEmptyPlaylists,
                       style: TvTheme.titleStyle(context),
                     ),
                     const SizedBox(height: TvTheme.spacingSmall),
                     Text(
-                      '使用快捷导航浏览本地音乐',
+                      l10n.homeTvEmptySubtitle,
                       style: TvTheme.captionStyle(context),
                     ),
                   ],
@@ -309,18 +311,19 @@ class _TvHomeContent extends ConsumerWidget {
     );
   }
 
-  String _getGreeting() {
+  String _getGreeting(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final hour = DateTime.now().hour;
     if (hour < 6) {
-      return '夜深了，听点音乐吧';
+      return l10n.homeTvGreetingLateNight;
     } else if (hour < 12) {
-      return '早上好';
+      return l10n.homeGreetingMorning;
     } else if (hour < 14) {
-      return '中午好';
+      return l10n.homeGreetingNoon;
     } else if (hour < 18) {
-      return '下午好';
+      return l10n.homeGreetingAfternoon;
     } else {
-      return '晚上好';
+      return l10n.homeGreetingEvening;
     }
   }
 }
@@ -450,7 +453,7 @@ class _TvPlaylistCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${playlist.songCount} 首歌曲',
+                    AppLocalizations.of(context).homeSongCount(playlist.songCount),
                     style: TvTheme.captionStyle(context),
                   ),
                 ],
@@ -512,6 +515,7 @@ class _TvErrorContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Center(
@@ -525,7 +529,7 @@ class _TvErrorContent extends StatelessWidget {
           ),
           const SizedBox(height: TvTheme.spacingLarge),
           Text(
-            '加载失败',
+            l10n.commonLoadFailed,
             style: TvTheme.titleStyle(context),
           ),
           const SizedBox(height: TvTheme.spacingSmall),
@@ -536,7 +540,7 @@ class _TvErrorContent extends StatelessWidget {
           ),
           const SizedBox(height: TvTheme.spacingLarge),
           TvButton(
-            label: '重试',
+            label: l10n.commonRetry,
             icon: Icons.refresh,
             autofocus: true,
             onPressed: onRetry,

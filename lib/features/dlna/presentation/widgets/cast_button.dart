@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../providers/dlna_provider.dart';
 import 'device_sheet.dart';
 
@@ -29,7 +30,9 @@ class CastButton extends ConsumerWidget {
       ),
       iconSize: iconSize,
       visualDensity: visualDensity,
-      tooltip: isCasting ? '投屏中' : '投屏',
+      tooltip: isCasting
+          ? AppLocalizations.of(context).dlnaCasting
+          : AppLocalizations.of(context).dlnaCast,
       onPressed: () => _onPressed(context, ref, isCasting),
     );
   }

@@ -1,3 +1,5 @@
+import '../l10n/l10n_holder.dart';
+
 /// 部署模式，通过 --dart-define=DEPLOY_MODE=embedded 在构建时注入
 /// - 'embedded' : Flutter Web 嵌入 Go 后端，同域访问，无需用户配置 API 地址
 /// - 'standalone': 独立静态部署，后端地址与前端不同域，需用户手动配置
@@ -71,5 +73,7 @@ class AppConfig {
   /// 格式化前端版本号用于显示
   /// 'dev' -> '开发版本', '1.0.14' -> 'v1.0.14'
   static String get frontendVersionDisplay =>
-      frontendVersion == 'dev' ? '开发版本' : 'v$frontendVersion';
+      frontendVersion == 'dev'
+          ? (l10nOrNull?.coreVersionDev ?? '开发版本')
+          : 'v$frontendVersion';
 }

@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/network/api_exceptions.dart';
 import '../../../../core/theme/responsive.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/constants/github_proxy.dart';
 import '../../data/upgrade_api.dart';
 import '../providers/settings_provider.dart';
@@ -123,9 +124,20 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
     } on ApiException catch (e) {
       if (mounted) setState(() => _error = e.message);
     } on TimeoutException {
-      if (mounted) setState(() => _error = '检查更新超时，请尝试切换代理后重试');
+      if (mounted) {
+        setState(
+          () => _error = AppLocalizations.of(context).settingsUpgradeCheckTimeout,
+        );
+      }
     } catch (e) {
-      if (mounted) setState(() => _error = '检查更新失败: $e');
+      if (mounted) {
+        setState(
+          () =>
+              _error = AppLocalizations.of(
+                context,
+              ).settingsUpgradeCheckFailed('$e'),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isChecking = false);
     }
@@ -144,19 +156,23 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
   }
 
   String _formatCurrentVersion(UpgradeCheck check) {
-    final versionText = check.currentVersion ?? '未知';
+    final l10n = AppLocalizations.of(context);
+    final versionText = check.currentVersion ?? l10n.commonUnknown;
     final details = <String>[];
     if (check.currentChannel == 'dev') {
-      details.add('开发版');
+      details.add(l10n.settingsUpgradeChannelDev);
     } else if (check.currentChannel == 'stable') {
-      details.add('正式版');
+      details.add(l10n.settingsUpgradeChannelStable);
     }
     if (check.currentBuildType != null && check.currentBuildType!.isNotEmpty) {
       details.add(check.currentBuildType!);
     }
     return details.isEmpty
         ? versionText
-        : '$versionText (${details.join(', ')})';
+        : l10n.settingsUpgradeVersionWithDetails(
+          versionText,
+          details.join(', '),
+        );
   }
 
   Future<void> _startUpgrade() async {
@@ -183,28 +199,34 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
     } on ApiException catch (e) {
       setState(() => _error = e.message);
     } catch (e) {
-      setState(() => _error = '启动升级失败: $e');
+      setState(
+        () =>
+            _error = AppLocalizations.of(
+              context,
+            ).settingsUpgradeStartFailed('$e'),
+      );
     } finally {
       setState(() => _isStarting = false);
     }
   }
 
   Future<void> _resetToBaseImage() async {
+    final l10n = AppLocalizations.of(context);
     // 二次确认
     final confirmed = await showDialog<bool>(
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('确认回退'),
-            content: const Text('确定要回退到 Docker 镜像的底包版本吗？\n\n回退后服务将自动重启。'),
+            title: Text(l10n.settingsUpgradeConfirmReset),
+            content: Text(l10n.settingsUpgradeConfirmResetContent),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('取消'),
+                child: Text(l10n.commonCancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('确认回退'),
+                child: Text(l10n.settingsUpgradeConfirmReset),
               ),
             ],
           ),
@@ -222,7 +244,14 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
     } on ApiException catch (e) {
       if (mounted) setState(() => _error = e.message);
     } catch (e) {
-      if (mounted) setState(() => _error = '回退失败: $e');
+      if (mounted) {
+        setState(
+          () =>
+              _error = AppLocalizations.of(
+                context,
+              ).settingsUpgradeResetFailed('$e'),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isResetting = false);
     }
@@ -233,10 +262,15 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final upgradeProgress = ref.watch(upgradeProgressProvider);
+    final l10n = AppLocalizations.of(context);
 
     return AlertDialog(
-      title: const Row(
-        children: [Icon(Icons.system_update), SizedBox(width: 8), Text('检查更新')],
+      title: Row(
+        children: [
+          const Icon(Icons.system_update),
+          const SizedBox(width: 8),
+          Text(l10n.settingsUpgradeTitle),
+        ],
       ),
       content: ConstrainedBox(
         constraints: BoxConstraints(
@@ -281,12 +315,12 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
 
               // 正在检查
               if (_isChecking)
-                const Center(
+                Center(
                   child: Column(
                     children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 16),
-                      Text('正在检查更新...'),
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 16),
+                      Text(l10n.settingsUpgradeChecking),
                     ],
                   ),
                 )
@@ -314,12 +348,13 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
   }
 
   Widget _buildProxySelector(ThemeData theme, ColorScheme colorScheme) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('GitHub 代理', style: theme.textTheme.titleSmall),
+          Text(l10n.settingsUpgradeGithubProxy, style: theme.textTheme.titleSmall),
           const SizedBox(height: 8),
           // 预设代理选项 + 自定义代理选项
           RadioGroup<int>(
@@ -332,7 +367,10 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
                 ...List.generate(kGithubProxyPresets.length, (index) {
                   final proxy = kGithubProxyPresets[index];
                   return RadioListTile<int>(
-                    title: Text(proxy.label, style: theme.textTheme.bodyMedium),
+                    title: Text(
+                      proxy.value.isEmpty ? l10n.githubProxyDirect : proxy.label,
+                      style: theme.textTheme.bodyMedium,
+                    ),
                     value: index,
                     dense: true,
                     contentPadding: EdgeInsets.zero,
@@ -341,7 +379,10 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
                 }),
                 // 自定义代理选项
                 RadioListTile<int>(
-                  title: Text('自定义代理', style: theme.textTheme.bodyMedium),
+                  title: Text(
+                    l10n.settingsUpgradeCustomProxy,
+                    style: theme.textTheme.bodyMedium,
+                  ),
                   value: -1,
                   dense: true,
                   contentPadding: EdgeInsets.zero,
@@ -356,13 +397,13 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
               padding: const EdgeInsets.only(left: 16, top: 4),
               child: TextField(
                 controller: _customProxyController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'https://your-proxy.com/',
-                  helperText: '输入代理地址，如 https://ghproxy.com/',
+                  helperText: l10n.settingsUpgradeProxyHelper,
                   helperMaxLines: 2,
                   isDense: true,
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(
+                  border: const OutlineInputBorder(),
+                  contentPadding: const EdgeInsets.symmetric(
                     horizontal: 12,
                     vertical: 8,
                   ),
@@ -379,6 +420,7 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
   Widget _buildCheckResult(UpgradeCheck check) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     if (!check.hasUpdate) {
       final currentVersion = _formatCurrentVersion(check);
@@ -387,9 +429,12 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
           children: [
             const Icon(Icons.check_circle, color: Colors.green, size: 48),
             const SizedBox(height: 16),
-            const Text('已是最新版本'),
+            Text(l10n.settingsUpgradeUpToDate),
             const SizedBox(height: 8),
-            Text('当前版本: $currentVersion', style: theme.textTheme.bodySmall),
+            Text(
+              l10n.settingsUpgradeCurrentVersion(currentVersion),
+              style: theme.textTheme.bodySmall,
+            ),
             // 仅 Docker 环境显示回退按钮
             if (check.isDocker) ...[
               const SizedBox(height: 16),
@@ -407,12 +452,15 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // 当前版本
-        Text('当前版本: $currentVersion', style: theme.textTheme.bodyMedium),
+        Text(
+          l10n.settingsUpgradeCurrentVersion(currentVersion),
+          style: theme.textTheme.bodyMedium,
+        ),
         const SizedBox(height: 12),
 
         // 版本选择（多个可用更新时显示，仅 Docker 环境）
         if (check.isDocker && check.availableUpdates.length > 1) ...[
-          Text('选择升级版本:', style: theme.textTheme.titleSmall),
+          Text(l10n.settingsUpgradeSelectVersion, style: theme.textTheme.titleSmall),
           const SizedBox(height: 8),
           RadioGroup<int>(
             groupValue: _selectedVersionIndex,
@@ -431,7 +479,9 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
                     subtitle:
                         update.buildTime != null
                             ? Text(
-                              '构建时间: ${update.buildTime}',
+                              l10n.settingsUpgradeBuildTime(
+                                '${update.buildTime}',
+                              ),
                               style: theme.textTheme.bodySmall,
                             )
                             : null,
@@ -477,7 +527,7 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
           if (selectedVersion.releaseNotes != null &&
               selectedVersion.releaseNotes!.isNotEmpty) ...[
             const SizedBox(height: 16),
-            Text('更新说明:', style: theme.textTheme.titleSmall),
+            Text(l10n.settingsUpgradeReleaseNotes, style: theme.textTheme.titleSmall),
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.all(12),
@@ -518,7 +568,11 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
               : const Icon(Icons.restore, size: 18),
-      label: Text(_isResetting ? '正在回退...' : '回退到底包版本'),
+      label: Text(
+        _isResetting
+            ? AppLocalizations.of(context).settingsUpgradeResetting
+            : AppLocalizations.of(context).settingsUpgradeResetButton,
+      ),
       style: OutlinedButton.styleFrom(
         foregroundColor: theme.colorScheme.error,
         side: BorderSide(color: theme.colorScheme.error.withValues(alpha: 0.5)),
@@ -545,14 +599,18 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
   }
 
   Widget _buildUpgradeCompleted() {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Column(
         children: [
           const Icon(Icons.check_circle, color: Colors.green, size: 48),
           const SizedBox(height: 16),
-          const Text('升级完成'),
+          Text(l10n.settingsUpgradeCompleted),
           const SizedBox(height: 8),
-          Text('应用即将重启', style: Theme.of(context).textTheme.bodySmall),
+          Text(
+            l10n.settingsUpgradeRestartSoon,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
         ],
       ),
     );
@@ -565,7 +623,7 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
       children: [
         Icon(Icons.error, color: colorScheme.error, size: 48),
         const SizedBox(height: 16),
-        const Text('升级失败'),
+        Text(AppLocalizations.of(context).settingsUpgradeFailed),
         if (progress.message != null) ...[
           const SizedBox(height: 8),
           Text(
@@ -590,6 +648,7 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
   }
 
   List<Widget> _buildActions(UpgradeProgress upgradeProgress) {
+    final l10n = AppLocalizations.of(context);
     // 正在升级时不显示按钮
     if (upgradeProgress.isUpgrading) {
       return [];
@@ -603,7 +662,7 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
           style: FilledButton.styleFrom(
             minimumSize: context.responsiveButtonMinSize,
           ),
-          child: const Text('关闭'),
+          child: Text(l10n.settingsUpgradeClose),
         ),
       ];
     }
@@ -616,7 +675,7 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
           style: TextButton.styleFrom(
             minimumSize: context.responsiveButtonMinSize,
           ),
-          child: const Text('关闭'),
+          child: Text(l10n.settingsUpgradeClose),
         ),
         FilledButton(
           onPressed: () {
@@ -626,7 +685,7 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
           style: FilledButton.styleFrom(
             minimumSize: context.responsiveButtonMinSize,
           ),
-          child: const Text('重试'),
+          child: Text(l10n.commonRetry),
         ),
       ];
     }
@@ -639,7 +698,7 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
           style: TextButton.styleFrom(
             minimumSize: context.responsiveButtonMinSize,
           ),
-          child: const Text('取消'),
+          child: Text(l10n.commonCancel),
         ),
         if (_proxyChanged)
           FilledButton(
@@ -647,7 +706,7 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
             style: FilledButton.styleFrom(
               minimumSize: context.responsiveButtonMinSize,
             ),
-            child: const Text('重新检查'),
+            child: Text(l10n.settingsUpgradeRecheck),
           ),
       ];
     }
@@ -660,14 +719,14 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
           style: TextButton.styleFrom(
             minimumSize: context.responsiveButtonMinSize,
           ),
-          child: const Text('关闭'),
+          child: Text(l10n.settingsUpgradeClose),
         ),
         FilledButton(
           onPressed: _checkUpgrade,
           style: FilledButton.styleFrom(
             minimumSize: context.responsiveButtonMinSize,
           ),
-          child: const Text('重试'),
+          child: Text(l10n.commonRetry),
         ),
       ];
     }
@@ -682,7 +741,7 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
             style: TextButton.styleFrom(
               minimumSize: context.responsiveButtonMinSize,
             ),
-            child: const Text('稍后'),
+            child: Text(l10n.settingsUpgradeLater),
           ),
           if (_proxyChanged)
             OutlinedButton(
@@ -690,7 +749,7 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
               style: OutlinedButton.styleFrom(
                 minimumSize: context.responsiveButtonMinSize,
               ),
-              child: const Text('重新检查'),
+              child: Text(l10n.settingsUpgradeRecheck),
             ),
           FilledButton.icon(
             onPressed: () => _launchReleaseUrl(),
@@ -698,7 +757,7 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
               minimumSize: context.responsiveButtonMinSize,
             ),
             icon: const Icon(Icons.open_in_new, size: 18),
-            label: const Text('前往下载'),
+            label: Text(l10n.settingsUpgradeGoDownload),
           ),
         ];
       }
@@ -710,7 +769,7 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
           style: TextButton.styleFrom(
             minimumSize: context.responsiveButtonMinSize,
           ),
-          child: const Text('稍后'),
+          child: Text(l10n.settingsUpgradeLater),
         ),
         if (_proxyChanged)
           OutlinedButton(
@@ -718,7 +777,7 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
             style: OutlinedButton.styleFrom(
               minimumSize: context.responsiveButtonMinSize,
             ),
-            child: const Text('重新检查'),
+            child: Text(l10n.settingsUpgradeRecheck),
           ),
         FilledButton(
           onPressed: _isStarting ? null : _startUpgrade,
@@ -732,7 +791,7 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                  : const Text('立即升级'),
+                  : Text(l10n.settingsUpgradeUpgradeNow),
         ),
       ];
     }
@@ -744,7 +803,7 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
           style: TextButton.styleFrom(
             minimumSize: context.responsiveButtonMinSize,
           ),
-          child: const Text('关闭'),
+          child: Text(l10n.settingsUpgradeClose),
         ),
         if (_proxyChanged)
           FilledButton(
@@ -752,7 +811,7 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
             style: FilledButton.styleFrom(
               minimumSize: context.responsiveButtonMinSize,
             ),
-            child: const Text('重新检查'),
+            child: Text(l10n.settingsUpgradeRecheck),
           ),
       ];
     }

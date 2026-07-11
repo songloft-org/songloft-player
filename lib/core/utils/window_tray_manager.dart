@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
+import '../../l10n/l10n_holder.dart';
 import 'file_logger.dart';
 
 class WindowTrayManager with WindowListener, TrayListener {
@@ -74,14 +75,22 @@ class WindowTrayManager with WindowListener, TrayListener {
     await trayManager.setIcon(getIconPath());
 
     final menuItems = <MenuItem>[
-      MenuItem(key: 'show_window', label: '打开 Songloft'),
+      MenuItem(
+        key: 'show_window',
+        label: l10nOrNull?.coreTrayOpen ?? '打开 Songloft',
+      ),
     ];
     if (FileLogger.logDir != null) {
-      menuItems.add(MenuItem(key: 'open_logs', label: '打开日志目录'));
+      menuItems.add(
+        MenuItem(
+          key: 'open_logs',
+          label: l10nOrNull?.coreTrayOpenLogs ?? '打开日志目录',
+        ),
+      );
     }
     menuItems.addAll([
       MenuItem.separator(),
-      MenuItem(key: 'exit_app', label: '退出'),
+      MenuItem(key: 'exit_app', label: l10nOrNull?.coreTrayExit ?? '退出'),
     ]);
     Menu menu = Menu(items: menuItems);
     await trayManager.setContextMenu(menu);

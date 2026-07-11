@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/responsive.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// 统计信息条
 ///
@@ -19,6 +20,7 @@ class StatsStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -44,7 +46,7 @@ class StatsStrip extends StatelessWidget {
           children: [
             _StatChip(
               icon: Icons.queue_music_rounded,
-              label: '歌单',
+              label: l10n.navPlaylists,
               value: normalCount.toString(),
               color: colorScheme.onPrimaryContainer,
               textTheme: textTheme,
@@ -52,7 +54,7 @@ class StatsStrip extends StatelessWidget {
             _Divider(color: colorScheme.onPrimaryContainer),
             _StatChip(
               icon: Icons.radio_rounded,
-              label: '电台',
+              label: l10n.songTypeRadio,
               value: radioCount.toString(),
               color: colorScheme.onPrimaryContainer,
               textTheme: textTheme,
@@ -60,7 +62,7 @@ class StatsStrip extends StatelessWidget {
             _Divider(color: colorScheme.onPrimaryContainer),
             _StatChip(
               icon: Icons.library_music_rounded,
-              label: '总计',
+              label: l10n.homeStatTotal,
               value: (normalCount + radioCount).toString(),
               color: colorScheme.onPrimaryContainer,
               textTheme: textTheme,

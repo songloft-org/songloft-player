@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../config/constants.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// 歌曲类型筛选栏
 class SongFilterBar extends StatelessWidget {
@@ -17,6 +18,7 @@ class SongFilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -31,25 +33,25 @@ class SongFilterBar extends StatelessWidget {
               child: Row(
                 children: [
                   _FilterChip(
-                    label: '全部',
+                    label: l10n.filterAll,
                     isSelected: currentType == null,
                     onTap: () => onTypeChanged(null),
                   ),
                   const SizedBox(width: 8),
                   _FilterChip(
-                    label: '本地',
+                    label: l10n.songTypeLocal,
                     isSelected: currentType == AppConstants.songTypeLocal,
                     onTap: () => onTypeChanged(AppConstants.songTypeLocal),
                   ),
                   const SizedBox(width: 8),
                   _FilterChip(
-                    label: '网络',
+                    label: l10n.songTypeRemote,
                     isSelected: currentType == AppConstants.songTypeRemote,
                     onTap: () => onTypeChanged(AppConstants.songTypeRemote),
                   ),
                   const SizedBox(width: 8),
                   _FilterChip(
-                    label: '电台',
+                    label: l10n.songTypeRadio,
                     isSelected: currentType == AppConstants.songTypeRadio,
                     onTap: () => onTypeChanged(AppConstants.songTypeRadio),
                   ),
@@ -62,7 +64,7 @@ class SongFilterBar extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(left: 8),
               child: Text(
-                '$songCount首',
+                l10n.librarySongCount(songCount),
                 style: textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),

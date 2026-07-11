@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/url_helper.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/models/song.dart';
 import '../../../shared/utils/responsive_snackbar.dart';
 import '../domain/player_state.dart';
@@ -113,7 +114,7 @@ class QueueBottomSheet extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                '播放队列',
+                AppLocalizations.of(context).playerQueueTitle,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -139,13 +140,13 @@ class QueueBottomSheet extends ConsumerWidget {
           if (state.playlist.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.delete_outline_rounded),
-              tooltip: '清空播放列表',
+              tooltip: AppLocalizations.of(context).playerClearPlaylist,
               onPressed: () => _showClearConfirmation(context, notifier),
             ),
           // 关闭按钮
           IconButton(
             icon: const Icon(Icons.close_rounded),
-            tooltip: '关闭',
+            tooltip: AppLocalizations.of(context).playerClose,
             onPressed: () => Navigator.of(context).pop(),
           ),
         ],
@@ -170,14 +171,14 @@ class QueueBottomSheet extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            '播放队列为空',
+            AppLocalizations.of(context).playerQueueEmpty,
             style: theme.textTheme.titleMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            '添加歌曲到播放队列开始播放',
+            AppLocalizations.of(context).playerQueueEmptyHint,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
             ),
@@ -231,30 +232,31 @@ class QueueBottomSheet extends ConsumerWidget {
     notifier.removeFromPlaylist(index);
     ResponsiveSnackBar.show(
       context,
-      message: '已移除「${song.title}」',
+      message: AppLocalizations.of(context).playerRemovedSong(song.title),
       duration: const Duration(seconds: 2),
     );
   }
 
   /// 显示清空确认对话框
   void _showClearConfirmation(BuildContext context, PlayerNotifier notifier) {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder:
           (dialogContext) => AlertDialog(
-            title: const Text('清空播放队列'),
-            content: const Text('确定要清空播放队列吗？'),
+            title: Text(l10n.playerClearQueueTitle),
+            content: Text(l10n.playerClearQueueConfirm),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('取消'),
+                child: Text(l10n.commonCancel),
               ),
               FilledButton(
                 onPressed: () {
                   notifier.clearPlaylist();
                   Navigator.pop(dialogContext); // 关闭确认对话框，队列弹窗由 ref.listen 自动关闭
                 },
-                child: const Text('清空'),
+                child: Text(l10n.playerClear),
               ),
             ],
           ),
@@ -387,7 +389,8 @@ class _QueueSongItem extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        song.artist ?? '未知艺术家',
+                        song.artist ??
+                            AppLocalizations.of(context).playerUnknownArtist,
                         style: textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -412,7 +415,7 @@ class _QueueSongItem extends StatelessWidget {
                   onPressed: onRemove,
                   icon: const Icon(Icons.close_rounded),
                   iconSize: 20,
-                  tooltip: '从队列移除',
+                  tooltip: AppLocalizations.of(context).playerRemoveFromQueue,
                   style: IconButton.styleFrom(
                     foregroundColor: colorScheme.onSurfaceVariant,
                   ),

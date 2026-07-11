@@ -11,6 +11,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  # 国际化（中英文切换）
+  flutter_localizations:
+    sdk: flutter
   # 状态管理
   flutter_riverpod: ^3.1.0
   riverpod_annotation: ^4.0.0
@@ -101,6 +104,7 @@ flutter_launcher_icons:
 
 flutter:
   uses-material-design: true
+  generate: true
   assets:
     - assets/icons/app_icon.png
     - windows/runner/resources/app_icon.ico

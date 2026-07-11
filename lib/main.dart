@@ -33,6 +33,8 @@ import 'core/utils/platform_utils.dart';
 import 'core/utils/window_tray_manager.dart';
 import 'features/settings/presentation/providers/settings_provider.dart';
 import 'features/startup/presentation/startup_gate.dart';
+import 'l10n/app_localizations.dart';
+import 'l10n/l10n_holder.dart';
 
 /// 全局 AudioHandler Provider
 final audioHandlerProvider = Provider<SongloftAudioHandler>((ref) {
@@ -262,12 +264,13 @@ void main(List<String> args) async {
       // androidStopForegroundOnPause 设为 false 保持前台服务持续运行：
       // HyperOS3 等系统在前台服务停止后会激进回收资源，
       // 导致歌曲播放完成后 playNext() 命令失效无法自动切歌
-      config: const AudioServiceConfig(
+      config: AudioServiceConfig(
         androidNotificationChannelId: 'com.songloft.playback',
-        androidNotificationChannelName: 'Songloft 播放控制',
+        androidNotificationChannelName:
+            l10nOrNull?.coreNotificationChannel ?? 'Songloft 播放控制',
         androidNotificationOngoing: false,
         androidStopForegroundOnPause: false,
-        androidBrowsableRootExtras: {
+        androidBrowsableRootExtras: const {
           AndroidContentStyle.supportedKey: true,
           AndroidContentStyle.playableHintKey:
               AndroidContentStyle.listItemHintValue,
@@ -385,6 +388,7 @@ class SongloftApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
     final themeMode = ref.watch(themeModeProvider);
+    final locale = ref.watch(localeProvider);
     return MaterialApp.router(
       title: 'Songloft',
       debugShowCheckedModeBanner: false,
@@ -392,8 +396,23 @@ class SongloftApp extends ConsumerWidget {
       theme: AppTheme.lightTheme(),
       darkTheme: AppTheme.darkTheme(),
       themeMode: themeMode,
+      locale: locale, // null → 跟随系统
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localeResolutionCallback: (deviceLocale, supported) {
+        // 显式选择了语言则直接使用
+        if (locale != null) return locale;
+        // 跟随系统：设备语言不在支持列表时回退简体中文
+        final code = deviceLocale?.languageCode;
+        return supported.firstWhere(
+          (l) => l.languageCode == code,
+          orElse: () => const Locale('zh'),
+        );
+      },
       routerConfig: router,
       builder: (context, child) {
+        // 刷新无 BuildContext 场景使用的全局 AppLocalizations 引用
+        updateGlobalL10n(AppLocalizations.of(context));
         // 在 builder 中获取 MediaQuery 来应用响应式主题
         final width = MediaQuery.of(context).size.width;
         final screenType = _getScreenType(width);

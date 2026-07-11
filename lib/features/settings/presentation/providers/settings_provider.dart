@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../config/app_config.dart';
 import '../../../../core/network/api_client.dart';
+import '../../../../l10n/l10n_holder.dart';
 import '../../../../core/storage/preference_sync_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/cache_api.dart';
@@ -116,7 +117,7 @@ final serverVersionProvider = FutureProvider<String>((ref) async {
   if (version != null && version.isNotEmpty) {
     return version;
   }
-  return '未知';
+  return l10n.commonUnknown;
 });
 
 /// 检查前端（客户端）更新
@@ -168,6 +169,48 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
 /// 主题模式 Provider
 final themeModeProvider = NotifierProvider<ThemeModeNotifier, ThemeMode>(
   ThemeModeNotifier.new,
+);
+
+// ============================================================================
+// Locale Provider
+// ============================================================================
+
+/// 应用语言 Notifier。
+/// state 为 null 表示「跟随系统」；否则为 Locale('zh') / Locale('en')。
+/// 仅本地持久化（SharedPreferences），不同步服务端。
+class LocaleNotifier extends Notifier<Locale?> {
+  @override
+  Locale? build() {
+    _loadLocale();
+    return null;
+  }
+
+  /// 从 AppPreferences 加载语言设置
+  Future<void> _loadLocale() async {
+    try {
+      final prefs = await ref.read(appPreferencesProvider.future);
+      state = prefs.getLocale();
+    } catch (e) {
+      // 加载失败使用默认值（跟随系统）
+      state = null;
+    }
+  }
+
+  /// 设置语言。传 null 表示「跟随系统」。
+  Future<void> setLocale(Locale? locale) async {
+    state = locale;
+    try {
+      final prefs = await ref.read(appPreferencesProvider.future);
+      await prefs.setLocale(locale);
+    } catch (e) {
+      // 保存失败忽略
+    }
+  }
+}
+
+/// 应用语言 Provider
+final localeProvider = NotifierProvider<LocaleNotifier, Locale?>(
+  LocaleNotifier.new,
 );
 
 // ============================================================================

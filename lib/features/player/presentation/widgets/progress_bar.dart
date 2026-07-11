@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/utils/formatters.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// 播放进度条组件
 class PlayerProgressBar extends StatefulWidget {
@@ -237,7 +238,7 @@ class _ClickableProgressBarState extends State<ClickableProgressBar> {
 
     return Semantics(
       slider: true,
-      label: '播放进度',
+      label: AppLocalizations.of(context).playerProgress,
       child: MouseRegion(
         onEnter: (_) => setState(() => _isHovering = true),
         onExit: (_) => setState(() => _isHovering = false),

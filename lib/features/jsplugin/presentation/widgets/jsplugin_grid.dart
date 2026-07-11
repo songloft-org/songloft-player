@@ -8,6 +8,7 @@ import '../../../../config/app_config.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/storage/secure_storage.dart';
 import '../../../../core/theme/responsive.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../data/jsplugin_api.dart';
 import '../providers/jsplugin_provider.dart';
 import 'plugin_icon.dart';
@@ -42,7 +43,7 @@ class JSPluginGrid extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
-                'JS 插件',
+                AppLocalizations.of(context).jspluginGridTitle,
                 style: Theme.of(
                   context,
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),

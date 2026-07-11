@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/url_helper.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/models/song.dart';
 import '../providers/playlist_provider.dart';
 
@@ -16,6 +17,7 @@ class SongCoverPickerModal extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final songsAsync = ref.watch(playlistSongsProvider(playlistId));
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.7,
@@ -43,14 +45,17 @@ class SongCoverPickerModal extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
-                const Text(
-                  '选择歌曲封面',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Text(
+                  l10n.playlistPickCoverTitle,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.close),
-                  tooltip: '关闭',
+                  tooltip: l10n.playlistClose,
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ],
@@ -81,7 +86,7 @@ class SongCoverPickerModal extends ConsumerWidget {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          '歌单中没有带封面的歌曲',
+                          l10n.playlistNoCoveredSongs,
                           style: TextStyle(color: colorScheme.onSurfaceVariant),
                         ),
                       ],
@@ -158,7 +163,7 @@ class SongCoverPickerModal extends ConsumerWidget {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          '加载失败',
+                          l10n.commonLoadFailed,
                           style: TextStyle(color: colorScheme.error),
                         ),
                       ],
@@ -179,6 +184,7 @@ class SongCoverPickerModal extends ConsumerWidget {
     bool noCoverYet,
   ) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     if (state.isLoadingMore) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 16),
@@ -202,7 +208,7 @@ class SongCoverPickerModal extends ConsumerWidget {
                         .read(playlistSongsProvider(playlistId).notifier)
                         .loadMore(),
             icon: const Icon(Icons.refresh, size: 16),
-            label: const Text('加载失败，点击重试'),
+            label: Text(l10n.playlistLoadRetry),
           ),
         ),
       );
@@ -220,7 +226,7 @@ class SongCoverPickerModal extends ConsumerWidget {
                           .read(playlistSongsProvider(playlistId).notifier)
                           .loadMore(),
               icon: const Icon(Icons.expand_more, size: 16),
-              label: const Text('当前页无带封面歌曲，加载更多'),
+              label: Text(l10n.playlistNoCoverLoadMore),
             ),
           ),
         );
@@ -232,7 +238,7 @@ class SongCoverPickerModal extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Center(
           child: Text(
-            '— 已加载全部 —',
+            l10n.playlistAllLoadedSimple,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -258,7 +264,7 @@ class _CoverGridItem extends StatelessWidget {
 
     return Semantics(
       button: true,
-      label: '选择此封面',
+      label: AppLocalizations.of(context).playlistSelectThisCover,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(8),

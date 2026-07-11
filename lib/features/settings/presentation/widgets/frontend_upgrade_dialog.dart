@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../config/app_config.dart';
 import '../../../../core/theme/responsive.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/constants/github_proxy.dart';
 import '../../data/frontend_version_api.dart';
 import '../providers/settings_provider.dart';
@@ -82,7 +83,15 @@ class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
           .timeout(const Duration(seconds: 15));
       if (mounted) setState(() => _checkResult = result);
     } on TimeoutException {
-      if (mounted) setState(() => _error = '检查更新超时，请尝试切换代理后重试');
+      if (mounted) {
+        setState(
+          () =>
+              _error =
+                  AppLocalizations.of(
+                    context,
+                  ).settingsFrontendUpgradeCheckTimeout,
+        );
+      }
     } catch (e) {
       if (mounted) setState(() => _error = '$e');
     } finally {
@@ -94,13 +103,14 @@ class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return AlertDialog(
-      title: const Row(
+      title: Row(
         children: [
-          Icon(Icons.phone_android),
-          SizedBox(width: 8),
-          Text('客户端更新'),
+          const Icon(Icons.phone_android),
+          const SizedBox(width: 8),
+          Text(l10n.settingsFrontendUpgradeTitle),
         ],
       ),
       content: ConstrainedBox(
@@ -145,12 +155,12 @@ class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
 
               // 正在检查
               if (_isChecking)
-                const Center(
+                Center(
                   child: Column(
                     children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 16),
-                      Text('正在检查更新...'),
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 16),
+                      Text(l10n.settingsFrontendUpgradeChecking),
                     ],
                   ),
                 )
@@ -167,12 +177,16 @@ class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
   }
 
   Widget _buildProxySelector(ThemeData theme, ColorScheme colorScheme) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('GitHub 代理', style: theme.textTheme.titleSmall),
+          Text(
+            l10n.settingsFrontendUpgradeGithubProxy,
+            style: theme.textTheme.titleSmall,
+          ),
           const SizedBox(height: 8),
           RadioGroup<int>(
             groupValue: _selectedProxyIndex,
@@ -184,7 +198,10 @@ class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
                 ...List.generate(kGithubProxyPresets.length, (index) {
                   final proxy = kGithubProxyPresets[index];
                   return RadioListTile<int>(
-                    title: Text(proxy.label, style: theme.textTheme.bodyMedium),
+                    title: Text(
+                      proxy.value.isEmpty ? l10n.githubProxyDirect : proxy.label,
+                      style: theme.textTheme.bodyMedium,
+                    ),
                     value: index,
                     dense: true,
                     contentPadding: EdgeInsets.zero,
@@ -192,7 +209,10 @@ class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
                   );
                 }),
                 RadioListTile<int>(
-                  title: Text('自定义代理', style: theme.textTheme.bodyMedium),
+                  title: Text(
+                    l10n.settingsFrontendUpgradeCustomProxy,
+                    style: theme.textTheme.bodyMedium,
+                  ),
                   value: -1,
                   dense: true,
                   contentPadding: EdgeInsets.zero,
@@ -206,13 +226,13 @@ class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
               padding: const EdgeInsets.only(left: 16, top: 4),
               child: TextField(
                 controller: _customProxyController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'https://your-proxy.com/',
-                  helperText: '输入代理地址，如 https://ghproxy.com/',
+                  helperText: l10n.settingsFrontendUpgradeProxyHelper,
                   helperMaxLines: 2,
                   isDense: true,
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(
+                  border: const OutlineInputBorder(),
+                  contentPadding: const EdgeInsets.symmetric(
                     horizontal: 12,
                     vertical: 8,
                   ),
@@ -229,6 +249,7 @@ class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
   Widget _buildCheckResult(FrontendVersionCheck check) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     if (!check.hasUpdate) {
       return Center(
@@ -236,10 +257,12 @@ class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
           children: [
             const Icon(Icons.check_circle, color: Colors.green, size: 48),
             const SizedBox(height: 16),
-            const Text('已是最新版本'),
+            Text(l10n.settingsFrontendUpgradeUpToDate),
             const SizedBox(height: 8),
             Text(
-              '当前版本: ${AppConfig.frontendVersionDisplay}',
+              l10n.settingsFrontendUpgradeCurrentVersion(
+                AppConfig.frontendVersionDisplay,
+              ),
               style: theme.textTheme.bodySmall,
             ),
           ],
@@ -252,7 +275,9 @@ class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
       children: [
         // 版本信息
         Text(
-          '当前版本: ${AppConfig.frontendVersionDisplay}',
+          l10n.settingsFrontendUpgradeCurrentVersion(
+            AppConfig.frontendVersionDisplay,
+          ),
           style: theme.textTheme.bodyMedium,
         ),
         const SizedBox(height: 8),
@@ -270,7 +295,9 @@ class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  '最新版本: ${check.latestVersionDisplay}',
+                  l10n.settingsFrontendUpgradeLatestVersion(
+                    check.latestVersionDisplay,
+                  ),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: colorScheme.onPrimaryContainer,
@@ -285,7 +312,9 @@ class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
         if (check.publishedAt != null) ...[
           const SizedBox(height: 12),
           Text(
-            '发布时间: ${_formatDate(check.publishedAt!)}',
+            l10n.settingsFrontendUpgradePublishedAt(
+              _formatDate(check.publishedAt!),
+            ),
             style: theme.textTheme.bodySmall?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
@@ -295,7 +324,10 @@ class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
         // 更新说明
         if (check.releaseNotes != null && check.releaseNotes!.isNotEmpty) ...[
           const SizedBox(height: 16),
-          Text('更新说明:', style: theme.textTheme.titleSmall),
+          Text(
+            l10n.settingsFrontendUpgradeReleaseNotes,
+            style: theme.textTheme.titleSmall,
+          ),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.all(12),
@@ -349,6 +381,7 @@ class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
   }
 
   List<Widget> _buildActions() {
+    final l10n = AppLocalizations.of(context);
     if (_isChecking) {
       return [
         TextButton(
@@ -356,7 +389,7 @@ class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
           style: TextButton.styleFrom(
             minimumSize: context.responsiveButtonMinSize,
           ),
-          child: const Text('取消'),
+          child: Text(l10n.commonCancel),
         ),
         if (_proxyChanged)
           FilledButton(
@@ -364,7 +397,7 @@ class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
             style: FilledButton.styleFrom(
               minimumSize: context.responsiveButtonMinSize,
             ),
-            child: const Text('重新检查'),
+            child: Text(l10n.settingsFrontendUpgradeRecheck),
           ),
       ];
     }
@@ -376,14 +409,14 @@ class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
           style: TextButton.styleFrom(
             minimumSize: context.responsiveButtonMinSize,
           ),
-          child: const Text('关闭'),
+          child: Text(l10n.settingsFrontendUpgradeClose),
         ),
         FilledButton(
           onPressed: _checkUpdate,
           style: FilledButton.styleFrom(
             minimumSize: context.responsiveButtonMinSize,
           ),
-          child: const Text('重试'),
+          child: Text(l10n.commonRetry),
         ),
       ];
     }
@@ -395,7 +428,7 @@ class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
           style: TextButton.styleFrom(
             minimumSize: context.responsiveButtonMinSize,
           ),
-          child: const Text('稍后'),
+          child: Text(l10n.settingsFrontendUpgradeLater),
         ),
         if (_proxyChanged)
           OutlinedButton(
@@ -403,7 +436,7 @@ class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
             style: OutlinedButton.styleFrom(
               minimumSize: context.responsiveButtonMinSize,
             ),
-            child: const Text('重新检查'),
+            child: Text(l10n.settingsFrontendUpgradeRecheck),
           ),
         FilledButton.icon(
           onPressed: _launchReleaseUrl,
@@ -411,7 +444,7 @@ class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
             minimumSize: context.responsiveButtonMinSize,
           ),
           icon: const Icon(Icons.open_in_new, size: 18),
-          label: const Text('前往下载'),
+          label: Text(l10n.settingsFrontendUpgradeGoDownload),
         ),
       ];
     }
@@ -423,7 +456,7 @@ class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
           style: TextButton.styleFrom(
             minimumSize: context.responsiveButtonMinSize,
           ),
-          child: const Text('关闭'),
+          child: Text(l10n.settingsFrontendUpgradeClose),
         ),
         if (_proxyChanged)
           FilledButton(
@@ -431,7 +464,7 @@ class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
             style: FilledButton.styleFrom(
               minimumSize: context.responsiveButtonMinSize,
             ),
-            child: const Text('重新检查'),
+            child: Text(l10n.settingsFrontendUpgradeRecheck),
           ),
       ];
     }

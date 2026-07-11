@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/url_helper.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/models/song.dart';
 import '../../../../shared/utils/responsive_snackbar.dart';
 import '../providers/player_provider.dart';
@@ -59,7 +60,7 @@ class PlaylistDrawer extends ConsumerWidget {
         children: [
           // 标题和歌曲数量
           Text(
-            '播放队列',
+            AppLocalizations.of(context).playerQueueTitle,
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -83,14 +84,14 @@ class PlaylistDrawer extends ConsumerWidget {
           if (state.playlist.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.delete_outline_rounded, size: 18),
-              tooltip: '清空播放列表',
+              tooltip: AppLocalizations.of(context).playerClearPlaylist,
               visualDensity: VisualDensity.compact,
               onPressed: () => _showClearConfirmation(context, notifier),
             ),
           // 关闭按钮
           IconButton(
             icon: const Icon(Icons.close_rounded, size: 18),
-            tooltip: '关闭',
+            tooltip: AppLocalizations.of(context).playerClose,
             visualDensity: VisualDensity.compact,
             onPressed: notifier.closePlaylistDrawer,
           ),
@@ -116,14 +117,14 @@ class PlaylistDrawer extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            '播放队列为空',
+            AppLocalizations.of(context).playerQueueEmpty,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 4),
           Text(
-            '添加歌曲开始播放',
+            AppLocalizations.of(context).playerDrawerEmptyHint,
             style: theme.textTheme.bodySmall?.copyWith(
               color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
             ),
@@ -173,30 +174,31 @@ class PlaylistDrawer extends ConsumerWidget {
     notifier.removeFromPlaylist(index);
     ResponsiveSnackBar.show(
       context,
-      message: '已移除「${song.title}」',
+      message: AppLocalizations.of(context).playerRemovedSong(song.title),
       duration: const Duration(seconds: 2),
     );
   }
 
   /// 显示清空确认对话框
   void _showClearConfirmation(BuildContext context, PlayerNotifier notifier) {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder:
           (dialogContext) => AlertDialog(
-            title: const Text('清空播放队列'),
-            content: const Text('确定要清空播放队列吗？'),
+            title: Text(l10n.playerClearQueueTitle),
+            content: Text(l10n.playerClearQueueConfirm),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('取消'),
+                child: Text(l10n.commonCancel),
               ),
               FilledButton(
                 onPressed: () {
                   notifier.clearPlaylist();
                   Navigator.pop(dialogContext);
                 },
-                child: const Text('清空'),
+                child: Text(l10n.playerClear),
               ),
             ],
           ),
@@ -333,7 +335,8 @@ class _DrawerSongItem extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        song.artist ?? '未知艺术家',
+                        song.artist ??
+                            AppLocalizations.of(context).playerUnknownArtist,
                         style: textTheme.labelSmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -358,7 +361,7 @@ class _DrawerSongItem extends StatelessWidget {
                   onPressed: onRemove,
                   icon: const Icon(Icons.close_rounded),
                   iconSize: 16,
-                  tooltip: '从播放列表移除',
+                  tooltip: AppLocalizations.of(context).playerRemoveFromPlaylist,
                   visualDensity: VisualDensity.compact,
                   style: IconButton.styleFrom(
                     foregroundColor: colorScheme.onSurfaceVariant,

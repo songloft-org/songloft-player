@@ -1,0 +1,2382 @@
+{
+  "@@locale": "zh",
+  "language": "语言",
+  "@language": {
+    "description": "设置页-语言分区标题"
+  },
+  "languageSimplifiedChinese": "简体中文",
+  "languageEnglish": "English",
+  "languageSystem": "跟随系统",
+  "themeTitle": "主题",
+  "themeModeTitle": "主题模式",
+  "themeModeSubtitle": "选择应用的主题外观",
+  "themeLight": "浅色",
+  "themeDark": "深色",
+  "themeSystem": "系统",
+  "commonConfirm": "确认",
+  "commonCancel": "取消",
+  "commonDelete": "删除",
+  "commonRetry": "重试",
+  "commonLoading": "正在加载",
+  "commonUnknown": "未知",
+  "errorNetworkFailed": "网络连接失败",
+  "errorGeneric": "出错了",
+  "deleteAlsoLocalFile": "同时删除本地文件",
+  "deleteIrreversible": "删除后无法恢复",
+  "navHome": "首页",
+  "navLibrary": "歌曲库",
+  "navPlaylists": "歌单",
+  "navSettings": "设置",
+  "favoriteAdded": "已添加到收藏",
+  "favoriteRemoved": "已取消收藏",
+  "favoriteAddFailed": "收藏失败",
+  "favoriteRemoveFailed": "取消收藏失败",
+  "favorite": "收藏",
+  "unfavorite": "取消收藏",
+  "commonCreate": "创建",
+  "commonConfirmWithCount": "确定({count})",
+  "@commonConfirmWithCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "commonLoadFailed": "加载失败",
+  "commonLoadFailedDetail": "加载失败: {error}",
+  "@commonLoadFailedDetail": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "clearSearch": "清除搜索",
+  "selectAll": "全选",
+  "selectFolder": "选择文件夹",
+  "more": "更多",
+  "expand": "展开",
+  "collapse": "收起",
+  "songTypeLocal": "本地",
+  "songTypeRemote": "网络",
+  "songTypeRadio": "电台",
+  "filterAll": "全部",
+  "pickerSelectSongs": "选择歌曲",
+  "pickerSearchHint": "搜索歌曲、艺术家或专辑",
+  "pickerNoMatchInFolder": "该目录下未找到匹配的歌曲",
+  "pickerNoMatch": "未找到匹配的歌曲",
+  "pickerNoSongsInFolder": "该目录下无歌曲",
+  "pickerNoSongs": "暂无歌曲",
+  "pickerFetchListFailed": "获取列表失败: {error}",
+  "@pickerFetchListFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pickerSelectingAll": "正在选择全部...",
+  "pickerDeselectAllWithCount": "取消全选（已选 {count}）",
+  "@pickerDeselectAllWithCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pickerSelectAllCount": "全选 {count} 首",
+  "@pickerSelectAllCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "loadFailedTapRetry": "加载失败，点击重试",
+  "loadedAllHint": "— 已加载全部 —",
+  "addToPlaylist": "添加到歌单",
+  "newPlaylist": "新建歌单",
+  "playlistNameLabel": "歌单名称",
+  "noPlaylists": "暂无歌单",
+  "songsCount": "{count} 首歌曲",
+  "@songsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addFailed": "添加失败",
+  "addFailedDetail": "添加失败: {error}",
+  "@addFailedDetail": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "addedToPlaylist": "已添加 {added} 首歌曲到「{name}」",
+  "@addedToPlaylist": {
+    "placeholders": {
+      "added": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "addedToPlaylistWithSkip": "已添加 {added} 首到「{name}」，跳过 {skipped} 首",
+  "@addedToPlaylistWithSkip": {
+    "placeholders": {
+      "added": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "createdPlaylistAdded": "已创建歌单「{name}」并添加 {added} 首歌曲",
+  "@createdPlaylistAdded": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "added": {
+        "type": "int"
+      }
+    }
+  },
+  "createdPlaylistWithSkip": "已创建歌单「{name}」并添加 {added} 首，跳过 {skipped} 首",
+  "@createdPlaylistWithSkip": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "added": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "createPlaylistFailed": "创建歌单失败",
+  "createPlaylistFailedDetail": "创建歌单失败: {error}",
+  "@createPlaylistFailedDetail": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "selectAllFiles": "选择全部文件",
+  "allSongs": "全部歌曲",
+  "musicDirEmpty": "音乐目录为空",
+  "dirEmpty": "目录为空",
+  "loadDirFailed": "加载目录失败：{error}",
+  "@loadDirFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "githubProxyDirect": "直连 (不使用代理)",
+  "coreErrorConnectionTimeout": "无法连接到 {target}（连接超时）。请检查：①后端服务是否运行 ②URL 与端口是否正确 ③若通过 ZeroTier/VPN 访问，请确认 VPN 已连接并启用「全局路由」",
+  "@coreErrorConnectionTimeout": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "coreErrorConnectionFailed": "无法连接到 {target}。请检查 URL 是否正确；若通过 ZeroTier/VPN 访问，请确认 VPN 已启用",
+  "@coreErrorConnectionFailed": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "coreErrorBadCertificate": "证书验证失败",
+  "coreErrorRequestCancelled": "请求已取消",
+  "coreErrorUnknownNetwork": "未知网络错误",
+  "coreErrorNoResponse": "服务器无响应",
+  "coreErrorRequestFailed": "请求失败",
+  "coreErrorUnauthorized": "登录已过期，请重新登录",
+  "coreErrorForbidden": "没有权限访问",
+  "coreErrorNotFound": "请求的资源不存在",
+  "coreErrorServer": "服务器错误，请稍后重试",
+  "coreNotFoundPageTitle": "页面未找到",
+  "coreBackToHome": "返回首页",
+  "coreNotificationChannel": "Songloft 播放控制",
+  "coreVersionDev": "开发版本",
+  "jspluginManagerTitle": "JS 插件管理",
+  "jspluginManagerSubtitle": "管理已安装的 JS 插件",
+  "jspluginUploadPlugin": "上传插件",
+  "jspluginUpdateAll": "全部更新",
+  "jspluginCleanupData": "清理数据",
+  "jspluginGithubProxy": "GitHub 代理",
+  "jspluginCustomProxy": "自定义代理",
+  "jspluginCustomProxyEllipsis": "自定义代理...",
+  "jspluginCustomProxyWith": "自定义: {proxy}",
+  "@jspluginCustomProxyWith": {
+    "placeholders": {
+      "proxy": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginProxyHelper": "输入代理地址，如 https://ghproxy.com/",
+  "jspluginOk": "确定",
+  "jspluginCleanupOrphanTitle": "清理孤儿数据",
+  "jspluginCleanupOrphanContent": "将清理已卸载插件遗留的持久化存储数据，此操作不可撤销。",
+  "jspluginCleanup": "清理",
+  "jspluginCleanupFailed": "清理失败: {error}",
+  "@jspluginCleanupFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginNoInstalled": "暂无已安装的 JS 插件",
+  "jspluginPickFileFailed": "选择文件失败: {error}",
+  "@jspluginPickFileFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginCannotReadFile": "无法读取文件数据",
+  "jspluginCannotGetPath": "无法获取文件路径",
+  "jspluginUploadSuccess": "上传成功：{count} 个插件",
+  "@jspluginUploadSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "jspluginUploadPartial": "成功 {success} 个，失败 {failed} 个\n{error}",
+  "@jspluginUploadPartial": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginUploadFailed": "上传失败: {error}",
+  "@jspluginUploadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginUploadDialogTitle": "上传 JS 插件",
+  "jspluginSelectFileSemantics": "选择插件文件上传",
+  "jspluginTapToSelectFile": "点击选择文件",
+  "jspluginUploadHint": "支持 .jsplugin.zip 格式；上传同名插件将覆盖现有版本（手动更新）",
+  "jspluginRemove": "移除",
+  "jspluginUploading": "上传中...",
+  "jspluginUpload": "上传",
+  "jspluginOperationFailed": "操作失败: {error}",
+  "@jspluginOperationFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginCannotOpenLink": "无法打开链接: {url}",
+  "@jspluginCannotOpenLink": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginForceUpdateSuccess": "插件已强制更新",
+  "jspluginForceUpdateFailed": "强制更新失败: {error}",
+  "@jspluginForceUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginConfirmDelete": "确认删除",
+  "jspluginDeleteConfirmContent": "确定要删除插件 \"{name}\" 吗？",
+  "@jspluginDeleteConfirmContent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginKeepData": "保留插件数据",
+  "jspluginKeepDataSubtitle": "保留文件存储数据，方便日后重装",
+  "jspluginDeleted": "插件已删除",
+  "jspluginDeleteFailed": "删除失败: {error}",
+  "@jspluginDeleteFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginAuthor": "作者: {author}",
+  "@jspluginAuthor": {
+    "placeholders": {
+      "author": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginOpenHomepageSemantics": "打开插件主页",
+  "jspluginStatusError": "错误",
+  "jspluginStatusEnabled": "已启用",
+  "jspluginStatusDisabled": "已禁用",
+  "jspluginMoreActions": "更多操作",
+  "jspluginOpenHomepage": "打开主页",
+  "jspluginKeepAlive": "常驻运行",
+  "jspluginCancelKeepAlive": "取消常驻运行",
+  "jspluginCheckUpdate": "检查更新",
+  "jspluginForceUpdate": "强制更新",
+  "jspluginUpdate": "更新",
+  "jspluginCheckUpdateTimeout": "检查更新超时，请尝试切换代理后重试",
+  "jspluginCheckUpdateFailed": "检查更新失败: {error}",
+  "@jspluginCheckUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginUpdateSuccess": "插件更新成功",
+  "jspluginUpdateFailed": "更新失败: {error}",
+  "@jspluginUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginUpdateTimeout": "更新超时，请重试",
+  "jspluginUpdateDialogTitle": "更新插件 - {name}",
+  "@jspluginUpdateDialogTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginCheckingUpdate": "正在检查更新...",
+  "jspluginDownloadingUpdate": "正在下载并更新插件...",
+  "jspluginDoNotCloseDialog": "请勿关闭此对话框",
+  "jspluginAlreadyLatest": "已是最新版本",
+  "jspluginCurrentVersion": "当前版本: {version}",
+  "@jspluginCurrentVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginNewVersionFound": "发现新版本",
+  "jspluginRecheck": "重新检查",
+  "jspluginUpdateNow": "立即更新",
+  "jspluginClose": "关闭",
+  "jspluginBatchUpdateFailed": "批量更新失败: {error}",
+  "@jspluginBatchUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginBatchUpdateTimeout": "批量更新超时，请重试",
+  "jspluginBatchUpdating": "正在检查并更新所有插件...",
+  "jspluginStatUpdated": "已更新",
+  "jspluginStatFailed": "失败",
+  "jspluginStatSkipped": "无需更新",
+  "jspluginUpdateFailedShort": "更新失败",
+  "jspluginVersionLatest": "v{version} 已是最新",
+  "@jspluginVersionLatest": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginStartUpdate": "开始更新",
+  "jspluginForceUpdateDialogTitle": "强制更新 - {name}",
+  "@jspluginForceUpdateDialogTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginForceUpdateContent": "将忽略版本检查，重新下载并安装插件。",
+  "jspluginConfirmUpdate": "确认更新",
+  "jspluginStoreTitle": "插件商店",
+  "jspluginRefreshList": "刷新插件列表",
+  "jspluginManageRegistries": "管理订阅源",
+  "jspluginNoRegistries": "还没有添加订阅源",
+  "jspluginNoRegistriesHint": "添加订阅源后即可浏览和安装插件",
+  "jspluginAddRegistry": "添加订阅源",
+  "jspluginRegistry": "订阅源",
+  "jspluginOfficial": "官方",
+  "jspluginSearchHint": "搜索插件...",
+  "jspluginLoadingList": "正在加载插件列表…",
+  "jspluginNoMatch": "没有找到匹配的插件",
+  "jspluginRegistryEmpty": "该订阅源暂无插件",
+  "jspluginPrevPage": "上一页",
+  "jspluginNextPage": "下一页",
+  "jspluginInstallFailed": "安装失败: {error}",
+  "@jspluginInstallFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginReinstall": "重新安装",
+  "jspluginUpdateTo": "更新至 v{version}",
+  "@jspluginUpdateTo": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginInstall": "安装",
+  "jspluginSaveFailed": "保存失败: {error}",
+  "@jspluginSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginEditRegistry": "编辑订阅源",
+  "jspluginDeleteRegistry": "删除订阅源",
+  "jspluginNameOptional": "名称（可选）",
+  "jspluginRegistryNameHint": "我的插件源",
+  "jspluginTokenOptional": "Token（可选）",
+  "jspluginSave": "保存",
+  "jspluginAdd": "添加",
+  "jspluginAuthConfigured": "已配置认证",
+  "jspluginGridTitle": "JS 插件",
+  "jspluginCleanupDone": "清理完成",
+  "libraryPlayFailed": "播放失败",
+  "libraryNoPlayableSongs": "没有可播放的歌曲",
+  "libraryPlayingAllSongs": "播放全部 {total} 首歌曲",
+  "@libraryPlayingAllSongs": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryDismissError": "关闭提示",
+  "libraryExitSelection": "退出多选",
+  "librarySelectedCount": "已选择 {count} 首",
+  "@librarySelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryDeleteWithCount": "删除({count})",
+  "@libraryDeleteWithCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryDeselectAll": "取消全选",
+  "libraryTitle": "歌曲库",
+  "libraryPlayAll": "播放全部",
+  "librarySort": "排序",
+  "librarySortAddedAt": "最近加入",
+  "librarySortFileTime": "文件时间",
+  "libraryColumnTitle": "标题",
+  "libraryColumnArtist": "艺术家",
+  "libraryColumnAlbum": "专辑",
+  "libraryColumnType": "类型",
+  "libraryColumnDuration": "时长",
+  "librarySelectMode": "多选",
+  "libraryMore": "更多",
+  "libraryAddRemoteSong": "添加网络歌曲",
+  "libraryAddRadio": "添加电台",
+  "libraryHideHiddenSongs": "隐藏已隐藏歌曲",
+  "libraryShowHiddenSongs": "显示隐藏歌曲",
+  "libraryCleanInvalidSongs": "清理无效歌曲",
+  "librarySearchHint": "搜索歌曲...",
+  "libraryNoMatchingSongs": "未找到匹配的歌曲",
+  "libraryEmpty": "歌曲库为空",
+  "libraryTryOtherKeywords": "尝试其他关键词",
+  "libraryEmptyHint": "添加一些歌曲开始吧",
+  "libraryDeleteConfirmTitle": "确认删除",
+  "libraryDeleteConfirmContent": "确定要删除这首歌曲吗？",
+  "libraryCleanTitle": "清理歌曲",
+  "libraryCleanContent": "将清理无效的歌曲记录（如文件已删除的本地歌曲）。",
+  "libraryCleanedCount": "已清理 {count} 首无效歌曲",
+  "@libraryCleanedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryClean": "清理",
+  "libraryBatchDeleteTitle": "批量删除",
+  "libraryBatchDeleteContent": "确定要删除选中的 {count} 首歌曲吗？",
+  "@libraryBatchDeleteContent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryDeletedCount": "已删除 {count} 首歌曲",
+  "@libraryDeletedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryDeleteFailed": "删除失败",
+  "librarySongCount": "{count}首",
+  "@librarySongCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryUnknownArtist": "未知艺术家",
+  "libraryUnknownAlbum": "未知专辑",
+  "libraryPlay": "播放",
+  "libraryEdit": "编辑",
+  "libraryEditLocalSong": "编辑本地歌曲",
+  "libraryEditRadio": "编辑电台",
+  "libraryEditRemoteSong": "编辑网络歌曲",
+  "librarySave": "保存",
+  "libraryFileInfoReadonly": "文件信息（只读）",
+  "libraryServerEndpointReadonly": "服务端端点（只读）",
+  "libraryReadonlyFile": "文件",
+  "libraryReadonlyCover": "封面",
+  "libraryReadonlyLyric": "歌词",
+  "libraryEditTitleLabel": "标题 *",
+  "libraryEditTitleRequired": "请输入标题",
+  "libraryEditArtistHint": "请输入艺术家",
+  "libraryEditAlbumHint": "请输入专辑",
+  "libraryRenameFileTitle": "同步重命名文件",
+  "libraryRenameFileSubtitle": "按新标题重命名本地音频文件，同时写入 title 标签",
+  "libraryEditSourceUrlLabel": "源音频 URL *",
+  "libraryEditUrlLabel": "URL *",
+  "libraryEditUrlHint": "请输入音频链接",
+  "libraryEditUrlRequired": "请输入 URL",
+  "libraryEditUrlInvalid": "请输入有效的 URL",
+  "libraryEditSourceCoverUrlLabel": "源封面 URL",
+  "libraryEditCoverUrlLabel": "封面 URL",
+  "libraryEditCoverUrlHint": "请输入封面图片链接",
+  "libraryEditDurationLabel": "时长（秒）",
+  "libraryEditDurationHint": "请输入时长",
+  "libraryEditLyricRemoteUrlLabel": "歌词远程 URL",
+  "libraryEditLyricUrlLabel": "歌词 URL",
+  "libraryEditLyricUrlHint": "请输入歌词接口链接",
+  "libraryCoverPreview": "封面预览：",
+  "libraryCopied": "已复制",
+  "libraryCopy": "复制",
+  "librarySaveSuccess": "保存成功",
+  "libraryAddSuccess": "添加成功",
+  "libraryOperationFailed": "操作失败: {error}",
+  "@libraryOperationFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "libraryErrorBadRequest": "请求参数错误",
+  "libraryErrorUnauthorized": "未授权，请重新登录",
+  "libraryErrorForbidden": "没有权限执行此操作",
+  "libraryErrorNotFound": "歌曲不存在",
+  "libraryErrorServer": "服务器错误，请稍后重试",
+  "libraryErrorRequestFailed": "请求失败：{code}",
+  "@libraryErrorRequestFailed": {
+    "placeholders": {
+      "code": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryErrorTimeout": "网络连接超时，请检查网络",
+  "libraryErrorConnection": "网络连接失败，请检查网络",
+  "libraryErrorNetwork": "网络错误：{message}",
+  "@libraryErrorNetwork": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "libraryFavoritePlaylistNotFound": "收藏歌单不存在",
+  "libraryRadioFavoritePlaylistNotFound": "电台收藏歌单不存在",
+  "homeEmptyPlaylists": "暂无歌单",
+  "homeEmptyPlaylistsSubtitle": "创建你的第一个歌单开始收藏音乐",
+  "homeCreatePlaylist": "创建歌单",
+  "homeMyPlaylists": "我的歌单",
+  "homeViewAll": "查看全部",
+  "homeMyRadios": "我的电台",
+  "homeGreetingLateNight": "夜深了",
+  "homeGreetingMorning": "早上好",
+  "homeGreetingNoon": "中午好",
+  "homeGreetingAfternoon": "下午好",
+  "homeGreetingEvening": "晚上好",
+  "homeTvGreetingLateNight": "夜深了，听点音乐吧",
+  "homeOpenPlaylist": "打开歌单",
+  "homeOpenPlaylistNamed": "打开歌单 {name}",
+  "@homeOpenPlaylistNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "homeSongCountShort": "{count} 首",
+  "@homeSongCountShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeSongCount": "{count} 首歌曲",
+  "@homeSongCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeStatPlaylistsCount": "{count} 歌单",
+  "@homeStatPlaylistsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeStatRadiosCount": "{count} 电台",
+  "@homeStatRadiosCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeStatTotal": "总计",
+  "homeTvLocalMusic": "本地音乐",
+  "homeTvPlaylist": "播放列表",
+  "homeTvEmptySubtitle": "使用快捷导航浏览本地音乐",
+  "homeHeroSemanticLabel": "{name} - {count} 首歌曲",
+  "@homeHeroSemanticLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeNowPlaying": "正在播放",
+  "homeRecommendedPlaylist": "推荐歌单",
+  "homePlayNow": "立即播放",
+  "homePluginLoadTimeout": "页面加载超时，请检查插件是否可用或网络连接",
+  "homePluginClose": "关闭",
+  "homePluginOpenInBrowser": "在浏览器中打开",
+  "homePluginLoadFailed": "页面加载失败",
+  "homePluginLoadFailedHttp": "页面加载失败: HTTP {status}{detail}",
+  "@homePluginLoadFailedHttp": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      },
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "homePluginUnknownError": "未知错误",
+  "homePluginWebOpenInNewTab": "Web 平台请在新标签页中打开插件",
+  "authLogin": "登录",
+  "authTvSubtitle": "使用您的账号登录 Songloft",
+  "authLoginToContinue": "登录以继续",
+  "authTagline": "自托管本地音乐服务",
+  "authUsername": "用户名",
+  "authUsernameHint": "请输入用户名",
+  "authUsernameRequired": "请输入用户名",
+  "authPassword": "密码",
+  "authPasswordHint": "请输入密码",
+  "authPasswordRequired": "请输入密码",
+  "authShowPassword": "显示密码",
+  "authHidePassword": "隐藏密码",
+  "authApiUrl": "API 地址",
+  "authApiUrlRequired": "请输入 API 地址",
+  "authInvalidUrl": "请输入有效的 URL（以 http:// 或 https:// 开头）",
+  "authServer": "服务器",
+  "authTvPressToLogin": "按确认键登录",
+  "authUseLocalMode": "使用本地模式",
+  "authCopyright": "© {year} Songloft",
+  "@authCopyright": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "authAutoLoggingIn": "正在自动登录…",
+  "authStartingLocalBackend": "正在启动本地后端…",
+  "authPreparing": "正在准备…",
+  "authConnecting": "正在连接…",
+  "authLoggingIn": "正在登录…",
+  "authAutoLoginFailed": "自动登录失败：{error}",
+  "@authAutoLoginFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authLocalModeFailed": "本地模式启动失败：{error}",
+  "@authLocalModeFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authLoginFailed": "登录失败：{error}",
+  "@authLoginFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authSessionExpired": "登录已过期，请重新登录",
+  "authNoRefreshToken": "没有可用的刷新令牌",
+  "dlnaCast": "投屏",
+  "dlnaCasting": "投屏中",
+  "dlnaDisconnect": "断开",
+  "dlnaConnected": "已连接",
+  "dlnaSearching": "正在搜索设备...",
+  "dlnaSearchingLan": "正在搜索局域网设备...",
+  "dlnaNoDevices": "未发现 DLNA 设备",
+  "startupStarting": "正在启动…",
+  "startupStartingLocalBackend": "正在启动本地后端…",
+  "startupConnectingLocalBackend": "正在连接本地后端…",
+  "startupConnectingTo": "正在连接 {target}…",
+  "@startupConnectingTo": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "playerModeOrder": "顺序播放",
+  "playerModeLoop": "列表循环",
+  "playerModeSingle": "单曲循环",
+  "playerModeRandom": "随机播放",
+  "playerModeSinglePlay": "单曲播放",
+  "playerClose": "关闭",
+  "playerSleepTimer": "睡眠定时",
+  "playerSleepTimerWithStatus": "睡眠定时：{status}",
+  "@playerSleepTimerWithStatus": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "playerSleepTimerCancel": "取消定时",
+  "playerSleepTimerByDuration": "按时长",
+  "playerHours": "{count} 小时",
+  "@playerHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playerMinutes": "{count} 分钟",
+  "@playerMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playerCustom": "自定义",
+  "playerCustomDuration": "自定义时长",
+  "playerUnitMinutes": "分钟",
+  "playerSleepTimerBySongs": "按歌曲",
+  "playerSongsUnit": "{count} 首",
+  "@playerSongsUnit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playerCustomSongCount": "自定义首数",
+  "playerUnitSongs": "首",
+  "playerRemainingSongs": "剩余 {count} 首",
+  "@playerRemainingSongs": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playerEnterNumber": "请输入数字",
+  "playerEnterValidInteger": "请输入有效整数",
+  "playerEnterIntegerInRange": "请输入 {min} - {max} 之间的整数",
+  "@playerEnterIntegerInRange": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "playerBack": "返回",
+  "playerNowPlaying": "正在播放",
+  "playerNoContent": "无播放内容",
+  "playerUnknownArtist": "未知艺术家",
+  "playerPlayMode": "播放模式",
+  "playerVolumeDown": "音量-",
+  "playerVolumeUp": "音量+",
+  "playerPrevious": "上一首",
+  "playerNext": "下一首",
+  "playerPlaylist": "播放列表",
+  "playerBuffering": "缓冲中",
+  "playerPause": "暂停",
+  "playerPlay": "播放",
+  "playerSeekHint": "← → 快进/快退",
+  "playerProgress": "播放进度",
+  "playerQueueTitle": "播放队列",
+  "playerClearPlaylist": "清空播放列表",
+  "playerQueueEmpty": "播放队列为空",
+  "playerDrawerEmptyHint": "添加歌曲开始播放",
+  "playerQueueEmptyHint": "添加歌曲到播放队列开始播放",
+  "playerRemovedSong": "已移除「{title}」",
+  "@playerRemovedSong": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "playerClearQueueTitle": "清空播放队列",
+  "playerClearQueueConfirm": "确定要清空播放队列吗？",
+  "playerClear": "清空",
+  "playerRemoveFromPlaylist": "从播放列表移除",
+  "playerRemoveFromQueue": "从队列移除",
+  "playerMute": "静音",
+  "playerUnmute": "恢复音量",
+  "playerVolumePercent": "音量 {value}%",
+  "@playerVolumePercent": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "playerVolume": "音量",
+  "playerCloseVolumePanel": "关闭音量面板",
+  "playerOpenFullPlayer": "打开全屏播放器",
+  "playerEqualizer": "均衡器",
+  "playerLyrics": "歌词",
+  "playerCollapse": "收起",
+  "playerSleepTimerOn": "睡眠定时 (已开启)",
+  "playerDeleteCurrentSong": "删除当前歌曲",
+  "playerExpandPlayer": "展开播放器",
+  "playerBufferingSemantic": "正在缓冲",
+  "playerLyricsLoading": "正在加载歌词...",
+  "playerLyricsLoadFailed": "歌词加载失败",
+  "playerLyricsEmpty": "暂无歌词",
+  "playerLyricsSeekTo": "跳转到此歌词位置",
+  "playerAdjustLyrics": "调整歌词",
+  "playerEqNotSupported": "当前平台暂不支持均衡器",
+  "playerEqPresetFlat": "平坦",
+  "playerEqPresetRock": "摇滚",
+  "playerEqPresetPop": "流行",
+  "playerEqPresetJazz": "爵士",
+  "playerEqPresetClassical": "古典",
+  "playerEqPresetBassBoost": "低音增强",
+  "playerEqPresetTrebleBoost": "高音增强",
+  "playerEqPresetVocal": "人声",
+  "playerEqPresetCustom": "自定义",
+  "playerLyricSavedWritten": "已保存，已写入音频文件",
+  "playerLyricSavedWriteFailed": "已保存到数据库，但写入音频文件失败",
+  "playerLyricSavedDbOnly": "已保存到数据库（文件未更新）",
+  "playerSaveFailedDetail": "保存失败：{error}",
+  "@playerSaveFailedDetail": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "playerDiscardChangesTitle": "放弃修改？",
+  "playerDiscardChangesContent": "当前调整尚未保存，确定要离开吗？",
+  "playerContinueEditing": "继续编辑",
+  "playerDiscard": "放弃",
+  "playerGlobalOffset": "全局偏移",
+  "playerLyricOffsetSemantics": "歌词偏移 {value} 毫秒",
+  "@playerLyricOffsetSemantics": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "playerOffsetHint": "提示：歌词整体早出现，用负偏移（-）；整体晚出现，用正偏移（+）",
+  "playerEmptyLine": "(空行)",
+  "playerLineOffset": "行偏移 {offset}",
+  "@playerLineOffset": {
+    "placeholders": {
+      "offset": {
+        "type": "String"
+      }
+    }
+  },
+  "playerReset": "重置",
+  "playerSave": "保存",
+  "playerNoLyricsToAdjust": "暂无可调整的歌词",
+  "playerDeleteSongTitle": "删除歌曲",
+  "playerDeleteSongConfirm": "确定要从歌曲库中删除「{title}」吗？",
+  "@playerDeleteSongConfirm": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "playerSongDeleted": "歌曲已删除",
+  "playerDeleteFailed": "删除失败",
+  "playerUnknownSong": "未知歌曲",
+  "playerPlayFailedNamed": "\"{title}\" 播放失败",
+  "@playerPlayFailedNamed": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "playerConsecutiveFailures": "连续 {count} 首歌曲播放失败，已停止播放，请检查网络连接",
+  "@playerConsecutiveFailures": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playerPlayFailedTryingNext": "\"{title}\" 播放失败，正在尝试下一首...",
+  "@playerPlayFailedTryingNext": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "playerPlayFailedNoOthers": "播放失败，无其他可播放的歌曲",
+  "playerPlayFailedEndOfList": "播放失败，已到播放列表末尾",
+  "playlistBack": "返回",
+  "playlistSearch": "搜索",
+  "playlistSearchHint": "搜索歌曲...",
+  "playlistMultiSelect": "多选",
+  "playlistMore": "更多",
+  "playlistDone": "完成",
+  "playlistSort": "排序",
+  "playlistSortModeTitle": "排序歌单",
+  "playlistSortSaved": "排序已保存",
+  "playlistSortSaveFailed": "排序保存失败",
+  "playlistSortFailed": "排序失败",
+  "playlistAlreadySortedSongs": "歌曲已是该排序顺序",
+  "playlistAlreadySortedPlaylists": "歌单已是该排序顺序",
+  "playlistSortedByNameAsc": "已按名称升序排列",
+  "playlistSortedByNameDesc": "已按名称降序排列",
+  "playlistSortedByNumber": "已按数字前缀排序",
+  "playlistSortCustom": "自定义顺序",
+  "playlistSortRecentlyAdded": "最近加入",
+  "playlistSortFileTime": "文件时间",
+  "playlistSortTitle": "标题",
+  "playlistSortArtist": "艺术家",
+  "playlistSortDuration": "时长",
+  "playlistSortNameAsc": "按名称排序 A→Z",
+  "playlistSortNameDesc": "按名称排序 Z→A",
+  "playlistSortNumberPrefix": "按数字前缀排序",
+  "playlistSortManual": "手动排序",
+  "playlistPlayAll": "播放全部",
+  "playlistAddSongs": "添加歌曲",
+  "playlistAddSongsFailed": "添加歌曲失败",
+  "playlistAddedWithSkipped": "已添加 {added} 首，跳过 {skipped} 首（已存在或类型不兼容）",
+  "@playlistAddedWithSkipped": {
+    "placeholders": {
+      "added": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistAddedCount": "已添加 {count} 首歌曲",
+  "@playlistAddedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistLoadMoreRetry": "加载更多失败，点击重试",
+  "playlistAllLoaded": "— 已全部加载（{count}） —",
+  "@playlistAllLoaded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistDeselectAll": "取消全选",
+  "playlistRemove": "移除",
+  "playlistRemoveFromPlaylist": "从歌单移除",
+  "playlistDeleteFromLibrary": "从歌曲库删除",
+  "playlistActionsCount": "操作({count})",
+  "@playlistActionsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistBatchRemoveTitle": "批量移除",
+  "playlistBatchRemoveConfirm": "确定要从歌单中移除 {count} 首歌曲吗？",
+  "@playlistBatchRemoveConfirm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistRemovedCount": "已移除 {count} 首歌曲",
+  "@playlistRemovedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistRemoveFailed": "移除失败",
+  "playlistEditCover": "修改封面",
+  "playlistEditPlaylist": "编辑歌单",
+  "playlistEditAction": "编辑",
+  "playlistDelete": "删除歌单",
+  "playlistEmptySongs": "歌单暂无歌曲",
+  "playlistEmptySongsSubtitle": "添加一些喜欢的音乐吧",
+  "playlistLabelBuiltIn": "内置",
+  "playlistLabelAutoCreated": "自动创建",
+  "playlistLabelAuto": "自动",
+  "playlistLabelHidden": "已隐藏",
+  "playlistConfirmDelete": "确认删除",
+  "playlistDeleteConfirm": "确定要删除歌单「{name}」吗？此操作不可恢复。",
+  "@playlistDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistDeleted": "歌单已删除",
+  "playlistEmpty": "歌单为空",
+  "playlistPlayFailed": "播放失败",
+  "playlistPlayingCount": "播放全部 {count} 首歌曲",
+  "@playlistPlayingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistPlayingSong": "播放：{title}",
+  "@playlistPlayingSong": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistRemoveSongTitle": "移除歌曲",
+  "playlistRemoveSongConfirm": "确定要从歌单中移除「{title}」吗？",
+  "@playlistRemoveSongConfirm": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistSongRemoved": "歌曲已移除",
+  "playlistDeleteSong": "删除歌曲",
+  "playlistDeleteSongConfirm": "确定要从歌曲库中删除「{title}」吗？",
+  "@playlistDeleteSongConfirm": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistSongDeleted": "歌曲已删除",
+  "playlistDeleteFailed": "删除失败",
+  "playlistBatchDelete": "批量删除",
+  "playlistBatchDeleteSongsConfirm": "确定要从歌曲库中删除选中的 {count} 首歌曲吗？",
+  "@playlistBatchDeleteSongsConfirm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistDeletedSongsCount": "已删除 {count} 首歌曲",
+  "@playlistDeletedSongsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistUnknownArtist": "未知艺术家",
+  "playlistPickImageFailed": "选择图片失败: {error}",
+  "@playlistPickImageFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistNameRequired": "请输入歌单名称",
+  "playlistNameHint": "请输入歌单名称",
+  "playlistDescLabel": "歌单描述",
+  "playlistDescHint": "请输入歌单描述（可选）",
+  "playlistCoverUploadFailed": "封面上传失败",
+  "playlistSaveFailed": "保存失败: {error}",
+  "@playlistSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistUploadImage": "上传图片",
+  "playlistPickFromSongs": "从歌曲选择",
+  "playlistClear": "清除",
+  "playlistSave": "保存",
+  "playlistOk": "确定",
+  "playlistTitle": "歌单",
+  "playlistSwitchToListView": "切换到列表视图",
+  "playlistSwitchToGridView": "切换到卡片视图",
+  "playlistCreate": "创建歌单",
+  "playlistCreated": "歌单创建成功",
+  "playlistUpdated": "歌单更新成功",
+  "playlistShowHidden": "显示已隐藏歌单",
+  "playlistHideHidden": "隐藏已隐藏歌单",
+  "playlistEmptyHint": "点击右上角按钮创建歌单",
+  "playlistConfirmBatchDelete": "确认批量删除",
+  "playlistBatchDeleteConfirm": "确定要删除选中的 {count} 个歌单吗？此操作不可恢复。",
+  "@playlistBatchDeleteConfirm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistDeletedCount": "已删除 {count} 个歌单",
+  "@playlistDeletedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistHidden": "歌单已隐藏",
+  "playlistUnhidden": "歌单已取消隐藏",
+  "playlistPlayingMultiple": "正在播放 {count} 个歌单",
+  "@playlistPlayingMultiple": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistExitMultiSelect": "退出多选",
+  "playlistSelectedCount": "已选择 {count} 个",
+  "@playlistSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistPlayCount": "播放({count})",
+  "@playlistPlayCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistDeleteCount": "删除({count})",
+  "@playlistDeleteCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistTypeNormalOption": "普通歌单",
+  "playlistTypeRadioOption": "电台歌单",
+  "playlistMoreActions": "更多操作",
+  "playlistHide": "隐藏歌单",
+  "playlistUnhide": "取消隐藏",
+  "playlistPickCoverTitle": "选择歌曲封面",
+  "playlistClose": "关闭",
+  "playlistNoCoveredSongs": "歌单中没有带封面的歌曲",
+  "playlistLoadRetry": "加载失败，点击重试",
+  "playlistNoCoverLoadMore": "当前页无带封面歌曲，加载更多",
+  "playlistAllLoadedSimple": "— 已加载全部 —",
+  "playlistSelectThisCover": "选择此封面",
+  "playlistErrRequestFailed": "请求失败",
+  "playlistErrTimeout": "网络连接超时",
+  "playlistErrCancelled": "请求已取消",
+  "playlistErrNetwork": "网络错误: {message}",
+  "@playlistErrNetwork": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheSaveConfigFailed": "保存配置失败: {error}",
+  "@settingsCacheSaveConfigFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheCleanServerTitle": "清理服务端缓存",
+  "settingsCacheCleanServerContent": "确定要清理服务端的所有音乐缓存吗？清理后需要重新下载。",
+  "settingsCacheServerCleaned": "服务端缓存已清理",
+  "settingsCacheCleanFailed": "清理失败: {error}",
+  "@settingsCacheCleanFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheCleanLocalTitle": "清理本地缓存",
+  "settingsCacheCleanLocalContent": "确定要清理所有本地缓存吗？包括音频缓存、图片缓存和歌词缓存。",
+  "settingsCacheLocalCleaned": "本地缓存已清理",
+  "settingsCacheCleanBrowserTitle": "清理浏览器缓存",
+  "settingsCacheCleanBrowserContent": "将清除所有前端静态资源缓存并刷新页面。不会影响登录状态和服务端数据。",
+  "settingsCacheUpdateConfigFailed": "更新配置失败: {error}",
+  "@settingsCacheUpdateConfigFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheDirRestored": "已恢复默认缓存目录",
+  "settingsCacheDirUpdated": "缓存目录已更新",
+  "settingsCacheUpdateFailed": "更新失败: {error}",
+  "@settingsCacheUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheConfirmClean": "确认清理",
+  "settingsCacheServerTitle": "服务端音乐缓存",
+  "settingsCacheManage": "管理",
+  "settingsCacheNoLimit": "{size} (无上限)",
+  "@settingsCacheNoLimit": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheFileCount": "{count} 个文件",
+  "@settingsCacheFileCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsCacheStatsLoadFailed": "获取缓存信息失败",
+  "settingsCacheDirTitle": "缓存目录",
+  "settingsCacheNotConfigured": "未配置",
+  "settingsCacheMaxSize": "最大缓存大小: {size}",
+  "@settingsCacheMaxSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheCleaning": "清理中...",
+  "settingsCacheCleanServerButton": "清理服务端缓存",
+  "settingsCacheLocalTitle": "本地缓存",
+  "settingsCacheSize": "缓存大小",
+  "settingsCacheCalculating": "计算中...",
+  "settingsCacheLocalDesc": "包含音频缓存、图片缓存和歌词缓存",
+  "settingsCacheMaxLocalSize": "最大本地缓存大小: {size}",
+  "@settingsCacheMaxLocalSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheCleanLocalButton": "清理本地缓存",
+  "settingsCacheBrowserTitle": "浏览器缓存",
+  "settingsCacheBrowserDesc": "清除浏览器中缓存的前端资源文件，解决更新后页面异常的问题",
+  "settingsCacheCleanBrowserButton": "清理浏览器缓存",
+  "settingsCacheDirDialogDesc": "设置服务端音乐缓存的存储目录。留空则使用默认目录。切换目录不会自动迁移旧缓存文件。",
+  "settingsCacheDirLabel": "缓存目录（绝对路径）",
+  "settingsCacheDirDefault": "默认: {dir}",
+  "@settingsCacheDirDefault": {
+    "placeholders": {
+      "dir": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheValidate": "验证",
+  "settingsCacheRestoreDefault": "恢复默认",
+  "settingsCacheSave": "保存",
+  "settingsCacheDirUnavailable": "目录不可用",
+  "settingsCacheDirCreated": "目录已自动创建",
+  "settingsCacheDiskTotal": "磁盘总量 {size}",
+  "@settingsCacheDiskTotal": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheDiskFree": "可用 {size}",
+  "@settingsCacheDiskFree": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheDirAvailable": "目录可用",
+  "settingsMetadataUseTagTitle": "使用标签覆盖标题",
+  "settingsMetadataUseTagOn": "网络歌曲元数据刷新时用音频标签覆盖标题",
+  "settingsMetadataUseTagOff": "网络歌曲标题保持文件名，不使用标签覆盖",
+  "settingsMetadataSaved": "已保存",
+  "settingsMetadataSaveFailed": "保存失败: {error}",
+  "@settingsMetadataSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsMetadataRefreshTitle": "刷新网络歌曲元数据",
+  "settingsMetadataRefreshSubtitle": "探测所有元数据缺失的网络歌曲",
+  "settingsMetadataStart": "开始",
+  "settingsMetadataPreparing": "准备中...",
+  "settingsMetadataRefreshing": "正在刷新元数据",
+  "settingsMetadataStatusCancelled": "已取消",
+  "settingsMetadataStatusFailed": "执行失败",
+  "settingsMetadataStatusDone": "已完成",
+  "settingsMetadataSuccess": "成功 {count} 首",
+  "@settingsMetadataSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsMetadataFailedCount": "，失败 {count} 首",
+  "@settingsMetadataFailedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsMetadataRefreshResult": "刷新元数据{status}",
+  "@settingsMetadataRefreshResult": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsMetadataRefreshAgain": "重新刷新",
+  "settingsClientDownloadTitle": "下载客户端 App",
+  "settingsClientDownloadIntro": "相比 Web 界面，原生客户端支持后台播放、本地缓存、锁屏/通知栏媒体控制等能力。",
+  "settingsClientDownloadAccelSection": "下载加速",
+  "settingsClientDownloadGithubProxy": "GitHub 加速代理",
+  "settingsClientDownloadProxyNotConfigured": "未配置（直连 GitHub，国内可能较慢）",
+  "settingsClientDownloadStandardSection": "标准版 · 连接当前服务器",
+  "settingsClientDownloadBundleSection": "Bundle 版 · 内嵌后端，无需服务器",
+  "settingsClientDownloadStandardAllVersions": "标准版全部版本",
+  "settingsClientDownloadBundleAllVersions": "Bundle 版全部版本",
+  "settingsClientDownloadRecommendFor": "为你的设备推荐：{os}",
+  "@settingsClientDownloadRecommendFor": {
+    "placeholders": {
+      "os": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsClientDownloadStandardBtn": "标准版（{label}）",
+  "@settingsClientDownloadStandardBtn": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsClientDownloadBundleBtn": "Bundle 版（{label}）",
+  "@settingsClientDownloadBundleBtn": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsClientDownloadNoteUnsigned": "未签名，需自行侧载",
+  "settingsClientDownloadProxyDialogDesc": "国内访问 GitHub 较慢时可选择镜像加速。此设置与「检查更新」共用。",
+  "settingsClientDownloadCustomProxy": "自定义代理",
+  "settingsClientDownloadCustomProxyHelper": "输入代理地址，如 https://ghproxy.com/",
+  "settingsClientDownloadSave": "保存",
+  "settingsTabConfigTitle": "菜单设置",
+  "settingsTabConfigBuiltInSection": "内置页面",
+  "settingsTabConfigLibrary": "歌曲库",
+  "settingsTabConfigPlaylists": "歌单",
+  "settingsTabConfigPluginEntry": "插件入口",
+  "settingsTabConfigNoPlugins": "暂无可用插件",
+  "settingsTabConfigNoPluginsHint": "请先在设置中安装并启用插件",
+  "settingsTabConfigPluginOrder": "插件排序",
+  "settingsTabConfigEnabledCount": "已启用 {count} 个标签（首页和设置固定显示）",
+  "@settingsTabConfigEnabledCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsTabConfigCollapseHint": "移动端超出 5 个时将折叠到「更多」菜单",
+  "settingsTabConfigMaxTabs": "最多显示 {count} 个标签",
+  "@settingsTabConfigMaxTabs": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsTabConfigSaveFailed": "保存失败: {error}",
+  "@settingsTabConfigSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsUpgradeStatusStable": "稳定版",
+  "settingsUpgradeStatusDev": "开发版",
+  "settingsUpgradeStatusDownloading": "正在下载...",
+  "settingsUpgradeStatusTesting": "正在验证...",
+  "settingsUpgradeStatusReplacing": "正在替换...",
+  "settingsUpgradeStatusResetting": "正在回退...",
+  "settingsUpgradeStatusRestarting": "正在重启...",
+  "settingsUpgradeStatusCompleted": "升级完成",
+  "settingsUpgradeStatusFailed": "升级失败",
+  "settingsUpgradeStatusIdle": "空闲",
+  "settingsFrontendVerDevVersion": "开发版本",
+  "settingsFrontendVerCheckFailed": "检查前端更新失败: {error}",
+  "@settingsFrontendVerCheckFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsScanScanFailed": "扫描失败: {error}",
+  "@settingsScanScanFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsScanCancelFailed": "取消失败: {error}",
+  "@settingsScanCancelFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsScanModeSkipDesc": "仅导入新发现的音乐文件",
+  "settingsScanModeReimportDesc": "重新扫描并覆盖所有音乐信息",
+  "settingsScanDismiss": "关闭提示",
+  "settingsScanExcludeDirTitle": "排除目录设置",
+  "settingsScanExcludeDirSubtitle": "配置扫描时需要忽略的目录",
+  "settingsScanModeSkip": "跳过已存在",
+  "settingsScanModeReimport": "重新导入",
+  "settingsScanStarting": "正在启动...",
+  "settingsScanScanLocal": "扫描本地音乐",
+  "settingsScanScanSelectedDirs": "扫描选中的 {count} 个目录",
+  "@settingsScanScanSelectedDirs": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsScanTargetDirsTitle": "指定目录（可选）",
+  "settingsScanTargetDirsSubtitle": "仅扫描选中的目录，留空则扫描整个音乐库",
+  "settingsScanTargetDirsSelected": "已选 {count} 个目录",
+  "@settingsScanTargetDirsSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsScanDirsToScan": "将扫描的目录:",
+  "settingsScanClear": "清空",
+  "settingsScanCreatingPlaylists": "正在按目录自动创建歌单...",
+  "settingsScanSplittingCue": "正在切分整轨(CUE)...",
+  "settingsScanSplittingCueProgress": "正在切分整轨(CUE): 已处理 {count} 个来源",
+  "@settingsScanSplittingCueProgress": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsScanDiscovering": "正在发现文件...",
+  "settingsScanDiscoveringProgress": "正在发现文件: 已发现 {count} 个",
+  "@settingsScanDiscoveringProgress": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsScanScanningFile": "正在扫描: {file}",
+  "@settingsScanScanningFile": {
+    "placeholders": {
+      "file": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsScanProgressStats": "已处理: {scanned}/{total}, 导入: {imported}, 跳过: {skipped}, 失败: {failed}",
+  "@settingsScanProgressStats": {
+    "placeholders": {
+      "scanned": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsScanCancelScan": "取消扫描",
+  "settingsScanAutoCreatePlaylists": "扫描后自动创建歌单",
+  "settingsScanAutoCreatePlaylistsDesc": "按目录结构自动生成歌单",
+  "settingsScanLoadingConfig": "加载中...",
+  "settingsScanReadConfigFailed": "读取配置失败",
+  "settingsScanSaveFailed": "保存失败: {error}",
+  "@settingsScanSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsScanPlaylistModeDirectory": "按文件夹",
+  "settingsScanPlaylistModeDirectoryDesc": "每个文件夹生成独立歌单",
+  "settingsScanPlaylistModeTopLevel": "按顶层文件夹",
+  "settingsScanPlaylistModeTopLevelDesc": "子文件夹的歌曲合并到一级文件夹歌单",
+  "settingsScanPlaylistModeBubbleUp": "包含子目录",
+  "settingsScanPlaylistModeBubbleUpDesc": "歌曲同时出现在所有上级文件夹歌单",
+  "settingsScanPlaylistModeTitle": "歌单创建方式",
+  "settingsScanPlaylistModeDisabled": "已关闭自动创建歌单，此项不生效",
+  "settingsScanTitleSource": "使用文件名作为标题",
+  "settingsScanTitleSourceFilenameDesc": "歌曲标题使用文件名（不含扩展名），适合文件名已编号的情况",
+  "settingsScanTitleSourceTagDesc": "歌曲标题优先使用音频标签信息",
+  "settingsScanTitleSourceSaved": "已保存，需以「重新导入」模式扫描后生效",
+  "settingsScanInterval10Min": "10 分钟",
+  "settingsScanInterval30Min": "30 分钟",
+  "settingsScanInterval1Hour": "1 小时",
+  "settingsScanInterval3Hour": "3 小时",
+  "settingsScanInterval6Hour": "6 小时",
+  "settingsScanInterval12Hour": "12 小时",
+  "settingsScanInterval24Hour": "24 小时",
+  "settingsScanIntervalSeconds": "{count} 秒",
+  "@settingsScanIntervalSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsScanAutoScan": "自动扫描",
+  "settingsScanAutoScanInterval": "每 {interval} 自动扫描一次",
+  "@settingsScanAutoScanInterval": {
+    "placeholders": {
+      "interval": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsScanAutoScanOff": "关闭",
+  "settingsScanScanInterval": "扫描间隔",
+  "settingsScanCompletedSummary": "扫描完成，本地歌曲共 {count} 首",
+  "@settingsScanCompletedSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsScanCompletedStats": "本次导入 {imported} 首，跳过 {skipped} 首，失败 {failed} 个",
+  "@settingsScanCompletedStats": {
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsScanRescan": "重新扫描",
+  "settingsScanCancelledSummary": "扫描已取消 (已处理 {count} 个文件)",
+  "@settingsScanCancelledSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsScanErrorTitle": "扫描出错",
+  "settingsExcludeDirLoadFailed": "加载配置失败: {error}",
+  "@settingsExcludeDirLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsExcludeDirSaved": "排除目录配置已保存，后台正在清理被排除目录中的歌曲",
+  "settingsExcludeDirSaveFailed": "保存失败: {error}",
+  "@settingsExcludeDirSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsExcludeDirTabName": "名称排除",
+  "settingsExcludeDirTabPath": "路径排除",
+  "settingsExcludeDirTabPlaylist": "歌单排除",
+  "settingsExcludeDirSaving": "保存中...",
+  "settingsExcludeDirSaveConfig": "保存排除配置",
+  "settingsExcludeDirSaveHint": "保存后将自动清理被排除目录中的已导入歌曲",
+  "settingsExcludeDirInputName": "输入目录名称",
+  "settingsExcludeDirInputHint": "输入并选择或按回车添加",
+  "settingsExcludeDirLoadingCandidates": "正在加载候选列表...",
+  "settingsExcludeDirAdd": "添加",
+  "settingsExcludeDirExcludedNames": "已排除的目录名称:",
+  "settingsExcludeDirNameHint": "路径中任何层级包含该名称的目录都会被排除",
+  "settingsExcludeDirMusicDir": "音乐目录: {path}",
+  "@settingsExcludeDirMusicDir": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsExcludeDirExcludedPaths": "已排除的路径:",
+  "settingsExcludeDirAutoCreateExcluded": "自动创建歌单时不纳入的目录:",
+  "settingsExcludeDirAutoCreateHint": "路径中任何层级包含该名称的目录都不会被自动创建歌单",
+  "settingsServersTitle": "服务器",
+  "settingsServersTestAll": "全部测试",
+  "settingsServersEmptyTitle": "尚未添加服务器",
+  "settingsServersEmptyHint": "点击右下角「+」添加 API 地址。\n启动时会按顺序探测，优先使用排在前面的可达项。",
+  "settingsServersAdd": "添加服务器",
+  "settingsServersEditTitle": "编辑服务器",
+  "settingsServersNameLabel": "名称（可选）",
+  "settingsServersNameHint": "局域网 / 广域网 / 备用",
+  "settingsServersUrlLabel": "API 地址",
+  "settingsServersUsername": "用户名",
+  "settingsServersPassword": "密码",
+  "settingsServersSave": "保存",
+  "settingsServersSaveFailed": "保存失败: {error}",
+  "@settingsServersSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsServersDeleteTitle": "删除服务器",
+  "settingsServersDeleteCurrentConfirm": "此为当前正在使用的服务器，删除后下次启动将重新探测列表中其他项。是否继续？",
+  "settingsServersDeleteConfirm": "确定要删除「{name}」吗？",
+  "@settingsServersDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsServersReachable": "{name} 可达",
+  "@settingsServersReachable": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsServersUnreachable": "{name} 不可达",
+  "@settingsServersUnreachable": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsServersProbeResult": "探测完成：{ok} / {total} 可达",
+  "@settingsServersProbeResult": {
+    "placeholders": {
+      "ok": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsServersAlreadyCurrent": "已是当前使用的服务器",
+  "settingsServersSwitched": "已切换到 {name}，请重新登录",
+  "@settingsServersSwitched": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsServersSwitchTo": "切换到此项",
+  "settingsServersTestConnection": "测试连接",
+  "settingsServersEditAction": "编辑",
+  "settingsServersLocalMode": "本地模式",
+  "settingsServersLocalModeDesc": "开启后在设备上运行后端，无需网络即可播放本地音乐。",
+  "settingsServersMusicDir": "音乐目录",
+  "settingsServersNotSelected": "未选择",
+  "settingsServersSelect": "选择",
+  "settingsServersFixedMusicDirHint": "通过「文件」App 或电脑（Finder / iTunes 文件共享）把音乐放入 Songloft 文件夹，然后重新扫描。",
+  "settingsServersSwitchFailed": "切换失败：{error}",
+  "@settingsServersSwitchFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsServersSwitchedLocal": "已切换到本地模式",
+  "settingsServersMusicDirUpdated": "音乐目录已更新",
+  "settingsDuplicateTitle": "重复歌曲检测",
+  "settingsDuplicateDismissError": "关闭提示",
+  "settingsDuplicateIntro": "通过音频指纹识别内容相同的重复文件。不同文件名、不同格式的同一首歌都能被识别。",
+  "settingsDuplicateFingerprintStats": "指纹统计",
+  "settingsDuplicateLocalSongs": "本地歌曲",
+  "settingsDuplicateComputed": "已有指纹",
+  "settingsDuplicatePending": "待计算",
+  "settingsDuplicateSongCount": "{count} 首",
+  "@settingsDuplicateSongCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDuplicateChromaprintMissing": "需要安装 ffmpeg（含 chromaprint 支持）才能使用音频指纹检测。Docker 用户升级到最新镜像即可。",
+  "settingsDuplicateStartCompute": "开始计算并检测",
+  "settingsDuplicateCheck": "检测重复",
+  "settingsDuplicateRecomputeAll": "重新计算全部指纹",
+  "settingsDuplicateComputing": "正在计算音频指纹... {computed}/{total}",
+  "@settingsDuplicateComputing": {
+    "placeholders": {
+      "computed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDuplicateFailed": "失败: {count}",
+  "@settingsDuplicateFailed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDuplicateAutoDetect": "计算完成后将自动检测重复歌曲",
+  "settingsDuplicateRecheck": "重新检测",
+  "settingsDuplicateNoResults": "未发现重复歌曲",
+  "settingsDuplicateNoResultsHint": "音乐库很干净！",
+  "settingsDuplicateSummary": "发现 {groups} 组重复（共 {songs} 首歌曲）",
+  "@settingsDuplicateSummary": {
+    "placeholders": {
+      "groups": {
+        "type": "int"
+      },
+      "songs": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDuplicateIgnoredCount": "已忽略 {count} 组",
+  "@settingsDuplicateIgnoredCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDuplicateCleanAll": "清理全部重复（删除 {count} 首）",
+  "@settingsDuplicateCleanAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDuplicateGroupLabel": "重复组 {index}",
+  "@settingsDuplicateGroupLabel": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDuplicateUnignore": "取消忽略",
+  "settingsDuplicateIgnore": "忽略此组",
+  "settingsDuplicateDeleteUnselected": "删除未选中",
+  "settingsDuplicateRecommended": "推荐",
+  "settingsDuplicateConfirmTitle": "确认删除",
+  "settingsDuplicateConfirmMessage": "将删除 {count} 首重复歌曲及其对应的音频文件，保留每组中选中的版本。此操作不可撤销。",
+  "@settingsDuplicateConfirmMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDuplicateDeleted": "已删除 {count} 首重复歌曲",
+  "@settingsDuplicateDeleted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDuplicateDeleteFailed": "删除失败: {error}",
+  "@settingsDuplicateDeleteFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCategoryAppearanceTitle": "外观设置",
+  "settingsCategoryAppearanceSubtitle": "主题、菜单和显示",
+  "settingsCategoryPlaybackTitle": "播放设置",
+  "settingsCategoryPlaybackSubtitle": "音质",
+  "settingsCategoryLibraryTitle": "音乐库管理",
+  "settingsCategoryLibrarySubtitle": "扫描、导入和转换",
+  "settingsCategoryExtensionsTitle": "扩展",
+  "settingsCategoryExtensionsSubtitle": "插件管理",
+  "settingsCategoryCacheTitle": "缓存管理",
+  "settingsCategoryCacheSubtitle": "服务端和本地缓存",
+  "settingsCategoryNetworkTitle": "网络设置",
+  "settingsCategoryNetworkSubtitle": "代理配置",
+  "settingsCategoryDataTitle": "数据管理",
+  "settingsCategoryDataSubtitle": "歌单导出与导入",
+  "settingsCategoryAboutTitle": "关于与更新",
+  "settingsCategoryAboutSubtitle": "版本和日志",
+  "settingsCategoryAccountTitle": "账户",
+  "settingsCategoryAccountSubtitle": "服务器和登录",
+  "settingsDevVersion": "开发版",
+  "settingsStableVersion": "正式版",
+  "settingsLocalMode": "本地模式",
+  "settingsManage": "管理",
+  "settingsMenuTitle": "菜单设置",
+  "settingsMenuLibrary": "歌曲库",
+  "settingsMenuPlaylists": "歌单",
+  "settingsTabsEnabledCount": "已启用 {count} 个标签（首页和设置固定显示）",
+  "@settingsTabsEnabledCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsTabsCollapseHint": "移动端超出 5 个时将折叠到「更多」菜单",
+  "settingsMaxTabsLimit": "最多显示 {count} 个标签",
+  "@settingsMaxTabsLimit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsSaveFailed": "保存失败: {error}",
+  "@settingsSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsQualityOriginal": "原始音质",
+  "settingsQualityLow": "低 (128kbps)",
+  "settingsQualityMedium": "中 (192kbps)",
+  "settingsQualityHigh": "高 (320kbps)",
+  "settingsQualityTitle": "音质",
+  "settingsQualityDialogTitle": "选择音质",
+  "settingsQualityOriginalDesc": "不转码，使用文件原始码率",
+  "settingsQualityTranscodeDesc": "转码为 MP3，适合弱网环境",
+  "settingsQualitySwitched": "音质已切换为{quality}",
+  "@settingsQualitySwitched": {
+    "placeholders": {
+      "quality": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSwitchFailed": "切换失败: {error}",
+  "@settingsSwitchFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsLibraryDuplicateTitle": "重复歌曲检测",
+  "settingsLibraryDuplicateSubtitle": "通过音频指纹识别内容相同的重复文件",
+  "settingsPluginStoreTitle": "插件商店",
+  "settingsPluginStoreSubtitle": "浏览和安装插件",
+  "settingsExportPlaylistTitle": "导出歌单",
+  "settingsExportPlaylistSubtitle": "将所有歌单数据备份为 JSON 文件",
+  "settingsImportPlaylistTitle": "导入歌单",
+  "settingsImportPlaylistSubtitle": "从 JSON 备份文件还原歌单数据",
+  "settingsDownloadAppTitle": "下载客户端 App",
+  "settingsDownloadAppSubtitle": "获取手机 / 桌面原生客户端，支持后台播放、缓存等",
+  "settingsAboutTitle": "关于",
+  "settingsAboutSubtitle": "版本信息和许可证",
+  "settingsAccountServer": "服务器",
+  "settingsNoMusicDir": "未选择音乐目录",
+  "settingsLogout": "退出登录",
+  "settingsLogoutConfirmTitle": "确认退出",
+  "settingsLogoutConfirmContent": "确定要退出当前账户吗？",
+  "settingsLogoutButton": "确认退出",
+  "settingsExportNotLoggedIn": "未登录，无法导出",
+  "settingsExportFailed": "导出失败: {error}",
+  "@settingsExportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsImportReadFailed": "无法读取文件内容",
+  "settingsImportPathFailed": "无法获取文件路径",
+  "settingsImportComplete": "导入完成: 新建歌单 {created}, 合并歌单 {merged}, 新建歌曲 {songsCreated}, 匹配歌曲 {songsMatched}",
+  "@settingsImportComplete": {
+    "placeholders": {
+      "created": {},
+      "merged": {},
+      "songsCreated": {},
+      "songsMatched": {}
+    }
+  },
+  "settingsImportFailed": "导入失败: {error}",
+  "@settingsImportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCheckServerUpdate": "检查服务端更新",
+  "settingsUpdateAvailable": "发现新版本: {version}",
+  "@settingsUpdateAvailable": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCurrentVersionLatest": "当前版本: {version} (已是最新)",
+  "@settingsCurrentVersionLatest": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCheckingUpdate": "正在检查更新...",
+  "settingsCheckUpdateFailed": "检查更新失败",
+  "settingsCheckClientUpdate": "检查客户端更新",
+  "settingsCurrentVersion": "当前版本: {version}",
+  "@settingsCurrentVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsHlsProxyTitle": "HLS 电台后端代理",
+  "settingsHlsProxySubtitle": "开启后服务端拉取电台 m3u8 并代理切片,可绕过 Referer 防盗链 / CORS。所有切片走本机带宽,注意流量成本",
+  "settingsHlsProxyEnabled": "已开启 HLS 代理",
+  "settingsHlsProxyDisabled": "已关闭 HLS 代理",
+  "settingsHttpProxyTitle": "HTTP 代理",
+  "settingsHttpProxyNotConfigured": "未配置（直连）",
+  "settingsHttpProxyDialogDesc": "设置全局 HTTP 代理，所有后端外发请求（插件下载、升级检查等）将通过此代理转发。留空则直连。",
+  "settingsHttpProxyAddressLabel": "代理地址",
+  "settingsHttpProxyHelper": "支持 HTTP/HTTPS/SOCKS5 代理",
+  "settingsClear": "清除",
+  "settingsSave": "保存",
+  "settingsHttpProxyCleared": "已清除 HTTP 代理",
+  "settingsHttpProxySet": "HTTP 代理已设置为 {proxy}",
+  "@settingsHttpProxySet": {
+    "placeholders": {
+      "proxy": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsLogLevelDebug": "Debug（详细，调试用）",
+  "settingsLogLevelInfo": "Info（默认）",
+  "settingsLogLevelWarn": "Warn",
+  "settingsLogLevelError": "Error（仅错误）",
+  "settingsLogLevelTitle": "日志等级",
+  "settingsLogLevelDialogTitle": "选择日志等级",
+  "settingsLogLevelSwitched": "日志等级已切换为 {level}",
+  "@settingsLogLevelSwitched": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsAccountUrlNotConfigured": "未配置 · 点击添加",
+  "settingsAccountUrlSummary": "{count} 个地址 · 当前: {label}",
+  "@settingsAccountUrlSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsAccountLoading": "加载中...",
+  "settingsAboutDesc1": "Songloft 是一个开源的个人音乐服务器应用。",
+  "settingsAboutDesc2": "支持本地音乐库管理、在线播放和插件扩展。",
+  "settingsAboutGithubSemantics": "打开 GitHub 页面",
+  "settingsUpgradeCheckTimeout": "检查更新超时，请尝试切换代理后重试",
+  "settingsUpgradeCheckFailed": "检查更新失败: {error}",
+  "@settingsUpgradeCheckFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsUpgradeChannelDev": "开发版",
+  "settingsUpgradeChannelStable": "正式版",
+  "settingsUpgradeVersionWithDetails": "{version} ({details})",
+  "@settingsUpgradeVersionWithDetails": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "details": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsUpgradeStartFailed": "启动升级失败: {error}",
+  "@settingsUpgradeStartFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsUpgradeConfirmReset": "确认回退",
+  "settingsUpgradeConfirmResetContent": "确定要回退到 Docker 镜像的底包版本吗？\n\n回退后服务将自动重启。",
+  "settingsUpgradeResetFailed": "回退失败: {error}",
+  "@settingsUpgradeResetFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsUpgradeTitle": "检查更新",
+  "settingsUpgradeChecking": "正在检查更新...",
+  "settingsUpgradeGithubProxy": "GitHub 代理",
+  "settingsUpgradeCustomProxy": "自定义代理",
+  "settingsUpgradeProxyHelper": "输入代理地址，如 https://ghproxy.com/",
+  "settingsUpgradeUpToDate": "已是最新版本",
+  "settingsUpgradeCurrentVersion": "当前版本: {version}",
+  "@settingsUpgradeCurrentVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsUpgradeSelectVersion": "选择升级版本:",
+  "settingsUpgradeBuildTime": "构建时间: {time}",
+  "@settingsUpgradeBuildTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsUpgradeReleaseNotes": "更新说明:",
+  "settingsUpgradeResetting": "正在回退...",
+  "settingsUpgradeResetButton": "回退到底包版本",
+  "settingsUpgradeCompleted": "升级完成",
+  "settingsUpgradeRestartSoon": "应用即将重启",
+  "settingsUpgradeFailed": "升级失败",
+  "settingsUpgradeClose": "关闭",
+  "settingsUpgradeRecheck": "重新检查",
+  "settingsUpgradeLater": "稍后",
+  "settingsUpgradeGoDownload": "前往下载",
+  "settingsUpgradeUpgradeNow": "立即升级",
+  "settingsFrontendUpgradeCheckTimeout": "检查更新超时，请尝试切换代理后重试",
+  "settingsFrontendUpgradeTitle": "客户端更新",
+  "settingsFrontendUpgradeChecking": "正在检查更新...",
+  "settingsFrontendUpgradeGithubProxy": "GitHub 代理",
+  "settingsFrontendUpgradeCustomProxy": "自定义代理",
+  "settingsFrontendUpgradeProxyHelper": "输入代理地址，如 https://ghproxy.com/",
+  "settingsFrontendUpgradeUpToDate": "已是最新版本",
+  "settingsFrontendUpgradeCurrentVersion": "当前版本: {version}",
+  "@settingsFrontendUpgradeCurrentVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsFrontendUpgradeLatestVersion": "最新版本: {version}",
+  "@settingsFrontendUpgradeLatestVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsFrontendUpgradePublishedAt": "发布时间: {date}",
+  "@settingsFrontendUpgradePublishedAt": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsFrontendUpgradeReleaseNotes": "更新说明:",
+  "settingsFrontendUpgradeRecheck": "重新检查",
+  "settingsFrontendUpgradeClose": "关闭",
+  "settingsFrontendUpgradeLater": "稍后",
+  "settingsFrontendUpgradeGoDownload": "前往下载",
+  "settingsConfigTitle": "配置管理",
+  "settingsConfigSubtitle": "管理系统配置项",
+  "settingsConfigAdd": "添加配置",
+  "settingsConfigRefresh": "刷新",
+  "settingsConfigEmpty": "暂无配置项",
+  "settingsConfigEmptyHint": "点击「添加配置」创建新的配置项",
+  "settingsConfigKeyLabel": "配置键",
+  "settingsConfigKeyHint": "例如: app.setting.name",
+  "settingsConfigKeyRequired": "请输入配置键",
+  "settingsConfigValueLabel": "配置值",
+  "settingsConfigValueHint": "配置值（支持多行）",
+  "settingsConfigValueRequired": "请输入配置值",
+  "settingsConfigAddButton": "添加",
+  "settingsConfigAdded": "配置已添加",
+  "settingsConfigAddFailed": "添加失败: {error}",
+  "@settingsConfigAddFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsConfigEditTitle": "编辑配置: {key}",
+  "@settingsConfigEditTitle": {
+    "placeholders": {
+      "key": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsConfigKeyDisplay": "配置键: {key}",
+  "@settingsConfigKeyDisplay": {
+    "placeholders": {
+      "key": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsConfigSave": "保存",
+  "settingsConfigUpdated": "配置已更新",
+  "settingsConfigUpdateFailed": "更新失败: {error}",
+  "@settingsConfigUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsConfigConfirmDelete": "确认删除",
+  "settingsConfigDeleteConfirm": "确定要删除配置 \"{key}\" 吗？",
+  "@settingsConfigDeleteConfirm": {
+    "placeholders": {
+      "key": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsConfigDeleted": "配置已删除",
+  "settingsConfigDeleteFailed": "删除失败: {error}",
+  "@settingsConfigDeleteFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsConfigEdit": "编辑",
+  "settingsTokenTitle": "令牌管理",
+  "settingsTokenSubtitle": "管理登录令牌",
+  "settingsTokenEmpty": "暂无令牌",
+  "settingsTokenConfirmRevoke": "确认撤销",
+  "settingsTokenRevokeConfirm": "撤销此令牌后，对应的登录会话将失效。确定继续吗？",
+  "settingsTokenRevoke": "撤销",
+  "settingsTokenRevoked": "令牌已撤销",
+  "settingsTokenRevokeFailed": "撤销失败: {error}",
+  "@settingsTokenRevokeFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsTokenStatusRevoked": "已撤销",
+  "settingsTokenStatusExpired": "已过期",
+  "settingsTokenStatusActive": "活跃",
+  "settingsTokenType": "类型: {type}",
+  "@settingsTokenType": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsTokenTypeAccess": "访问令牌",
+  "settingsTokenTypeRefresh": "刷新令牌",
+  "settingsTokenClient": "客户端: {info}",
+  "@settingsTokenClient": {
+    "placeholders": {
+      "info": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsTokenExpiresAt": "过期时间: {time}",
+  "@settingsTokenExpiresAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "coreTrayOpen": "打开 Songloft",
+  "coreTrayOpenLogs": "打开日志目录",
+  "coreTrayExit": "退出",
+  "coreUrlEmpty": "URL 不能为空",
+  "coreUrlInvalid": "请输入有效的 URL（包含 http:// 或 https://）",
+  "corePickMusicDir": "选择音乐文件夹"
+}

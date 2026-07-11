@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../core/network/api_exceptions.dart';
 import '../../../../core/theme/app_dimensions.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/constants/github_proxy.dart';
 import '../../../../shared/utils/responsive_snackbar.dart';
 import '../../../settings/data/settings_api.dart';
@@ -149,20 +150,21 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     return Scaffold(
         appBar: AppBar(
-          title: const Text('插件商店'),
+          title: Text(l10n.jspluginStoreTitle),
           actions: [
             if (_selectedRegistry != null)
               IconButton(
                 icon: const Icon(Icons.refresh),
-                tooltip: '刷新插件列表',
+                tooltip: l10n.jspluginRefreshList,
                 onPressed: _loadingPlugins ? null : _refreshPlugins,
               ),
             IconButton(
               icon: const Icon(Icons.settings),
-              tooltip: '管理订阅源',
+              tooltip: l10n.jspluginManageRegistries,
               onPressed: _showRegistryManagement,
             ),
           ],
@@ -179,7 +181,7 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
   String get _proxyLabel {
     if (selectedProxyIndex == -1) {
       final v = customProxyController.text.trim();
-      return v.isEmpty ? '自定义代理' : v;
+      return v.isEmpty ? AppLocalizations.of(context).jspluginCustomProxy : v;
     }
     if (selectedProxyIndex >= 0 && selectedProxyIndex < kGithubProxyPresets.length) {
       return kGithubProxyPresets[selectedProxyIndex].label;
@@ -189,8 +191,9 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
 
   /// 统一的 GitHub 代理选择入口（下拉菜单），与插件管理样式一致
   Widget _buildProxySelectorTile(ThemeData theme) {
+    final l10n = AppLocalizations.of(context);
     return PopupMenuButton<int>(
-      tooltip: 'GitHub 代理',
+      tooltip: l10n.jspluginGithubProxy,
       onSelected: (value) {
         if (value == -1) {
           _showCustomProxyDialog();
@@ -228,8 +231,8 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
               const SizedBox(width: 8),
               Text(
                 selectedProxyIndex == -1
-                    ? '自定义: ${customProxyController.text}'
-                    : '自定义代理...',
+                    ? l10n.jspluginCustomProxyWith(customProxyController.text)
+                    : l10n.jspluginCustomProxyEllipsis,
               ),
             ],
           ),
@@ -240,9 +243,9 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
           Icons.vpn_key_outlined,
           color: effectiveProxy.isNotEmpty ? theme.colorScheme.primary : null,
         ),
-        title: const Text('GitHub 代理'),
+        title: Text(l10n.jspluginGithubProxy),
         subtitle: Text(
-          effectiveProxy.isEmpty ? '直连（不使用代理）' : _proxyLabel,
+          effectiveProxy.isEmpty ? l10n.githubProxyDirect : _proxyLabel,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
@@ -252,16 +255,17 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
   }
 
   Widget _buildEmptyState(ThemeData theme) {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.store_outlined, size: 64, color: theme.colorScheme.outline),
           const SizedBox(height: 16),
-          Text('还没有添加订阅源', style: theme.textTheme.titleMedium),
+          Text(l10n.jspluginNoRegistries, style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
           Text(
-            '添加订阅源后即可浏览和安装插件',
+            l10n.jspluginNoRegistriesHint,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.outline,
             ),
@@ -270,7 +274,7 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
           FilledButton.icon(
             onPressed: _showRegistryManagement,
             icon: const Icon(Icons.add),
-            label: const Text('添加订阅源'),
+            label: Text(l10n.jspluginAddRegistry),
           ),
         ],
       ),
@@ -278,6 +282,7 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
   }
 
   Widget _buildContent(ThemeData theme) {
+    final l10n = AppLocalizations.of(context);
     final enabledRegistries = _registries.where((r) => r.enabled).toList();
 
     return Column(
@@ -292,11 +297,11 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
             children: [
               DropdownButtonFormField<PluginRegistryConfig>(
                 initialValue: _selectedRegistry,
-                decoration: const InputDecoration(
-                  labelText: '订阅源',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.jspluginRegistry,
+                  border: const OutlineInputBorder(),
                   contentPadding:
-                      EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 ),
                 isExpanded: true,
                 items: enabledRegistries
@@ -326,7 +331,7 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
-                                  '官方',
+                                  l10n.jspluginOfficial,
                                   style: TextStyle(
                                     fontSize: 10,
                                     color: Theme.of(context)
@@ -347,7 +352,7 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
               TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
-                  hintText: '搜索插件...',
+                  hintText: l10n.jspluginSearchHint,
                   prefixIcon: const Icon(Icons.search),
                   border: const OutlineInputBorder(),
                   contentPadding:
@@ -355,7 +360,7 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
                   suffixIcon: _searchText.isNotEmpty
                       ? IconButton(
                           icon: const Icon(Icons.clear),
-                          tooltip: '清除搜索',
+                          tooltip: l10n.clearSearch,
                           onPressed: () {
                             _searchController.clear();
                             _onSearchChanged('');
@@ -376,6 +381,7 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
   }
 
   Widget _buildPluginList(ThemeData theme) {
+    final l10n = AppLocalizations.of(context);
     if (_loadingPlugins) {
       return Center(
         child: Column(
@@ -387,7 +393,7 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
             ),
             const SizedBox(height: 16),
             Text(
-              '正在加载插件列表…',
+              l10n.jspluginLoadingList,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.outline,
               ),
@@ -407,7 +413,7 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
-            TextButton(onPressed: _refreshPlugins, child: const Text('重试')),
+            TextButton(onPressed: _refreshPlugins, child: Text(l10n.commonRetry)),
           ],
         ),
       );
@@ -415,7 +421,7 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
     if (_pluginResponse == null || _pluginResponse!.plugins.isEmpty) {
       return Center(
         child: Text(
-          _searchText.isNotEmpty ? '没有找到匹配的插件' : '该订阅源暂无插件',
+          _searchText.isNotEmpty ? l10n.jspluginNoMatch : l10n.jspluginRegistryEmpty,
           style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.outline,
           ),
@@ -469,7 +475,7 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
               children: [
                 IconButton(
                   icon: const Icon(Icons.chevron_left),
-                  tooltip: '上一页',
+                  tooltip: l10n.jspluginPrevPage,
                   onPressed: _currentPage > 1
                       ? () {
                           setState(() => _currentPage--);
@@ -480,7 +486,7 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
                 Text('$_currentPage / $totalPages'),
                 IconButton(
                   icon: const Icon(Icons.chevron_right),
-                  tooltip: '下一页',
+                  tooltip: l10n.jspluginNextPage,
                   onPressed: _currentPage < totalPages
                       ? () {
                           setState(() => _currentPage++);
@@ -496,18 +502,19 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
   }
 
   void _showCustomProxyDialog() {
+    final l10n = AppLocalizations.of(context);
     final controller = TextEditingController(text: customProxyController.text);
     showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('自定义代理'),
+        title: Text(l10n.jspluginCustomProxy),
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             hintText: 'https://your-proxy.com/',
-            helperText: '输入代理地址，如 https://ghproxy.com/',
-            border: OutlineInputBorder(),
+            helperText: l10n.jspluginProxyHelper,
+            border: const OutlineInputBorder(),
           ),
           onSubmitted: (_) =>
               Navigator.of(context).pop(controller.text.trim()),
@@ -515,12 +522,12 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('取消'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () =>
                 Navigator.of(context).pop(controller.text.trim()),
-            child: const Text('确定'),
+            child: Text(l10n.jspluginOk),
           ),
         ],
       ),
@@ -611,7 +618,10 @@ class _RegistryPluginItemState extends ConsumerState<_RegistryPluginItem> {
       }
     } catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '安装失败: $e');
+        ResponsiveSnackBar.showError(
+          context,
+          message: AppLocalizations.of(context).jspluginInstallFailed(e.toString()),
+        );
       }
     } finally {
       if (mounted) setState(() => _installing = false);
@@ -690,6 +700,7 @@ class _RegistryPluginItemState extends ConsumerState<_RegistryPluginItem> {
   }
 
   Widget _buildAction(RegistryPluginEntry entry, ThemeData theme) {
+    final l10n = AppLocalizations.of(context);
     if (_installing) {
       return const SizedBox(
         width: 24,
@@ -704,19 +715,19 @@ class _RegistryPluginItemState extends ConsumerState<_RegistryPluginItem> {
         backgroundColor: theme.colorScheme.surfaceContainerHighest,
         side: BorderSide.none,
         visualDensity: VisualDensity.compact,
-        tooltip: '重新安装',
+        tooltip: l10n.jspluginReinstall,
         onPressed: _install,
       );
     }
     if (entry.installed && entry.hasUpdate) {
       return FilledButton.tonal(
         onPressed: _install,
-        child: Text('更新至 v${entry.version}'),
+        child: Text(l10n.jspluginUpdateTo(entry.version)),
       );
     }
     return FilledButton(
       onPressed: _install,
-      child: const Text('安装'),
+      child: Text(l10n.jspluginInstall),
     );
   }
 }
@@ -757,11 +768,17 @@ class _RegistryManagementDialogState
       Navigator.of(context).pop();
     } on ApiException catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '保存失败: ${e.message}');
+        ResponsiveSnackBar.showError(
+          context,
+          message: AppLocalizations.of(context).jspluginSaveFailed(e.message),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '保存失败: $e');
+        ResponsiveSnackBar.showError(
+          context,
+          message: AppLocalizations.of(context).jspluginSaveFailed(e.toString()),
+        );
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -800,10 +817,11 @@ class _RegistryManagementDialogState
     final nameController = TextEditingController(text: initialName);
     final tokenController = TextEditingController(text: initialToken);
     final isEdit = onSave != null;
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(isEdit ? '编辑订阅源' : '添加订阅源'),
+        title: Text(isEdit ? l10n.jspluginEditRegistry : l10n.jspluginAddRegistry),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -819,20 +837,20 @@ class _RegistryManagementDialogState
             const SizedBox(height: 12),
             TextField(
               controller: nameController,
-              decoration: const InputDecoration(
-                labelText: '名称（可选）',
-                hintText: '我的插件源',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.jspluginNameOptional,
+                hintText: l10n.jspluginRegistryNameHint,
+                border: const OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: tokenController,
               obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Token（可选）',
+              decoration: InputDecoration(
+                labelText: l10n.jspluginTokenOptional,
                 hintText: 'Bearer Token / GitHub PAT',
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
               ),
             ),
           ],
@@ -840,7 +858,7 @@ class _RegistryManagementDialogState
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('取消'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () {
@@ -864,7 +882,7 @@ class _RegistryManagementDialogState
               }
               Navigator.of(ctx).pop();
             },
-            child: Text(isEdit ? '保存' : '添加'),
+            child: Text(isEdit ? l10n.jspluginSave : l10n.jspluginAdd),
           ),
         ],
       ),
@@ -873,17 +891,18 @@ class _RegistryManagementDialogState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AlertDialog(
-      title: const Text('管理订阅源'),
+      title: Text(l10n.jspluginManageRegistries),
       content: SizedBox(
         width: 480,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (_registries.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 24),
-                child: Text('还没有添加订阅源'),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                child: Text(l10n.jspluginNoRegistries),
               )
             else
               ConstrainedBox(
@@ -925,7 +944,7 @@ class _RegistryManagementDialogState
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
-                                '官方',
+                                l10n.jspluginOfficial,
                                 style: TextStyle(
                                   fontSize: 10,
                                   color: Theme.of(context)
@@ -938,7 +957,7 @@ class _RegistryManagementDialogState
                           if (r.token.isNotEmpty) ...[
                             const SizedBox(width: 6),
                             Tooltip(
-                              message: '已配置认证',
+                              message: l10n.jspluginAuthConfigured,
                               child: Icon(
                                 Icons.lock_outline,
                                 size: 14,
@@ -963,12 +982,12 @@ class _RegistryManagementDialogState
                         children: [
                           IconButton(
                             icon: const Icon(Icons.edit_outlined),
-                            tooltip: '编辑订阅源',
+                            tooltip: l10n.jspluginEditRegistry,
                             onPressed: () => _editRegistry(index),
                           ),
                           IconButton(
                             icon: const Icon(Icons.delete_outline),
-                            tooltip: '删除订阅源',
+                            tooltip: l10n.jspluginDeleteRegistry,
                             onPressed: () {
                               setState(() => _registries.removeAt(index));
                             },
@@ -983,7 +1002,7 @@ class _RegistryManagementDialogState
             OutlinedButton.icon(
               onPressed: _addRegistry,
               icon: const Icon(Icons.add),
-              label: const Text('添加订阅源'),
+              label: Text(l10n.jspluginAddRegistry),
             ),
           ],
         ),
@@ -991,7 +1010,7 @@ class _RegistryManagementDialogState
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('取消'),
+          child: Text(l10n.commonCancel),
         ),
         FilledButton(
           onPressed: _saving ? null : _save,
@@ -1001,7 +1020,7 @@ class _RegistryManagementDialogState
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('保存'),
+              : Text(l10n.jspluginSave),
         ),
       ],
     );

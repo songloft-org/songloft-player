@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../../l10n/l10n_holder.dart';
 import 'desktop_backend_service.dart';
 
 /// 统一的内嵌后端服务接口。
@@ -94,7 +95,9 @@ class EmbeddedBackendService {
       return (await getApplicationDocumentsDirectory()).path;
     }
     if (current != null && current.isNotEmpty) return current;
-    return FilePicker.platform.getDirectoryPath(dialogTitle: '选择音乐文件夹');
+    return FilePicker.platform.getDirectoryPath(
+      dialogTitle: l10nOrNull?.corePickMusicDir ?? '选择音乐文件夹',
+    );
   }
 
   /// 启动内嵌后端，返回实际监听端口

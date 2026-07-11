@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/api_exceptions.dart';
 import '../../../../shared/utils/responsive_snackbar.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../auth/domain/auth_state.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
@@ -19,11 +20,12 @@ class TokenManager extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tokensAsync = ref.watch(tokenListProvider);
+    final l10n = AppLocalizations.of(context);
 
     return ExpansionTile(
       leading: const Icon(Icons.key),
-      title: const Text('令牌管理'),
-      subtitle: const Text('管理登录令牌'),
+      title: Text(l10n.settingsTokenTitle),
+      subtitle: Text(l10n.settingsTokenSubtitle),
       children: [
         tokensAsync.when(
           data: (response) => _buildTokenList(context, ref, response.tokens),
@@ -38,7 +40,9 @@ class TokenManager extends ConsumerWidget {
                 child: Column(
                   children: [
                     Text(
-                      error is ApiException ? error.message : '加载失败',
+                      error is ApiException
+                          ? error.message
+                          : AppLocalizations.of(context).commonLoadFailed,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.error,
                       ),
@@ -46,7 +50,7 @@ class TokenManager extends ConsumerWidget {
                     const SizedBox(height: 8),
                     TextButton(
                       onPressed: () => ref.invalidate(tokenListProvider),
-                      child: const Text('重试'),
+                      child: Text(AppLocalizations.of(context).commonRetry),
                     ),
                   ],
                 ),
@@ -62,7 +66,10 @@ class TokenManager extends ConsumerWidget {
     List<TokenInfo> tokens,
   ) {
     if (tokens.isEmpty) {
-      return const Padding(padding: EdgeInsets.all(16), child: Text('暂无令牌'));
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: Text(AppLocalizations.of(context).settingsTokenEmpty),
+      );
     }
 
     return ListView.separated(
@@ -91,20 +98,21 @@ class _TokenItemState extends ConsumerState<_TokenItem> {
   bool _isRevoking = false;
 
   Future<void> _revokeToken() async {
+    final l10n = AppLocalizations.of(context);
     final confirm = await showDialog<bool>(
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('确认撤销'),
-            content: const Text('撤销此令牌后，对应的登录会话将失效。确定继续吗？'),
+            title: Text(l10n.settingsTokenConfirmRevoke),
+            content: Text(l10n.settingsTokenRevokeConfirm),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('取消'),
+                child: Text(l10n.commonCancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('撤销'),
+                child: Text(l10n.settingsTokenRevoke),
               ),
             ],
           ),
@@ -120,15 +128,28 @@ class _TokenItemState extends ConsumerState<_TokenItem> {
       // 刷新列表
       ref.invalidate(tokenListProvider);
       if (mounted) {
-        ResponsiveSnackBar.showSuccess(context, message: '令牌已撤销');
+        ResponsiveSnackBar.showSuccess(
+          context,
+          message: AppLocalizations.of(context).settingsTokenRevoked,
+        );
       }
     } on ApiException catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '撤销失败: ${e.message}');
+        ResponsiveSnackBar.showError(
+          context,
+          message: AppLocalizations.of(context).settingsTokenRevokeFailed(
+            e.message,
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '撤销失败: $e');
+        ResponsiveSnackBar.showError(
+          context,
+          message: AppLocalizations.of(
+            context,
+          ).settingsTokenRevokeFailed('$e'),
+        );
       }
     } finally {
       if (mounted) {
@@ -142,19 +163,20 @@ class _TokenItemState extends ConsumerState<_TokenItem> {
     final token = widget.token;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     // 状态颜色
     Color statusColor;
     String statusText;
     if (token.isRevoked) {
       statusColor = colorScheme.error;
-      statusText = '已撤销';
+      statusText = l10n.settingsTokenStatusRevoked;
     } else if (token.isExpired) {
       statusColor = colorScheme.outline;
-      statusText = '已过期';
+      statusText = l10n.settingsTokenStatusExpired;
     } else {
       statusColor = Colors.green;
-      statusText = '活跃';
+      statusText = l10n.settingsTokenStatusActive;
     }
 
     return ListTile(
@@ -193,9 +215,16 @@ class _TokenItemState extends ConsumerState<_TokenItem> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 4),
-          Text('类型: ${token.tokenType == 'access' ? '访问令牌' : '刷新令牌'}'),
-          if (token.clientInfo != null) Text('客户端: ${token.clientInfo}'),
-          Text('过期时间: ${_formatDateTime(token.expiresAt)}'),
+          Text(
+            l10n.settingsTokenType(
+              token.tokenType == 'access'
+                  ? l10n.settingsTokenTypeAccess
+                  : l10n.settingsTokenTypeRefresh,
+            ),
+          ),
+          if (token.clientInfo != null)
+            Text(l10n.settingsTokenClient('${token.clientInfo}')),
+          Text(l10n.settingsTokenExpiresAt(_formatDateTime(token.expiresAt))),
         ],
       ),
       trailing:
@@ -210,7 +239,7 @@ class _TokenItemState extends ConsumerState<_TokenItem> {
                         )
                         : const Icon(Icons.block),
                 onPressed: _isRevoking ? null : _revokeToken,
-                tooltip: '撤销',
+                tooltip: l10n.settingsTokenRevoke,
               )
               : null,
       isThreeLine: true,

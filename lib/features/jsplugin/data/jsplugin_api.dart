@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 
 import '../../../config/app_config.dart';
 import '../../../core/network/api_exceptions.dart';
+import '../../../l10n/l10n_holder.dart';
 
 /// JS 插件模型
 class JSPlugin {
@@ -418,7 +419,7 @@ class JSPluginApi {
         '${AppConfig.apiPrefix}/jsplugins/storage/cleanup',
       );
       final data = response.data as Map<String, dynamic>;
-      return data['message'] as String? ?? '清理完成';
+      return data['message'] as String? ?? l10n.jspluginCleanupDone;
     } on DioException catch (e) {
       throw ApiException.fromDioException(e);
     }

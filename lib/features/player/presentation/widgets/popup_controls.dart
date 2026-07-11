@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/responsive.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../../../../l10n/l10n_holder.dart';
 import '../../domain/player_state.dart';
 
 /// 播放模式弹出控制组件
@@ -40,15 +42,15 @@ class _PopupPlayModeControlState extends State<PopupPlayModeControl> {
   String _getPlayModeTooltip(PlayMode mode) {
     switch (mode) {
       case PlayMode.order:
-        return '顺序播放';
+        return l10n.playerModeOrder;
       case PlayMode.loop:
-        return '列表循环';
+        return l10n.playerModeLoop;
       case PlayMode.single:
-        return '单曲循环';
+        return l10n.playerModeSingle;
       case PlayMode.random:
-        return '随机播放';
+        return l10n.playerModeRandom;
       case PlayMode.singlePlay:
-        return '单曲播放';
+        return l10n.playerModeSinglePlay;
     }
   }
 
@@ -202,7 +204,7 @@ class _PlayModeOverlayPanel extends StatelessWidget {
         // 透明背景层，点击关闭
         Positioned.fill(
           child: Semantics(
-            label: '关闭',
+            label: AppLocalizations.of(context).playerClose,
             child: GestureDetector(
               onTap: onDismiss,
               behavior: HitTestBehavior.opaque,
@@ -386,8 +388,10 @@ class _PopupSleepTimerControlState extends State<PopupSleepTimerControl> {
       ),
       tooltip:
           widget.status == null
-              ? '睡眠定时'
-              : '睡眠定时：${sleepTimerStatusLabel(widget.status!)}',
+              ? AppLocalizations.of(context).playerSleepTimer
+              : AppLocalizations.of(context).playerSleepTimerWithStatus(
+                  sleepTimerStatusLabel(widget.status!),
+                ),
       visualDensity: VisualDensity.compact,
     );
   }
@@ -443,7 +447,7 @@ class _SleepTimerOverlayPanel extends StatelessWidget {
       children: [
         Positioned.fill(
           child: Semantics(
-            label: '关闭',
+            label: AppLocalizations.of(context).playerClose,
             child: GestureDetector(
               onTap: onDismiss,
               behavior: HitTestBehavior.opaque,
@@ -495,7 +499,7 @@ String sleepTimerStatusLabel(SleepTimerStatus status) {
       final s = d.inSeconds % 60;
       return '$m:${s.toString().padLeft(2, '0')}';
     case SleepTimerMode.afterSongs:
-      return '剩余 ${status.remainingSongs ?? 0} 首';
+      return l10n.playerRemainingSongs(status.remainingSongs ?? 0);
   }
 }
 
@@ -537,6 +541,7 @@ class SleepTimerContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -567,14 +572,17 @@ class SleepTimerContent extends StatelessWidget {
                     minimumSize: const Size(0, 32),
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                   ),
-                  child: const Text('取消定时'),
+                  child: Text(l10n.playerSleepTimerCancel),
                 ),
               ],
             ),
           ),
           Divider(height: 1, color: colorScheme.outlineVariant),
         ],
-        const _SectionHeader(icon: Icons.schedule_rounded, title: '按时长'),
+        _SectionHeader(
+          icon: Icons.schedule_rounded,
+          title: l10n.playerSleepTimerByDuration,
+        ),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
           child: Wrap(
@@ -585,20 +593,20 @@ class SleepTimerContent extends StatelessWidget {
                 ChoiceChip(
                   label: Text(
                     d.inMinutes >= 60
-                        ? '${d.inHours} 小时'
-                        : '${d.inMinutes} 分钟',
+                        ? l10n.playerHours(d.inHours)
+                        : l10n.playerMinutes(d.inMinutes),
                   ),
                   selected: false,
                   onSelected: (_) => onSetDuration(d),
                 ),
               ActionChip(
                 avatar: const Icon(Icons.edit_outlined, size: 16),
-                label: const Text('自定义'),
+                label: Text(l10n.playerCustom),
                 onPressed: () async {
                   final minutes = await _showNumberInputDialog(
                     context,
-                    title: '自定义时长',
-                    unit: '分钟',
+                    title: l10n.playerCustomDuration,
+                    unit: l10n.playerUnitMinutes,
                     min: 1,
                     max: 999,
                   );
@@ -612,7 +620,10 @@ class SleepTimerContent extends StatelessWidget {
         ),
         if (!isLive) ...[
           Divider(height: 1, color: colorScheme.outlineVariant),
-          const _SectionHeader(icon: Icons.queue_music_rounded, title: '按歌曲'),
+          _SectionHeader(
+            icon: Icons.queue_music_rounded,
+            title: l10n.playerSleepTimerBySongs,
+          ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
             child: Wrap(
@@ -621,18 +632,18 @@ class SleepTimerContent extends StatelessWidget {
               children: [
                 for (final n in _songCountOptions)
                   ChoiceChip(
-                    label: Text('$n 首'),
+                    label: Text(l10n.playerSongsUnit(n)),
                     selected: _isSongCountSelected(n),
                     onSelected: (_) => onSetAfterSongs(n),
                   ),
                 ActionChip(
                   avatar: const Icon(Icons.edit_outlined, size: 16),
-                  label: const Text('自定义'),
+                  label: Text(l10n.playerCustom),
                   onPressed: () async {
                     final count = await _showNumberInputDialog(
                       context,
-                      title: '自定义首数',
-                      unit: '首',
+                      title: l10n.playerCustomSongCount,
+                      unit: l10n.playerUnitSongs,
                       min: 1,
                       max: 99,
                     );
@@ -686,6 +697,7 @@ Future<int?> _showNumberInputDialog(
   required int min,
   required int max,
 }) {
+  final l10n = AppLocalizations.of(context);
   final controller = TextEditingController();
   String? errorText;
 
@@ -697,16 +709,16 @@ Future<int?> _showNumberInputDialog(
           int? parseAndValidate() {
             final raw = controller.text.trim();
             if (raw.isEmpty) {
-              setState(() => errorText = '请输入数字');
+              setState(() => errorText = l10n.playerEnterNumber);
               return null;
             }
             final v = int.tryParse(raw);
             if (v == null) {
-              setState(() => errorText = '请输入有效整数');
+              setState(() => errorText = l10n.playerEnterValidInteger);
               return null;
             }
             if (v < min || v > max) {
-              setState(() => errorText = '请输入 $min - $max 之间的整数');
+              setState(() => errorText = l10n.playerEnterIntegerInRange(min, max));
               return null;
             }
             return v;
@@ -739,7 +751,7 @@ Future<int?> _showNumberInputDialog(
                 style: TextButton.styleFrom(
                   minimumSize: ctx.responsiveButtonMinSize,
                 ),
-                child: const Text('取消'),
+                child: Text(l10n.commonCancel),
               ),
               TextButton(
                 onPressed: () {
@@ -749,7 +761,7 @@ Future<int?> _showNumberInputDialog(
                 style: TextButton.styleFrom(
                   minimumSize: ctx.responsiveButtonMinSize,
                 ),
-                child: const Text('确定'),
+                child: Text(l10n.commonConfirm),
               ),
             ],
           );
@@ -813,6 +825,7 @@ class SleepTimerSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -837,14 +850,17 @@ class SleepTimerSheet extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
-                const Text(
-                  '睡眠定时',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Text(
+                  l10n.playerSleepTimer,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const Spacer(),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('关闭'),
+                  child: Text(l10n.playerClose),
                 ),
               ],
             ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/api_exceptions.dart';
 import '../../../../core/theme/app_dimensions.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/utils/responsive_snackbar.dart';
 import '../../../../shared/widgets/directory_tree_selector.dart';
 import '../../data/settings_api.dart';
@@ -75,7 +76,10 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '加载配置失败: $e');
+        ResponsiveSnackBar.showError(
+          context,
+          message: AppLocalizations.of(context).settingsExcludeDirLoadFailed('$e'),
+        );
       }
     }
   }
@@ -164,16 +168,22 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
       if (mounted) {
         ResponsiveSnackBar.showSuccess(
           context,
-          message: '排除目录配置已保存，后台正在清理被排除目录中的歌曲',
+          message: AppLocalizations.of(context).settingsExcludeDirSaved,
         );
       }
     } on ApiException catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '保存失败: ${e.message}');
+        ResponsiveSnackBar.showError(
+          context,
+          message: AppLocalizations.of(context).settingsExcludeDirSaveFailed(e.message),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '保存失败: $e');
+        ResponsiveSnackBar.showError(
+          context,
+          message: AppLocalizations.of(context).settingsExcludeDirSaveFailed('$e'),
+        );
       }
     } finally {
       setState(() => _isSaving = false);
@@ -184,6 +194,7 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     if (_isLoading) {
       return const Center(
@@ -201,21 +212,21 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
         SizedBox(
           width: double.infinity,
           child: SegmentedButton<int>(
-            segments: const [
+            segments: [
               ButtonSegment(
                 value: 0,
-                label: Text('名称排除'),
-                icon: Icon(Icons.text_fields),
+                label: Text(l10n.settingsExcludeDirTabName),
+                icon: const Icon(Icons.text_fields),
               ),
               ButtonSegment(
                 value: 1,
-                label: Text('路径排除'),
-                icon: Icon(Icons.folder_outlined),
+                label: Text(l10n.settingsExcludeDirTabPath),
+                icon: const Icon(Icons.folder_outlined),
               ),
               ButtonSegment(
                 value: 2,
-                label: Text('歌单排除'),
-                icon: Icon(Icons.playlist_play),
+                label: Text(l10n.settingsExcludeDirTabPlaylist),
+                icon: const Icon(Icons.playlist_play),
               ),
             ],
             selected: {_selectedTab},
@@ -245,7 +256,11 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.save),
-            label: Text(_isSaving ? '保存中...' : '保存排除配置'),
+            label: Text(
+              _isSaving
+                  ? l10n.settingsExcludeDirSaving
+                  : l10n.settingsExcludeDirSaveConfig,
+            ),
           ),
         ),
         const SizedBox(height: AppSpacing.xs),
@@ -263,7 +278,7 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  '保存后将自动清理被排除目录中的已导入歌曲',
+                  l10n.settingsExcludeDirSaveHint,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -278,6 +293,7 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
 
   /// 构建名称排除 Tab
   Widget _buildNameExcludeTab(ThemeData theme, ColorScheme colorScheme) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -304,8 +320,10 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
               controller: controller,
               focusNode: focusNode,
               decoration: InputDecoration(
-                labelText: '输入目录名称',
-                hintText: _isLoadingNames ? '正在加载候选列表...' : '输入并选择或按回车添加',
+                labelText: l10n.settingsExcludeDirInputName,
+                hintText: _isLoadingNames
+                    ? l10n.settingsExcludeDirLoadingCandidates
+                    : l10n.settingsExcludeDirInputHint,
                 border: const OutlineInputBorder(),
                 prefixIcon: const Icon(Icons.folder_outlined),
                 suffixIcon: IconButton(
@@ -316,7 +334,7 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
                       controller.clear();
                     }
                   },
-                  tooltip: '添加',
+                  tooltip: l10n.settingsExcludeDirAdd,
                 ),
               ),
               onFieldSubmitted: (value) {
@@ -333,7 +351,7 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
         // 已排除的目录名称（InputChip）
         if (_excludeDirs.isNotEmpty) ...[
           Text(
-            '已排除的目录名称:',
+            l10n.settingsExcludeDirExcludedNames,
             style: theme.textTheme.labelMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
@@ -366,7 +384,7 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  '路径中任何层级包含该名称的目录都会被排除',
+                  l10n.settingsExcludeDirNameHint,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -381,6 +399,7 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
 
   /// 构建路径排除 Tab
   Widget _buildPathExcludeTab(ThemeData theme, ColorScheme colorScheme) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -392,7 +411,7 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
               Icon(Icons.library_music, size: 16, color: colorScheme.primary),
               const SizedBox(width: 6),
               Text(
-                '音乐目录: $_musicPath',
+                l10n.settingsExcludeDirMusicDir(_musicPath),
                 style: theme.textTheme.labelMedium?.copyWith(
                   color: colorScheme.primary,
                 ),
@@ -431,7 +450,7 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
         // 已排除的路径（InputChip）
         if (_excludePaths.isNotEmpty) ...[
           Text(
-            '已排除的路径:',
+            l10n.settingsExcludeDirExcludedPaths,
             style: theme.textTheme.labelMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
@@ -460,6 +479,7 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
 
   /// 构建自动创建歌单排除 Tab
   Widget _buildAutoCreateExcludeTab(ThemeData theme, ColorScheme colorScheme) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -467,8 +487,8 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
         TextFormField(
           controller: _autoCreateExcludeController,
           decoration: InputDecoration(
-            labelText: '输入目录名称',
-            hintText: '输入并选择或按回车添加',
+            labelText: l10n.settingsExcludeDirInputName,
+            hintText: l10n.settingsExcludeDirInputHint,
             border: const OutlineInputBorder(),
             prefixIcon: const Icon(Icons.folder_outlined),
             suffixIcon: IconButton(
@@ -478,7 +498,7 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
                   _addAutoCreateExcludeDir(_autoCreateExcludeController.text);
                 }
               },
-              tooltip: '添加',
+              tooltip: l10n.settingsExcludeDirAdd,
             ),
           ),
           onFieldSubmitted: (value) {
@@ -492,7 +512,7 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
         // 已排除的目录名称（InputChip）
         if (_autoCreateExcludeDirs.isNotEmpty) ...[
           Text(
-            '自动创建歌单时不纳入的目录:',
+            l10n.settingsExcludeDirAutoCreateExcluded,
             style: theme.textTheme.labelMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
@@ -525,7 +545,7 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  '路径中任何层级包含该名称的目录都不会被自动创建歌单',
+                  l10n.settingsExcludeDirAutoCreateHint,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),

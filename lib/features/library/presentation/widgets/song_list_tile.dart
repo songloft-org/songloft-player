@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../config/constants.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/responsive.dart';
 import '../../../../core/utils/formatters.dart';
@@ -81,7 +82,7 @@ class SongListTile extends ConsumerWidget {
             : null,
       ),
       subtitle: Text(
-        song.artist ?? '未知艺术家',
+        song.artist ?? AppLocalizations.of(context).libraryUnknownArtist,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(color: colorScheme.onSurfaceVariant),
@@ -161,7 +162,7 @@ class SongListTile extends ConsumerWidget {
             Expanded(
               flex: 2,
               child: Text(
-                song.artist ?? '未知艺术家',
+                song.artist ?? AppLocalizations.of(context).libraryUnknownArtist,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(color: colorScheme.onSurfaceVariant),
@@ -173,7 +174,7 @@ class SongListTile extends ConsumerWidget {
               Expanded(
                 flex: 2,
                 child: Text(
-                  song.album ?? '未知专辑',
+                  song.album ?? AppLocalizations.of(context).libraryUnknownAlbum,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(color: colorScheme.onSurfaceVariant),
@@ -253,21 +254,22 @@ class SongListTile extends ConsumerWidget {
   }
 
   Widget _buildTypeChip(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
     String label;
     Color color;
 
     switch (song.type) {
       case AppConstants.songTypeRadio:
-        label = '电台';
+        label = l10n.songTypeRadio;
         color = colorScheme.tertiary;
         break;
       case AppConstants.songTypeRemote:
-        label = '网络';
+        label = l10n.songTypeRemote;
         color = colorScheme.secondary;
         break;
       default:
-        label = '本地';
+        label = l10n.songTypeLocal;
         color = colorScheme.primary;
     }
 
@@ -288,6 +290,7 @@ class SongListTile extends ConsumerWidget {
   Widget _buildTrailingActions(BuildContext context) {
     if (isSelectionMode) return const SizedBox.shrink();
 
+    final l10n = AppLocalizations.of(context);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -312,35 +315,35 @@ class SongListTile extends ConsumerWidget {
           },
           itemBuilder:
               (context) => [
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'play',
                   child: ListTile(
-                    leading: Icon(Icons.play_arrow),
-                    title: Text('播放'),
+                    leading: const Icon(Icons.play_arrow),
+                    title: Text(l10n.libraryPlay),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'edit',
                   child: ListTile(
-                    leading: Icon(Icons.edit),
-                    title: Text('编辑'),
+                    leading: const Icon(Icons.edit),
+                    title: Text(l10n.libraryEdit),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'add_to_playlist',
                   child: ListTile(
-                    leading: Icon(Icons.playlist_add),
-                    title: Text('添加到歌单'),
+                    leading: const Icon(Icons.playlist_add),
+                    title: Text(l10n.addToPlaylist),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'delete',
                   child: ListTile(
-                    leading: Icon(Icons.delete),
-                    title: Text('删除'),
+                    leading: const Icon(Icons.delete),
+                    title: Text(l10n.commonDelete),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
@@ -352,6 +355,8 @@ class SongListTile extends ConsumerWidget {
 
   Widget _buildDesktopActions(BuildContext context) {
     if (isSelectionMode) return const SizedBox(width: kDesktopActionsWidth);
+
+    final l10n = AppLocalizations.of(context);
 
     // 紧凑化：默认 IconButton 触摸目标 48px，5 个按钮会撑破操作列导致右侧按钮
     // （编辑/添加/删除）被裁剪不可见。shrinkWrap + compact 让按钮回落到 minWidth。
@@ -379,17 +384,21 @@ class SongListTile extends ConsumerWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        actionButton(icon: Icons.play_arrow, tooltip: '播放', onPressed: onTap),
+        actionButton(
+          icon: Icons.play_arrow,
+          tooltip: l10n.libraryPlay,
+          onPressed: onTap,
+        ),
         FavoriteButton(songId: song.id, songType: song.type, size: 20),
-        actionButton(icon: Icons.edit, tooltip: '编辑', onPressed: onEdit),
+        actionButton(icon: Icons.edit, tooltip: l10n.libraryEdit, onPressed: onEdit),
         actionButton(
           icon: Icons.playlist_add,
-          tooltip: '添加到歌单',
+          tooltip: l10n.addToPlaylist,
           onPressed: onAddToPlaylist,
         ),
         actionButton(
           icon: Icons.delete_outline,
-          tooltip: '删除',
+          tooltip: l10n.commonDelete,
           onPressed: onDelete,
         ),
       ],

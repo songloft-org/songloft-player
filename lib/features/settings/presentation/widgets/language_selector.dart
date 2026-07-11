@@ -5,31 +5,32 @@ import '../../../../core/theme/app_dimensions.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../providers/settings_provider.dart';
 
-/// 主题选择器组件
-class ThemeSelector extends ConsumerWidget {
-  const ThemeSelector({super.key});
+/// 语言选择器组件。
+/// 三选项：简体中文 / English / 跟随系统（null）。
+class LanguageSelector extends ConsumerWidget {
+  const LanguageSelector({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(themeModeProvider);
+    final locale = ref.watch(localeProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context);
 
     final options = [
       (
-        mode: ThemeMode.light,
-        icon: Icons.light_mode_rounded,
-        label: l10n.themeLight,
+        locale: const Locale('zh'),
+        icon: Icons.translate_rounded,
+        label: l10n.languageSimplifiedChinese,
       ),
       (
-        mode: ThemeMode.dark,
-        icon: Icons.dark_mode_rounded,
-        label: l10n.themeDark,
+        locale: const Locale('en'),
+        icon: Icons.language_rounded,
+        label: l10n.languageEnglish,
       ),
       (
-        mode: ThemeMode.system,
+        locale: null,
         icon: Icons.phone_android_rounded,
-        label: l10n.themeSystem,
+        label: l10n.languageSystem,
       ),
     ];
 
@@ -39,15 +40,13 @@ class ThemeSelector extends ConsumerWidget {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-              child: _ThemeOptionCard(
+              child: _LanguageOptionCard(
                 icon: option.icon,
                 label: option.label,
-                isSelected: themeMode == option.mode,
+                isSelected: locale?.languageCode == option.locale?.languageCode,
                 colorScheme: colorScheme,
                 onTap: () {
-                  ref
-                      .read(themeModeProvider.notifier)
-                      .setThemeMode(option.mode);
+                  ref.read(localeProvider.notifier).setLocale(option.locale);
                 },
               ),
             ),
@@ -57,14 +56,14 @@ class ThemeSelector extends ConsumerWidget {
   }
 }
 
-class _ThemeOptionCard extends StatelessWidget {
+class _LanguageOptionCard extends StatelessWidget {
   final IconData icon;
   final String label;
   final bool isSelected;
   final ColorScheme colorScheme;
   final VoidCallback onTap;
 
-  const _ThemeOptionCard({
+  const _LanguageOptionCard({
     required this.icon,
     required this.label,
     required this.isSelected,

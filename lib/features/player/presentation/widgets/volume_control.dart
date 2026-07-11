@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/responsive.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// 音量控制组件
 class VolumeControl extends StatefulWidget {
@@ -58,7 +59,9 @@ class _VolumeControlState extends State<VolumeControl> {
       return IconButton(
         onPressed: _toggleMute,
         icon: Icon(_volumeIcon),
-        tooltip: widget.volume > 0 ? '静音' : '恢复音量',
+        tooltip: widget.volume > 0
+            ? AppLocalizations.of(context).playerMute
+            : AppLocalizations.of(context).playerUnmute,
       );
     }
 
@@ -96,7 +99,9 @@ class _VolumeControlState extends State<VolumeControl> {
         IconButton(
           onPressed: _toggleMute,
           icon: Icon(_volumeIcon),
-          tooltip: widget.volume > 0 ? '静音' : '恢复音量',
+          tooltip: widget.volume > 0
+            ? AppLocalizations.of(context).playerMute
+            : AppLocalizations.of(context).playerUnmute,
           style: IconButton.styleFrom(
             foregroundColor: theme.colorScheme.onSurfaceVariant,
           ),
@@ -130,7 +135,8 @@ class _VolumeControlState extends State<VolumeControl> {
                 min: 0,
                 max: 100,
                 onChanged: widget.onVolumeChanged,
-                semanticFormatterCallback: (value) => '音量 ${value.round()}%',
+                semanticFormatterCallback: (value) =>
+                    AppLocalizations.of(context).playerVolumePercent(value.round()),
               ),
             ),
           ),
@@ -239,7 +245,7 @@ class _PopupVolumeControlState extends State<PopupVolumeControl> {
       key: _buttonKey,
       onPressed: _showVolumePanel,
       icon: Icon(_volumeIcon),
-      tooltip: '音量',
+      tooltip: AppLocalizations.of(context).playerVolume,
     );
   }
 }
@@ -405,7 +411,7 @@ class _VolumeOverlayPanelState extends State<_VolumeOverlayPanel> {
         // 透明背景层，点击关闭
         Positioned.fill(
           child: Semantics(
-            label: '关闭音量面板',
+            label: AppLocalizations.of(context).playerCloseVolumePanel,
             child: GestureDetector(
               onTap: widget.onDismiss,
               behavior: HitTestBehavior.opaque,
@@ -468,7 +474,8 @@ class _VolumeOverlayPanelState extends State<_VolumeOverlayPanel> {
                             setState(() => _currentVolume = value);
                             widget.onVolumeChanged(value);
                           },
-                          semanticFormatterCallback: (value) => '音量 ${value.round()}%',
+                          semanticFormatterCallback: (value) =>
+                    AppLocalizations.of(context).playerVolumePercent(value.round()),
                         ),
                       ),
                     ),
@@ -482,7 +489,9 @@ class _VolumeOverlayPanelState extends State<_VolumeOverlayPanel> {
                     visualDensity: VisualDensity.compact,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
-                    tooltip: _currentVolume > 0 ? '静音' : '恢复音量',
+                    tooltip: _currentVolume > 0
+                        ? AppLocalizations.of(context).playerMute
+                        : AppLocalizations.of(context).playerUnmute,
                   ),
                 ],
               ),

@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/utils/color_extraction.dart';
 import '../../../../core/utils/url_helper.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/favorite_button.dart';
 import '../../domain/player_state.dart';
 import '../providers/player_provider.dart';
@@ -287,7 +288,8 @@ class _MobilePlayerState extends ConsumerState<MobilePlayer>
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        song.artist ?? '未知艺术家',
+                        song.artist ??
+                            AppLocalizations.of(context).playerUnknownArtist,
                         style: theme.textTheme.bodyLarge?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -369,7 +371,7 @@ class _MobilePlayerState extends ConsumerState<MobilePlayer>
             icon: const Icon(Icons.keyboard_arrow_down_rounded),
             iconSize: 32,
             color: topBarColor,
-            tooltip: '收起',
+            tooltip: AppLocalizations.of(context).playerCollapse,
           ),
           // 歌曲信息（专辑名）
           if (song?.album != null && song!.album!.isNotEmpty)
@@ -416,11 +418,11 @@ class _MobilePlayerState extends ConsumerState<MobilePlayer>
               final colorScheme = Theme.of(context).colorScheme;
               final hasTimer = state.sleepTimer != null;
               return [
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'equalizer',
                   child: ListTile(
-                    leading: Icon(Icons.equalizer_rounded),
-                    title: Text('均衡器'),
+                    leading: const Icon(Icons.equalizer_rounded),
+                    title: Text(AppLocalizations.of(context).playerEqualizer),
                     dense: true,
                     contentPadding: EdgeInsets.zero,
                   ),
@@ -432,7 +434,11 @@ class _MobilePlayerState extends ConsumerState<MobilePlayer>
                       Icons.bedtime_outlined,
                       color: hasTimer ? colorScheme.primary : null,
                     ),
-                    title: Text(hasTimer ? '睡眠定时 (已开启)' : '睡眠定时'),
+                    title: Text(
+                      hasTimer
+                          ? AppLocalizations.of(context).playerSleepTimerOn
+                          : AppLocalizations.of(context).playerSleepTimer,
+                    ),
                     dense: true,
                     contentPadding: EdgeInsets.zero,
                   ),
@@ -446,7 +452,7 @@ class _MobilePlayerState extends ConsumerState<MobilePlayer>
                       color: colorScheme.error,
                     ),
                     title: Text(
-                      '删除当前歌曲',
+                      AppLocalizations.of(context).playerDeleteCurrentSong,
                       style: TextStyle(color: colorScheme.error),
                     ),
                     dense: true,
@@ -576,7 +582,7 @@ class _MobilePlayerState extends ConsumerState<MobilePlayer>
           IconButton(
             onPressed: () => QueueBottomSheet.show(context),
             icon: const Icon(Icons.queue_music_rounded, size: 20),
-            tooltip: '播放队列',
+            tooltip: AppLocalizations.of(context).playerQueueTitle,
           ),
         ],
       ),

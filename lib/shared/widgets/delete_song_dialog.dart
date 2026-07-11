@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/responsive.dart';
+import '../../l10n/app_localizations.dart';
 
 class DeleteSongResult {
   final bool deleteFiles;
@@ -46,6 +47,7 @@ class _DeleteSongDialogState extends State<DeleteSongDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return AlertDialog(
       title: Text(widget.title),
@@ -63,9 +65,9 @@ class _DeleteSongDialogState extends State<DeleteSongDialog> {
               CheckboxListTile(
                 value: _deleteFiles,
                 onChanged: (v) => setState(() => _deleteFiles = v ?? false),
-                title: const Text('同时删除本地文件'),
+                title: Text(l10n.deleteAlsoLocalFile),
                 subtitle: Text(
-                  '删除后无法恢复',
+                  l10n.deleteIrreversible,
                   style: TextStyle(
                     color: theme.colorScheme.error,
                     fontSize: 12,
@@ -85,7 +87,7 @@ class _DeleteSongDialogState extends State<DeleteSongDialog> {
           style: TextButton.styleFrom(
             minimumSize: context.responsiveButtonMinSize,
           ),
-          child: const Text('取消'),
+          child: Text(l10n.commonCancel),
         ),
         TextButton(
           onPressed: () => Navigator.of(context).pop(
@@ -95,7 +97,7 @@ class _DeleteSongDialogState extends State<DeleteSongDialog> {
             minimumSize: context.responsiveButtonMinSize,
             foregroundColor: theme.colorScheme.error,
           ),
-          child: const Text('删除'),
+          child: Text(l10n.commonDelete),
         ),
       ],
     );

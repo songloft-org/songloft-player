@@ -7,6 +7,7 @@ import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/responsive.dart';
 import '../../../../core/utils/color_extraction.dart';
 import '../../../../core/utils/url_helper.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/favorite_button.dart';
 import '../../domain/player_state.dart';
 import '../providers/player_provider.dart';
@@ -264,7 +265,10 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
                                 const SizedBox(height: 8),
                                 // 艺术家名
                                 Text(
-                                  song.artist ?? '未知艺术家',
+                                  song.artist ??
+                                      AppLocalizations.of(
+                                        context,
+                                      ).playerUnknownArtist,
                                   style: theme.textTheme.bodyLarge?.copyWith(
                                     color: theme.colorScheme.onSurfaceVariant,
                                   ),
@@ -339,11 +343,11 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
           icon: const Icon(Icons.keyboard_arrow_down_rounded),
           iconSize: 32,
           color: topBarColor,
-          tooltip: '收起',
+          tooltip: AppLocalizations.of(context).playerCollapse,
         ),
         // 中间标题
         Text(
-          '正在播放',
+          AppLocalizations.of(context).playerNowPlaying,
           style: TextStyle(
             color: topBarColor.withValues(alpha: 0.9),
             fontSize: 14,
@@ -368,7 +372,7 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
                     color: colorScheme.error,
                   ),
                   title: Text(
-                    '删除当前歌曲',
+                    AppLocalizations.of(context).playerDeleteCurrentSong,
                     style: TextStyle(color: colorScheme.error),
                   ),
                   dense: true,
@@ -486,7 +490,7 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
               QueueBottomSheet.show(context);
             },
             icon: const Icon(Icons.queue_music_rounded),
-            tooltip: '播放队列',
+            tooltip: AppLocalizations.of(context).playerQueueTitle,
           ),
         ),
       ],

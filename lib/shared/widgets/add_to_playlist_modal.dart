@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/playlist/domain/playlist.dart';
 import '../../features/playlist/presentation/providers/playlist_provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../utils/responsive_snackbar.dart';
 import 'cover_image.dart';
 import 'loading_indicator.dart';
@@ -47,6 +48,7 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
   /// 底部加载更多指示器
   Widget _buildLoadMoreFooter(PaginatedPlaylistsState state) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     if (state.isLoadingMore) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 16),
@@ -67,7 +69,7 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
             onPressed:
                 () => ref.read(playlistListProvider(null).notifier).loadMore(),
             icon: const Icon(Icons.refresh, size: 16),
-            label: const Text('加载失败，点击重试'),
+            label: Text(l10n.loadFailedTapRetry),
           ),
         ),
       );
@@ -77,7 +79,7 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Center(
           child: Text(
-            '— 已加载全部 —',
+            l10n.loadedAllHint,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -100,18 +102,26 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
       );
 
       if (!mounted) return;
+      final l10n = AppLocalizations.of(context);
       if (result == null) {
-        ResponsiveSnackBar.showError(context, message: '添加失败');
+        ResponsiveSnackBar.showError(context, message: l10n.addFailed);
       } else {
         Navigator.of(context).pop();
         final msg = result.skipped > 0
-            ? '已添加 ${result.added} 首到「${playlist.name}」，跳过 ${result.skipped} 首'
-            : '已添加 ${result.added} 首歌曲到「${playlist.name}」';
+            ? l10n.addedToPlaylistWithSkip(
+              result.added,
+              playlist.name,
+              result.skipped,
+            )
+            : l10n.addedToPlaylist(result.added, playlist.name);
         ResponsiveSnackBar.show(context, message: msg);
       }
     } catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '添加失败: $e');
+        ResponsiveSnackBar.showError(
+          context,
+          message: AppLocalizations.of(context).addFailedDetail('$e'),
+        );
       }
     } finally {
       if (mounted) {
@@ -123,17 +133,18 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
   /// 显示创建新歌单对话框
   Future<void> _showCreatePlaylistDialog() async {
     final nameController = TextEditingController();
+    final l10n = AppLocalizations.of(context);
 
     final name = await showDialog<String>(
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('新建歌单'),
+            title: Text(l10n.newPlaylist),
             content: TextField(
               controller: nameController,
-              decoration: const InputDecoration(
-                labelText: '歌单名称',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.playlistNameLabel,
+                border: const OutlineInputBorder(),
               ),
               autofocus: true,
               onSubmitted: (value) {
@@ -146,7 +157,7 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('取消'),
+                child: Text(l10n.commonCancel),
               ),
               FilledButton(
                 onPressed: () {
@@ -155,7 +166,7 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
                     Navigator.of(context).pop(trimmed);
                   }
                 },
-                child: const Text('创建'),
+                child: Text(l10n.commonCreate),
               ),
             ],
           ),
@@ -181,17 +192,24 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
         if (!mounted) return;
         if (result != null) {
           Navigator.of(context).pop();
+          final l10n2 = AppLocalizations.of(context);
           final msg = result.skipped > 0
-              ? '已创建歌单「$name」并添加 ${result.added} 首，跳过 ${result.skipped} 首'
-              : '已创建歌单「$name」并添加 ${result.added} 首歌曲';
+              ? l10n2.createdPlaylistWithSkip(name, result.added, result.skipped)
+              : l10n2.createdPlaylistAdded(name, result.added);
           ResponsiveSnackBar.show(context, message: msg);
         }
       } else if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '创建歌单失败');
+        ResponsiveSnackBar.showError(
+          context,
+          message: AppLocalizations.of(context).createPlaylistFailed,
+        );
       }
     } catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '创建歌单失败: $e');
+        ResponsiveSnackBar.showError(
+          context,
+          message: AppLocalizations.of(context).createPlaylistFailedDetail('$e'),
+        );
       }
     } finally {
       if (mounted) {
@@ -203,6 +221,7 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final playlistsAsync = ref.watch(playlistListProvider(null));
 
     return LoadingOverlay(
@@ -233,10 +252,10 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
                 ),
                 child: Row(
                   children: [
-                    Text('添加到歌单', style: theme.textTheme.titleLarge),
+                    Text(l10n.addToPlaylist, style: theme.textTheme.titleLarge),
                     const Spacer(),
                     Text(
-                      '${widget.songIds.length} 首歌曲',
+                      l10n.songsCount(widget.songIds.length),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -256,7 +275,7 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
                   ),
                   child: Icon(Icons.add, color: theme.colorScheme.primary),
                 ),
-                title: const Text('新建歌单'),
+                title: Text(l10n.newPlaylist),
                 onTap: _isAdding ? null : _showCreatePlaylistDialog,
               ),
               const Divider(height: 1),
@@ -268,7 +287,7 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
                     if (playlists.isEmpty) {
                       return Center(
                         child: Text(
-                          '暂无歌单',
+                          l10n.noPlaylists,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -295,7 +314,9 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
                             ),
                             title: Text(playlist.name),
                             subtitle: Text(
-                              playlist.type == 'radio' ? '电台' : '歌单',
+                              playlist.type == 'radio'
+                                  ? l10n.songTypeRadio
+                                  : l10n.navPlaylists,
                             ),
                             onTap:
                                 _isAdding
@@ -320,7 +341,7 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              '加载失败',
+                              l10n.commonLoadFailed,
                               style: TextStyle(color: theme.colorScheme.error),
                             ),
                             const SizedBox(height: 8),
@@ -330,7 +351,7 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
                                     playlistListProvider(null),
                                   ),
                               icon: const Icon(Icons.refresh),
-                              label: const Text('重试'),
+                              label: Text(l10n.commonRetry),
                             ),
                           ],
                         ),

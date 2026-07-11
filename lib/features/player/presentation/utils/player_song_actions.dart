@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/utils/responsive_snackbar.dart';
 import '../../../../shared/widgets/delete_song_dialog.dart';
 import '../../../library/presentation/providers/songs_provider.dart';
@@ -14,10 +15,11 @@ Future<bool> deleteCurrentSongFromPlayer(
   final song = state.currentSong;
   if (song == null) return false;
 
+  final l10n = AppLocalizations.of(context);
   final result = await DeleteSongDialog.show(
     context,
-    title: '删除歌曲',
-    content: '确定要从歌曲库中删除「${song.title}」吗？',
+    title: l10n.playerDeleteSongTitle,
+    content: l10n.playerDeleteSongConfirm(song.title),
   );
   if (result == null) return false;
 
@@ -33,12 +35,12 @@ Future<bool> deleteCurrentSongFromPlayer(
     }
     ref.invalidate(songsListProvider);
     if (context.mounted) {
-      ResponsiveSnackBar.showSuccess(context, message: '歌曲已删除');
+      ResponsiveSnackBar.showSuccess(context, message: l10n.playerSongDeleted);
     }
     return true;
   } catch (e) {
     if (context.mounted) {
-      ResponsiveSnackBar.showError(context, message: '删除失败');
+      ResponsiveSnackBar.showError(context, message: l10n.playerDeleteFailed);
     }
     return false;
   }

@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../../../config/app_config.dart';
+import '../../../l10n/l10n_holder.dart';
 
 /// 前端版本检查结果模型
 class FrontendVersionCheck {
@@ -36,7 +37,7 @@ class FrontendVersionCheck {
   });
 
   String get latestVersionDisplay =>
-      latestVersion == 'dev' ? '开发版本' : 'v$latestVersion';
+      latestVersion == 'dev' ? l10n.settingsFrontendVerDevVersion : 'v$latestVersion';
 
   @override
   String toString() =>
@@ -128,9 +129,9 @@ class FrontendVersionApi {
         assets: assets,
       );
     } on DioException catch (e) {
-      throw Exception('检查前端更新失败: ${e.message}');
+      throw Exception(l10n.settingsFrontendVerCheckFailed(e.message ?? ''));
     } catch (e) {
-      throw Exception('检查前端更新失败: $e');
+      throw Exception(l10n.settingsFrontendVerCheckFailed(e.toString()));
     }
   }
 

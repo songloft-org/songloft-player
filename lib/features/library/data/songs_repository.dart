@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../../../l10n/l10n_holder.dart';
 import '../../../shared/models/song.dart';
 import 'songs_api.dart';
 
@@ -222,31 +223,31 @@ class SongsRepository {
       }
       switch (response.statusCode) {
         case 400:
-          return Exception('请求参数错误');
+          return Exception(l10n.libraryErrorBadRequest);
         case 401:
-          return Exception('未授权，请重新登录');
+          return Exception(l10n.libraryErrorUnauthorized);
         case 403:
-          return Exception('没有权限执行此操作');
+          return Exception(l10n.libraryErrorForbidden);
         case 404:
-          return Exception('歌曲不存在');
+          return Exception(l10n.libraryErrorNotFound);
         case 500:
-          return Exception('服务器错误，请稍后重试');
+          return Exception(l10n.libraryErrorServer);
         default:
-          return Exception('请求失败：${response.statusCode}');
+          return Exception(l10n.libraryErrorRequestFailed(response.statusCode ?? 0));
       }
     }
     switch (e.type) {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
-        return Exception('网络连接超时，请检查网络');
+        return Exception(l10n.libraryErrorTimeout);
       case DioExceptionType.connectionError:
-        return Exception('网络连接失败，请检查网络');
+        return Exception(l10n.libraryErrorConnection);
       default:
         if (e.type.name == 'transformTimeout') {
-          return Exception('网络连接超时，请检查网络');
+          return Exception(l10n.libraryErrorTimeout);
         }
-        return Exception('网络错误：${e.message}');
+        return Exception(l10n.libraryErrorNetwork(e.message ?? ''));
     }
   }
 }

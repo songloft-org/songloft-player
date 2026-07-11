@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/api_client.dart';
+import '../../../../l10n/l10n_holder.dart';
 import '../../../auth/domain/auth_state.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../playlist/data/playlist_api.dart';
@@ -194,7 +195,7 @@ class FavoriteNotifier extends Notifier<FavoriteState> {
     }
 
     if (state.favoriteSongPlaylistId == null) {
-      throw Exception('收藏歌单不存在');
+      throw Exception(l10n.libraryFavoritePlaylistNotFound);
     }
 
     final isFavorited = state.favoriteSongIds.contains(songId);
@@ -231,7 +232,7 @@ class FavoriteNotifier extends Notifier<FavoriteState> {
     }
 
     if (state.favoriteRadioPlaylistId == null) {
-      throw Exception('电台收藏歌单不存在');
+      throw Exception(l10n.libraryRadioFavoritePlaylistNotFound);
     }
 
     final isFavorited = state.favoriteRadioIds.contains(radioId);

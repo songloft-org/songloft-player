@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/url_helper.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/favorite_button.dart';
 import '../../domain/player_state.dart';
 import '../providers/player_provider.dart';
@@ -89,7 +90,7 @@ class DesktopPlayer extends ConsumerWidget {
           ),
           const SizedBox(width: 12),
           Text(
-            '无播放内容',
+            AppLocalizations.of(context).playerNoContent,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
             ),
@@ -107,7 +108,7 @@ class DesktopPlayer extends ConsumerWidget {
         Expanded(
           child: Semantics(
             button: true,
-            label: '打开全屏播放器',
+            label: AppLocalizations.of(context).playerOpenFullPlayer,
             child: GestureDetector(
               onTap: () => DesktopFullPlayer.show(context),
               behavior: HitTestBehavior.opaque,
@@ -157,7 +158,8 @@ class DesktopPlayer extends ConsumerWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          song.artist ?? '未知艺术家',
+                          song.artist ??
+                              AppLocalizations.of(context).playerUnknownArtist,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -248,7 +250,7 @@ class DesktopPlayer extends ConsumerWidget {
       IconButton(
         onPressed: () => showEqualizerSheet(context),
         icon: const Icon(Icons.equalizer_rounded, size: 20),
-        tooltip: '均衡器',
+        tooltip: AppLocalizations.of(context).playerEqualizer,
         visualDensity: VisualDensity.compact,
       ),
       // 投屏
@@ -265,7 +267,7 @@ class DesktopPlayer extends ConsumerWidget {
           size: 20,
           color: state.showPlaylistDrawer ? theme.colorScheme.primary : null,
         ),
-        tooltip: '播放列表',
+        tooltip: AppLocalizations.of(context).playerPlaylist,
         visualDensity: VisualDensity.compact,
       ),
     ];
@@ -352,7 +354,7 @@ class DesktopPlayer extends ConsumerWidget {
                 ? null
                 : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
       ),
-      tooltip: '歌词',
+      tooltip: AppLocalizations.of(context).playerLyrics,
       visualDensity: VisualDensity.compact,
     );
   }

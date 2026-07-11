@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import '../../l10n/l10n_holder.dart';
+
 class ServerEntry {
   final String id;
   final String name;
@@ -26,11 +28,13 @@ class ServerEntry {
   static String normalizeUrl(String input) {
     final trimmed = input.trim().replaceAll(RegExp(r'/+$'), '');
     if (trimmed.isEmpty) {
-      throw const FormatException('URL 不能为空');
+      throw FormatException(l10nOrNull?.coreUrlEmpty ?? 'URL 不能为空');
     }
     final uri = Uri.tryParse(trimmed);
     if (uri == null || !uri.hasScheme) {
-      throw const FormatException('请输入有效的 URL（包含 http:// 或 https://）');
+      throw FormatException(
+        l10nOrNull?.coreUrlInvalid ?? '请输入有效的 URL（包含 http:// 或 https://）',
+      );
     }
     return trimmed;
   }

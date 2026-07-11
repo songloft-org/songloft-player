@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../config/app_config.dart';
 import '../../../core/storage/secure_storage.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../settings/presentation/providers/settings_provider.dart';
 import 'plugin_theme_utils.dart';
 
@@ -91,7 +92,7 @@ class _PluginTabPageState extends ConsumerState<PluginTabPage>
       if (!mounted || !_isLoading) return;
       setState(() {
         _isLoading = false;
-        _errorMessage = '页面加载超时，请检查插件是否可用或网络连接';
+        _errorMessage = AppLocalizations.of(context).homePluginLoadTimeout;
       });
     });
   }
@@ -210,7 +211,12 @@ class _PluginTabPageState extends ConsumerState<PluginTabPage>
             final status = errorResponse.statusCode;
             final reason = errorResponse.reasonPhrase;
             final detail = reason == null || reason.isEmpty ? '' : ' $reason';
-            _finishLoadingWithError('页面加载失败: HTTP $status$detail');
+            _finishLoadingWithError(
+              AppLocalizations.of(context).homePluginLoadFailedHttp(
+                status.toString(),
+                detail,
+              ),
+            );
           }
         },
       ),
@@ -224,12 +230,15 @@ class _PluginTabPageState extends ConsumerState<PluginTabPage>
         children: [
           Icon(Icons.error_outline, size: 64, color: colorScheme.error),
           const SizedBox(height: 16),
-          Text('页面加载失败', style: Theme.of(context).textTheme.headlineSmall),
+          Text(
+            AppLocalizations.of(context).homePluginLoadFailed,
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
           const SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Text(
-              _errorMessage ?? '未知错误',
+              _errorMessage ?? AppLocalizations.of(context).homePluginUnknownError,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
@@ -247,7 +256,7 @@ class _PluginTabPageState extends ConsumerState<PluginTabPage>
               _webViewController?.reload();
             },
             icon: const Icon(Icons.refresh),
-            label: const Text('重试'),
+            label: Text(AppLocalizations.of(context).commonRetry),
           ),
         ],
       ),

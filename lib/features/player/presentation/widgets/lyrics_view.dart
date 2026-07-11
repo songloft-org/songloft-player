@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/models/song.dart';
 import '../lyric_adjust_page.dart';
 import '../providers/lyric_provider.dart';
@@ -148,7 +149,7 @@ class _LyricsViewState extends ConsumerState<LyricsView> {
             ),
             const SizedBox(height: 12),
             Text(
-              '正在加载歌词...',
+              AppLocalizations.of(context).playerLyricsLoading,
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant.withValues(
                   alpha: 0.6,
@@ -163,7 +164,7 @@ class _LyricsViewState extends ConsumerState<LyricsView> {
     if (lyricState.loadFailed) {
       return Center(
         child: Text(
-          '歌词加载失败',
+          AppLocalizations.of(context).playerLyricsLoadFailed,
           style: theme.textTheme.bodyLarge?.copyWith(
             color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
           ),
@@ -174,7 +175,7 @@ class _LyricsViewState extends ConsumerState<LyricsView> {
     if (!lyricState.hasLyrics) {
       return Center(
         child: Text(
-          '暂无歌词',
+          AppLocalizations.of(context).playerLyricsEmpty,
           style: theme.textTheme.bodyLarge?.copyWith(
             color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
           ),
@@ -221,7 +222,7 @@ class _LyricsViewState extends ConsumerState<LyricsView> {
 
               return Semantics(
                 button: true,
-                label: '跳转到此歌词位置',
+                label: AppLocalizations.of(context).playerLyricsSeekTo,
                 child: GestureDetector(
                   onTap: () {
                     if (widget.onSeek != null) {
@@ -271,7 +272,7 @@ class _LyricsViewState extends ConsumerState<LyricsView> {
             color: Colors.transparent,
             child: IconButton(
               icon: const Icon(Icons.tune, size: 22),
-              tooltip: '调整歌词',
+              tooltip: AppLocalizations.of(context).playerAdjustLyrics,
               color: theme.colorScheme.primary,
               onPressed: _openAdjustPage,
             ),

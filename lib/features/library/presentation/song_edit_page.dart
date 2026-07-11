@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../config/constants.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/utils/url_helper.dart';
 import '../../../shared/models/song.dart';
 import '../../../shared/utils/responsive_snackbar.dart';
@@ -77,12 +78,17 @@ class _SongEditPageState extends ConsumerState<SongEditPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(
           isEditMode
-              ? (isLocal ? '编辑本地歌曲' : (isRadio ? '编辑电台' : '编辑网络歌曲'))
-              : (isRadio ? '添加电台' : '添加网络歌曲'),
+              ? (isLocal
+                  ? l10n.libraryEditLocalSong
+                  : (isRadio
+                      ? l10n.libraryEditRadio
+                      : l10n.libraryEditRemoteSong))
+              : (isRadio ? l10n.libraryAddRadio : l10n.libraryAddRemoteSong),
         ),
         actions: [
           TextButton(
@@ -94,7 +100,7 @@ class _SongEditPageState extends ConsumerState<SongEditPage> {
                       height: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                    : const Text('保存'),
+                    : Text(l10n.librarySave),
           ),
         ],
       ),
@@ -114,20 +120,31 @@ class _SongEditPageState extends ConsumerState<SongEditPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          isLocal ? '文件信息（只读）' : '服务端端点（只读）',
+                          isLocal
+                              ? l10n.libraryFileInfoReadonly
+                              : l10n.libraryServerEndpointReadonly,
                           style: Theme.of(context).textTheme.titleSmall,
                         ),
                         const SizedBox(height: 8),
                         if (isLocal)
-                          _buildReadOnlyUrlRow('文件', widget.song!.filePath)
+                          _buildReadOnlyUrlRow(
+                            l10n.libraryReadonlyFile,
+                            widget.song!.filePath,
+                          )
                         else ...[
-                          _buildReadOnlyUrlRow('播放', widget.song!.url),
+                          _buildReadOnlyUrlRow(l10n.libraryPlay, widget.song!.url),
                           if (widget.song!.coverUrl != null &&
                               widget.song!.coverUrl!.isNotEmpty)
-                            _buildReadOnlyUrlRow('封面', widget.song!.coverUrl!),
+                            _buildReadOnlyUrlRow(
+                              l10n.libraryReadonlyCover,
+                              widget.song!.coverUrl!,
+                            ),
                           if (widget.song!.lyricUrl != null &&
                               widget.song!.lyricUrl!.isNotEmpty)
-                            _buildReadOnlyUrlRow('歌词', widget.song!.lyricUrl!),
+                            _buildReadOnlyUrlRow(
+                              l10n.libraryReadonlyLyric,
+                              widget.song!.lyricUrl!,
+                            ),
                         ],
                       ],
                     ),
@@ -139,14 +156,14 @@ class _SongEditPageState extends ConsumerState<SongEditPage> {
               // 标题
               TextFormField(
                 controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: '标题 *',
-                  hintText: '请输入标题',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.libraryEditTitleLabel,
+                  hintText: l10n.libraryEditTitleRequired,
+                  border: const OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return '请输入标题';
+                    return l10n.libraryEditTitleRequired;
                   }
                   return null;
                 },
@@ -157,10 +174,10 @@ class _SongEditPageState extends ConsumerState<SongEditPage> {
               // 艺术家
               TextFormField(
                 controller: _artistController,
-                decoration: const InputDecoration(
-                  labelText: '艺术家',
-                  hintText: '请输入艺术家',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.libraryColumnArtist,
+                  hintText: l10n.libraryEditArtistHint,
+                  border: const OutlineInputBorder(),
                 ),
                 textInputAction: TextInputAction.next,
               ),
@@ -170,10 +187,10 @@ class _SongEditPageState extends ConsumerState<SongEditPage> {
               if (!isRadio) ...[
                 TextFormField(
                   controller: _albumController,
-                  decoration: const InputDecoration(
-                    labelText: '专辑',
-                    hintText: '请输入专辑',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.libraryColumnAlbum,
+                    hintText: l10n.libraryEditAlbumHint,
+                    border: const OutlineInputBorder(),
                   ),
                   textInputAction: TextInputAction.next,
                 ),
@@ -186,8 +203,8 @@ class _SongEditPageState extends ConsumerState<SongEditPage> {
                   contentPadding: EdgeInsets.zero,
                   value: _renameFile,
                   onChanged: (v) => setState(() => _renameFile = v),
-                  title: const Text('同步重命名文件'),
-                  subtitle: const Text('按新标题重命名本地音频文件，同时写入 title 标签'),
+                  title: Text(l10n.libraryRenameFileTitle),
+                  subtitle: Text(l10n.libraryRenameFileSubtitle),
                 ),
                 const SizedBox(height: 8),
               ],
@@ -199,17 +216,19 @@ class _SongEditPageState extends ConsumerState<SongEditPage> {
                   TextFormField(
                     controller: _urlController,
                     decoration: InputDecoration(
-                      labelText: isEditMode ? '源音频 URL *' : 'URL *',
-                      hintText: '请输入音频链接',
+                      labelText: isEditMode
+                          ? l10n.libraryEditSourceUrlLabel
+                          : l10n.libraryEditUrlLabel,
+                      hintText: l10n.libraryEditUrlHint,
                       border: const OutlineInputBorder(),
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return '请输入 URL';
+                        return l10n.libraryEditUrlRequired;
                       }
                       final uri = Uri.tryParse(value);
                       if (uri == null || !uri.hasScheme) {
-                        return '请输入有效的 URL';
+                        return l10n.libraryEditUrlInvalid;
                       }
                       return null;
                     },
@@ -223,8 +242,10 @@ class _SongEditPageState extends ConsumerState<SongEditPage> {
                 TextFormField(
                   controller: _coverUrlController,
                   decoration: InputDecoration(
-                    labelText: isEditMode ? '源封面 URL' : '封面 URL',
-                    hintText: '请输入封面图片链接',
+                    labelText: isEditMode
+                        ? l10n.libraryEditSourceCoverUrlLabel
+                        : l10n.libraryEditCoverUrlLabel,
+                    hintText: l10n.libraryEditCoverUrlHint,
                     border: const OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.url,
@@ -236,10 +257,10 @@ class _SongEditPageState extends ConsumerState<SongEditPage> {
                 if (!isRadio) ...[
                   TextFormField(
                     controller: _durationController,
-                    decoration: const InputDecoration(
-                      labelText: '时长（秒）',
-                      hintText: '请输入时长',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.libraryEditDurationLabel,
+                      hintText: l10n.libraryEditDurationHint,
+                      border: const OutlineInputBorder(),
                     ),
                     keyboardType: TextInputType.number,
                     textInputAction: TextInputAction.next,
@@ -252,8 +273,10 @@ class _SongEditPageState extends ConsumerState<SongEditPage> {
                   TextFormField(
                     controller: _lyricUrlController,
                     decoration: InputDecoration(
-                      labelText: isEditMode ? '歌词远程 URL' : '歌词 URL',
-                      hintText: '请输入歌词接口链接',
+                      labelText: isEditMode
+                          ? l10n.libraryEditLyricRemoteUrlLabel
+                          : l10n.libraryEditLyricUrlLabel,
+                      hintText: l10n.libraryEditLyricUrlHint,
                       border: const OutlineInputBorder(),
                     ),
                     keyboardType: TextInputType.url,
@@ -272,7 +295,7 @@ class _SongEditPageState extends ConsumerState<SongEditPage> {
                   if (previewUrl.isEmpty) return const SizedBox.shrink();
                   return Column(
                     children: [
-                      const Text('封面预览：'),
+                      Text(l10n.libraryCoverPreview),
                       const SizedBox(height: 8),
                       Center(
                         child: ClipRRect(
@@ -336,9 +359,12 @@ class _SongEditPageState extends ConsumerState<SongEditPage> {
             icon: const Icon(Icons.copy, size: 18),
             onPressed: () {
               Clipboard.setData(ClipboardData(text: url));
-              ResponsiveSnackBar.show(context, message: '已复制');
+              ResponsiveSnackBar.show(
+                context,
+                message: AppLocalizations.of(context).libraryCopied,
+              );
             },
-            tooltip: '复制',
+            tooltip: AppLocalizations.of(context).libraryCopy,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
           ),
@@ -452,12 +478,19 @@ class _SongEditPageState extends ConsumerState<SongEditPage> {
       }
 
       if (mounted) {
-        ResponsiveSnackBar.show(context, message: isEditMode ? '保存成功' : '添加成功');
+        final l10n = AppLocalizations.of(context);
+        ResponsiveSnackBar.show(
+          context,
+          message: isEditMode ? l10n.librarySaveSuccess : l10n.libraryAddSuccess,
+        );
         Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '操作失败: $e');
+        ResponsiveSnackBar.showError(
+          context,
+          message: AppLocalizations.of(context).libraryOperationFailed('$e'),
+        );
       }
     } finally {
       if (mounted) {

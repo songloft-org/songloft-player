@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../config/constants.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/responsive.dart';
 import '../../../shared/models/song.dart';
@@ -66,12 +67,13 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
         .read(playerStateProvider.notifier)
         .playAllSongs(keyword: state.keyword, type: state.type);
     if (!mounted) return;
+    final l10n = AppLocalizations.of(context);
     if (total < 0) {
-      ResponsiveSnackBar.showError(context, message: '播放失败');
+      ResponsiveSnackBar.showError(context, message: l10n.libraryPlayFailed);
     } else if (total == 0) {
-      ResponsiveSnackBar.show(context, message: '没有可播放的歌曲');
+      ResponsiveSnackBar.show(context, message: l10n.libraryNoPlayableSongs);
     } else {
-      ResponsiveSnackBar.show(context, message: '播放全部 $total 首歌曲');
+      ResponsiveSnackBar.show(context, message: l10n.libraryPlayingAllSongs(total));
     }
   }
 
@@ -115,7 +117,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
                       Icons.close,
                       color: colorScheme.onErrorContainer,
                     ),
-                    tooltip: '关闭提示',
+                    tooltip: AppLocalizations.of(context).libraryDismissError,
                     onPressed: () {
                       ref.read(songsListProvider.notifier).clearError();
                     },
@@ -131,20 +133,21 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
   }
 
   PreferredSizeWidget _buildAppBar(BuildContext context, SongsListState state) {
+    final l10n = AppLocalizations.of(context);
     if (state.isSelectionMode) {
       return AppBar(
         leading: IconButton(
           icon: const Icon(Icons.close),
-          tooltip: '退出多选',
+          tooltip: l10n.libraryExitSelection,
           onPressed: () {
             ref.read(songsListProvider.notifier).toggleSelectMode();
           },
         ),
-        title: Text('已选择 ${state.selectedSongIds.length} 首'),
+        title: Text(l10n.librarySelectedCount(state.selectedSongIds.length)),
         actions: [
           TextButton.icon(
             icon: const Icon(Icons.playlist_add),
-            label: const Text('添加到歌单'),
+            label: Text(l10n.addToPlaylist),
             onPressed:
                 state.selectedSongIds.isEmpty
                     ? null
@@ -162,7 +165,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
                       : Theme.of(context).colorScheme.error,
             ),
             label: Text(
-              '删除(${state.selectedSongIds.length})',
+              l10n.libraryDeleteWithCount(state.selectedSongIds.length),
               style: TextStyle(
                 color:
                     state.selectedSongIds.isEmpty
@@ -190,8 +193,8 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
                 : Text(
                     (state.total > 0 &&
                             state.selectedSongIds.length >= state.total)
-                        ? '取消全选'
-                        : '全选',
+                        ? l10n.libraryDeselectAll
+                        : l10n.selectAll,
                   ),
           ),
         ],
@@ -199,18 +202,18 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
     }
 
     return AppBar(
-      title: const Text('歌曲库'),
+      title: Text(l10n.libraryTitle),
       actions: [
         // 播放全部
         IconButton(
           icon: const Icon(Icons.play_circle_outline),
-          tooltip: '播放全部',
+          tooltip: l10n.libraryPlayAll,
           onPressed: state.songs.isEmpty ? null : () => _playAll(state),
         ),
         // 排序
         PopupMenuButton<String>(
           icon: const Icon(Icons.sort),
-          tooltip: '排序',
+          tooltip: l10n.librarySort,
           onSelected: (value) {
             final (sort, order) = switch (value) {
               'added_at' => ('added_at', 'desc'),
@@ -227,31 +230,31 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
                 _buildLibrarySortItem(
                   value: 'added_at',
                   icon: Icons.schedule,
-                  title: '最近加入',
+                  title: l10n.librarySortAddedAt,
                   isSelected: state.sort == 'added_at',
                 ),
                 _buildLibrarySortItem(
                   value: 'file_modified_at',
                   icon: Icons.insert_drive_file_outlined,
-                  title: '文件时间',
+                  title: l10n.librarySortFileTime,
                   isSelected: state.sort == 'file_modified_at',
                 ),
                 _buildLibrarySortItem(
                   value: 'title',
                   icon: Icons.sort_by_alpha,
-                  title: '标题',
+                  title: l10n.libraryColumnTitle,
                   isSelected: state.sort == 'title',
                 ),
                 _buildLibrarySortItem(
                   value: 'artist',
                   icon: Icons.person,
-                  title: '艺术家',
+                  title: l10n.libraryColumnArtist,
                   isSelected: state.sort == 'artist',
                 ),
                 _buildLibrarySortItem(
                   value: 'duration',
                   icon: Icons.timer,
-                  title: '时长',
+                  title: l10n.libraryColumnDuration,
                   isSelected: state.sort == 'duration',
                 ),
               ],
@@ -259,7 +262,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
         // 多选按钮
         IconButton(
           icon: const Icon(Icons.checklist),
-          tooltip: '多选',
+          tooltip: l10n.librarySelectMode,
           onPressed: () {
             ref.read(songsListProvider.notifier).toggleSelectMode();
           },
@@ -267,7 +270,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
         // 更多菜单
         PopupMenuButton<String>(
           icon: const Icon(Icons.more_vert),
-          tooltip: '更多',
+          tooltip: l10n.libraryMore,
           onSelected: (value) {
             switch (value) {
               case 'add_remote':
@@ -284,19 +287,19 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
           },
           itemBuilder:
               (context) => [
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'add_remote',
                   child: ListTile(
-                    leading: Icon(Icons.cloud),
-                    title: Text('添加网络歌曲'),
+                    leading: const Icon(Icons.cloud),
+                    title: Text(l10n.libraryAddRemoteSong),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'add_radio',
                   child: ListTile(
-                    leading: Icon(Icons.radio),
-                    title: Text('添加电台'),
+                    leading: const Icon(Icons.radio),
+                    title: Text(l10n.libraryAddRadio),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
@@ -309,16 +312,18 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
                           : Icons.visibility,
                     ),
                     title: Text(
-                      state.showHidden ? '隐藏已隐藏歌曲' : '显示隐藏歌曲',
+                      state.showHidden
+                          ? l10n.libraryHideHiddenSongs
+                          : l10n.libraryShowHiddenSongs,
                     ),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'clean',
                   child: ListTile(
-                    leading: Icon(Icons.cleaning_services),
-                    title: Text('清理无效歌曲'),
+                    leading: const Icon(Icons.cleaning_services),
+                    title: Text(l10n.libraryCleanInvalidSongs),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
@@ -349,6 +354,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
   }
 
   Widget _buildSearchBar(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final horizontalPadding = context.responsive<double>(
       mobile: AppSpacing.md,
       tablet: AppSpacing.lg,
@@ -360,13 +366,13 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
       child: TextField(
         controller: _searchController,
         decoration: InputDecoration(
-          hintText: '搜索歌曲...',
+          hintText: l10n.librarySearchHint,
           prefixIcon: const Icon(Icons.search),
           suffixIcon:
               _searchController.text.isNotEmpty
                   ? IconButton(
                     icon: const Icon(Icons.clear),
-                    tooltip: '清除搜索',
+                    tooltip: l10n.clearSearch,
                     onPressed: () {
                       _searchController.clear();
                       ref.read(songsListProvider.notifier).search('');
@@ -458,6 +464,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
   }
 
   Widget _buildDesktopList(BuildContext context, SongsListState state) {
+    final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final currentSong = ref.watch(currentSongProvider);
@@ -499,7 +506,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
                   Expanded(
                     flex: 3,
                     child: Text(
-                      '标题',
+                      l10n.libraryColumnTitle,
                       style: textTheme.titleSmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -509,7 +516,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
                   Expanded(
                     flex: 2,
                     child: Text(
-                      '艺术家',
+                      l10n.libraryColumnArtist,
                       style: textTheme.titleSmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -520,7 +527,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
                     Expanded(
                       flex: 2,
                       child: Text(
-                        '专辑',
+                        l10n.libraryColumnAlbum,
                         style: textTheme.titleSmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -531,7 +538,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
                   SizedBox(
                     width: 60,
                     child: Text(
-                      '类型',
+                      l10n.libraryColumnType,
                       style: textTheme.titleSmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -541,7 +548,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
                   SizedBox(
                     width: 60,
                     child: Text(
-                      '时长',
+                      l10n.libraryColumnDuration,
                       style: textTheme.titleSmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -610,6 +617,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
   }
 
   Widget _buildEmptyState(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
     final state = ref.watch(songsListProvider);
 
@@ -632,14 +640,18 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
           ),
           const SizedBox(height: 24),
           Text(
-            state.keyword.isNotEmpty ? '未找到匹配的歌曲' : '歌曲库为空',
+            state.keyword.isNotEmpty
+                ? l10n.libraryNoMatchingSongs
+                : l10n.libraryEmpty,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            state.keyword.isNotEmpty ? '尝试其他关键词' : '添加一些歌曲开始吧',
+            state.keyword.isNotEmpty
+                ? l10n.libraryTryOtherKeywords
+                : l10n.libraryEmptyHint,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
             ),
@@ -686,10 +698,11 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
   }
 
   Future<void> _showDeleteConfirmDialog(BuildContext context, int songId) async {
+    final l10n = AppLocalizations.of(context);
     final result = await DeleteSongDialog.show(
       context,
-      title: '确认删除',
-      content: '确定要删除这首歌曲吗？',
+      title: l10n.libraryDeleteConfirmTitle,
+      content: l10n.libraryDeleteConfirmContent,
     );
     if (result != null) {
       await ref
@@ -699,16 +712,17 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
   }
 
   void _showCleanConfirmDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('清理歌曲'),
-            content: const Text('将清理无效的歌曲记录（如文件已删除的本地歌曲）。'),
+            title: Text(l10n.libraryCleanTitle),
+            content: Text(l10n.libraryCleanContent),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('取消'),
+                child: Text(l10n.commonCancel),
               ),
               TextButton(
                 onPressed: () async {
@@ -718,11 +732,11 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
                   if (context.mounted) {
                     ResponsiveSnackBar.show(
                       context,
-                      message: '已清理 $cleaned 首无效歌曲',
+                      message: l10n.libraryCleanedCount(cleaned),
                     );
                   }
                 },
-                child: const Text('清理'),
+                child: Text(l10n.libraryClean),
               ),
             ],
           ),
@@ -734,11 +748,12 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
   }
 
   Future<void> _showBatchDeleteConfirmDialog(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
     final count = ref.read(songsListProvider).selectedSongIds.length;
     final result = await DeleteSongDialog.show(
       context,
-      title: '批量删除',
-      content: '确定要删除选中的 $count 首歌曲吗？',
+      title: l10n.libraryBatchDeleteTitle,
+      content: l10n.libraryBatchDeleteContent(count),
     );
     if (result != null) {
       final deleted = await ref
@@ -746,9 +761,15 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
           .batchDeleteSongs(deleteFiles: result.deleteFiles);
       if (context.mounted) {
         if (deleted > 0) {
-          ResponsiveSnackBar.showSuccess(context, message: '已删除 $deleted 首歌曲');
+          ResponsiveSnackBar.showSuccess(
+            context,
+            message: l10n.libraryDeletedCount(deleted),
+          );
         } else {
-          ResponsiveSnackBar.showError(context, message: '删除失败');
+          ResponsiveSnackBar.showError(
+            context,
+            message: l10n.libraryDeleteFailed,
+          );
         }
       }
     }

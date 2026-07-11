@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/api_exceptions.dart';
 import '../../../../core/theme/app_dimensions.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/utils/responsive_snackbar.dart';
 import '../../../../shared/widgets/directory_tree_selector.dart';
 import '../../data/scan_api.dart';
@@ -49,7 +50,9 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
     } on ApiException catch (e) {
       setState(() => _error = e.message);
     } catch (e) {
-      setState(() => _error = '扫描失败: $e');
+      setState(
+        () => _error = AppLocalizations.of(context).settingsScanScanFailed('$e'),
+      );
     } finally {
       setState(() => _isLoading = false);
     }
@@ -60,11 +63,17 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
       await ref.read(scanProgressProvider.notifier).cancelScan();
     } on ApiException catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '取消失败: ${e.message}');
+        ResponsiveSnackBar.showError(
+          context,
+          message: AppLocalizations.of(context).settingsScanCancelFailed(e.message),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '取消失败: $e');
+        ResponsiveSnackBar.showError(
+          context,
+          message: AppLocalizations.of(context).settingsScanCancelFailed('$e'),
+        );
       }
     }
   }
@@ -74,8 +83,10 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
     setState(() => _error = null);
   }
 
-  String get _modeDescription {
-    return _scanMode == 'skip' ? '仅导入新发现的音乐文件' : '重新扫描并覆盖所有音乐信息';
+  String _modeDescription(AppLocalizations l10n) {
+    return _scanMode == 'skip'
+        ? l10n.settingsScanModeSkipDesc
+        : l10n.settingsScanModeReimportDesc;
   }
 
   @override
@@ -83,6 +94,7 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
     final progress = ref.watch(scanProgressProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,7 +119,7 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.close),
-                  tooltip: '关闭提示',
+                  tooltip: l10n.settingsScanDismiss,
                   onPressed: () => setState(() => _error = null),
                   iconSize: 20,
                 ),
@@ -146,9 +158,9 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
                   Icons.folder_off_outlined,
                   color: colorScheme.onSurfaceVariant,
                 ),
-                title: const Text('排除目录设置'),
+                title: Text(l10n.settingsScanExcludeDirTitle),
                 subtitle: Text(
-                  '配置扫描时需要忽略的目录',
+                  l10n.settingsScanExcludeDirSubtitle,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -189,6 +201,7 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
   Widget _buildIdleState() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -197,16 +210,16 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
         SizedBox(
           width: double.infinity,
           child: SegmentedButton<String>(
-            segments: const [
+            segments: [
               ButtonSegment(
                 value: 'skip',
-                label: Text('跳过已存在'),
-                icon: Icon(Icons.skip_next_outlined),
+                label: Text(l10n.settingsScanModeSkip),
+                icon: const Icon(Icons.skip_next_outlined),
               ),
               ButtonSegment(
                 value: 'reimport',
-                label: Text('重新导入'),
-                icon: Icon(Icons.refresh_outlined),
+                label: Text(l10n.settingsScanModeReimport),
+                icon: const Icon(Icons.refresh_outlined),
               ),
             ],
             selected: {_scanMode},
@@ -230,7 +243,7 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  _modeDescription,
+                  _modeDescription(l10n),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -260,10 +273,10 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
                     : const Icon(Icons.search),
             label: Text(
               _isLoading
-                  ? '正在启动...'
+                  ? l10n.settingsScanStarting
                   : (_selectedPaths.isEmpty
-                      ? '扫描本地音乐'
-                      : '扫描选中的 ${_selectedPaths.length} 个目录'),
+                      ? l10n.settingsScanScanLocal
+                      : l10n.settingsScanScanSelectedDirs(_selectedPaths.length)),
             ),
           ),
         ),
@@ -275,6 +288,7 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
   /// 勾选目录后仅扫描这些目录（含子目录），且过期记录清理仅收敛到所选目录之内；
   /// 不勾选时保持全库扫描行为。
   Widget _buildTargetDirsSection(ThemeData theme, ColorScheme colorScheme) {
+    final l10n = AppLocalizations.of(context);
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -288,11 +302,11 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
               Icons.rule_folder_outlined,
               color: colorScheme.onSurfaceVariant,
             ),
-            title: const Text('指定目录（可选）'),
+            title: Text(l10n.settingsScanTargetDirsTitle),
             subtitle: Text(
               _selectedPaths.isEmpty
-                  ? '仅扫描选中的目录，留空则扫描整个音乐库'
-                  : '已选 ${_selectedPaths.length} 个目录',
+                  ? l10n.settingsScanTargetDirsSubtitle
+                  : l10n.settingsScanTargetDirsSelected(_selectedPaths.length),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -349,7 +363,7 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
                       children: [
                         Expanded(
                           child: Text(
-                            '将扫描的目录:',
+                            l10n.settingsScanDirsToScan,
                             style: theme.textTheme.labelMedium?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),
@@ -358,7 +372,7 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
                         TextButton(
                           onPressed: () =>
                               setState(() => _selectedPaths.clear()),
-                          child: const Text('清空'),
+                          child: Text(l10n.settingsScanClear),
                         ),
                       ],
                     ),
@@ -397,6 +411,7 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
   }
 
   Widget _buildScanningState(ScanProgress progress) {
+    final l10n = AppLocalizations.of(context);
     final isCreatingPlaylists = progress.isCreatingPlaylists;
     final isSplittingCue = progress.isSplittingCue;
     final isDiscovering = progress.status == 'scanning';
@@ -413,10 +428,15 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
         ),
         const SizedBox(height: 12),
         if (isCreatingPlaylists)
-          Text('正在按目录自动创建歌单...', style: Theme.of(context).textTheme.bodySmall)
+          Text(
+            l10n.settingsScanCreatingPlaylists,
+            style: Theme.of(context).textTheme.bodySmall,
+          )
         else if (isSplittingCue) ...[
           Text(
-            '正在切分整轨(CUE)${progress.cueSplitSources > 0 ? ': 已处理 ${progress.cueSplitSources} 个来源' : '...'}',
+            progress.cueSplitSources > 0
+                ? l10n.settingsScanSplittingCueProgress(progress.cueSplitSources)
+                : l10n.settingsScanSplittingCue,
             style: Theme.of(context).textTheme.bodySmall,
           ),
           if (progress.currentFile != null && progress.currentFile!.isNotEmpty) ...[
@@ -430,20 +450,28 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
           ],
         ] else if (isDiscovering) ...[
           Text(
-            '正在发现文件${progress.discoveredFiles > 0 ? ': 已发现 ${progress.discoveredFiles} 个' : '...'}',
+            progress.discoveredFiles > 0
+                ? l10n.settingsScanDiscoveringProgress(progress.discoveredFiles)
+                : l10n.settingsScanDiscovering,
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ] else ...[
           if (progress.currentFile != null)
             Text(
-              '正在扫描: ${progress.currentFile}',
+              l10n.settingsScanScanningFile('${progress.currentFile}'),
               style: Theme.of(context).textTheme.bodySmall,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
           const SizedBox(height: 4),
           Text(
-            '已处理: ${progress.scannedFiles}/${progress.totalFiles}, 导入: ${progress.importedFiles}, 跳过: ${progress.skippedFiles}, 失败: ${progress.failedFiles}',
+            l10n.settingsScanProgressStats(
+              progress.scannedFiles,
+              progress.totalFiles,
+              progress.importedFiles,
+              progress.skippedFiles,
+              progress.failedFiles,
+            ),
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ],
@@ -452,7 +480,7 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
           // CUE 切分阶段后端支持取消，仅自动创建歌单阶段禁用
           onPressed: isCreatingPlaylists ? null : _cancelScan,
           icon: const Icon(Icons.cancel),
-          label: const Text('取消扫描'),
+          label: Text(l10n.settingsScanCancelScan),
         ),
       ],
     );
@@ -462,6 +490,7 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
   Widget _buildAutoCreatePlaylistsTile() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
     final asyncValue = ref.watch(autoCreatePlaylistsProvider);
 
     return Card(
@@ -475,12 +504,12 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
           Icons.playlist_add_outlined,
           color: colorScheme.onSurfaceVariant,
         ),
-        title: const Text('扫描后自动创建歌单'),
+        title: Text(l10n.settingsScanAutoCreatePlaylists),
         subtitle: Text(
           asyncValue.when(
-            data: (_) => '按目录结构自动生成歌单',
-            loading: () => '加载中...',
-            error: (_, _) => '读取配置失败',
+            data: (_) => l10n.settingsScanAutoCreatePlaylistsDesc,
+            loading: () => l10n.settingsScanLoadingConfig,
+            error: (_, _) => l10n.settingsScanReadConfigFailed,
           ),
           style: theme.textTheme.bodySmall?.copyWith(
             color: colorScheme.onSurfaceVariant,
@@ -499,7 +528,7 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
                     if (mounted) {
                       ResponsiveSnackBar.showError(
                         context,
-                        message: '保存失败: $e',
+                        message: l10n.settingsScanSaveFailed('$e'),
                       );
                     }
                   }
@@ -508,16 +537,27 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
     );
   }
 
-  static const _playlistModes = <String, (String, String)>{
-    'directory': ('按文件夹', '每个文件夹生成独立歌单'),
-    'top_level': ('按顶层文件夹', '子文件夹的歌曲合并到一级文件夹歌单'),
-    'bubble_up': ('包含子目录', '歌曲同时出现在所有上级文件夹歌单'),
+  Map<String, (String, String)> _playlistModes(AppLocalizations l10n) => {
+    'directory': (
+      l10n.settingsScanPlaylistModeDirectory,
+      l10n.settingsScanPlaylistModeDirectoryDesc,
+    ),
+    'top_level': (
+      l10n.settingsScanPlaylistModeTopLevel,
+      l10n.settingsScanPlaylistModeTopLevelDesc,
+    ),
+    'bubble_up': (
+      l10n.settingsScanPlaylistModeBubbleUp,
+      l10n.settingsScanPlaylistModeBubbleUpDesc,
+    ),
   };
 
   /// 「歌单创建方式」下拉选择
   Widget _buildPlaylistModeTile() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
+    final playlistModes = _playlistModes(l10n);
     final asyncValue = ref.watch(scanPlaylistModeProvider);
     final autoCreateAsync = ref.watch(autoCreatePlaylistsProvider);
     final autoCreateEnabled = autoCreateAsync.value ?? true;
@@ -526,7 +566,7 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
     const disabledAlpha = 0.4;
 
     final (_, currentDesc) =
-        _playlistModes[currentMode] ?? _playlistModes['directory']!;
+        playlistModes[currentMode] ?? playlistModes['directory']!;
 
     return Card(
       elevation: 0,
@@ -543,7 +583,7 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
                   : colorScheme.onSurfaceVariant.withValues(alpha: disabledAlpha),
         ),
         title: Text(
-          '歌单创建方式',
+          l10n.settingsScanPlaylistModeTitle,
           style: TextStyle(
             color:
                 autoCreateEnabled
@@ -555,10 +595,10 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
           autoCreateEnabled
               ? asyncValue.when(
                 data: (_) => currentDesc,
-                loading: () => '加载中...',
-                error: (_, _) => '读取配置失败',
+                loading: () => l10n.settingsScanLoadingConfig,
+                error: (_, _) => l10n.settingsScanReadConfigFailed,
               )
-              : '已关闭自动创建歌单，此项不生效',
+              : l10n.settingsScanPlaylistModeDisabled,
           style: theme.textTheme.bodySmall?.copyWith(
             color:
                 autoCreateEnabled
@@ -582,14 +622,14 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
                       if (mounted) {
                         ResponsiveSnackBar.showError(
                           context,
-                          message: '保存失败: $e',
+                          message: l10n.settingsScanSaveFailed('$e'),
                         );
                       }
                     }
                   },
           selectedItemBuilder:
               (_) =>
-                  _playlistModes.entries.map((e) {
+                  playlistModes.entries.map((e) {
                     final (label, _) = e.value;
                     return Align(
                       alignment: Alignment.centerRight,
@@ -597,7 +637,7 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
                     );
                   }).toList(),
           items:
-              _playlistModes.entries.map((e) {
+              playlistModes.entries.map((e) {
                 final (label, desc) = e.value;
                 return DropdownMenuItem(
                   value: e.key,
@@ -625,6 +665,7 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
   Widget _buildTitleSourceTile() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
     final asyncValue = ref.watch(scanTitleSourceProvider);
 
     final isFilename = (asyncValue.value ?? 'tag') == 'filename';
@@ -640,9 +681,11 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
           Icons.title_outlined,
           color: colorScheme.onSurfaceVariant,
         ),
-        title: const Text('使用文件名作为标题'),
+        title: Text(l10n.settingsScanTitleSource),
         subtitle: Text(
-          isFilename ? '歌曲标题使用文件名（不含扩展名），适合文件名已编号的情况' : '歌曲标题优先使用音频标签信息',
+          isFilename
+              ? l10n.settingsScanTitleSourceFilenameDesc
+              : l10n.settingsScanTitleSourceTagDesc,
           style: theme.textTheme.bodySmall?.copyWith(
             color: colorScheme.onSurfaceVariant,
           ),
@@ -659,14 +702,14 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
                     if (mounted) {
                       ResponsiveSnackBar.show(
                         context,
-                        message: '已保存，需以「重新导入」模式扫描后生效',
+                        message: l10n.settingsScanTitleSourceSaved,
                       );
                     }
                   } catch (e) {
                     if (mounted) {
                       ResponsiveSnackBar.showError(
                         context,
-                        message: '保存失败: $e',
+                        message: l10n.settingsScanSaveFailed('$e'),
                       );
                     }
                   }
@@ -675,23 +718,25 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
     );
   }
 
-  static const _intervalOptions = <int, String>{
-    600: '10 分钟',
-    1800: '30 分钟',
-    3600: '1 小时',
-    10800: '3 小时',
-    21600: '6 小时',
-    43200: '12 小时',
-    86400: '24 小时',
+  static Map<int, String> _intervalOptions(AppLocalizations l10n) => {
+    600: l10n.settingsScanInterval10Min,
+    1800: l10n.settingsScanInterval30Min,
+    3600: l10n.settingsScanInterval1Hour,
+    10800: l10n.settingsScanInterval3Hour,
+    21600: l10n.settingsScanInterval6Hour,
+    43200: l10n.settingsScanInterval12Hour,
+    86400: l10n.settingsScanInterval24Hour,
   };
 
-  static String _intervalLabel(int seconds) {
-    return _intervalOptions[seconds] ?? '$seconds 秒';
+  static String _intervalLabel(AppLocalizations l10n, int seconds) {
+    return _intervalOptions(l10n)[seconds] ??
+        l10n.settingsScanIntervalSeconds(seconds);
   }
 
   Widget _buildAutoScanTile() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
     final asyncValue = ref.watch(autoScanProvider);
     final setting =
         asyncValue.value ??
@@ -710,11 +755,13 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
               Icons.autorenew,
               color: colorScheme.onSurfaceVariant,
             ),
-            title: const Text('自动扫描'),
+            title: Text(l10n.settingsScanAutoScan),
             subtitle: Text(
               setting.enabled
-                  ? '每 ${_intervalLabel(setting.intervalSeconds)} 自动扫描一次'
-                  : '关闭',
+                  ? l10n.settingsScanAutoScanInterval(
+                    _intervalLabel(l10n, setting.intervalSeconds),
+                  )
+                  : l10n.settingsScanAutoScanOff,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -732,7 +779,7 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
                         if (mounted) {
                           ResponsiveSnackBar.showError(
                             context,
-                            message: '保存失败: $e',
+                            message: l10n.settingsScanSaveFailed('$e'),
                           );
                         }
                       }
@@ -749,7 +796,7 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
               child: Row(
                 children: [
                   Text(
-                    '扫描间隔',
+                    l10n.settingsScanScanInterval,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -758,7 +805,9 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
                   Expanded(
                     child: DropdownButtonFormField<int>(
                       initialValue:
-                          _intervalOptions.containsKey(setting.intervalSeconds)
+                          _intervalOptions(l10n).containsKey(
+                                setting.intervalSeconds,
+                              )
                               ? setting.intervalSeconds
                               : 3600,
                       decoration: const InputDecoration(
@@ -769,7 +818,7 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
                         ),
                       ),
                       items:
-                          _intervalOptions.entries
+                          _intervalOptions(l10n).entries
                               .map(
                                 (e) => DropdownMenuItem(
                                   value: e.key,
@@ -794,7 +843,7 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
                                   if (mounted) {
                                     ResponsiveSnackBar.showError(
                                       context,
-                                      message: '保存失败: $e',
+                                      message: l10n.settingsScanSaveFailed('$e'),
                                     );
                                   }
                                 }
@@ -811,6 +860,7 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
 
   Widget _buildCompletedState(ScanProgress progress) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -829,9 +879,15 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('扫描完成，本地歌曲共 ${progress.localSongCount} 首'),
                     Text(
-                      '本次导入 ${progress.importedFiles} 首，跳过 ${progress.skippedFiles} 首，失败 ${progress.failedFiles} 个',
+                      l10n.settingsScanCompletedSummary(progress.localSongCount),
+                    ),
+                    Text(
+                      l10n.settingsScanCompletedStats(
+                        progress.importedFiles,
+                        progress.skippedFiles,
+                        progress.failedFiles,
+                      ),
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
@@ -846,7 +902,7 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
           child: OutlinedButton.icon(
             onPressed: _reset,
             icon: const Icon(Icons.refresh),
-            label: const Text('重新扫描'),
+            label: Text(l10n.settingsScanRescan),
           ),
         ),
       ],
@@ -855,6 +911,7 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
 
   Widget _buildCancelledState(ScanProgress progress) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -871,7 +928,7 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  '扫描已取消 (已处理 ${progress.scannedFiles} 个文件)',
+                  l10n.settingsScanCancelledSummary(progress.scannedFiles),
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ),
@@ -884,7 +941,7 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
           child: OutlinedButton.icon(
             onPressed: _reset,
             icon: const Icon(Icons.refresh),
-            label: const Text('重新扫描'),
+            label: Text(l10n.settingsScanRescan),
           ),
         ),
       ],
@@ -893,6 +950,7 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
 
   Widget _buildErrorState(ScanProgress progress) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -907,7 +965,7 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
             children: [
               Icon(Icons.error, color: colorScheme.error),
               const SizedBox(width: 8),
-              const Expanded(child: Text('扫描出错')),
+              Expanded(child: Text(l10n.settingsScanErrorTitle)),
             ],
           ),
         ),
@@ -917,7 +975,7 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
           child: OutlinedButton.icon(
             onPressed: _reset,
             icon: const Icon(Icons.refresh),
-            label: const Text('重试'),
+            label: Text(l10n.commonRetry),
           ),
         ),
       ],

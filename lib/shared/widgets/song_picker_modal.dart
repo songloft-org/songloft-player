@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/song.dart';
 import '../utils/responsive_snackbar.dart';
 import '../../features/library/presentation/providers/songs_provider.dart';
+import '../../l10n/app_localizations.dart';
 import 'cover_image.dart';
 import 'directory_picker_sheet.dart';
 
@@ -186,7 +187,10 @@ class _SongPickerModalState extends ConsumerState<SongPickerModal> {
         _isLoading = false;
       });
       if (mounted) {
-        ResponsiveSnackBar.showError(context, message: '加载失败: $e');
+        ResponsiveSnackBar.showError(
+          context,
+          message: AppLocalizations.of(context).commonLoadFailedDetail('$e'),
+        );
       }
     }
   }
@@ -238,12 +242,12 @@ class _SongPickerModalState extends ConsumerState<SongPickerModal> {
 
   /// 文件夹按钮上显示的标签：取路径最后一段；空串表示「全部」
   String get _folderButtonLabel {
-    if (_pathPrefix.isEmpty) return '全部';
+    if (_pathPrefix.isEmpty) return AppLocalizations.of(context).filterAll;
     final parts = _pathPrefix.split(RegExp(r'[\\/]+'));
     for (var i = parts.length - 1; i >= 0; i--) {
       if (parts[i].isNotEmpty) return parts[i];
     }
-    return '全部';
+    return AppLocalizations.of(context).filterAll;
   }
 
   /// 返回应该传给后端的 type 参数。
@@ -256,11 +260,12 @@ class _SongPickerModalState extends ConsumerState<SongPickerModal> {
   /// - widget.excludeType 设了某类型：选项中剔除该类型
   List<({String label, String? value})> _typeFilterOptions() {
     if (widget.songType != null) return const [];
+    final l10n = AppLocalizations.of(context);
     final all = <({String label, String? value})>[
-      (label: '全部', value: null),
-      (label: '本地', value: 'local'),
-      (label: '网络', value: 'remote'),
-      (label: '电台', value: 'radio'),
+      (label: l10n.filterAll, value: null),
+      (label: l10n.songTypeLocal, value: 'local'),
+      (label: l10n.songTypeRemote, value: 'remote'),
+      (label: l10n.songTypeRadio, value: 'radio'),
     ];
     if (widget.excludeType == null) return all;
     return all.where((o) => o.value != widget.excludeType).toList();
@@ -294,12 +299,13 @@ class _SongPickerModalState extends ConsumerState<SongPickerModal> {
   }
 
   String _emptyMessage() {
+    final l10n = AppLocalizations.of(context);
     final hasKeyword = _searchController.text.isNotEmpty;
     final hasFolder = _pathPrefix.isNotEmpty;
-    if (hasKeyword && hasFolder) return '该目录下未找到匹配的歌曲';
-    if (hasKeyword) return '未找到匹配的歌曲';
-    if (hasFolder) return '该目录下无歌曲';
-    return '暂无歌曲';
+    if (hasKeyword && hasFolder) return l10n.pickerNoMatchInFolder;
+    if (hasKeyword) return l10n.pickerNoMatch;
+    if (hasFolder) return l10n.pickerNoSongsInFolder;
+    return l10n.pickerNoSongs;
   }
 
   /// 切换歌曲选中状态
@@ -360,7 +366,10 @@ class _SongPickerModalState extends ConsumerState<SongPickerModal> {
       });
     } catch (e) {
       if (!mounted) return;
-      ResponsiveSnackBar.showError(context, message: '获取列表失败: $e');
+      ResponsiveSnackBar.showError(
+        context,
+        message: AppLocalizations.of(context).pickerFetchListFailed('$e'),
+      );
     } finally {
       if (mounted) {
         setState(() => _isSelectingAll = false);
@@ -378,6 +387,7 @@ class _SongPickerModalState extends ConsumerState<SongPickerModal> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.8,
@@ -405,14 +415,17 @@ class _SongPickerModalState extends ConsumerState<SongPickerModal> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
-                const Text(
-                  '选择歌曲',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Text(
+                  l10n.pickerSelectSongs,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const Spacer(),
                 FilledButton(
                   onPressed: _selectedIds.isEmpty ? null : _onConfirm,
-                  child: Text('确定(${_selectedIds.length})'),
+                  child: Text(l10n.commonConfirmWithCount(_selectedIds.length)),
                 ),
               ],
             ),
@@ -428,13 +441,13 @@ class _SongPickerModalState extends ConsumerState<SongPickerModal> {
                     controller: _searchController,
                     onChanged: _onSearchChanged,
                     decoration: InputDecoration(
-                      hintText: '搜索歌曲、艺术家或专辑',
+                      hintText: l10n.pickerSearchHint,
                       prefixIcon: const Icon(Icons.search),
                       suffixIcon:
                           _searchController.text.isNotEmpty
                               ? IconButton(
                                 icon: const Icon(Icons.clear),
-                                tooltip: '清除搜索',
+                                tooltip: l10n.clearSearch,
                                 onPressed: _clearSearch,
                               )
                               : null,
@@ -487,7 +500,7 @@ class _SongPickerModalState extends ConsumerState<SongPickerModal> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Semantics(
                 button: true,
-                label: '全选',
+                label: l10n.selectAll,
                 child: InkWell(
                 onTap: _isSelectingAll ? null : _toggleSelectAll,
                 borderRadius: BorderRadius.circular(8),
@@ -505,10 +518,12 @@ class _SongPickerModalState extends ConsumerState<SongPickerModal> {
                       Expanded(
                         child: Text(
                           _isSelectingAll
-                              ? '正在选择全部...'
+                              ? l10n.pickerSelectingAll
                               : (_selectedIds.length >= _total && _total > 0
-                                  ? '取消全选（已选 ${_selectedIds.length}）'
-                                  : '全选 $_total 首'),
+                                  ? l10n.pickerDeselectAllWithCount(
+                                    _selectedIds.length,
+                                  )
+                                  : l10n.pickerSelectAllCount(_total)),
                         ),
                       ),
                       if (_isSelectingAll)

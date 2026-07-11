@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_dimensions.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/utils/responsive_snackbar.dart';
 import 'widgets/section_card.dart';
 import '../../jsplugin/data/jsplugin_api.dart';
@@ -31,19 +32,20 @@ class TabConfigPage extends ConsumerWidget {
 
     final usedCount = _fixedTabs + config.optionalCount;
     final atLimit = usedCount >= _maxTabs;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('菜单设置')),
+      appBar: AppBar(title: Text(l10n.settingsTabConfigTitle)),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
           SectionCard(
-            title: '内置页面',
+            title: l10n.settingsTabConfigBuiltInSection,
             icon: Icons.dashboard_outlined,
             children: [
               SwitchListTile(
                 secondary: const Icon(Icons.library_music_outlined),
-                title: const Text('歌曲库'),
+                title: Text(l10n.settingsTabConfigLibrary),
                 value: config.showLibrary,
                 onChanged: atLimit && !config.showLibrary
                     ? null
@@ -57,7 +59,7 @@ class TabConfigPage extends ConsumerWidget {
               const Divider(height: 1),
               SwitchListTile(
                 secondary: const Icon(Icons.queue_music_outlined),
-                title: const Text('歌单'),
+                title: Text(l10n.settingsTabConfigPlaylists),
                 value: config.showPlaylists,
                 onChanged: atLimit && !config.showPlaylists
                     ? null
@@ -72,14 +74,14 @@ class TabConfigPage extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           SectionCard(
-            title: '插件入口',
+            title: l10n.settingsTabConfigPluginEntry,
             icon: Icons.extension_outlined,
             children: activePlugins.isEmpty
                 ? [
-                    const ListTile(
-                      leading: Icon(Icons.info_outline),
-                      title: Text('暂无可用插件'),
-                      subtitle: Text('请先在设置中安装并启用插件'),
+                    ListTile(
+                      leading: const Icon(Icons.info_outline),
+                      title: Text(l10n.settingsTabConfigNoPlugins),
+                      subtitle: Text(l10n.settingsTabConfigNoPluginsHint),
                     ),
                   ]
                 : _buildPluginTiles(context, ref, config, activePlugins, atLimit),
@@ -87,7 +89,7 @@ class TabConfigPage extends ConsumerWidget {
           if (config.pluginTabs.length > 1) ...[
             const SizedBox(height: 16),
             SectionCard(
-              title: '插件排序',
+              title: l10n.settingsTabConfigPluginOrder,
               icon: Icons.reorder,
               children: [
                 _PluginTabReorderList(
@@ -102,8 +104,10 @@ class TabConfigPage extends ConsumerWidget {
           const SizedBox(height: 24),
           Center(
             child: Text(
-              '已启用 $usedCount 个标签（首页和设置固定显示）'
-              '${usedCount > 5 ? '\n移动端超出 5 个时将折叠到「更多」菜单' : ''}',
+              l10n.settingsTabConfigEnabledCount(usedCount) +
+                  (usedCount > 5
+                      ? '\n${l10n.settingsTabConfigCollapseHint}'
+                      : ''),
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -173,15 +177,22 @@ class TabConfigPage extends ConsumerWidget {
     TabConfig config,
     bool wouldExceedLimit,
   ) async {
+    final l10n = AppLocalizations.of(context);
     if (wouldExceedLimit) {
-      ResponsiveSnackBar.showError(context, message: '最多显示 $_maxTabs 个标签');
+      ResponsiveSnackBar.showError(
+        context,
+        message: l10n.settingsTabConfigMaxTabs(_maxTabs),
+      );
       return;
     }
     try {
       await ref.read(tabConfigProvider.notifier).updateConfig(config);
     } catch (e) {
       if (context.mounted) {
-        ResponsiveSnackBar.showError(context, message: '保存失败: $e');
+        ResponsiveSnackBar.showError(
+          context,
+          message: l10n.settingsTabConfigSaveFailed(e.toString()),
+        );
       }
     }
   }

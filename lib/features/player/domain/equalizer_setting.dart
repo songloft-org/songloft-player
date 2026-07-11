@@ -68,15 +68,16 @@ class EqualizerSetting {
     'vocal': [-2, -1, 0, 3, 5, 5, 3, 1, 0, -2],
   };
 
-  static const Map<String, String> presetLabels = {
-    'flat': '平坦',
-    'rock': '摇滚',
-    'pop': '流行',
-    'jazz': '爵士',
-    'classical': '古典',
-    'bass_boost': '低音增强',
-    'treble_boost': '高音增强',
-    'vocal': '人声',
-    'custom': '自定义',
-  };
+  /// 预设显示顺序（内部 key，用于持久化；显示名由 UI 层通过 l10n 映射）
+  static const List<String> presetOrder = [
+    'flat',
+    'rock',
+    'pop',
+    'jazz',
+    'classical',
+    'bass_boost',
+    'treble_boost',
+    'vocal',
+    'custom',
+  ];
 }

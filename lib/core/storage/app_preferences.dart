@@ -8,6 +8,7 @@ import '../network/server_entry.dart';
 /// 应用偏好设置存储
 class AppPreferences {
   static const _themeModeKey = 'theme_mode';
+  static const _localeKey = 'app_locale';
   static const _apiBaseUrlKey = 'api_base_url';
   static const _apiServersKey = 'api_servers';
   static const _lastUsedDeviceKey = 'last_used_device';
@@ -56,6 +57,22 @@ class AppPreferences {
         value = 'system';
     }
     return _prefs.setString(_themeModeKey, value);
+  }
+
+  /// 获取应用语言。
+  /// 返回 null 表示「跟随系统」；否则为 Locale('zh') / Locale('en')。
+  Locale? getLocale() {
+    final value = _prefs.getString(_localeKey);
+    if (value == null || value.isEmpty) return null;
+    return Locale(value);
+  }
+
+  /// 设置应用语言。传 null 表示「跟随系统」（清除持久化值）。
+  Future<bool> setLocale(Locale? locale) {
+    if (locale == null) {
+      return _prefs.remove(_localeKey).then((_) => true);
+    }
+    return _prefs.setString(_localeKey, locale.languageCode);
   }
 
   /// 获取自定义 API 地址（独立部署模式，旧版单地址）

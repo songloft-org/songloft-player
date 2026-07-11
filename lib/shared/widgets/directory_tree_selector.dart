@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_dimensions.dart';
 import '../../features/settings/data/directory_api.dart';
 import '../../features/settings/presentation/providers/settings_provider.dart';
+import '../../l10n/app_localizations.dart';
 
 /// 目录树选择语义：
 /// - [include]：勾选表示"纳入"（如目录级定向扫描，选中的目录才被扫描）
@@ -74,7 +75,7 @@ class _DirectoryTreeSelectorState extends ConsumerState<DirectoryTreeSelector> {
     if (_error != null) {
       return Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
-        child: Text('加载目录失败: $_error',
+        child: Text(AppLocalizations.of(context).loadDirFailed('$_error'),
             style: TextStyle(color: Theme.of(context).colorScheme.error)),
       );
     }
@@ -82,7 +83,7 @@ class _DirectoryTreeSelectorState extends ConsumerState<DirectoryTreeSelector> {
     if (_rootDirs == null || _rootDirs!.isEmpty) {
       return Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
-        child: Text('目录为空',
+        child: Text(AppLocalizations.of(context).dirEmpty,
             style: TextStyle(
                 color: Theme.of(context).colorScheme.onSurfaceVariant)),
       );

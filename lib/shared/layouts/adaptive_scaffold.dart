@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/responsive.dart';
 import '../../core/theme/tv_theme.dart';
+import '../../l10n/app_localizations.dart';
 
 /// 导航目的地定义
 class NavDestination {
@@ -112,10 +113,10 @@ class AdaptiveScaffold extends StatelessWidget {
                   selectedIcon: destinations[i].selectedIcon,
                   label: destinations[i].label,
                 ),
-              const NavigationDestination(
-                icon: Icon(Icons.more_horiz),
-                selectedIcon: Icon(Icons.more_horiz),
-                label: '更多',
+              NavigationDestination(
+                icon: const Icon(Icons.more_horiz),
+                selectedIcon: const Icon(Icons.more_horiz),
+                label: AppLocalizations.of(context).more,
               ),
             ],
           ),

@@ -19,6 +19,7 @@ import '../../features/jsplugin/presentation/widgets/plugin_registry.dart';
 import '../../features/settings/presentation/duplicate_check_page.dart';
 import '../../features/settings/presentation/client_download_page.dart';
 import '../../shared/layouts/shell_layout.dart';
+import '../../l10n/app_localizations.dart';
 
 /// 路由路径常量
 class AppRoutes {
@@ -208,7 +209,10 @@ final routerProvider = Provider<GoRouter>((ref) {
                   color: Theme.of(context).colorScheme.error,
                 ),
                 const SizedBox(height: 16),
-                Text('页面未找到', style: Theme.of(context).textTheme.headlineSmall),
+                Text(
+                  AppLocalizations.of(context).coreNotFoundPageTitle,
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
                 const SizedBox(height: 8),
                 Text(
                   state.uri.path,
@@ -220,7 +224,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 FilledButton.icon(
                   onPressed: () => context.go(AppRoutes.home),
                   icon: const Icon(Icons.home),
-                  label: const Text('返回首页'),
+                  label: Text(AppLocalizations.of(context).coreBackToHome),
                 ),
               ],
             ),

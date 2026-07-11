@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/dlna_state.dart';
 import '../providers/dlna_provider.dart';
 
@@ -24,6 +25,7 @@ class _DlnaDeviceSheetState extends ConsumerState<DlnaDeviceSheet> {
   Widget build(BuildContext context) {
     final dlnaState = ref.watch(dlnaStateProvider);
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return SafeArea(
       child: Column(
@@ -36,7 +38,7 @@ class _DlnaDeviceSheetState extends ConsumerState<DlnaDeviceSheet> {
                 const Icon(Icons.cast),
                 const SizedBox(width: 12),
                 Text(
-                  '投屏',
+                  l10n.dlnaCast,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const Spacer(),
@@ -46,7 +48,7 @@ class _DlnaDeviceSheetState extends ConsumerState<DlnaDeviceSheet> {
                       ref.read(dlnaStateProvider.notifier).disconnect();
                       Navigator.pop(context);
                     },
-                    child: const Text('断开'),
+                    child: Text(l10n.dlnaDisconnect),
                   ),
               ],
             ),
@@ -66,7 +68,7 @@ class _DlnaDeviceSheetState extends ConsumerState<DlnaDeviceSheet> {
                 color: colorScheme.primary,
               ),
               title: Text(dlnaState.activeDevice!.name),
-              subtitle: const Text('已连接'),
+              subtitle: Text(l10n.dlnaConnected),
               trailing: IconButton(
                 icon: Icon(
                   dlnaState.isPlaying ? Icons.pause : Icons.play_arrow,
@@ -87,18 +89,18 @@ class _DlnaDeviceSheetState extends ConsumerState<DlnaDeviceSheet> {
             ),
           ],
           if (dlnaState.isDiscovering)
-            const Padding(
-              padding: EdgeInsets.all(12),
+            Padding(
+              padding: const EdgeInsets.all(12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(
+                  const SizedBox(
                     width: 16,
                     height: 16,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   ),
-                  SizedBox(width: 8),
-                  Text('正在搜索设备...'),
+                  const SizedBox(width: 8),
+                  Text(l10n.dlnaSearching),
                 ],
               ),
             ),
@@ -122,7 +124,9 @@ class _DlnaDeviceSheetState extends ConsumerState<DlnaDeviceSheet> {
             ),
             const SizedBox(height: 12),
             Text(
-              isDiscovering ? '正在搜索局域网设备...' : '未发现 DLNA 设备',
+              isDiscovering
+                  ? AppLocalizations.of(context).dlnaSearchingLan
+                  : AppLocalizations.of(context).dlnaNoDevices,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
