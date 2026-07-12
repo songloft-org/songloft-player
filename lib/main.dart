@@ -154,6 +154,8 @@ void main(List<String> args) async {
     try {
       final prefs = await AppPreferences.create();
       await prefs.migrateLegacyApiBaseUrl();
+      // 预加载「忽略 SSL 证书校验」偏好，避免首个登录/探测请求早于 provider 异步回读
+      AppConfig.insecureTls = prefs.getInsecureTls();
     } catch (e) {
       debugPrint('[Main] SharedPreferences 初始化失败，使用默认配置: $e');
     }

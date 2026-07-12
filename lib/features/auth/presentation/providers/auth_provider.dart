@@ -7,6 +7,7 @@ import '../../../../config/app_config.dart';
 import '../../../../core/backend/run_mode_provider.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_exceptions.dart';
+import '../../../../core/network/dio_insecure.dart';
 import '../../../../core/network/base_url_provider.dart';
 import '../../../../core/network/server_entry.dart';
 import '../../../../core/network/servers_provider.dart';
@@ -106,6 +107,10 @@ class AuthNotifier extends Notifier<AuthState> {
           },
         ),
       );
+      // 用户在登录页开启「忽略 SSL 证书校验」时，登录请求也需放行（web 上为 no-op）
+      if (AppConfig.insecureTls) {
+        applyInsecureTls(dio);
+      }
 
       final authApi = AuthApi(dio: dio);
       final tokens = await authApi.login(

@@ -3185,6 +3185,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsHlsProxyDisabled => 'HLS proxy disabled';
 
   @override
+  String get settingsInsecureTlsTitle => 'Ignore SSL certificate verification';
+
+  @override
+  String get settingsInsecureTlsSubtitle =>
+      'Enable when connecting to a server with a self-signed or invalid HTTPS certificate. Note: only applies to API/login requests; audio playback uses the native player and is unaffected by this switch.';
+
+  @override
+  String get settingsInsecureTlsEnabled => 'Certificate verification ignored';
+
+  @override
+  String get settingsInsecureTlsDisabled => 'Certificate verification enabled';
+
+  @override
+  String get settingsInsecureTlsWarnTitle => 'Reduced security';
+
+  @override
+  String get settingsInsecureTlsWarnContent =>
+      'Once enabled, any HTTPS certificate will be accepted, which exposes you to man-in-the-middle attacks. Use only on trusted intranets or with self-signed certificates. Enable anyway?';
+
+  @override
   String get settingsHttpProxyTitle => 'HTTP proxy';
 
   @override

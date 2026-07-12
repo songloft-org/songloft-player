@@ -8,6 +8,8 @@ import '../backend/run_mode_provider.dart';
 import '../storage/secure_storage.dart';
 import 'auth_interceptor.dart';
 import 'base_url_provider.dart';
+import 'dio_insecure.dart';
+import 'insecure_tls_provider.dart';
 
 /// 创建并配置 Dio 实例
 Dio createDio({
@@ -15,6 +17,7 @@ Dio createDio({
   Future<void> Function()? onTokenExpired,
   String? Function()? currentWalletKey,
   String? customBaseUrl,
+  bool insecureTls = false,
 }) {
   final dio = Dio(
     BaseOptions(
@@ -27,6 +30,11 @@ Dio createDio({
       },
     ),
   );
+
+  // 忽略 SSL 证书校验（用户显式开启时；web 上为 no-op）
+  if (insecureTls) {
+    applyInsecureTls(dio);
+  }
 
   // 添加认证拦截器
   dio.interceptors.add(
@@ -56,7 +64,7 @@ Dio createDio({
 }
 
 /// 创建无认证拦截器的 Dio 实例（用于登录等无需认证的请求）
-Dio createPublicDio({String? customBaseUrl}) {
+Dio createPublicDio({String? customBaseUrl, bool insecureTls = false}) {
   final dio = Dio(
     BaseOptions(
       baseUrl: customBaseUrl ?? AppConfig.baseUrl,
@@ -68,6 +76,11 @@ Dio createPublicDio({String? customBaseUrl}) {
       },
     ),
   );
+
+  // 忽略 SSL 证书校验（用户显式开启时；web 上为 no-op）
+  if (insecureTls) {
+    applyInsecureTls(dio);
+  }
 
   // 添加日志拦截器（仅在调试模式下）
   assert(() {
@@ -108,16 +121,19 @@ final secureStorageProvider = Provider<SecureStorageService>((ref) {
 
 /// 公开 Dio Provider（无认证，用于登录）
 final publicDioProvider = Provider.family<Dio, String?>((ref, customBaseUrl) {
-  return createPublicDio(customBaseUrl: customBaseUrl);
+  final insecureTls = ref.watch(insecureTlsProvider);
+  return createPublicDio(customBaseUrl: customBaseUrl, insecureTls: insecureTls);
 });
 
 /// 认证 Dio Provider
 final dioProvider = Provider<Dio>((ref) {
   final baseUrl = ref.watch(baseUrlProvider);
   final secureStorage = ref.watch(secureStorageProvider);
+  final insecureTls = ref.watch(insecureTlsProvider);
   return createDio(
     customBaseUrl: baseUrl,
     secureStorage: secureStorage,
+    insecureTls: insecureTls,
     onTokenExpired: () async {
       debugPrint('[DioProvider] Token expired, notifying AuthNotifier');
       ref.read(authStateProvider.notifier).onTokenExpired();

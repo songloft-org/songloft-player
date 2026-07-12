@@ -5497,6 +5497,42 @@ abstract class AppLocalizations {
   /// **'已关闭 HLS 代理'**
   String get settingsHlsProxyDisabled;
 
+  /// No description provided for @settingsInsecureTlsTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'忽略 SSL 证书校验'**
+  String get settingsInsecureTlsTitle;
+
+  /// No description provided for @settingsInsecureTlsSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'连接使用自签或无效 HTTPS 证书的服务器时开启。注意：仅对接口/登录等请求生效，音频播放走原生播放器不受此开关影响'**
+  String get settingsInsecureTlsSubtitle;
+
+  /// No description provided for @settingsInsecureTlsEnabled.
+  ///
+  /// In zh, this message translates to:
+  /// **'已开启忽略证书校验'**
+  String get settingsInsecureTlsEnabled;
+
+  /// No description provided for @settingsInsecureTlsDisabled.
+  ///
+  /// In zh, this message translates to:
+  /// **'已关闭忽略证书校验'**
+  String get settingsInsecureTlsDisabled;
+
+  /// No description provided for @settingsInsecureTlsWarnTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'降低安全性'**
+  String get settingsInsecureTlsWarnTitle;
+
+  /// No description provided for @settingsInsecureTlsWarnContent.
+  ///
+  /// In zh, this message translates to:
+  /// **'开启后将接受任意 HTTPS 证书，可能遭受中间人攻击。请仅在信任的内网或自签证书场景使用。确定开启吗？'**
+  String get settingsInsecureTlsWarnContent;
+
   /// No description provided for @settingsHttpProxyTitle.
   ///
   /// In zh, this message translates to:

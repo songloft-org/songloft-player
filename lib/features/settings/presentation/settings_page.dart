@@ -11,6 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../config/app_config.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/base_url_provider.dart';
+import '../../../core/network/insecure_tls_provider.dart';
 import '../../../core/network/servers_provider.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/storage/secure_storage.dart';
@@ -593,6 +594,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           _buildHttpProxyTile(),
           const Divider(height: 1),
           _buildHlsProxyTile(),
+          const Divider(height: 1),
+          _buildInsecureTlsTile(),
         ],
       ),
     ];
@@ -1023,6 +1026,51 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   );
                 }
               },
+    );
+  }
+
+  Widget _buildInsecureTlsTile() {
+    final l10n = AppLocalizations.of(context);
+    final enabled = ref.watch(insecureTlsProvider);
+
+    return SwitchListTile(
+      secondary: const Icon(Icons.gpp_maybe_outlined),
+      title: Text(l10n.settingsInsecureTlsTitle),
+      subtitle: Text(l10n.settingsInsecureTlsSubtitle),
+      value: enabled,
+      onChanged: (value) async {
+        // 开启前弹安全警告确认；关闭无需确认
+        if (value) {
+          final confirmed = await showDialog<bool>(
+            context: context,
+            builder:
+                (ctx) => AlertDialog(
+                  title: Text(l10n.settingsInsecureTlsWarnTitle),
+                  content: Text(l10n.settingsInsecureTlsWarnContent),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(ctx).pop(false),
+                      child: Text(l10n.commonCancel),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(ctx).pop(true),
+                      child: Text(l10n.commonConfirm),
+                    ),
+                  ],
+                ),
+          );
+          if (confirmed != true) return;
+        }
+        await ref.read(insecureTlsProvider.notifier).setValue(value);
+        if (!mounted) return;
+        ResponsiveSnackBar.show(
+          context,
+          message:
+              value
+                  ? l10n.settingsInsecureTlsEnabled
+                  : l10n.settingsInsecureTlsDisabled,
+        );
+      },
     );
   }
 

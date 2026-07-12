@@ -3053,6 +3053,26 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsHlsProxyDisabled => '已关闭 HLS 代理';
 
   @override
+  String get settingsInsecureTlsTitle => '忽略 SSL 证书校验';
+
+  @override
+  String get settingsInsecureTlsSubtitle =>
+      '连接使用自签或无效 HTTPS 证书的服务器时开启。注意：仅对接口/登录等请求生效，音频播放走原生播放器不受此开关影响';
+
+  @override
+  String get settingsInsecureTlsEnabled => '已开启忽略证书校验';
+
+  @override
+  String get settingsInsecureTlsDisabled => '已关闭忽略证书校验';
+
+  @override
+  String get settingsInsecureTlsWarnTitle => '降低安全性';
+
+  @override
+  String get settingsInsecureTlsWarnContent =>
+      '开启后将接受任意 HTTPS 证书，可能遭受中间人攻击。请仅在信任的内网或自签证书场景使用。确定开启吗？';
+
+  @override
   String get settingsHttpProxyTitle => 'HTTP 代理';
 
   @override

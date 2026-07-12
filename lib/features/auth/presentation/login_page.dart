@@ -10,6 +10,7 @@ import '../../../config/app_config.dart';
 import '../../../core/backend/embedded_backend_service.dart';
 import '../../../core/backend/run_mode_provider.dart';
 import '../../../core/network/base_url_provider.dart';
+import '../../../core/network/insecure_tls_provider.dart';
 import '../../../core/network/server_entry.dart';
 import '../../../core/network/servers_provider.dart';
 import '../../../core/router/app_router.dart';
@@ -435,6 +436,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                 },
                               ),
                               const SizedBox(height: TvTheme.spacingLarge),
+                              _buildInsecureTlsToggle(),
+                              const SizedBox(height: TvTheme.spacingLarge),
                             ],
 
                             // 登录按钮
@@ -805,11 +808,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   Widget _buildApiUrlField(ColorScheme colorScheme) {
     final servers = ref.watch(serversProvider).value ?? const <ServerEntry>[];
+    final Widget field;
     if (servers.length >= 2) {
       final current = ref.watch(baseUrlProvider);
       final selected =
           servers.any((s) => s.url == current) ? current : servers.first.url;
-      return DropdownButtonFormField<String>(
+      field = DropdownButtonFormField<String>(
         initialValue: selected,
         decoration: InputDecoration(
           labelText: AppLocalizations.of(context).authServer,
@@ -831,25 +835,49 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           if (url != null) ref.read(baseUrlProvider.notifier).set(url);
         },
       );
+    } else {
+      field = TextFormField(
+        controller: _apiUrlController,
+        decoration: InputDecoration(
+          labelText: AppLocalizations.of(context).authApiUrl,
+          hintText: AppConfig.baseUrl,
+          prefixIcon: const Icon(Icons.cloud_outlined),
+        ),
+        keyboardType: TextInputType.url,
+        textInputAction: TextInputAction.done,
+        validator: (value) {
+          if (value == null || value.trim().isEmpty) {
+            return AppLocalizations.of(context).authApiUrlRequired;
+          }
+          if (!value.startsWith('http://') && !value.startsWith('https://')) {
+            return AppLocalizations.of(context).authInvalidUrl;
+          }
+          return null;
+        },
+      );
     }
-    return TextFormField(
-      controller: _apiUrlController,
-      decoration: InputDecoration(
-        labelText: AppLocalizations.of(context).authApiUrl,
-        hintText: AppConfig.baseUrl,
-        prefixIcon: const Icon(Icons.cloud_outlined),
-      ),
-      keyboardType: TextInputType.url,
-      textInputAction: TextInputAction.done,
-      validator: (value) {
-        if (value == null || value.trim().isEmpty) {
-          return AppLocalizations.of(context).authApiUrlRequired;
-        }
-        if (!value.startsWith('http://') && !value.startsWith('https://')) {
-          return AppLocalizations.of(context).authInvalidUrl;
-        }
-        return null;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [field, _buildInsecureTlsToggle()],
+    );
+  }
+
+  /// 登录页内联的「忽略 SSL 证书校验」开关。
+  ///
+  /// 登录失败常因自签/无效证书，而设置页在登录守卫之后不可达，故在此提供入口。
+  Widget _buildInsecureTlsToggle() {
+    final l10n = AppLocalizations.of(context);
+    final enabled = ref.watch(insecureTlsProvider);
+    return CheckboxListTile(
+      value: enabled,
+      onChanged: (value) {
+        ref.read(insecureTlsProvider.notifier).setValue(value ?? false);
       },
+      dense: true,
+      contentPadding: EdgeInsets.zero,
+      controlAffinity: ListTileControlAffinity.leading,
+      title: Text(l10n.settingsInsecureTlsTitle),
+      subtitle: Text(l10n.settingsInsecureTlsSubtitle),
     );
   }
 

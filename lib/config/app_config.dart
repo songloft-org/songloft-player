@@ -13,6 +13,13 @@ class AppConfig {
   static String baseUrl = 'http://localhost:58091';
   static String apiPrefix = '/api/v1';
   static String basePath = '';
+
+  /// 是否忽略 HTTPS 证书校验（不安全，仅用于自签/内网证书场景）。
+  ///
+  /// 运行期 single source of truth 由 [insecureTlsProvider] 持有并 mirror 到此处，
+  /// 供非 Riverpod 上下文（如 [ServerProbe.probeOne]）同步读取。
+  /// 仅影响 Dart 层 HTTP（Dio）；原生音频播放器的 TLS 不受此开关影响。
+  static bool insecureTls = false;
   static const Duration connectTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);
 

@@ -230,6 +230,18 @@ class AppPreferences {
     return _prefs.setString(_audioQualityKey, quality);
   }
 
+  static const _insecureTlsKey = 'network_insecure_tls';
+
+  /// 是否忽略 HTTPS 证书校验（默认 false，安全）
+  bool getInsecureTls() {
+    return _prefs.getBool(_insecureTlsKey) ?? false;
+  }
+
+  /// 设置是否忽略 HTTPS 证书校验
+  Future<bool> setInsecureTls(bool value) {
+    return _prefs.setBool(_insecureTlsKey, value);
+  }
+
   static const _localCacheMaxSizeKey = 'local_cache_max_size';
 
   /// 获取本地缓存大小上限（字节），默认 1 GB，0 表示不限制
