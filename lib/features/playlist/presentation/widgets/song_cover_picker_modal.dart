@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/url_helper.dart';
-import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/models/song.dart';
 import '../providers/playlist_provider.dart';
 
@@ -17,7 +16,6 @@ class SongCoverPickerModal extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final songsAsync = ref.watch(playlistSongsProvider(playlistId));
     final colorScheme = Theme.of(context).colorScheme;
-    final l10n = AppLocalizations.of(context);
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.7,
@@ -45,17 +43,13 @@ class SongCoverPickerModal extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
-                Text(
-                  l10n.playlistPickCoverTitle,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                const Text(
+                  '选择歌曲封面',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.close),
-                  tooltip: l10n.playlistClose,
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ],
@@ -71,7 +65,7 @@ class SongCoverPickerModal extends ConsumerWidget {
                 // 过滤有封面的歌曲
                 final songsWithCover =
                     state.items.where((song) {
-                      return song.coverUrl != null && song.coverUrl!.isNotEmpty;
+                      return song.coverUrl != null && coverUrl.isNotEmpty && song.coverUrl!.isNotEmpty;
                     }).toList();
 
                 if (songsWithCover.isEmpty && !state.hasMore) {
@@ -86,7 +80,7 @@ class SongCoverPickerModal extends ConsumerWidget {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          l10n.playlistNoCoveredSongs,
+                          '歌单中没有带封面的歌曲',
                           style: TextStyle(color: colorScheme.onSurfaceVariant),
                         ),
                       ],
@@ -129,10 +123,7 @@ class SongCoverPickerModal extends ConsumerWidget {
                               onTap: () {
                                 Navigator.of(
                                   context,
-                                ).pop({
-                                  'songId': song.id,
-                                  'coverUrl': song.coverUrl,
-                                });
+                                ).pop({'coverUrl': song.coverUrl});
                               },
                             );
                           }, childCount: songsWithCover.length),
@@ -163,7 +154,7 @@ class SongCoverPickerModal extends ConsumerWidget {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          l10n.commonLoadFailed,
+                          '加载失败',
                           style: TextStyle(color: colorScheme.error),
                         ),
                       ],
@@ -184,7 +175,6 @@ class SongCoverPickerModal extends ConsumerWidget {
     bool noCoverYet,
   ) {
     final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context);
     if (state.isLoadingMore) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 16),
@@ -208,7 +198,7 @@ class SongCoverPickerModal extends ConsumerWidget {
                         .read(playlistSongsProvider(playlistId).notifier)
                         .loadMore(),
             icon: const Icon(Icons.refresh, size: 16),
-            label: Text(l10n.playlistLoadRetry),
+            label: const Text('加载失败，点击重试'),
           ),
         ),
       );
@@ -226,7 +216,7 @@ class SongCoverPickerModal extends ConsumerWidget {
                           .read(playlistSongsProvider(playlistId).notifier)
                           .loadMore(),
               icon: const Icon(Icons.expand_more, size: 16),
-              label: Text(l10n.playlistNoCoverLoadMore),
+              label: const Text('当前页无带封面歌曲，加载更多'),
             ),
           ),
         );
@@ -238,7 +228,7 @@ class SongCoverPickerModal extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Center(
           child: Text(
-            l10n.playlistAllLoadedSimple,
+            '— 已加载全部 —',
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -262,64 +252,58 @@ class _CoverGridItem extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final coverUrl = song.coverUrl;
 
-    return Semantics(
-      button: true,
-      label: AppLocalizations.of(context).playlistSelectThisCover,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // 封面图片
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child:
-                    coverUrl != null
-                        ? ExcludeSemantics(
-                          child: CachedNetworkImage(
-                            imageUrl: UrlHelper.buildCoverUrl(coverUrl),
-                            fit: BoxFit.cover,
-                            placeholder:
-                                (context, url) => Container(
-                                  color: colorScheme.surfaceContainerHighest,
-                                  child: const Center(
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  ),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // 封面图片
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child:
+                  coverUrl != null && coverUrl.isNotEmpty
+                      ? CachedNetworkImage(
+                        imageUrl: UrlHelper.buildCoverUrl(coverUrl),
+                        fit: BoxFit.cover,
+                        placeholder:
+                            (context, url) => Container(
+                              color: colorScheme.surfaceContainerHighest,
+                              child: const Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
                                 ),
-                            errorWidget:
-                                (context, url, error) => Container(
-                                  color: colorScheme.surfaceContainerHighest,
-                                  child: Icon(
-                                    Icons.music_note,
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                          ),
-                        )
-                        : Container(
-                          color: colorScheme.surfaceContainerHighest,
-                          child: Icon(
-                            Icons.music_note,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
+                              ),
+                            ),
+                        errorWidget:
+                            (context, url, error) => Container(
+                              color: colorScheme.surfaceContainerHighest,
+                              child: Icon(
+                                Icons.music_note,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                      )
+                      : Container(
+                        color: colorScheme.surfaceContainerHighest,
+                        child: Icon(
+                          Icons.music_note,
+                          color: colorScheme.onSurfaceVariant,
                         ),
-              ),
+                      ),
             ),
-            const SizedBox(height: 4),
-            // 歌曲标题
-            Text(
-              song.title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall,
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 4),
+          // 歌曲标题
+          Text(
+            song.title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodySmall,
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
@@ -327,12 +311,12 @@ class _CoverGridItem extends StatelessWidget {
 
 /// 显示歌曲封面选择弹窗的便捷方法
 ///
-/// 返回选中的封面信息 Map，包含 'songId'(int) 和 'coverUrl'(String?)，取消返回 null
-Future<Map<String, dynamic>?> showSongCoverPicker(
+/// 返回选中的封面信息 Map，包含 'coverPath' 和 'coverUrl'，取消返回 null
+Future<Map<String, String?>?> showSongCoverPicker(
   BuildContext context,
   int playlistId,
 ) {
-  return showModalBottomSheet<Map<String, dynamic>>(
+  return showModalBottomSheet<Map<String, String?>>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
