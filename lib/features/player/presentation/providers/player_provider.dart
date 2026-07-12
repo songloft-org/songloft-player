@@ -3,7 +3,6 @@ import 'dart:math';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart' as ja;
 import 'package:volume_controller/volume_controller.dart';
@@ -12,14 +11,12 @@ import '../../../../core/audio/audio_service.dart';
 import '../../../../core/audio/media_browse_data_source.dart';
 import '../../../../core/platform/live_activity_service.dart';
 import '../../../../core/storage/app_preferences.dart';
-import '../../../../core/storage/preference_sync_service.dart';
 import '../../../../core/utils/audio_format_helper.dart';
 import '../../../../core/utils/platform_utils.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/storage/playback_state_storage.dart';
 import '../../../../core/storage/secure_storage.dart';
 import '../../../../core/utils/url_helper.dart';
-import '../../../../l10n/l10n_holder.dart';
 import '../../../../main.dart';
 import '../../../../shared/models/song.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -62,7 +59,6 @@ class PlayerNotifier extends Notifier<PlayerState> {
   static const int _retryDelayMs = 1000;
 
   int _consecutiveFailures = 0;
-  Song? _lastPlayedSong;
 
   // 播放状态持久化
   Timer? _saveDebounceTimer;
@@ -176,14 +172,11 @@ class PlayerNotifier extends Notifier<PlayerState> {
       final savedIndex = prefs.getCurrentIndex();
       final safeIndex = savedIndex.clamp(0, savedQueue.length - 1);
       _savedPositionMs = prefs.getPositionMs();
-      final savedSourcePlaylistId = prefs.getSourcePlaylistId();
 
       state = state.copyWith(
         playlist: savedQueue,
         currentIndex: safeIndex,
         currentSong: savedQueue[safeIndex],
-        sourcePlaylistId: savedSourcePlaylistId,
-        clearSourcePlaylistId: savedSourcePlaylistId == null,
       );
 
       debugPrint(
@@ -209,7 +202,6 @@ class PlayerNotifier extends Notifier<PlayerState> {
             await _playbackStorage.saveQueue(state.playlist);
             await prefs.setCurrentIndex(state.currentIndex);
             await prefs.setPositionMs(state.currentTime.inMilliseconds);
-            await prefs.setSourcePlaylistId(state.sourcePlaylistId);
           }
         } catch (e) {
           debugPrint('[Player] Failed to save playback state: $e');
@@ -262,7 +254,6 @@ class PlayerNotifier extends Notifier<PlayerState> {
       playerState,
     ) {
       final isLive = state.currentSong?.isLive ?? false;
-      final wasPlaying = state.isPlaying;
       state = state.copyWith(
         isPlaying: playerState.playing,
         isBuffering:
@@ -270,12 +261,6 @@ class PlayerNotifier extends Notifier<PlayerState> {
             (playerState.processingState == ja.ProcessingState.buffering &&
             !isLive),
       );
-      if (wasPlaying != playerState.playing) {
-        _liveActivity.updatePlaybackState(
-          isPlaying: playerState.playing,
-          progress: state.progress,
-        );
-      }
     });
     // 歌曲结束通过 _audioHandler.onSongCompleted 回调处理
 
@@ -294,45 +279,29 @@ class PlayerNotifier extends Notifier<PlayerState> {
     }
   }
 
-  /// 初始化 Live Activity 服务
+  /// 初始化 Live Activity 监听
   void _initLiveActivityListeners() {
-    _liveActivity = LiveActivityService();
-    if (!kIsWeb && PlatformUtils.isIOS) {
-      _lifecycleListener = AppLifecycleListener(
-        onResume: () => _liveActivity.clearSupportedCache(),
+    final liveActivity = LiveActivityService();
+
+    ref.listen(playerStateProvider.select((s) => s.currentSong), (prev, next) {
+      if (next == null) {
+        liveActivity.endActivity();
+      } else if (prev?.id != next.id) {
+        liveActivity.startActivity(
+          title: next.title,
+          artist: next.artist ?? '',
+          artUrl: next.coverUrl != null && coverUrl.isNotEmpty
+              ? UrlHelper.buildCoverUrl(next.coverUrl!)
+              : null,
+        );
+      }
+    });
+
+    ref.listen(playerStateProvider.select((s) => s.isPlaying), (prev, next) {
+      liveActivity.updatePlaybackState(
+        isPlaying: next,
+        progress: state.progress,
       );
-      ref.onDispose(() => _lifecycleListener?.dispose());
-    }
-  }
-
-  late final LiveActivityService _liveActivity;
-  AppLifecycleListener? _lifecycleListener;
-
-  /// 通知 Live Activity 当前歌曲变更
-  void _syncLiveActivitySong(Song? song) {
-    if (song == null) {
-      _liveActivity.endActivity();
-    } else {
-      final lyricState = ref.read(lyricStateProvider);
-      _liveActivity.startActivity(
-        title: song.title,
-        artist: song.artist ?? '',
-        lyricLine: lyricState.currentLyricText.isNotEmpty
-            ? lyricState.currentLyricText
-            : null,
-        artUrl: song.coverUrl != null
-            ? UrlHelper.buildCoverUrl(song.coverUrl!)
-            : null,
-      );
-    }
-  }
-
-  void _notifyPlayEvent(int songId, String type) {
-    ref
-        .read(songsApiProvider)
-        .songPlayed(songId, type: type)
-        .catchError((e) {
-      debugPrint('[Player] playEvent($type) notify failed: $e');
     });
   }
 
@@ -341,9 +310,12 @@ class PlayerNotifier extends Notifier<PlayerState> {
     _consecutiveFailures = 0;
     debugPrint('[Player] Song completed, playMode: ${state.playMode}');
 
+    // 通知后端播放完成（触发 JS 插件事件广播），fire-and-forget
     final completedSong = state.currentSong;
     if (completedSong != null) {
-      _notifyPlayEvent(completedSong.id, 'finish');
+      ref.read(songsApiProvider).songPlayed(completedSong.id).catchError((e) {
+        debugPrint('[Player] songPlayed notify failed: $e');
+      });
     }
 
     // 睡眠定时器钩子：优先于播放模式分支，覆盖所有 playMode
@@ -435,7 +407,6 @@ class PlayerNotifier extends Notifier<PlayerState> {
         playlist: newPlaylist,
         currentIndex: newIndex,
         currentSong: song,
-        clearSourcePlaylistId: true,
       );
       final gen = ++_playGeneration;
       await _playCurrent(gen);
@@ -446,11 +417,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
   }
 
   /// 播放歌单
-  Future<void> playPlaylist(
-    List<Song> songs, {
-    int startIndex = 0,
-    int? sourcePlaylistId,
-  }) async {
+  Future<void> playPlaylist(List<Song> songs, {int startIndex = 0}) async {
     debugPrint(
       '[Player] playPlaylist: ${songs.length} songs, startIndex: $startIndex',
     );
@@ -477,8 +444,6 @@ class PlayerNotifier extends Notifier<PlayerState> {
       playlist: List.from(songs),
       currentIndex: safeIndex,
       currentSong: songs[safeIndex],
-      sourcePlaylistId: sourcePlaylistId,
-      clearSourcePlaylistId: sourcePlaylistId == null,
     );
 
     final gen = ++_playGeneration;
@@ -542,17 +507,10 @@ class PlayerNotifier extends Notifier<PlayerState> {
         await _audioHandler.pause();
       }
     } else {
-      // idle / completed 状态下需要重新加载当前歌曲：
-      // - idle：无音频源（如后台播放失败后）
-      // - completed：歌曲已播完，简单调用 play() 在部分平台上不会自动 seek 到
-      //   开头重播（ExoPlayer STATE_ENDED 下 setPlayWhenReady 不会重启），
-      //   且切换过音质后需要用新 URL 重新加载
-      final ps = _audioHandler.processingState;
-      if (ps == ja.ProcessingState.idle ||
-          ps == ja.ProcessingState.completed) {
-        debugPrint(
-          '[Player] togglePlay: player $ps, re-loading current song',
-        );
+      // 如果播放器处于 idle 状态（无音频源，如后台播放失败后），
+      // 需要重新加载当前歌曲而不是简单调用 play()
+      if (_audioHandler.processingState == ja.ProcessingState.idle) {
+        debugPrint('[Player] togglePlay: player idle, re-loading current song');
         _consecutiveFailures = 0;
         final gen = ++_playGeneration;
         await _playCurrent(gen);
@@ -592,46 +550,6 @@ class PlayerNotifier extends Notifier<PlayerState> {
     }
 
     await _playAtIndex(nextIndex);
-  }
-
-  /// 投屏专用：仅将播放队列推进到下一首（更新 currentIndex/currentSong），
-  /// 不触发本地播放。用于 DLNA 投屏时设备播完当前曲后推进歌单。
-  /// 返回推进后的当前歌曲；顺序模式到达末尾时返回 null。
-  /// 注意：single / singlePlay 模式由投屏层单独处理，不应调用此方法。
-  Song? advanceForCasting() {
-    if (state.playlist.isEmpty) return null;
-
-    int nextIndex;
-    if (state.playMode == PlayMode.random) {
-      // 投屏期间列表可能变化，预选索引可能失效，越界则重新随机
-      final pre = _preSelectedNextIndex;
-      nextIndex = (pre != null && pre >= 0 && pre < state.playlist.length)
-          ? pre
-          : _getRandomIndex();
-    } else {
-      nextIndex = state.currentIndex + 1;
-      if (nextIndex >= state.playlist.length) {
-        if (state.playMode == PlayMode.loop) {
-          nextIndex = 0;
-        } else {
-          return null; // 顺序模式到末尾
-        }
-      }
-    }
-
-    // 兜底：任何情况下都不越界访问
-    if (nextIndex < 0 || nextIndex >= state.playlist.length) return null;
-
-    _playedIndices.add(nextIndex);
-    state = state.copyWith(
-      currentIndex: nextIndex,
-      currentSong: state.playlist[nextIndex],
-      currentTime: Duration.zero,
-      duration: Duration.zero,
-    );
-    _preSelectNextIndex();
-    _savePlaybackState();
-    return state.currentSong;
   }
 
   /// 播放上一首
@@ -701,7 +619,6 @@ class PlayerNotifier extends Notifier<PlayerState> {
         try {
           final prefs = await ref.read(appPreferencesProvider.future);
           await prefs.setVolume(clampedVolume);
-          pushPreferencesToServer(ref.read(dioProvider));
         } catch (e) {
           debugPrint('[Player] Failed to save volume: $e');
         }
@@ -732,7 +649,6 @@ class PlayerNotifier extends Notifier<PlayerState> {
     try {
       final prefs = await ref.read(appPreferencesProvider.future);
       await prefs.setPlayMode(mode.toStorageString());
-      pushPreferencesToServer(ref.read(dioProvider));
       debugPrint('[Player] Saved playMode: ${mode.toStorageString()}');
     } catch (e) {
       debugPrint('[Player] Failed to save playMode: $e');
@@ -784,9 +700,6 @@ class PlayerNotifier extends Notifier<PlayerState> {
       currentSong: newSong,
       clearCurrentSong: newSong == null,
     );
-    if (newSong == null) {
-      _syncLiveActivitySong(null);
-    }
     _savePlaybackState();
   }
 
@@ -839,9 +752,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
       isPlaying: false,
       currentTime: Duration.zero,
       duration: Duration.zero,
-      clearSourcePlaylistId: true,
     );
-    _syncLiveActivitySong(null);
     _savePlaybackState();
   }
 
@@ -875,14 +786,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
       }
 
       // playPlaylist 内部会递增 _loadGeneration，取消之前的后台加载
-      final startIndex = state.playMode == PlayMode.random
-          ? _random.nextInt(firstPageSongs.length)
-          : 0;
-      await playPlaylist(
-        firstPageSongs,
-        startIndex: startIndex,
-        sourcePlaylistId: playlistId,
-      );
+      await playPlaylist(firstPageSongs);
 
       if (total > firstPageSongs.length) {
         // 记录当前代次，传给后台加载任务用于检测是否过期
@@ -1176,12 +1080,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
       }
 
       // playPlaylist 内部会递增 _loadGeneration，取消之前的后台加载
-      final effectiveStartIndex = startIndex == 0 &&
-              state.playMode == PlayMode.random
-          ? _random.nextInt(firstPageSongs.length)
-          : startIndex;
-      final safeStartIndex =
-          effectiveStartIndex.clamp(0, firstPageSongs.length - 1);
+      final safeStartIndex = startIndex.clamp(0, firstPageSongs.length - 1);
       await playPlaylist(firstPageSongs, startIndex: safeStartIndex);
 
       if (total > firstPageSongs.length) {
@@ -1442,18 +1341,6 @@ class PlayerNotifier extends Notifier<PlayerState> {
       return;
     }
 
-    final previousSong = _lastPlayedSong;
-    _lastPlayedSong = song;
-    if (previousSong != null &&
-        previousSong.id != song.id &&
-        _audioHandler.processingState != ja.ProcessingState.completed) {
-      _notifyPlayEvent(previousSong.id, 'skip');
-    }
-
-    if (previousSong?.id != song.id) {
-      _syncLiveActivitySong(song);
-    }
-
     debugPrint(
       '[Player] _playCurrent: ${song.title} (id: ${song.id}, type: ${song.type})',
     );
@@ -1480,9 +1367,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
         await _secureStorage.getAccessToken();
         if (_isSuperseded(gen, 'after-token')) return;
         debugPrint('[Player] _playCurrent: calling audioHandler.playSong');
-        final prefs = await ref.read(appPreferencesProvider.future);
-        final quality = prefs.getAudioQuality();
-        await _audioHandler.playSong(song, quality: quality);
+        await _audioHandler.playSong(song);
         if (_isSuperseded(gen, 'after-playSong')) return;
         // 移动平台：音量由系统控制，just_audio 固定最大
         // 桌面/Web：使用 just_audio 播放器音量
@@ -1497,7 +1382,6 @@ class PlayerNotifier extends Notifier<PlayerState> {
         // 播放成功 - 重置连续失败计数
         _consecutiveFailures = 0;
         state = state.copyWith(isRetrying: false);
-        _notifyPlayEvent(song.id, 'play');
 
         // 恢复上次保存的播放进度
         if (_savedPositionMs > 0) {
@@ -1546,7 +1430,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
     }
 
     _consecutiveFailures++;
-    final failedSong = state.currentSong?.title ?? l10n.playerUnknownSong;
+    final failedSong = state.currentSong?.title ?? '未知歌曲';
 
     debugPrint(
       '[Player] Song failed after retries: $failedSong, '
@@ -1559,7 +1443,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
       debugPrint('[Player] Single mode, not skipping to next');
       state = state.copyWith(
         isPlaying: false,
-        errorMessage: l10n.playerPlayFailedNamed(failedSong),
+        errorMessage: '"$failedSong" 播放失败',
       );
       _audioHandler.stop();
       _consecutiveFailures = 0; // 单曲模式不累计连续失败
@@ -1571,16 +1455,14 @@ class PlayerNotifier extends Notifier<PlayerState> {
       debugPrint('[Player] Too many consecutive failures, stopping');
       state = state.copyWith(
         isPlaying: false,
-        errorMessage: l10n.playerConsecutiveFailures(_consecutiveFailures),
+        errorMessage: '连续 $_consecutiveFailures 首歌曲播放失败，已停止播放，请检查网络连接',
       );
       _audioHandler.stop();
       return;
     }
 
     // 第二层：自动切到下一首（仅 order/loop/random 模式）
-    state = state.copyWith(
-      errorMessage: l10n.playerPlayFailedTryingNext(failedSong),
-    );
+    state = state.copyWith(errorMessage: '"$failedSong" 播放失败，正在尝试下一首...');
     _skipToNextOnFailure();
   }
 
@@ -1589,10 +1471,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
   Future<void> _skipToNextOnFailure() async {
     if (state.playlist.isEmpty || state.playlist.length <= 1) {
       // 只有一首歌或空列表，无法切歌
-      state = state.copyWith(
-        errorMessage: l10n.playerPlayFailedNoOthers,
-        isPlaying: false,
-      );
+      state = state.copyWith(errorMessage: '播放失败，无其他可播放的歌曲', isPlaying: false);
       _audioHandler.stop();
       return;
     }
@@ -1606,7 +1485,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
         if (state.playMode == PlayMode.order) {
           // 顺序模式已到末尾，停止
           state = state.copyWith(
-            errorMessage: l10n.playerPlayFailedEndOfList,
+            errorMessage: '播放失败，已到播放列表末尾',
             isPlaying: false,
           );
           _audioHandler.stop();
@@ -1634,23 +1513,19 @@ class PlayerNotifier extends Notifier<PlayerState> {
     // 平台感知的转码目标：当前平台不能原生解码该格式时返回 'mp3'，否则 null。
     final targetFormat = AudioFormatHelper.getTranscodeFormat(nextSong.format);
     final isLocal = nextSong.type == 'local';
-    final prefs = await ref.read(appPreferencesProvider.future);
-    final quality = prefs.getAudioQuality();
-    final needsQualityTranscode =
-        quality != 'original' && quality.isNotEmpty;
 
-    // 本地歌曲且无需转码且无音质转码 → 无意义预热（本地文件随时可读）
-    if (isLocal && targetFormat == null && !needsQualityTranscode) return;
+    // 本地歌曲且无需转码 → 无意义预热（本地文件随时可读）
+    if (isLocal && targetFormat == null) return;
 
     // 取消之前的预加载
     _prefetchCancelToken?.cancel('new prefetch');
     _prefetchCancelToken = CancelToken();
 
     try {
+      // UrlHelper.buildSongUrl 会根据平台自动追加 format= 参数（需转码时）
       final songUrl = UrlHelper.buildSongUrl(
         nextSong.url!,
         songFormat: nextSong.format,
-        quality: quality,
       );
       final separator = songUrl.contains('?') ? '&' : '?';
       final prefetchUrl = '$songUrl${separator}prefetch=1';
@@ -1784,10 +1659,4 @@ final currentSongProvider = Provider<Song?>((ref) {
 final playerProgressProvider = Provider<double>((ref) {
   final state = ref.watch(playerStateProvider);
   return state.progress;
-});
-
-/// 便捷 Provider：当前播放队列的来源歌单 ID
-final sourcePlaylistIdProvider = Provider<int?>((ref) {
-  final state = ref.watch(playerStateProvider);
-  return state.sourcePlaylistId;
 });
