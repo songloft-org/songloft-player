@@ -7,7 +7,6 @@ import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/responsive.dart';
 import '../../../../core/utils/color_extraction.dart';
 import '../../../../core/utils/url_helper.dart';
-import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/favorite_button.dart';
 import '../../domain/player_state.dart';
 import '../providers/player_provider.dart';
@@ -16,9 +15,6 @@ import 'lyrics_view.dart';
 import 'play_controls.dart';
 import 'popup_controls.dart';
 import 'progress_bar.dart';
-import '../utils/player_song_actions.dart';
-import 'vinyl_ring.dart';
-import '../../../dlna/presentation/widgets/cast_button.dart';
 import 'volume_control.dart';
 
 /// Desktop/Tablet 全屏播放器（左右分栏布局）
@@ -55,21 +51,25 @@ class DesktopFullPlayer extends ConsumerStatefulWidget {
 
 class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
     with SingleTickerProviderStateMixin {
-  /// 唱片环旋转动画控制器
-  late final AnimationController _rotationController;
+  /// 封面脉冲动画控制器
+  late final AnimationController _pulseController;
+  late final Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
-    _rotationController = AnimationController(
+    _pulseController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 28),
+      duration: const Duration(seconds: 2),
+    );
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.02).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
   }
 
   @override
   void dispose() {
-    _rotationController.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
 
@@ -90,19 +90,22 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
           Navigator.of(context).pop();
         }
       }
-      // 控制唱片环旋转动画
-      if (next.isPlaying && !_rotationController.isAnimating) {
-        _rotationController.repeat();
-      } else if (!next.isPlaying && _rotationController.isAnimating) {
-        _rotationController.stop();
+      // 控制封面脉冲动画
+      if (next.isPlaying && !_pulseController.isAnimating) {
+        _pulseController.repeat(reverse: true);
+      } else if (!next.isPlaying && _pulseController.isAnimating) {
+        _pulseController.animateTo(
+          0.0,
+          duration: const Duration(milliseconds: 300),
+        );
       }
     });
 
     // 初始播放状态动画
-    if (state.isPlaying && !_rotationController.isAnimating) {
+    if (state.isPlaying && !_pulseController.isAnimating) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && state.isPlaying && !_rotationController.isAnimating) {
-          _rotationController.repeat();
+        if (mounted && state.isPlaying && !_pulseController.isAnimating) {
+          _pulseController.repeat(reverse: true);
         }
       });
     }
@@ -126,19 +129,17 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
       body: Stack(
         children: [
           // 背景模糊封面 / 无封面时的动态渐变
-          if (coverUrl != null)
+          if (coverUrl != null && coverUrl.isNotEmpty)
             Positioned.fill(
-              child: ExcludeSemantics(
-                child: ImageFiltered(
-                  imageFilter: ImageFilter.blur(sigmaX: 70, sigmaY: 70),
-                  child: Image.network(
-                    UrlHelper.buildCoverUrl(coverUrl),
-                    fit: BoxFit.cover,
-                    errorBuilder:
-                        (_, _, _) => Container(
-                          color: theme.colorScheme.surfaceContainerHighest,
-                        ),
-                  ),
+              child: ImageFiltered(
+                imageFilter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
+                child: Image.network(
+                  UrlHelper.buildCoverUrl(coverUrl),
+                  fit: BoxFit.cover,
+                  errorBuilder:
+                      (_, _, _) => Container(
+                        color: theme.colorScheme.surfaceContainerHighest,
+                      ),
                 ),
               ),
             )
@@ -155,25 +156,6 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
                       palette.dominantColor.withValues(alpha: 0.6),
                       palette.darkMutedColor ?? palette.dominantColor,
                     ],
-                  ),
-                ),
-              ),
-            ),
-          // 径向环境光晕
-          if (palette != null)
-            Positioned.fill(
-              child: IgnorePointer(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: RadialGradient(
-                      center: const Alignment(-0.6, -0.5),
-                      radius: 1.2,
-                      colors: [
-                        (palette.vibrantColor ?? palette.dominantColor)
-                            .withValues(alpha: 0.22),
-                        Colors.transparent,
-                      ],
-                    ),
                   ),
                 ),
               ),
@@ -237,9 +219,9 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                // 封面带唱片环旋转
-                                VinylRing(
-                                  rotationAnimation: _rotationController,
+                                // 封面带脉冲动画
+                                ScaleTransition(
+                                  scale: _pulseAnimation,
                                   child: _buildCover(
                                     context,
                                     coverUrl,
@@ -265,10 +247,7 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
                                 const SizedBox(height: 8),
                                 // 艺术家名
                                 Text(
-                                  song.artist ??
-                                      AppLocalizations.of(
-                                        context,
-                                      ).playerUnknownArtist,
+                                  song.artist ?? '未知艺术家',
                                   style: theme.textTheme.bodyLarge?.copyWith(
                                     color: theme.colorScheme.onSurfaceVariant,
                                   ),
@@ -312,7 +291,6 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
                     onPrev: notifier.playPrev,
                     onNext: notifier.playNext,
                     size: 52,
-                    showGlow: true,
                   ),
                   const SizedBox(height: 12),
                   // 底部工具栏
@@ -343,45 +321,17 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
           icon: const Icon(Icons.keyboard_arrow_down_rounded),
           iconSize: 32,
           color: topBarColor,
-          tooltip: AppLocalizations.of(context).playerCollapse,
         ),
         // 中间标题
         Text(
-          AppLocalizations.of(context).playerNowPlaying,
+          '正在播放',
           style: TextStyle(
             color: topBarColor.withValues(alpha: 0.9),
             fontSize: 14,
           ),
         ),
-        // 更多操作
-        PopupMenuButton<String>(
-          icon: const Icon(Icons.more_horiz_rounded, color: Colors.white),
-          onSelected: (value) {
-            if (value == 'delete') {
-              deleteCurrentSongFromPlayer(context, ref);
-            }
-          },
-          itemBuilder: (context) {
-            final colorScheme = Theme.of(context).colorScheme;
-            return [
-              PopupMenuItem(
-                value: 'delete',
-                child: ListTile(
-                  leading: Icon(
-                    Icons.delete_outline,
-                    color: colorScheme.error,
-                  ),
-                  title: Text(
-                    AppLocalizations.of(context).playerDeleteCurrentSong,
-                    style: TextStyle(color: colorScheme.error),
-                  ),
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-            ];
-          },
-        ),
+        // 占位，保持布局对称
+        const SizedBox(width: 48),
       ],
     );
   }
@@ -394,27 +344,30 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
     CoverPalette? palette,
   }) {
     final theme = Theme.of(context);
-    final glowColor = palette?.vibrantColor ?? palette?.dominantColor;
 
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
-        borderRadius: AppRadius.xlAll,
+        borderRadius: AppRadius.lgAll,
         color: theme.colorScheme.surfaceContainerHighest,
-        boxShadow: glowColor != null
-            ? AppEffects.primaryGlow(glowColor)
-            : AppEffects.softGlow(theme.colorScheme.onSurface),
+        boxShadow: [
+          BoxShadow(
+            color: (palette?.dominantColor ?? Colors.black).withValues(
+              alpha: 0.2,
+            ),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       clipBehavior: Clip.antiAlias,
       child:
-          coverUrl != null
-              ? ExcludeSemantics(
-                child: Image.network(
-                  UrlHelper.buildCoverUrl(coverUrl),
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => _buildPlaceholder(theme, size),
-                ),
+          coverUrl != null && coverUrl.isNotEmpty
+              ? Image.network(
+                UrlHelper.buildCoverUrl(coverUrl),
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => _buildPlaceholder(theme, size),
               )
               : _buildPlaceholder(theme, size),
     );
@@ -454,12 +407,6 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
             onPlayModeChanged: notifier.setPlayMode,
           ),
         ),
-        // 投屏
-        const SizedBox(
-          width: 48,
-          height: 48,
-          child: CastButton(iconSize: 24),
-        ),
         // 音量
         SizedBox(
           width: 48,
@@ -490,7 +437,7 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
               QueueBottomSheet.show(context);
             },
             icon: const Icon(Icons.queue_music_rounded),
-            tooltip: AppLocalizations.of(context).playerQueueTitle,
+            tooltip: '播放队列',
           ),
         ),
       ],
