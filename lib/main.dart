@@ -20,6 +20,7 @@ import 'config/app_config.dart';
 import 'core/audio/audio_service.dart';
 import 'core/audio/smtc_service.dart';
 import 'core/audio/songloft_just_audio_platform.dart';
+import 'core/audio/web_audio_platform.dart';
 import 'core/backend/embedded_backend_service.dart';
 import 'core/env/tv_detector.dart';
 import 'core/storage/app_preferences.dart';
@@ -119,6 +120,15 @@ void main(List<String> args) async {
       }
     } catch (e, stackTrace) {
       debugPrint('[Main] MediaKit 初始化失败，音频功能将不可用: $e');
+      debugPrint('[Main] Stack trace: $stackTrace');
+    }
+  } else {
+    // web：用接入 hls.js 的自定义平台替换 just_audio_web 默认实现，
+    // 使桌面 Chrome/Edge 也能播放 HLS(.m3u8) 电台（songloft-org/songloft#275）。
+    try {
+      registerSongloftWebAudioPlatform();
+    } catch (e, stackTrace) {
+      debugPrint('[Main] web 音频平台注册失败，回退默认实现: $e');
       debugPrint('[Main] Stack trace: $stackTrace');
     }
   }

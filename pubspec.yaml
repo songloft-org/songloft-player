@@ -24,6 +24,7 @@ dependencies:
   # 音频播放
   just_audio: ^0.10.5
   just_audio_platform_interface: any  # SongloftMediaKitPlayer 实现 AudioPlayerPlatform
+  synchronized: ^3.4.0  # songloft_web_audio_player（vendoring 自 just_audio_web）直接引用
   just_audio_media_kit: ^2.0.0  # Windows/Linux 平台的 just_audio 后端（libmpv）
   media_kit: any  # EQ 均衡器需要直接访问 NativePlayer 设置 mpv 音频滤镜
   media_kit_libs_windows_audio: any  # Windows 平台 media_kit 音频库
