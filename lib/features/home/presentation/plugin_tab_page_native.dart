@@ -2,11 +2,13 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../config/app_config.dart';
 import '../../../core/storage/secure_storage.dart';
+import '../../../core/theme/responsive.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../settings/presentation/providers/settings_provider.dart';
 import 'plugin_theme_utils.dart';
@@ -149,16 +151,38 @@ class _PluginTabPageState extends ConsumerState<PluginTabPage>
       if (_pageReady) _sendThemeToPlugin(theme);
     }
 
-    return SafeArea(
-      bottom: false,
-      child: Stack(
-        children: [
-          if (_errorMessage != null)
-            _buildErrorView(colorScheme)
-          else
-            _buildWebView(theme),
-          if (_isLoading) const Center(child: CircularProgressIndicator()),
-        ],
+    // 接管 Android 硬件返回键：优先让 WebView 内部后退，无更多历史时再退出
+    // （songloft-org/songloft#273）。前提是 shell 子 Navigator 保持挂载，返回键
+    // 才能分发到本页 PopScope——保活逻辑见 shell_layout.dart 对该 issue 的修复。
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        // 在任何 await 之前同步读取布局类型，避免跨 async gap 使用 context。
+        final isTv = context.screenType == ScreenType.tv;
+        final controller = _webViewController;
+        if (controller != null && await controller.canGoBack()) {
+          await controller.goBack();
+          return;
+        }
+        // WebView 无更多历史：复现各布局一级页面的既有返回语义，避免 regression。
+        // TV 布局的 AdaptiveScaffold 外层刻意用 PopScope 让一级页面「不退出」，
+        // 这里对齐——TV 下不退出；其余布局（手机/车机等）与普通一级 Tab 一致，
+        // 交还系统退出应用。
+        if (isTv) return;
+        await SystemNavigator.pop();
+      },
+      child: SafeArea(
+        bottom: false,
+        child: Stack(
+          children: [
+            if (_errorMessage != null)
+              _buildErrorView(colorScheme)
+            else
+              _buildWebView(theme),
+            if (_isLoading) const Center(child: CircularProgressIndicator()),
+          ],
+        ),
       ),
     );
   }

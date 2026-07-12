@@ -145,10 +145,22 @@ class _ShellLayoutState extends ConsumerState<ShellLayout> {
         );
       }
     } else if (currentEntryPath != null) {
-      body = PluginTabPage(
-        key: ValueKey('plugin-active-$currentEntryPath'),
-        entryPath: currentEntryPath,
-        isActive: true,
+      // 插件 Tab 仍只渲染当前激活的 WebView（切走即销毁，规避 #246 的 WebView2
+      // 残留灰块）。但必须用 Offstage 保活 widget.child（shell 子 Navigator）：
+      // 若把它整个丢弃，子 Navigator 不挂载、其 NavigatorState 为 null，
+      // go_router 的 _findCurrentNavigators() 会在 `navigatorKey.currentState!`
+      // 强制解包处抛异常，导致系统返回键分发中断、插件 Tab 页退不出
+      // （songloft-org/songloft#273）。此处 child 渲染的是 /plugin-tab 的
+      // SizedBox.shrink 占位，不含 WebView，Offstage 保活无灰块副作用。
+      body = Stack(
+        children: [
+          Offstage(offstage: true, child: widget.child),
+          PluginTabPage(
+            key: ValueKey('plugin-active-$currentEntryPath'),
+            entryPath: currentEntryPath,
+            isActive: true,
+          ),
+        ],
       );
     } else {
       body = widget.child;
