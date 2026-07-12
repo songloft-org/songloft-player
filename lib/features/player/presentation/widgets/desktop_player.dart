@@ -3,17 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/url_helper.dart';
-import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/favorite_button.dart';
 import '../../domain/player_state.dart';
 import '../providers/player_provider.dart';
 import 'desktop_full_player.dart';
 import 'play_controls.dart';
 import 'progress_bar.dart';
-import 'equalizer_panel.dart';
 import 'popup_controls.dart';
 import 'volume_control.dart';
-import '../../../dlna/presentation/widgets/cast_button.dart';
 
 /// 桌面端底部播放器栏
 class DesktopPlayer extends ConsumerWidget {
@@ -90,7 +87,7 @@ class DesktopPlayer extends ConsumerWidget {
           ),
           const SizedBox(width: 12),
           Text(
-            AppLocalizations.of(context).playerNoContent,
+            '无播放内容',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
             ),
@@ -106,71 +103,64 @@ class DesktopPlayer extends ConsumerWidget {
       children: [
         // 可点击区域（封面+标题）
         Expanded(
-          child: Semantics(
-            button: true,
-            label: AppLocalizations.of(context).playerOpenFullPlayer,
-            child: GestureDetector(
-              onTap: () => DesktopFullPlayer.show(context),
-              behavior: HitTestBehavior.opaque,
-              child: Row(
-                children: [
-                  // 封面
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: theme.colorScheme.surfaceContainerHighest,
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child:
-                        coverUrl != null
-                            ? ExcludeSemantics(
-                              child: Image.network(
-                                UrlHelper.buildCoverUrl(coverUrl),
-                                fit: BoxFit.cover,
-                                errorBuilder:
-                                    (_, _, _) => Icon(
-                                      Icons.music_note_rounded,
-                                      color: theme.colorScheme.onSurfaceVariant,
-                                    ),
-                              ),
-                            )
-                            : Icon(
-                              Icons.music_note_rounded,
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
+          child: GestureDetector(
+            onTap: () => DesktopFullPlayer.show(context),
+            behavior: HitTestBehavior.opaque,
+            child: Row(
+              children: [
+                // 封面
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    color: theme.colorScheme.surfaceContainerHighest,
                   ),
-                  const SizedBox(width: 12),
-                  // 标题和艺术家
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          song.title,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w500,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          song.artist ??
-                              AppLocalizations.of(context).playerUnknownArtist,
-                          style: theme.textTheme.bodySmall?.copyWith(
+                  clipBehavior: Clip.antiAlias,
+                  child:
+                      coverUrl != null && coverUrl.isNotEmpty
+                          ? Image.network(
+                            UrlHelper.buildCoverUrl(coverUrl),
+                            fit: BoxFit.cover,
+                            errorBuilder:
+                                (_, _, _) => Icon(
+                                  Icons.music_note_rounded,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                          )
+                          : Icon(
+                            Icons.music_note_rounded,
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(width: 12),
+                // 标题和艺术家
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        song.title,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w500,
                         ),
-                      ],
-                    ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        song.artist ?? '未知艺术家',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -239,70 +229,35 @@ class DesktopPlayer extends ConsumerWidget {
   ) {
     final theme = Theme.of(context);
 
-    final volume = ResponsiveVolumeControl(
-      volume: state.volume,
-      onVolumeChanged: notifier.setVolume,
-    );
-
-    // 音量之后的次要操作按钮
-    final actions = <Widget>[
-      // 均衡器
-      IconButton(
-        onPressed: () => showEqualizerSheet(context),
-        icon: const Icon(Icons.equalizer_rounded, size: 20),
-        tooltip: AppLocalizations.of(context).playerEqualizer,
-        visualDensity: VisualDensity.compact,
-      ),
-      // 投屏
-      const CastButton(iconSize: 20, visualDensity: VisualDensity.compact),
-      // 睡眠定时
-      _buildSleepTimerButton(context, state, notifier, theme),
-      // 歌词按钮
-      _buildLyricsButton(context, state, theme),
-      // 播放列表
-      IconButton(
-        onPressed: notifier.togglePlaylistDrawer,
-        icon: Icon(
-          Icons.queue_music_rounded,
-          size: 20,
-          color: state.showPlaylistDrawer ? theme.colorScheme.primary : null,
-        ),
-        tooltip: AppLocalizations.of(context).playerPlaylist,
-        visualDensity: VisualDensity.compact,
-      ),
-    ];
-
-    // 窗口较窄（如平板布局 / 缩小的桌面窗口）时，固定尺寸的按钮会超出
-    // Expanded(flex:3) 分配的宽度导致 RenderFlex 溢出。这里按可用宽度分档：
-    // - 空间充足：内联音量滑块 + 全部按钮（原布局）
-    // - 空间紧张：整体等比缩小并让音量退化为弹出图标，保证任意宽度都不溢出
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth >= 300) {
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildPlayModeButton(context, state, notifier, theme),
-              Flexible(child: volume),
-              ...actions,
-            ],
-          );
-        }
-        return FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.centerRight,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildPlayModeButton(context, state, notifier, theme),
-              // 无界约束下 ResponsiveVolumeControl 自动退化为弹出图标
-              volume,
-              ...actions,
-            ],
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // 播放模式
+        _buildPlayModeButton(context, state, notifier, theme),
+        // 音量控制：使用响应式组件自动适配
+        Flexible(
+          child: ResponsiveVolumeControl(
+            volume: state.volume,
+            onVolumeChanged: notifier.setVolume,
           ),
-        );
-      },
+        ),
+        // 睡眠定时
+        _buildSleepTimerButton(context, state, notifier, theme),
+        // 歌词按钮
+        _buildLyricsButton(context, state, theme),
+        // 播放列表
+        IconButton(
+          onPressed: notifier.togglePlaylistDrawer,
+          icon: Icon(
+            Icons.queue_music_rounded,
+            size: 20,
+            color: state.showPlaylistDrawer ? theme.colorScheme.primary : null,
+          ),
+          tooltip: '播放列表',
+          visualDensity: VisualDensity.compact,
+        ),
+      ],
     );
   }
 
@@ -354,7 +309,7 @@ class DesktopPlayer extends ConsumerWidget {
                 ? null
                 : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
       ),
-      tooltip: AppLocalizations.of(context).playerLyrics,
+      tooltip: '歌词',
       visualDensity: VisualDensity.compact,
     );
   }
