@@ -1,9 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/utils/url_helper.dart';
-import '../../../../l10n/app_localizations.dart';
 import '../../domain/playlist.dart';
 
 /// 歌单列表项组件（列表视图）
@@ -12,14 +10,10 @@ class PlaylistListItem extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
-  final VoidCallback? onToggleVisibility;
   final VoidCallback? onPlayAll;
-  final VoidCallback? onLongPress;
   final bool isSelectionMode;
   final bool isSelected;
   final VoidCallback? onSelect;
-  final bool isCurrentPlaylist;
-  final bool isPlaying;
 
   const PlaylistListItem({
     super.key,
@@ -27,36 +21,32 @@ class PlaylistListItem extends StatelessWidget {
     this.onTap,
     this.onEdit,
     this.onDelete,
-    this.onToggleVisibility,
     this.onPlayAll,
-    this.onLongPress,
     this.isSelectionMode = false,
     this.isSelected = false,
     this.onSelect,
-    this.isCurrentPlaylist = false,
-    this.isPlaying = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final coverUrl = playlist.coverUrl;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final l10n = AppLocalizations.of(context);
 
     return Card(
       clipBehavior: Clip.antiAlias,
       shape:
-          (isSelectionMode && isSelected) || isCurrentPlaylist
+          isSelectionMode && isSelected
               ? RoundedRectangleBorder(
-                borderRadius: AppRadius.mdAll,
+                borderRadius: BorderRadius.circular(12),
                 side: BorderSide(color: colorScheme.primary, width: 2),
               )
-              : RoundedRectangleBorder(borderRadius: AppRadius.mdAll),
+              : null,
       child: InkWell(
         onTap: isSelectionMode ? onSelect : onTap,
-        onLongPress: isSelectionMode ? null : onLongPress,
+        onLongPress: isSelectionMode ? null : _showContextMenu(context),
         child: Padding(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(8),
           child: Row(
             children: [
               // 多选模式下显示 Checkbox
@@ -70,42 +60,23 @@ class PlaylistListItem extends StatelessWidget {
                 ),
               // 左侧：方形封面 56x56
               ClipRRect(
-                borderRadius: AppRadius.smAll,
+                borderRadius: BorderRadius.circular(8),
                 child: SizedBox(
                   width: 56,
                   height: 56,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      playlist.coverImageUrl != null
-                          ? ExcludeSemantics(
-                            child: CachedNetworkImage(
-                              imageUrl: UrlHelper.buildCoverUrl(
-                                playlist.coverImageUrl!,
-                              ),
-                              fit: BoxFit.cover,
-                              placeholder:
-                                  (context, url) =>
-                                      _buildPlaceholder(colorScheme),
-                              errorWidget:
-                                  (context, url, error) =>
-                                      _buildPlaceholder(colorScheme),
-                            ),
+                  child:
+                      coverUrl != null && coverUrl.isNotEmpty
+                          ? CachedNetworkImage(
+                            imageUrl: UrlHelper.buildCoverUrl(coverUrl),
+                            fit: BoxFit.cover,
+                            placeholder:
+                                (context, url) =>
+                                    _buildPlaceholder(colorScheme),
+                            errorWidget:
+                                (context, url, error) =>
+                                    _buildPlaceholder(colorScheme),
                           )
                           : _buildPlaceholder(colorScheme),
-                      if (isCurrentPlaylist && isPlaying)
-                        Container(
-                          color: Colors.black54,
-                          child: Center(
-                            child: Icon(
-                              Icons.equalizer_rounded,
-                              size: 24,
-                              color: colorScheme.primary,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -124,9 +95,6 @@ class PlaylistListItem extends StatelessWidget {
                             playlist.name,
                             style: textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: isCurrentPlaylist
-                                  ? colorScheme.primary
-                                  : null,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -141,10 +109,10 @@ class PlaylistListItem extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: colorScheme.secondary,
-                              borderRadius: BorderRadius.circular(AppRadius.sm),
+                              borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
-                              l10n.songTypeRadio,
+                              '电台',
                               style: textTheme.labelSmall?.copyWith(
                                 color: colorScheme.onSecondary,
                                 fontSize: 10,
@@ -158,7 +126,7 @@ class PlaylistListItem extends StatelessWidget {
 
                     // 第二行：歌曲数量 · 描述
                     Text(
-                      _buildSubtitle(l10n),
+                      _buildSubtitle(),
                       style: textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -188,12 +156,12 @@ class PlaylistListItem extends StatelessWidget {
                   IconButton(
                     onPressed: onPlayAll,
                     icon: const Icon(Icons.play_arrow),
-                    tooltip: l10n.playlistPlayAll,
+                    tooltip: '播放全部',
                   ),
                 IconButton(
                   onPressed: _showMoreMenu(context),
                   icon: const Icon(Icons.more_vert),
-                  tooltip: l10n.playlistMoreActions,
+                  tooltip: '更多操作',
                 ),
               ],
             ],
@@ -204,8 +172,8 @@ class PlaylistListItem extends StatelessWidget {
   }
 
   /// 构建副标题：歌曲数量 · 描述
-  String _buildSubtitle(AppLocalizations l10n) {
-    final parts = <String>[l10n.songsCount(playlist.songCount)];
+  String _buildSubtitle() {
+    final parts = <String>['${playlist.songCount} 首歌曲'];
     if (playlist.description?.isNotEmpty == true) {
       parts.add(playlist.description!);
     }
@@ -228,23 +196,18 @@ class PlaylistListItem extends StatelessWidget {
   Widget _buildLabel(BuildContext context, String label) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final l10n = AppLocalizations.of(context);
 
     String displayLabel;
     Color backgroundColor;
 
     switch (label) {
       case 'built_in':
-        displayLabel = l10n.playlistLabelBuiltIn;
+        displayLabel = '内置';
         backgroundColor = colorScheme.primaryContainer;
         break;
       case 'auto_created':
-        displayLabel = l10n.playlistLabelAuto;
+        displayLabel = '自动';
         backgroundColor = colorScheme.secondaryContainer;
-        break;
-      case 'hidden':
-        displayLabel = l10n.playlistLabelHidden;
-        backgroundColor = colorScheme.errorContainer;
         break;
       default:
         displayLabel = label;
@@ -290,30 +253,39 @@ class PlaylistListItem extends StatelessWidget {
     };
   }
 
+  /// 长按显示上下文菜单
+  VoidCallback? _showContextMenu(BuildContext context) {
+    if (onEdit == null && onDelete == null) return null;
+
+    return () {
+      final RenderBox? renderBox = context.findRenderObject() as RenderBox?;
+      if (renderBox == null) return;
+
+      final position = renderBox.localToGlobal(Offset.zero);
+      final size = renderBox.size;
+
+      showMenu(
+        context: context,
+        position: RelativeRect.fromLTRB(
+          position.dx,
+          position.dy + size.height / 2,
+          position.dx + size.width,
+          position.dy + size.height,
+        ),
+        items: _buildMenuItems(context),
+      );
+    };
+  }
+
   /// 构建菜单项
   List<PopupMenuEntry<void>> _buildMenuItems(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
     return [
       if (onEdit != null)
         PopupMenuItem(
           onTap: onEdit,
-          child: ListTile(
-            leading: const Icon(Icons.edit),
-            title: Text(l10n.playlistEditAction),
-            dense: true,
-            contentPadding: EdgeInsets.zero,
-          ),
-        ),
-      if (onToggleVisibility != null && !playlist.isBuiltIn)
-        PopupMenuItem(
-          onTap: onToggleVisibility,
-          child: ListTile(
-            leading: Icon(
-              playlist.isHidden
-                  ? Icons.visibility
-                  : Icons.visibility_off,
-            ),
-            title: Text(playlist.isHidden ? l10n.playlistUnhide : l10n.playlistHide),
+          child: const ListTile(
+            leading: Icon(Icons.edit),
+            title: Text('编辑'),
             dense: true,
             contentPadding: EdgeInsets.zero,
           ),
@@ -327,7 +299,7 @@ class PlaylistListItem extends StatelessWidget {
               color: Theme.of(context).colorScheme.error,
             ),
             title: Text(
-              l10n.commonDelete,
+              '删除',
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
             dense: true,
