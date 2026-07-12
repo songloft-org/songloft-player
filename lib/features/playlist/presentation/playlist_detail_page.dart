@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io' show File;
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -15,17 +14,14 @@ import '../../../core/utils/formatters.dart';
 import '../../../core/utils/url_helper.dart';
 import '../../../shared/models/song.dart';
 import '../../../shared/utils/responsive_snackbar.dart';
-import '../../../shared/widgets/delete_song_dialog.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/song_picker_modal.dart';
-import '../../library/presentation/providers/songs_provider.dart';
-import '../../library/presentation/song_edit_page.dart';
 import '../../player/presentation/providers/player_provider.dart';
+import '../data/playlist_api.dart';
 import '../domain/playlist.dart';
 import 'providers/playlist_provider.dart';
 import 'widgets/song_cover_picker_modal.dart';
 import '../../../shared/widgets/loading_indicator.dart';
-import '../../../l10n/app_localizations.dart';
 
 /// 歌单详情页面
 class PlaylistDetailPage extends ConsumerStatefulWidget {
@@ -57,11 +53,6 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
   /// 排序模式下的可排序歌曲列表（本地副本）
   List<Song> _sortableSongs = [];
 
-  /// 搜索状态
-  bool _isSearchMode = false;
-  final _searchController = TextEditingController();
-  Timer? _debounceTimer;
-
   @override
   void initState() {
     super.initState();
@@ -72,27 +63,7 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
-    _searchController.dispose();
-    _debounceTimer?.cancel();
     super.dispose();
-  }
-
-  void _onSearchChanged(String value) {
-    _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
-      ref.read(playlistSongsProvider(_playlistIdInt).notifier).search(value);
-    });
-  }
-
-  void _toggleSearch() {
-    setState(() {
-      _isSearchMode = !_isSearchMode;
-      if (!_isSearchMode) {
-        _searchController.clear();
-        _debounceTimer?.cancel();
-        ref.read(playlistSongsProvider(_playlistIdInt).notifier).search('');
-      }
-    });
   }
 
   /// 滚动监听：接近底部时触发分页加载
@@ -131,15 +102,10 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
     );
 
     if (mounted) {
-      final l10n = AppLocalizations.of(context);
       if (success) {
-        ref.read(playlistSongsProvider(_playlistIdInt).notifier).resetFilter();
-        ResponsiveSnackBar.showSuccess(context, message: l10n.playlistSortSaved);
+        ResponsiveSnackBar.showSuccess(context, message: '排序已保存');
       } else {
-        ResponsiveSnackBar.showError(
-          context,
-          message: l10n.playlistSortSaveFailed,
-        );
+        ResponsiveSnackBar.showError(context, message: '排序保存失败');
       }
     }
   }
@@ -167,10 +133,7 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
     final originalIds = fullSongs.map((s) => s.id).toList();
     if (_listEquals(songIds, originalIds)) {
       if (mounted) {
-        ResponsiveSnackBar.show(
-          context,
-          message: AppLocalizations.of(context).playlistAlreadySortedSongs,
-        );
+        ResponsiveSnackBar.show(context, message: '歌曲已是该排序顺序');
       }
       return;
     }
@@ -182,17 +145,13 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
     );
 
     if (mounted) {
-      final l10n = AppLocalizations.of(context);
       if (success) {
-        ref.read(playlistSongsProvider(_playlistIdInt).notifier).resetFilter();
         ResponsiveSnackBar.showSuccess(
           context,
-          message: ascending
-              ? l10n.playlistSortedByNameAsc
-              : l10n.playlistSortedByNameDesc,
+          message: ascending ? '已按名称升序排列' : '已按名称降序排列',
         );
       } else {
-        ResponsiveSnackBar.showError(context, message: l10n.playlistSortFailed);
+        ResponsiveSnackBar.showError(context, message: '排序失败');
       }
     }
   }
@@ -239,10 +198,7 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
     final originalIds = fullSongs.map((s) => s.id).toList();
     if (_listEquals(songIds, originalIds)) {
       if (mounted) {
-        ResponsiveSnackBar.show(
-          context,
-          message: AppLocalizations.of(context).playlistAlreadySortedSongs,
-        );
+        ResponsiveSnackBar.show(context, message: '歌曲已是该排序顺序');
       }
       return;
     }
@@ -254,15 +210,10 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
     );
 
     if (mounted) {
-      final l10n = AppLocalizations.of(context);
       if (success) {
-        ref.read(playlistSongsProvider(_playlistIdInt).notifier).resetFilter();
-        ResponsiveSnackBar.showSuccess(
-          context,
-          message: l10n.playlistSortedByNumber,
-        );
+        ResponsiveSnackBar.showSuccess(context, message: '已按数字前缀排序');
       } else {
-        ResponsiveSnackBar.showError(context, message: l10n.playlistSortFailed);
+        ResponsiveSnackBar.showError(context, message: '排序失败');
       }
     }
   }
@@ -329,24 +280,23 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
     if (_selectedSongIds.isEmpty) return;
 
     final count = _selectedSongIds.length;
-    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder:
           (context) => AlertDialog(
-            title: Text(l10n.playlistBatchRemoveTitle),
-            content: Text(l10n.playlistBatchRemoveConfirm(count)),
+            title: const Text('批量移除'),
+            content: Text('确定要从歌单中移除 $count 首歌曲吗？'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: Text(l10n.commonCancel),
+                child: const Text('取消'),
               ),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(true),
                 style: FilledButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.error,
                 ),
-                child: Text(l10n.playlistRemove),
+                child: const Text('移除'),
               ),
             ],
           ),
@@ -362,13 +312,10 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
 
     if (mounted) {
       if (success) {
-        ResponsiveSnackBar.showSuccess(
-          context,
-          message: l10n.playlistRemovedCount(count),
-        );
+        ResponsiveSnackBar.showSuccess(context, message: '已移除 $count 首歌曲');
         _exitSelectMode();
       } else {
-        ResponsiveSnackBar.showError(context, message: l10n.playlistRemoveFailed);
+        ResponsiveSnackBar.showError(context, message: '移除失败');
       }
     }
   }
@@ -409,21 +356,6 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
     Playlist playlist,
     AsyncValue<PaginatedSongsState> songsAsync,
   ) {
-    // 全站统一的双栏（主从）布局判断，见 context.useWideLayout
-    final useWideLayout = context.useWideLayout;
-    if (useWideLayout) {
-      return _buildWideContent(context, playlist, songsAsync);
-    }
-
-    return _buildNarrowContent(context, playlist, songsAsync);
-  }
-
-  /// 窄屏布局（Mobile / Tablet / Auto）：单列 CustomScrollView
-  Widget _buildNarrowContent(
-    BuildContext context,
-    Playlist playlist,
-    AsyncValue<PaginatedSongsState> songsAsync,
-  ) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return CustomScrollView(
@@ -437,7 +369,7 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
           title: Text(playlist.name),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            tooltip: AppLocalizations.of(context).playlistBack,
+            tooltip: '返回',
             onPressed: () {
               if (context.canPop()) {
                 context.pop();
@@ -469,10 +401,6 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
           child: _buildActionButtons(context, playlist, songsAsync),
         ),
 
-        // 搜索栏
-        if (_isSearchMode)
-          SliverToBoxAdapter(child: _buildSearchBar(context)),
-
         // 歌曲列表
         songsAsync.when(
           data: (state) => _buildSongList(context, playlist, state.items),
@@ -503,250 +431,11 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
     );
   }
 
-  /// 宽屏布局（Desktop / TV）：左右分栏
-  Widget _buildWideContent(
-    BuildContext context,
-    Playlist playlist,
-    AsyncValue<PaginatedSongsState> songsAsync,
-  ) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Column(
-      children: [
-        // 顶栏
-        AppBar(
-          backgroundColor: colorScheme.surface,
-          foregroundColor: colorScheme.onSurface,
-          title: Text(playlist.name),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            tooltip: AppLocalizations.of(context).playlistBack,
-            onPressed: () {
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go('/playlists');
-              }
-            },
-          ),
-          actions: _buildAppBarActions(
-            context,
-            playlist,
-            songsAsync,
-            colorScheme,
-          ),
-        ),
-        // 左右分栏
-        Expanded(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 左栏：封面 + 歌单信息 + 操作按钮
-              SizedBox(
-                width: 320,
-                child: _buildWideLeftPanel(context, playlist, songsAsync),
-              ),
-              VerticalDivider(
-                width: 1,
-                thickness: 1,
-                color: colorScheme.outlineVariant,
-              ),
-              // 右栏：歌曲列表
-              Expanded(
-                child: _buildWideRightPanel(context, playlist, songsAsync),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// 宽屏左栏：封面 + 歌单信息 + 操作按钮（固定不滚动或轻量滚动）
-  Widget _buildWideLeftPanel(
-    BuildContext context,
-    Playlist playlist,
-    AsyncValue<PaginatedSongsState> songsAsync,
-  ) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final coverUrl = playlist.coverUrl;
-    final paletteAsync = ref.watch(coverColorsProvider(coverUrl));
-    final palette = paletteAsync.value;
-    final bgColor =
-        palette?.darkMutedColor ?? colorScheme.surfaceContainerHighest;
-
-    final songCount = songsAsync.value?.total ?? 0;
-    final songs = songsAsync.value?.items ?? [];
-
-    // 构建信息片段
-    final infoParts = <String>[];
-    final l10n = AppLocalizations.of(context);
-    if (playlist.type == 'radio') infoParts.add(l10n.songTypeRadio);
-    for (final label in playlist.labels) {
-      infoParts.add(_getLabelName(label));
-    }
-    infoParts.add(l10n.songsCount(songCount));
-    final subtitle = infoParts.join(' · ');
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // 封面
-          Container(
-            width: 240,
-            height: 240,
-            decoration: BoxDecoration(
-              borderRadius: AppRadius.xlAll,
-              boxShadow: AppShadows.medium,
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  bgColor.withValues(alpha: 0.3),
-                  Colors.transparent,
-                ],
-              ),
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: playlist.coverImageUrl != null
-                ? ExcludeSemantics(
-                    child: CachedNetworkImage(
-                      imageUrl: UrlHelper.buildCoverUrl(
-                        playlist.coverImageUrl!,
-                      ),
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        color: colorScheme.surfaceContainerHighest,
-                      ),
-                      errorWidget: (context, url, error) =>
-                          _buildCoverPlaceholder(colorScheme, playlist),
-                    ),
-                  )
-                : _buildCoverPlaceholder(colorScheme, playlist),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          // 歌单名称
-          Text(
-            playlist.name,
-            style: textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          // 描述
-          if (playlist.description?.isNotEmpty == true) ...[
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              playlist.description!,
-              style: textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 4,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-          const SizedBox(height: AppSpacing.sm),
-          // 标签 / 歌曲数
-          Text(
-            subtitle,
-            style: textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          // 操作按钮（纵向全宽排列）
-          if (!_isSortMode && !_isSelectMode) ...[
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed:
-                    songs.isEmpty ? null : () => _playAll(playlist, songs),
-                icon: const Icon(Icons.play_arrow),
-                label: Text(l10n.playlistPlayAll),
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 48),
-                ),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: _addSongs,
-                icon: const Icon(Icons.add),
-                label: Text(l10n.playlistAddSongs),
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 48),
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  /// 宽屏右栏：歌曲列表（含搜索栏、分页加载）
-  Widget _buildWideRightPanel(
-    BuildContext context,
-    Playlist playlist,
-    AsyncValue<PaginatedSongsState> songsAsync,
-  ) {
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1200),
-        child: CustomScrollView(
-          controller: _scrollController,
-          slivers: [
-            // 搜索栏
-            if (_isSearchMode)
-              SliverToBoxAdapter(child: _buildSearchBar(context)),
-
-            // 歌曲列表
-            songsAsync.when(
-              data: (state) => _buildSongList(context, playlist, state.items),
-              loading: () => SliverToBoxAdapter(
-                child: Column(
-                  children: [
-                    for (int i = 0; i < 5; i++) SkeletonLoader.listTile(),
-                  ],
-                ),
-              ),
-              error: (error, stack) =>
-                  SliverToBoxAdapter(child: _buildError(error.toString())),
-            ),
-
-            // 加载更多指示器
-            if (songsAsync.value != null)
-              SliverToBoxAdapter(
-                child: _buildSongsLoadMoreIndicator(songsAsync.value!),
-              ),
-
-            // 底部安全区域
-            SliverToBoxAdapter(
-              child: SizedBox(
-                height: MediaQuery.of(context).padding.bottom + 80,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   /// 构建歌曲分页加载更多指示器
   Widget _buildSongsLoadMoreIndicator(PaginatedSongsState state) {
     // 排序模式 / 多选模式下不显示加载更多（避免影响交互）
     if (_isSortMode || _isSelectMode) return const SizedBox.shrink();
 
-    final l10n = AppLocalizations.of(context);
     if (state.loadMoreError != null) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -758,7 +447,7 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
                         .read(playlistSongsProvider(_playlistIdInt).notifier)
                         .loadMore(),
             icon: const Icon(Icons.refresh),
-            label: Text(l10n.playlistLoadMoreRetry),
+            label: const Text('加载更多失败，点击重试'),
           ),
         ),
       );
@@ -774,7 +463,7 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
         padding: const EdgeInsets.symmetric(vertical: 16),
         child: Center(
           child: Text(
-            l10n.playlistAllLoaded(state.total),
+            '— 已全部加载（${state.total}） —',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -820,16 +509,14 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
             boxShadow: AppShadows.medium,
           ),
           clipBehavior: Clip.antiAlias,
-          child: playlist.coverImageUrl != null
-              ? ExcludeSemantics(
-                child: CachedNetworkImage(
-                    imageUrl: UrlHelper.buildCoverUrl(playlist.coverImageUrl!),
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) =>
-                        Container(color: colorScheme.surfaceContainerHighest),
-                    errorWidget: (context, url, error) =>
-                        _buildCoverPlaceholder(colorScheme, playlist),
-                  ),
+          child: coverUrl != null && coverUrl.isNotEmpty
+              ? CachedNetworkImage(
+                  imageUrl: UrlHelper.buildCoverUrl(coverUrl),
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) =>
+                      Container(color: colorScheme.surfaceContainerHighest),
+                  errorWidget: (context, url, error) =>
+                      _buildCoverPlaceholder(colorScheme, playlist),
                 )
               : _buildCoverPlaceholder(colorScheme, playlist),
         ),
@@ -861,12 +548,11 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
 
     // 构建信息片段
     final infoParts = <String>[];
-    final l10n = AppLocalizations.of(context);
-    if (playlist.type == 'radio') infoParts.add(l10n.songTypeRadio);
+    if (playlist.type == 'radio') infoParts.add('电台');
     for (final label in playlist.labels) {
       infoParts.add(_getLabelName(label));
     }
-    infoParts.add(l10n.songsCount(songCount));
+    infoParts.add('$songCount 首歌曲');
     final subtitle = infoParts.join(' · ');
 
     return Padding(
@@ -903,7 +589,6 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
     AsyncValue<PaginatedSongsState> songsAsync,
     ColorScheme colorScheme,
   ) {
-    final l10n = AppLocalizations.of(context);
     final songs = songsAsync.value?.items ?? [];
     final totalSongs = songsAsync.value?.total ?? songs.length;
     final isBuiltIn = playlist.isBuiltIn;
@@ -913,11 +598,11 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
       return [
         TextButton(
           onPressed: _cancelSortMode,
-          child: Text(l10n.commonCancel),
+          child: const Text('取消'),
         ),
         TextButton(
           onPressed: _exitSortMode,
-          child: Text(l10n.playlistDone),
+          child: const Text('完成'),
         ),
       ];
     }
@@ -936,104 +621,39 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
                 songs;
             _toggleSelectAll(fullSongs);
           },
-          child: Text(
-            _selectedSongIds.length == totalSongs
-                ? l10n.playlistDeselectAll
-                : l10n.selectAll,
-          ),
+          child: Text(_selectedSongIds.length == totalSongs ? '取消全选' : '全选'),
         ),
-        PopupMenuButton<String>(
-          enabled: _selectedSongIds.isNotEmpty,
-          onSelected: (value) {
-            if (value == 'remove') {
-              _batchRemoveSelectedSongs();
-            } else if (value == 'delete') {
-              _batchDeleteSelectedSongsFromLibrary();
-            }
-          },
-          itemBuilder: (context) => [
-            PopupMenuItem(
-              value: 'remove',
-              child: Text(l10n.playlistRemoveFromPlaylist),
-            ),
-            PopupMenuItem(
-              value: 'delete',
-              child: Text(
-                l10n.playlistDeleteFromLibrary,
-                style: TextStyle(color: colorScheme.error),
-              ),
-            ),
-          ],
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Text(
-              l10n.playlistActionsCount(_selectedSongIds.length),
-              style: TextStyle(
-                color: _selectedSongIds.isEmpty
-                    ? colorScheme.onSurface.withValues(alpha: 0.38)
-                    : colorScheme.primary,
-              ),
-            ),
+        TextButton(
+          onPressed:
+              _selectedSongIds.isEmpty ? null : _batchRemoveSelectedSongs,
+          style: TextButton.styleFrom(
+            foregroundColor:
+                _selectedSongIds.isEmpty ? null : colorScheme.error,
           ),
+          child: Text('删除(${_selectedSongIds.length})'),
         ),
         TextButton(
           onPressed: _exitSelectMode,
-          child: Text(l10n.commonCancel),
+          child: const Text('取消'),
         ),
       ];
     }
 
-    final currentSort = songsAsync.value?.sort ?? 'position';
-    final hasKeyword = (songsAsync.value?.keyword ?? '').isNotEmpty;
-
     // 正常模式
     return [
-      IconButton(
-        icon: Icon(_isSearchMode ? Icons.search_off : Icons.search),
-        tooltip: l10n.playlistSearch,
-        onPressed: _toggleSearch,
-      ),
-      if (songs.isNotEmpty)
-        IconButton(
-          icon: const Icon(Icons.checklist),
-          tooltip: l10n.playlistMultiSelect,
-          onPressed: _enterSelectMode,
-        ),
       if (totalSongs > 1)
         PopupMenuButton<String>(
           icon: const Icon(Icons.sort),
-          tooltip: l10n.playlistSort,
+          tooltip: '排序',
           onSelected: (value) {
-            final notifier =
-                ref.read(playlistSongsProvider(_playlistIdInt).notifier);
             switch (value) {
-              // 视图排序（非破坏性）
-              case 'view_position':
-                notifier.setSort('position', 'asc');
-                break;
-              case 'view_added_at':
-                notifier.setSort('added_at', 'desc');
-                break;
-              case 'view_file_modified_at':
-                notifier.setSort('file_modified_at', 'desc');
-                break;
-              case 'view_title':
-                notifier.setSort('title', 'asc');
-                break;
-              case 'view_artist':
-                notifier.setSort('artist', 'asc');
-                break;
-              case 'view_duration':
-                notifier.setSort('duration', 'asc');
-                break;
-              // 永久排序
-              case 'perm_name_asc':
+              case 'name_asc':
                 _autoSortByName(songs, ascending: true);
                 break;
-              case 'perm_name_desc':
+              case 'name_desc':
                 _autoSortByName(songs, ascending: false);
                 break;
-              case 'perm_number':
+              case 'number_asc':
                 _autoSortByNumberPrefix(songs);
                 break;
               case 'manual':
@@ -1043,93 +663,61 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
           },
           itemBuilder:
               (context) => [
-                _buildSortMenuItem(
-                  value: 'view_position',
-                  icon: Icons.reorder,
-                  title: l10n.playlistSortCustom,
-                  isSelected: currentSort == 'position',
-                ),
-                _buildSortMenuItem(
-                  value: 'view_added_at',
-                  icon: Icons.schedule,
-                  title: l10n.playlistSortRecentlyAdded,
-                  isSelected: currentSort == 'added_at',
-                ),
-                _buildSortMenuItem(
-                  value: 'view_file_modified_at',
-                  icon: Icons.insert_drive_file_outlined,
-                  title: l10n.playlistSortFileTime,
-                  isSelected: currentSort == 'file_modified_at',
-                ),
-                _buildSortMenuItem(
-                  value: 'view_title',
-                  icon: Icons.sort_by_alpha,
-                  title: l10n.playlistSortTitle,
-                  isSelected: currentSort == 'title',
-                ),
-                _buildSortMenuItem(
-                  value: 'view_artist',
-                  icon: Icons.person,
-                  title: l10n.playlistSortArtist,
-                  isSelected: currentSort == 'artist',
-                ),
-                _buildSortMenuItem(
-                  value: 'view_duration',
-                  icon: Icons.timer,
-                  title: l10n.playlistSortDuration,
-                  isSelected: currentSort == 'duration',
-                ),
-                const PopupMenuDivider(),
-                if (!hasKeyword) ...[
-                  PopupMenuItem(
-                    value: 'perm_name_asc',
-                    child: ListTile(
-                      leading: const Icon(Icons.sort_by_alpha),
-                      title: Text(l10n.playlistSortNameAsc),
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                    ),
+                const PopupMenuItem(
+                  value: 'name_asc',
+                  child: ListTile(
+                    leading: Icon(Icons.sort_by_alpha),
+                    title: Text('按名称排序 A→Z'),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
                   ),
-                  PopupMenuItem(
-                    value: 'perm_name_desc',
-                    child: ListTile(
-                      leading: const Icon(Icons.sort_by_alpha),
-                      title: Text(l10n.playlistSortNameDesc),
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                    ),
+                ),
+                const PopupMenuItem(
+                  value: 'name_desc',
+                  child: ListTile(
+                    leading: Icon(Icons.sort_by_alpha),
+                    title: Text('按名称排序 Z→A'),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
                   ),
-                  PopupMenuItem(
-                    value: 'perm_number',
-                    child: ListTile(
-                      leading: const Icon(Icons.format_list_numbered),
-                      title: Text(l10n.playlistSortNumberPrefix),
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                    ),
+                ),
+                const PopupMenuItem(
+                  value: 'number_asc',
+                  child: ListTile(
+                    leading: Icon(Icons.format_list_numbered),
+                    title: Text('按数字前缀排序'),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
                   ),
-                  if (currentSort == 'position')
-                    PopupMenuItem(
-                      value: 'manual',
-                      child: ListTile(
-                        leading: const Icon(Icons.drag_handle),
-                        title: Text(l10n.playlistSortManual),
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ),
-                ],
+                ),
+                const PopupMenuItem(
+                  value: 'manual',
+                  child: ListTile(
+                    leading: Icon(Icons.drag_handle),
+                    title: Text('手动排序'),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
               ],
         ),
+      if (songs.isNotEmpty)
+        IconButton(
+          icon: const Icon(Icons.checklist),
+          tooltip: '多选',
+          onPressed: _enterSelectMode,
+        ),
+      IconButton(
+        icon: const Icon(Icons.edit),
+        tooltip: isBuiltIn ? '修改封面' : '编辑歌单',
+        onPressed: () => _showEditDialog(playlist),
+      ),
       PopupMenuButton<String>(
         icon: const Icon(Icons.more_vert),
         onSelected: (value) {
           switch (value) {
             case 'add_songs':
               _addSongs();
-              break;
-            case 'edit':
-              _showEditDialog(playlist);
               break;
             case 'delete':
               _confirmDelete(playlist);
@@ -1138,103 +726,31 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
         },
         itemBuilder:
             (context) => [
-              PopupMenuItem(
+              const PopupMenuItem(
                 value: 'add_songs',
                 child: ListTile(
-                  leading: const Icon(Icons.add),
-                  title: Text(l10n.playlistAddSongs),
+                  leading: Icon(Icons.add),
+                  title: Text('添加歌曲'),
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
-              PopupMenuItem(
-                value: 'edit',
-                child: ListTile(
-                  leading: const Icon(Icons.edit),
-                  title: Text(
-                    isBuiltIn ? l10n.playlistEditCover : l10n.playlistEditPlaylist,
-                  ),
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-              if (!isBuiltIn) ...[
-                const PopupMenuDivider(),
+              if (!isBuiltIn)
                 PopupMenuItem(
                   value: 'delete',
                   child: ListTile(
                     leading: Icon(Icons.delete, color: colorScheme.error),
                     title: Text(
-                      l10n.playlistDelete,
+                      '删除歌单',
                       style: TextStyle(color: colorScheme.error),
                     ),
                     dense: true,
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
-              ],
             ],
       ),
     ];
-  }
-
-  Widget _buildSearchBar(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final l10n = AppLocalizations.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.xs,
-      ),
-      child: TextField(
-        controller: _searchController,
-        autofocus: true,
-        decoration: InputDecoration(
-          prefixIcon: const Icon(Icons.search),
-          suffixIcon: _searchController.text.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear),
-                  tooltip: l10n.clearSearch,
-                  onPressed: () {
-                    _searchController.clear();
-                    ref
-                        .read(
-                          playlistSongsProvider(_playlistIdInt).notifier,
-                        )
-                        .search('');
-                  },
-                )
-              : null,
-          hintText: l10n.playlistSearchHint,
-          filled: true,
-          fillColor: colorScheme.surfaceContainerHighest,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            borderSide: BorderSide.none,
-          ),
-          contentPadding: const EdgeInsets.symmetric(vertical: 0),
-        ),
-        onChanged: _onSearchChanged,
-      ),
-    );
-  }
-
-  PopupMenuItem<String> _buildSortMenuItem({
-    required String value,
-    required IconData icon,
-    required String title,
-    required bool isSelected,
-  }) {
-    return PopupMenuItem(
-      value: value,
-      child: ListTile(
-        leading: Icon(icon),
-        title: Text(title),
-        trailing: isSelected ? const Icon(Icons.check, size: 18) : null,
-        dense: true,
-        contentPadding: EdgeInsets.zero,
-      ),
-    );
   }
 
   Widget _buildActionButtons(
@@ -1242,7 +758,6 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
     Playlist playlist,
     AsyncValue<PaginatedSongsState> songsAsync,
   ) {
-    final l10n = AppLocalizations.of(context);
     final songs = songsAsync.value?.items ?? [];
 
     // 排序模式和多选模式下隐藏操作按钮
@@ -1269,7 +784,7 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
                 onPressed:
                     songs.isEmpty ? null : () => _playAll(playlist, songs),
                 icon: const Icon(Icons.play_arrow),
-                label: Text(l10n.playlistPlayAll),
+                label: const Text('播放全部'),
                 style: FilledButton.styleFrom(
                   minimumSize: context.responsiveButtonMinSize,
                 ),
@@ -1282,7 +797,7 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
             OutlinedButton.icon(
               onPressed: _addSongs,
               icon: const Icon(Icons.add),
-              label: Text(l10n.playlistAddSongs),
+              label: const Text('添加歌曲'),
               style: OutlinedButton.styleFrom(
                 minimumSize: context.responsiveButtonMinSize,
               ),
@@ -1357,26 +872,19 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
           index: index + 1,
           onTap: () => _playSong(song, songs, index),
           onRemove: () => _removeSong(playlist.id, song),
-          onDeleteFromLibrary: () => _deleteSongFromLibrary(song),
-          onEdit: () => _navigateToEditSong(song),
-          onLongPress: () {
-            _enterSelectMode();
-            _toggleSongSelection(song.id);
-          },
         );
       }, childCount: songs.length),
     );
   }
 
   Widget _buildEmptySongs(BuildContext context, bool isBuiltIn) {
-    final l10n = AppLocalizations.of(context);
     return EmptyState(
       icon: Icons.music_off_outlined,
-      title: l10n.playlistEmptySongs,
-      subtitle: l10n.playlistEmptySongsSubtitle,
+      title: '歌单暂无歌曲',
+      subtitle: '添加一些喜欢的音乐吧',
       action: FilledButton.tonal(
         onPressed: _addSongs,
-        child: Text(l10n.playlistAddSongs),
+        child: const Text('添加歌曲'),
       ),
     );
   }
@@ -1384,7 +892,6 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
   Widget _buildError(String error) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final l10n = AppLocalizations.of(context);
 
     return Center(
       child: Padding(
@@ -1394,7 +901,7 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
           children: [
             Icon(Icons.error_outline, size: 64, color: colorScheme.error),
             const SizedBox(height: 16),
-            Text(l10n.commonLoadFailed, style: textTheme.titleMedium),
+            Text('加载失败', style: textTheme.titleMedium),
             const SizedBox(height: 8),
             Text(
               error,
@@ -1410,7 +917,7 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
                 ref.invalidate(playlistSongsProvider(_playlistIdInt));
               },
               icon: const Icon(Icons.refresh),
-              label: Text(l10n.commonRetry),
+              label: const Text('重试'),
             ),
           ],
         ),
@@ -1419,12 +926,11 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
   }
 
   String _getLabelName(String label) {
-    final l10n = AppLocalizations.of(context);
     switch (label) {
       case 'built_in':
-        return l10n.playlistLabelBuiltIn;
+        return '内置';
       case 'auto_created':
-        return l10n.playlistLabelAutoCreated;
+        return '自动创建';
       default:
         return label;
     }
@@ -1442,10 +948,8 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
     );
 
     if (result == true && mounted) {
-      // 强制刷新歌单详情并等待完成，确保封面等变更立即生效
-      ref.invalidate(coverColorsProvider(playlist.coverUrl));
+      // 刷新歌单详情
       ref.invalidate(playlistDetailProvider(_playlistIdInt));
-      await ref.read(playlistDetailProvider(_playlistIdInt).future);
     }
   }
 
@@ -1482,37 +986,35 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
     );
 
     if (!mounted) return;
-    final l10n = AppLocalizations.of(context);
     if (result == null) {
-      ResponsiveSnackBar.showError(context, message: l10n.playlistAddSongsFailed);
+      ResponsiveSnackBar.showError(context, message: '添加歌曲失败');
       return;
     }
     final msg = result.skipped > 0
-        ? l10n.playlistAddedWithSkipped(result.added, result.skipped)
-        : l10n.playlistAddedCount(result.added);
+        ? '已添加 ${result.added} 首，跳过 ${result.skipped} 首（已存在或类型不兼容）'
+        : '已添加 ${result.added} 首歌曲';
     ResponsiveSnackBar.showSuccess(context, message: msg);
   }
 
   /// 确认删除歌单
   Future<void> _confirmDelete(Playlist playlist) async {
-    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder:
           (context) => AlertDialog(
-            title: Text(l10n.playlistConfirmDelete),
-            content: Text(l10n.playlistDeleteConfirm(playlist.name)),
+            title: const Text('确认删除'),
+            content: Text('确定要删除歌单「${playlist.name}」吗？此操作不可恢复。'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: Text(l10n.commonCancel),
+                child: const Text('取消'),
               ),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(true),
                 style: FilledButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.error,
                 ),
-                child: Text(l10n.commonDelete),
+                child: const Text('删除'),
               ),
             ],
           ),
@@ -1530,16 +1032,15 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
           // 没有返回栈时，跳转到歌单列表页
           context.go('/playlists');
         }
-        ResponsiveSnackBar.showSuccess(context, message: l10n.playlistDeleted);
+        ResponsiveSnackBar.showSuccess(context, message: '歌单已删除');
       }
     }
   }
 
   /// 播放全部（委托给 PlayerNotifier.playPlaylistById）
   Future<void> _playAll(Playlist playlist, List<Song> songs) async {
-    final l10n = AppLocalizations.of(context);
     if (songs.isEmpty) {
-      ResponsiveSnackBar.show(context, message: l10n.playlistEmpty);
+      ResponsiveSnackBar.show(context, message: '歌单为空');
       return;
     }
     final total = await ref
@@ -1547,14 +1048,11 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
         .playPlaylistById(playlist.id);
     if (!mounted) return;
     if (total < 0) {
-      ResponsiveSnackBar.showError(context, message: l10n.playlistPlayFailed);
+      ResponsiveSnackBar.showError(context, message: '播放失败');
     } else if (total == 0) {
-      ResponsiveSnackBar.show(context, message: l10n.playlistEmpty);
+      ResponsiveSnackBar.show(context, message: '歌单为空');
     } else {
-      ResponsiveSnackBar.show(
-        context,
-        message: l10n.playlistPlayingCount(total),
-      );
+      ResponsiveSnackBar.show(context, message: '播放全部 $total 首歌曲');
     }
   }
 
@@ -1563,30 +1061,26 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
     debugPrint('[Player] Play song: ${song.title} at index $index');
     ref
         .read(playerStateProvider.notifier)
-        .playPlaylist(songs, startIndex: index, sourcePlaylistId: _playlistIdInt);
-    ResponsiveSnackBar.show(
-      context,
-      message: AppLocalizations.of(context).playlistPlayingSong(song.title),
-    );
+        .playPlaylist(songs, startIndex: index);
+    ResponsiveSnackBar.show(context, message: '播放：${song.title}');
   }
 
   /// 从歌单移除歌曲
   Future<void> _removeSong(int playlistId, Song song) async {
-    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder:
           (context) => AlertDialog(
-            title: Text(l10n.playlistRemoveSongTitle),
-            content: Text(l10n.playlistRemoveSongConfirm(song.title)),
+            title: const Text('移除歌曲'),
+            content: Text('确定要从歌单中移除「${song.title}」吗？'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: Text(l10n.commonCancel),
+                child: const Text('取消'),
               ),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(true),
-                child: Text(l10n.playlistRemove),
+                child: const Text('移除'),
               ),
             ],
           ),
@@ -1600,96 +1094,7 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
       );
 
       if (success && mounted) {
-        ResponsiveSnackBar.showSuccess(
-          context,
-          message: l10n.playlistSongRemoved,
-        );
-      }
-    }
-  }
-
-  /// 编辑歌曲（跳转编辑页，返回后刷新歌单歌曲列表与歌曲库）
-  Future<void> _navigateToEditSong(Song song) async {
-    final result = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SongEditPage(song: song, songType: song.type),
-      ),
-    );
-    if (result == true) {
-      ref.invalidate(playlistSongsProvider(_playlistIdInt));
-      ref.invalidate(songsListProvider);
-    }
-  }
-
-  Future<void> _deleteSongFromLibrary(Song song) async {
-    final l10n = AppLocalizations.of(context);
-    final result = await DeleteSongDialog.show(
-      context,
-      title: l10n.playlistDeleteSong,
-      content: l10n.playlistDeleteSongConfirm(song.title),
-    );
-    if (result == null || !mounted) return;
-
-    try {
-      await ref
-          .read(songsApiProvider)
-          .deleteSong(song.id, deleteFiles: result.deleteFiles);
-      ref.invalidate(playlistSongsProvider(_playlistIdInt));
-      ref.invalidate(songsListProvider);
-      _removeDeletedSongsFromPlayerQueue({song.id});
-      if (mounted) {
-        ResponsiveSnackBar.showSuccess(context, message: l10n.playlistSongDeleted);
-      }
-    } catch (e) {
-      if (mounted) {
-        ResponsiveSnackBar.showError(context, message: l10n.playlistDeleteFailed);
-      }
-    }
-  }
-
-  Future<void> _batchDeleteSelectedSongsFromLibrary() async {
-    if (_selectedSongIds.isEmpty) return;
-
-    final count = _selectedSongIds.length;
-    final ids = _selectedSongIds.toSet();
-    final l10n = AppLocalizations.of(context);
-    final result = await DeleteSongDialog.show(
-      context,
-      title: l10n.playlistBatchDelete,
-      content: l10n.playlistBatchDeleteSongsConfirm(count),
-    );
-    if (result == null || !mounted) return;
-
-    try {
-      final api = ref.read(songsApiProvider);
-      final deleted = await api.batchDeleteSongs(
-        ids.toList(),
-        deleteFiles: result.deleteFiles,
-      );
-      ref.invalidate(playlistSongsProvider(_playlistIdInt));
-      ref.invalidate(songsListProvider);
-      _removeDeletedSongsFromPlayerQueue(ids);
-      _exitSelectMode();
-      if (mounted) {
-        ResponsiveSnackBar.showSuccess(
-          context,
-          message: l10n.playlistDeletedSongsCount(deleted),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ResponsiveSnackBar.showError(context, message: l10n.playlistDeleteFailed);
-      }
-    }
-  }
-
-  void _removeDeletedSongsFromPlayerQueue(Set<int> deletedIds) {
-    final playerNotifier = ref.read(playerStateProvider.notifier);
-    final queue = ref.read(playerStateProvider).playlist;
-    for (int i = queue.length - 1; i >= 0; i--) {
-      if (deletedIds.contains(queue[i].id)) {
-        playerNotifier.removeFromPlaylist(i);
+        ResponsiveSnackBar.showSuccess(context, message: '歌曲已移除');
       }
     }
   }
@@ -1701,9 +1106,6 @@ class _SongListTile extends StatelessWidget {
   final int index;
   final VoidCallback onTap;
   final VoidCallback onRemove;
-  final VoidCallback? onDeleteFromLibrary;
-  final VoidCallback? onEdit;
-  final VoidCallback? onLongPress;
 
   /// 是否显示拖拽手柄（排序模式）
   final bool showDragHandle;
@@ -1726,9 +1128,6 @@ class _SongListTile extends StatelessWidget {
     required this.index,
     required this.onTap,
     required this.onRemove,
-    this.onDeleteFromLibrary,
-    this.onEdit,
-    this.onLongPress,
     this.showDragHandle = false,
     this.showCheckbox = false,
     this.isChecked = false,
@@ -1740,13 +1139,11 @@ class _SongListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final l10n = AppLocalizations.of(context);
 
     final coverUrl = song.coverUrl;
 
     return ListTile(
       onTap: onTap,
-      onLongPress: onLongPress,
       leading: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -1785,18 +1182,16 @@ class _SongListTile extends StatelessWidget {
               width: 48,
               height: 48,
               child:
-                  coverUrl != null
-                      ? ExcludeSemantics(
-                        child: CachedNetworkImage(
-                          imageUrl: UrlHelper.buildCoverUrl(coverUrl),
-                          fit: BoxFit.cover,
-                          placeholder:
-                              (context, url) =>
-                                  _buildCoverPlaceholder(colorScheme),
-                          errorWidget:
-                              (context, url, error) =>
-                                  _buildCoverPlaceholder(colorScheme),
-                        ),
+                  coverUrl != null && coverUrl.isNotEmpty
+                      ? CachedNetworkImage(
+                        imageUrl: UrlHelper.buildCoverUrl(coverUrl),
+                        fit: BoxFit.cover,
+                        placeholder:
+                            (context, url) =>
+                                _buildCoverPlaceholder(colorScheme),
+                        errorWidget:
+                            (context, url, error) =>
+                                _buildCoverPlaceholder(colorScheme),
                       )
                       : _buildCoverPlaceholder(colorScheme),
             ),
@@ -1805,7 +1200,7 @@ class _SongListTile extends StatelessWidget {
       ),
       title: Text(song.title, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: Text(
-        song.artist ?? l10n.playlistUnknownArtist,
+        song.artist ?? '未知艺术家',
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: textTheme.bodySmall?.copyWith(
@@ -1831,44 +1226,21 @@ class _SongListTile extends StatelessWidget {
                       color: colorScheme.onSurfaceVariant,
                     ),
                     onSelected: (value) {
-                      if (value == 'edit') {
-                        onEdit?.call();
-                      } else if (value == 'remove') {
+                      if (value == 'remove') {
                         onRemove();
-                      } else if (value == 'delete') {
-                        onDeleteFromLibrary?.call();
                       }
                     },
                     itemBuilder:
                         (context) => [
-                          if (onEdit != null)
-                            PopupMenuItem(
-                              value: 'edit',
-                              child: ListTile(
-                                leading: const Icon(Icons.edit),
-                                title: Text(l10n.playlistEditAction),
-                                dense: true,
-                                contentPadding: EdgeInsets.zero,
-                              ),
-                            ),
                           PopupMenuItem(
                             value: 'remove',
                             child: ListTile(
-                              leading: const Icon(Icons.remove_circle_outline),
-                              title: Text(l10n.playlistRemoveFromPlaylist),
-                              dense: true,
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: 'delete',
-                            child: ListTile(
                               leading: Icon(
-                                Icons.delete_outline,
+                                Icons.remove_circle_outline,
                                 color: colorScheme.error,
                               ),
                               title: Text(
-                                l10n.playlistDeleteFromLibrary,
+                                '从歌单移除',
                                 style: TextStyle(color: colorScheme.error),
                               ),
                               dense: true,
@@ -1921,9 +1293,9 @@ class _PlaylistEditDialogState extends ConsumerState<_PlaylistEditDialog> {
   /// 本地选择的文件
   PlatformFile? _localFile;
 
-  /// 从歌曲选择的封面信息
+  /// 从歌曲选择的封面路径
+  String? _selectedCoverPath;
   String? _selectedCoverUrl;
-  int? _selectedCoverSongId;
 
   /// 是否正在保存
   bool _isSaving = false;
@@ -1973,10 +1345,7 @@ class _PlaylistEditDialogState extends ConsumerState<_PlaylistEditDialog> {
       }
     } catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(
-          context,
-          message: AppLocalizations.of(context).playlistPickImageFailed('$e'),
-        );
+        ResponsiveSnackBar.showError(context, message: '选择图片失败: $e');
       }
     }
   }
@@ -1986,8 +1355,8 @@ class _PlaylistEditDialogState extends ConsumerState<_PlaylistEditDialog> {
     final result = await showSongCoverPicker(context, widget.playlistId);
     if (result != null) {
       setState(() {
-        _selectedCoverSongId = result['songId'] as int?;
-        _selectedCoverUrl = result['coverUrl'] as String?;
+        _selectedCoverPath = result['coverPath'];
+        _selectedCoverUrl = result['coverUrl'];
         _coverMode = 'song';
         _localFile = null;
       });
@@ -1999,17 +1368,16 @@ class _PlaylistEditDialogState extends ConsumerState<_PlaylistEditDialog> {
     setState(() {
       _coverMode = 'clear';
       _localFile = null;
+      _selectedCoverPath = null;
       _selectedCoverUrl = null;
-      _selectedCoverSongId = null;
     });
   }
 
   /// 保存
   Future<void> _save() async {
-    final l10n = AppLocalizations.of(context);
     final name = _nameController.text.trim();
     if (name.isEmpty) {
-      ResponsiveSnackBar.showError(context, message: l10n.playlistNameRequired);
+      ResponsiveSnackBar.showError(context, message: '请输入歌单名称');
       return;
     }
     setState(() => _isSaving = true);
@@ -2027,10 +1395,7 @@ class _PlaylistEditDialogState extends ConsumerState<_PlaylistEditDialog> {
         );
         if (uploadedPlaylist == null) {
           if (mounted) {
-            ResponsiveSnackBar.showError(
-              context,
-              message: l10n.playlistCoverUploadFailed,
-            );
+            ResponsiveSnackBar.showError(context, message: '封面上传失败');
           }
           return;
         }
@@ -2040,13 +1405,13 @@ class _PlaylistEditDialogState extends ConsumerState<_PlaylistEditDialog> {
           name: name,
           description: description.isEmpty ? null : description,
         );
-      } else if (_coverMode == 'song' && _selectedCoverSongId != null) {
+      } else if (_coverMode == 'song') {
         // 从歌曲选择的封面
         await notifier.updatePlaylist(
           widget.playlistId,
           name: name,
           description: description.isEmpty ? null : description,
-          coverSongId: _selectedCoverSongId,
+          coverPath: _selectedCoverPath ?? '',
         );
       } else if (_coverMode == 'clear') {
         // 清除封面
@@ -2069,10 +1434,7 @@ class _PlaylistEditDialogState extends ConsumerState<_PlaylistEditDialog> {
       }
     } catch (e) {
       if (mounted) {
-        ResponsiveSnackBar.showError(
-          context,
-          message: l10n.playlistSaveFailed('$e'),
-        );
+        ResponsiveSnackBar.showError(context, message: '保存失败: $e');
       }
     } finally {
       if (mounted) {
@@ -2084,18 +1446,13 @@ class _PlaylistEditDialogState extends ConsumerState<_PlaylistEditDialog> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final l10n = AppLocalizations.of(context);
     final hasCover =
         _coverMode != 'clear' &&
         (_coverMode == 'local' ||
             _coverMode == 'song' ||
             widget.playlist.coverUrl?.isNotEmpty == true);
     return AlertDialog(
-      title: Text(
-        widget.playlist.isBuiltIn
-            ? l10n.playlistEditCover
-            : l10n.playlistEditPlaylist,
-      ),
+      title: Text(widget.playlist.isBuiltIn ? '修改封面' : '编辑歌单'),
       content: SingleChildScrollView(
         child: SizedBox(
           width: 320,
@@ -2123,12 +1480,12 @@ class _PlaylistEditDialogState extends ConsumerState<_PlaylistEditDialog> {
                   OutlinedButton.icon(
                     onPressed: _isSaving ? null : _pickLocalImage,
                     icon: const Icon(Icons.upload, size: 18),
-                    label: Text(l10n.playlistUploadImage),
+                    label: const Text('上传图片'),
                   ),
                   OutlinedButton.icon(
                     onPressed: _isSaving ? null : _pickFromSongs,
                     icon: const Icon(Icons.music_note, size: 18),
-                    label: Text(l10n.playlistPickFromSongs),
+                    label: const Text('从歌曲选择'),
                   ),
                   if (hasCover)
                     TextButton.icon(
@@ -2139,7 +1496,7 @@ class _PlaylistEditDialogState extends ConsumerState<_PlaylistEditDialog> {
                         color: colorScheme.error,
                       ),
                       label: Text(
-                        l10n.playlistClear,
+                        '清除',
                         style: TextStyle(color: colorScheme.error),
                       ),
                     ),
@@ -2149,9 +1506,9 @@ class _PlaylistEditDialogState extends ConsumerState<_PlaylistEditDialog> {
               // 歌单名称
               TextField(
                 controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: l10n.playlistNameLabel,
-                  border: const OutlineInputBorder(),
+                decoration: const InputDecoration(
+                  labelText: '歌单名称',
+                  border: OutlineInputBorder(),
                 ),
                 enabled: !_isSaving && !widget.playlist.isBuiltIn,
               ),
@@ -2159,9 +1516,9 @@ class _PlaylistEditDialogState extends ConsumerState<_PlaylistEditDialog> {
               // 歌单描述
               TextField(
                 controller: _descController,
-                decoration: InputDecoration(
-                  labelText: l10n.playlistDescLabel,
-                  border: const OutlineInputBorder(),
+                decoration: const InputDecoration(
+                  labelText: '歌单描述',
+                  border: OutlineInputBorder(),
                 ),
                 maxLines: 3,
                 enabled: !_isSaving && !widget.playlist.isBuiltIn,
@@ -2173,7 +1530,7 @@ class _PlaylistEditDialogState extends ConsumerState<_PlaylistEditDialog> {
       actions: [
         TextButton(
           onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
-          child: Text(l10n.commonCancel),
+          child: const Text('取消'),
         ),
         FilledButton(
           onPressed: _isSaving ? null : _save,
@@ -2184,7 +1541,7 @@ class _PlaylistEditDialogState extends ConsumerState<_PlaylistEditDialog> {
                     height: 16,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                  : Text(l10n.playlistSave),
+                  : const Text('保存'),
         ),
       ],
     );
@@ -2202,16 +1559,14 @@ class _PlaylistEditDialogState extends ConsumerState<_PlaylistEditDialog> {
 
     // 网络图片预览
     final previewUrl = _previewCoverUrl;
-    if (previewUrl != null && previewUrl.isNotEmpty) {
-      return ExcludeSemantics(
-        child: CachedNetworkImage(
-          imageUrl: UrlHelper.buildCoverUrl(previewUrl),
-          fit: BoxFit.cover,
-          placeholder:
-              (context, url) =>
-                  const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-          errorWidget: (context, url, error) => _buildPlaceholder(colorScheme),
-        ),
+    if (previewUrl != null) {
+      return CachedNetworkImage(
+        imageUrl: previewUrl,
+        fit: BoxFit.cover,
+        placeholder:
+            (context, url) =>
+                const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        errorWidget: (context, url, error) => _buildPlaceholder(colorScheme),
       );
     }
 
