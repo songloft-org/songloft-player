@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/url_helper.dart';
-import '../../../l10n/app_localizations.dart';
 import '../../../shared/models/song.dart';
 import '../../../shared/utils/responsive_snackbar.dart';
 import '../domain/player_state.dart';
@@ -114,7 +113,7 @@ class QueueBottomSheet extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                AppLocalizations.of(context).playerQueueTitle,
+                '播放队列',
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -140,13 +139,13 @@ class QueueBottomSheet extends ConsumerWidget {
           if (state.playlist.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.delete_outline_rounded),
-              tooltip: AppLocalizations.of(context).playerClearPlaylist,
+              tooltip: '清空播放列表',
               onPressed: () => _showClearConfirmation(context, notifier),
             ),
           // 关闭按钮
           IconButton(
             icon: const Icon(Icons.close_rounded),
-            tooltip: AppLocalizations.of(context).playerClose,
+            tooltip: '关闭',
             onPressed: () => Navigator.of(context).pop(),
           ),
         ],
@@ -171,14 +170,14 @@ class QueueBottomSheet extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            AppLocalizations.of(context).playerQueueEmpty,
+            '播放队列为空',
             style: theme.textTheme.titleMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            AppLocalizations.of(context).playerQueueEmptyHint,
+            '添加歌曲到播放队列开始播放',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
             ),
@@ -232,31 +231,30 @@ class QueueBottomSheet extends ConsumerWidget {
     notifier.removeFromPlaylist(index);
     ResponsiveSnackBar.show(
       context,
-      message: AppLocalizations.of(context).playerRemovedSong(song.title),
+      message: '已移除「${song.title}」',
       duration: const Duration(seconds: 2),
     );
   }
 
   /// 显示清空确认对话框
   void _showClearConfirmation(BuildContext context, PlayerNotifier notifier) {
-    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder:
           (dialogContext) => AlertDialog(
-            title: Text(l10n.playerClearQueueTitle),
-            content: Text(l10n.playerClearQueueConfirm),
+            title: const Text('清空播放队列'),
+            content: const Text('确定要清空播放队列吗？'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
-                child: Text(l10n.commonCancel),
+                child: const Text('取消'),
               ),
               FilledButton(
                 onPressed: () {
                   notifier.clearPlaylist();
                   Navigator.pop(dialogContext); // 关闭确认对话框，队列弹窗由 ref.listen 自动关闭
                 },
-                child: Text(l10n.playerClear),
+                child: const Text('清空'),
               ),
             ],
           ),
@@ -335,18 +333,16 @@ class _QueueSongItem extends StatelessWidget {
                   clipBehavior: Clip.antiAlias,
                   child: Stack(
                     children: [
-                      if (coverUrl != null)
-                        ExcludeSemantics(
-                          child: CachedNetworkImage(
-                            imageUrl: UrlHelper.buildCoverUrl(coverUrl),
-                            fit: BoxFit.cover,
-                            width: 48,
-                            height: 48,
-                            placeholder:
-                                (_, _) => _buildCoverPlaceholder(colorScheme),
-                            errorWidget:
-                                (_, _, _) => _buildCoverPlaceholder(colorScheme),
-                          ),
+                      if (coverUrl != null && coverUrl.isNotEmpty)
+                        CachedNetworkImage(
+                          imageUrl: UrlHelper.buildCoverUrl(coverUrl),
+                          fit: BoxFit.cover,
+                          width: 48,
+                          height: 48,
+                          placeholder:
+                              (_, _) => _buildCoverPlaceholder(colorScheme),
+                          errorWidget:
+                              (_, _, _) => _buildCoverPlaceholder(colorScheme),
                         )
                       else
                         _buildCoverPlaceholder(colorScheme),
@@ -389,8 +385,7 @@ class _QueueSongItem extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        song.artist ??
-                            AppLocalizations.of(context).playerUnknownArtist,
+                        song.artist ?? '未知艺术家',
                         style: textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -415,7 +410,6 @@ class _QueueSongItem extends StatelessWidget {
                   onPressed: onRemove,
                   icon: const Icon(Icons.close_rounded),
                   iconSize: 20,
-                  tooltip: AppLocalizations.of(context).playerRemoveFromQueue,
                   style: IconButton.styleFrom(
                     foregroundColor: colorScheme.onSurfaceVariant,
                   ),
