@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/responsive.dart';
 import '../../../shared/models/song.dart';
+import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/error_view.dart';
 import 'providers/category_provider.dart';
 
 /// 分类总览页：顶部切换维度，下方展示该维度所有取值卡片（含歌曲数）。
@@ -139,73 +141,17 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage> {
   }
 
   Widget _buildEmpty(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 96,
-            height: 96,
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest,
-              borderRadius: AppRadius.xlAll,
-            ),
-            child: Icon(
-              Icons.label_off_outlined,
-              size: 48,
-              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            '暂无「${categoryFieldLabel(_field)}」分类',
-            style: textTheme.titleMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '该维度下还没有可归类的歌曲',
-            style: textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-            ),
-          ),
-        ],
-      ),
+    return EmptyState(
+      icon: Icons.label_off_outlined,
+      title: '暂无「${categoryFieldLabel(_field)}」分类',
+      subtitle: '该维度下还没有可归类的歌曲',
     );
   }
 
   Widget _buildError(BuildContext context, String error) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.error_outline, size: 64, color: colorScheme.error),
-            const SizedBox(height: 16),
-            Text('加载失败', style: textTheme.titleMedium),
-            const SizedBox(height: 8),
-            Text(
-              error,
-              style: textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: () => ref.invalidate(facetsProvider(_field)),
-              icon: const Icon(Icons.refresh),
-              label: const Text('重试'),
-            ),
-          ],
-        ),
-      ),
+    return ErrorView(
+      message: error,
+      onRetry: () => ref.invalidate(facetsProvider(_field)),
     );
   }
 }

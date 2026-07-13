@@ -5,6 +5,9 @@ import '../../../shared/models/song.dart';
 import '../../../shared/utils/responsive_snackbar.dart';
 import '../../../shared/widgets/add_to_playlist_modal.dart';
 import '../../../shared/widgets/delete_song_dialog.dart';
+import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/error_view.dart';
+import '../../../shared/mixins/song_list_actions.dart';
 import '../../player/presentation/providers/player_provider.dart';
 import '../../playlist/presentation/providers/playlist_provider.dart'
     show PaginatedSongsState;
@@ -14,7 +17,7 @@ import 'song_edit_page.dart';
 import 'widgets/song_list_tile.dart';
 
 /// 某分类下的歌曲列表页：复用 SongListTile、分页、可播放，
-/// 顶部提供「播放全部」与「多选」（批量删除 / 加入歌单），参考歌曲库实现。
+/// 顶部提供「播放全部」与「多选」（批量删除 / 加入歌单），参考曲库实现。
 class CategorySongsPage extends ConsumerStatefulWidget {
   final String field;
   final String value;
@@ -29,7 +32,8 @@ class CategorySongsPage extends ConsumerStatefulWidget {
   ConsumerState<CategorySongsPage> createState() => _CategorySongsPageState();
 }
 
-class _CategorySongsPageState extends ConsumerState<CategorySongsPage> {
+class _CategorySongsPageState extends ConsumerState<CategorySongsPage>
+    with SongListActions {
   final _scrollController = ScrollController();
 
   /// 多选模式
@@ -138,7 +142,7 @@ class _CategorySongsPageState extends ConsumerState<CategorySongsPage> {
           .batchDeleteSongs(ids, deleteFiles: result.deleteFiles);
       ref.invalidate(categorySongsProvider(_key));
       ref.invalidate(songsListProvider);
-      _removeDeletedSongsFromPlayerQueue(ids.toSet());
+      removeDeletedSongsFromPlayerQueue(ids.toSet());
       _exitSelectMode();
       if (mounted) {
         ResponsiveSnackBar.showSuccess(context, message: '已删除 $deleted 首歌曲');
@@ -168,7 +172,7 @@ class _CategorySongsPageState extends ConsumerState<CategorySongsPage> {
           .deleteSong(songId, deleteFiles: result.deleteFiles);
       ref.invalidate(categorySongsProvider(_key));
       ref.invalidate(songsListProvider);
-      _removeDeletedSongsFromPlayerQueue({songId});
+      removeDeletedSongsFromPlayerQueue({songId});
       if (mounted) {
         ResponsiveSnackBar.showSuccess(context, message: '已删除');
       }
@@ -192,15 +196,6 @@ class _CategorySongsPageState extends ConsumerState<CategorySongsPage> {
     }
   }
 
-  void _removeDeletedSongsFromPlayerQueue(Set<int> deletedIds) {
-    final playerNotifier = ref.read(playerStateProvider.notifier);
-    final queue = ref.read(playerStateProvider).playlist;
-    for (int i = queue.length - 1; i >= 0; i--) {
-      if (deletedIds.contains(queue[i].id)) {
-        playerNotifier.removeFromPlaylist(i);
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -338,66 +333,16 @@ class _CategorySongsPageState extends ConsumerState<CategorySongsPage> {
   }
 
   Widget _buildEmpty(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 96,
-            height: 96,
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: Icon(
-              Icons.music_off_outlined,
-              size: 48,
-              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            '该分类下暂无歌曲',
-            style: textTheme.titleMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
+    return const EmptyState(
+      icon: Icons.music_off_outlined,
+      title: '该分类下暂无歌曲',
     );
   }
 
   Widget _buildError(BuildContext context, String error) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.error_outline, size: 64, color: colorScheme.error),
-            const SizedBox(height: 16),
-            Text('加载失败', style: textTheme.titleMedium),
-            const SizedBox(height: 8),
-            Text(
-              error,
-              style: textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: () => ref.invalidate(categorySongsProvider(_key)),
-              icon: const Icon(Icons.refresh),
-              label: const Text('重试'),
-            ),
-          ],
-        ),
-      ),
+    return ErrorView(
+      message: error,
+      onRetry: () => ref.invalidate(categorySongsProvider(_key)),
     );
   }
 }

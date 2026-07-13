@@ -6,8 +6,8 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/responsive.dart';
 import '../../../../core/utils/formatters.dart';
-import '../../../../core/utils/url_helper.dart';
 import '../../../../shared/models/song.dart';
+import '../../../../shared/widgets/cover_image.dart';
 import '../../../../shared/widgets/favorite_button.dart';
 
 /// 桌面端「操作按钮」列宽度。tile 内的按钮区与列表表头占位需保持一致，
@@ -207,38 +207,11 @@ class SongListTile extends ConsumerWidget {
   }
 
   Widget _buildCoverImage(String? coverUrl, double size) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppRadius.sm),
-      child:
-          coverUrl != null
-              ? ExcludeSemantics(
-                child: Image.network(
-                  UrlHelper.buildCoverUrl(coverUrl),
-                  width: size,
-                  height: size,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => _buildDefaultCover(size),
-                ),
-              )
-              : _buildDefaultCover(size),
-    );
-  }
-
-  Widget _buildDefaultCover(double size) {
-    return Builder(
-      builder: (context) {
-        final colorScheme = Theme.of(context).colorScheme;
-        return Container(
-          width: size,
-          height: size,
-          color: colorScheme.surfaceContainerHighest,
-          child: Icon(
-            _getTypeIcon(),
-            size: size * 0.5,
-            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-          ),
-        );
-      },
+    return CoverImage(
+      coverUrl: coverUrl,
+      size: size,
+      borderRadius: AppRadius.sm,
+      placeholderIcon: _getTypeIcon(),
     );
   }
 

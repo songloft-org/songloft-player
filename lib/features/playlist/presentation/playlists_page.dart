@@ -2,7 +2,7 @@ import 'dart:io' show File;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, listEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -12,6 +12,8 @@ import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/responsive.dart';
 import '../../../core/utils/url_helper.dart';
 import '../../../shared/utils/responsive_snackbar.dart';
+import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/error_view.dart';
 import '../../player/presentation/providers/player_provider.dart';
 import '../domain/playlist.dart';
 import 'providers/playlist_provider.dart';
@@ -166,7 +168,7 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
 
     // 检查排序前后是否有变化
     final originalIds = fullPlaylists.map((p) => p.id).toList();
-    if (_listEquals(playlistIds, originalIds)) {
+    if (listEquals(playlistIds, originalIds)) {
       if (mounted) {
         ResponsiveSnackBar.show(
           context,
@@ -232,7 +234,7 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
 
     // 检查排序前后是否有变化
     final originalIds = fullPlaylists.map((p) => p.id).toList();
-    if (_listEquals(playlistIds, originalIds)) {
+    if (listEquals(playlistIds, originalIds)) {
       if (mounted) {
         ResponsiveSnackBar.show(
           context,
@@ -256,15 +258,6 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
         ResponsiveSnackBar.showError(context, message: l10n.playlistSortFailed);
       }
     }
-  }
-
-  /// 比较两个整数列表是否相等
-  bool _listEquals(List<int> a, List<int> b) {
-    if (a.length != b.length) return false;
-    for (int i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) return false;
-    }
-    return true;
   }
 
   /// 拖拽排序回调
@@ -874,81 +867,18 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
   }
 
   Widget _buildEmptyContent() {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.all(64),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 96,
-              height: 96,
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest,
-                borderRadius: AppRadius.xlAll,
-              ),
-              child: Icon(
-                Icons.queue_music_outlined,
-                size: 48,
-                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              l10n.noPlaylists,
-              style: textTheme.titleMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              l10n.playlistEmptyHint,
-              style: textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-              ),
-            ),
-          ],
-        ),
-      ),
+    return EmptyState(
+      icon: Icons.queue_music_outlined,
+      title: l10n.noPlaylists,
+      subtitle: l10n.playlistEmptyHint,
     );
   }
 
   Widget _buildErrorContent(String error) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final l10n = AppLocalizations.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.all(32),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.error_outline, size: 64, color: colorScheme.error),
-            const SizedBox(height: 16),
-            Text(l10n.commonLoadFailed, style: textTheme.titleMedium),
-            const SizedBox(height: 8),
-            Text(
-              error,
-              style: textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed:
-                  () => ref.invalidate(playlistListProvider(_selectedType)),
-              icon: const Icon(Icons.refresh),
-              label: Text(l10n.commonRetry),
-            ),
-          ],
-        ),
-      ),
+    return ErrorView(
+      message: error,
+      onRetry: () => ref.invalidate(playlistListProvider(_selectedType)),
     );
   }
 
@@ -1521,7 +1451,6 @@ class _PlaylistFormDialogState extends State<_PlaylistFormDialog> {
         result['coverMode'] = _coverMode;
         result['localFile'] = _localFile;
         result['selectedCoverUrl'] = _selectedCoverUrl;
-        result['selectedCoverSongId'] = _selectedCoverSongId;
         result['selectedCoverSongId'] = _selectedCoverSongId;
       }
 

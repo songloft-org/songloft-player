@@ -13,13 +13,15 @@ import '../../../shared/models/song.dart';
 import '../../../shared/utils/responsive_snackbar.dart';
 import '../../../shared/widgets/add_to_playlist_modal.dart';
 import '../../../shared/widgets/delete_song_dialog.dart';
+import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/error_view.dart';
 import '../../player/presentation/providers/player_provider.dart';
 import 'providers/songs_provider.dart';
 import 'song_edit_page.dart';
 import 'widgets/song_filter_bar.dart';
 import 'widgets/song_list_tile.dart';
 
-/// 歌曲库页面
+/// 曲库页面
 class LibraryPage extends ConsumerStatefulWidget {
   const LibraryPage({super.key});
 
@@ -98,8 +100,8 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
             },
             songCount: state.total,
           ),
-          // 错误提示
-          if (state.error != null)
+          // 错误提示（仅在已有数据时以顶部红条展示；首屏无数据的错误由 _buildSongList 整屏 ErrorView 处理）
+          if (state.error != null && state.songs.isNotEmpty)
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(8),
@@ -402,6 +404,14 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
       return const Center(child: CircularProgressIndicator());
     }
 
+    // 首屏错误（无数据且出错）→ 整屏错误视图带重试；有数据时的错误由顶部红条提示
+    if (state.songs.isEmpty && state.error != null) {
+      return ErrorView(
+        message: state.error,
+        onRetry: () => ref.read(songsListProvider.notifier).refresh(),
+      );
+    }
+
     if (state.songs.isEmpty) {
       return _buildEmptyState(context);
     }
@@ -626,46 +636,14 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
 
   Widget _buildEmptyState(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
     final state = ref.watch(songsListProvider);
+    final isSearching = state.keyword.isNotEmpty;
 
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 96,
-            height: 96,
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest,
-              borderRadius: AppRadius.xlAll,
-            ),
-            child: Icon(
-              state.keyword.isNotEmpty ? Icons.search_off : Icons.library_music,
-              size: 48,
-              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            state.keyword.isNotEmpty
-                ? l10n.libraryNoMatchingSongs
-                : l10n.libraryEmpty,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            state.keyword.isNotEmpty
-                ? l10n.libraryTryOtherKeywords
-                : l10n.libraryEmptyHint,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-            ),
-          ),
-        ],
-      ),
+    return EmptyState(
+      icon: isSearching ? Icons.search_off : Icons.library_music,
+      title: isSearching ? l10n.libraryNoMatchingSongs : l10n.libraryEmpty,
+      subtitle:
+          isSearching ? l10n.libraryTryOtherKeywords : l10n.libraryEmptyHint,
     );
   }
 
