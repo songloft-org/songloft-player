@@ -110,6 +110,28 @@ class CategorySongsNotifier extends AsyncNotifier<PaginatedSongsState> {
     );
   }
 
+  /// 加载该分类下的全部歌曲（用于「播放全部」「全选」，需要整个分类在内存中）。
+  /// 已全部加载则直接返回。
+  Future<void> loadAll() async {
+    var current = state.value;
+    if (current == null) return;
+    final api = ref.read(songsApiProvider);
+    while (current != null && current.hasMore) {
+      final response = await _fetch(api, offset: current.items.length);
+      if (response.songs.isEmpty) {
+        state = AsyncValue.data(current.copyWith(hasMore: false));
+        return;
+      }
+      final merged = [...current.items, ...response.songs];
+      current = current.copyWith(
+        items: merged,
+        total: response.total,
+        hasMore: merged.length < response.total,
+      );
+      state = AsyncValue.data(current);
+    }
+  }
+
   /// 触底加载下一页
   Future<void> loadMore() async {
     final current = state.value;
