@@ -1,15 +1,8 @@
-import 'dart:io' show File;
-
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 import '../../../../config/constants.dart';
-import '../../../../core/utils/url_helper.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../../../shared/utils/responsive_snackbar.dart';
-import 'song_cover_picker_modal.dart';
+import 'playlist_cover_edit_mixin.dart';
 
 class PlaylistFormDialog extends StatefulWidget {
   final String title;
@@ -37,17 +30,21 @@ class PlaylistFormDialog extends StatefulWidget {
   State<PlaylistFormDialog> createState() => PlaylistFormDialogState();
 }
 
-class PlaylistFormDialogState extends State<PlaylistFormDialog> {
+class PlaylistFormDialogState extends State<PlaylistFormDialog>
+    with PlaylistCoverEditMixin {
   late final TextEditingController _nameController;
   late final TextEditingController _descriptionController;
   late String _type;
   final _formKey = GlobalKey<FormState>();
 
-  /// 封面选择模式（仅编辑模式）
-  String? _coverMode;
-  PlatformFile? _localFile;
-  String? _selectedCoverUrl;
-  int? _selectedCoverSongId;
+  @override
+  String? get coverInitialUrl => widget.initialCoverUrl;
+
+  @override
+  int? get coverPickerPlaylistId => widget.playlistId;
+
+  @override
+  double get coverPlaceholderIconSize => 40;
 
   @override
   void initState() {
@@ -66,74 +63,14 @@ class PlaylistFormDialogState extends State<PlaylistFormDialog> {
     super.dispose();
   }
 
-  /// 获取当前预览的封面 URL
-  String? get _previewCoverUrl {
-    if (_coverMode == 'clear') return null;
-    if (_coverMode == 'song') {
-      return _selectedCoverUrl;
-    }
-    // 未修改时显示原有封面
-    if (_coverMode == null) {
-      return widget.initialCoverUrl;
-    }
-    return null;
-  }
-
-  /// 上传本地图片
-  Future<void> _pickLocalImage() async {
-    try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.image,
-        withData: kIsWeb,
-      );
-      if (result != null && result.files.isNotEmpty) {
-        setState(() {
-          _localFile = result.files.first;
-          _coverMode = 'local';
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ResponsiveSnackBar.showError(
-          context,
-          message: AppLocalizations.of(context).playlistPickImageFailed('$e'),
-        );
-      }
-    }
-  }
-
-  /// 从歌曲选择封面
-  Future<void> _pickFromSongs() async {
-    if (widget.playlistId == null) return;
-    final result = await showSongCoverPicker(context, widget.playlistId!);
-    if (result != null) {
-      setState(() {
-        _selectedCoverSongId = result['songId'] as int?;
-        _selectedCoverUrl = result['coverUrl'] as String?;
-        _coverMode = 'song';
-        _localFile = null;
-      });
-    }
-  }
-
-  /// 清除封面
-  void _clearCover() {
-    setState(() {
-      _coverMode = 'clear';
-      _localFile = null;
-      _selectedCoverUrl = null;
-      _selectedCoverSongId = null;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context);
     final hasCover =
-        _coverMode != 'clear' &&
-        (_coverMode == 'local' ||
-            _coverMode == 'song' ||
+        coverMode != 'clear' &&
+        (coverMode == 'local' ||
+            coverMode == 'song' ||
             widget.initialCoverUrl?.isNotEmpty == true);
     return AlertDialog(
       title: Text(widget.title),
@@ -156,7 +93,7 @@ class PlaylistFormDialogState extends State<PlaylistFormDialog> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     clipBehavior: Clip.antiAlias,
-                    child: _buildCoverPreview(colorScheme),
+                    child: buildCoverPreview(colorScheme),
                   ),
                   const SizedBox(height: 12),
                   // 封面操作按钮
@@ -166,18 +103,18 @@ class PlaylistFormDialogState extends State<PlaylistFormDialog> {
                     alignment: WrapAlignment.center,
                     children: [
                       OutlinedButton.icon(
-                        onPressed: _pickLocalImage,
+                        onPressed: pickCoverLocalImage,
                         icon: const Icon(Icons.upload, size: 18),
                         label: Text(l10n.playlistUploadImage),
                       ),
                       OutlinedButton.icon(
-                        onPressed: _pickFromSongs,
+                        onPressed: pickCoverFromSongs,
                         icon: const Icon(Icons.music_note, size: 18),
                         label: Text(l10n.playlistPickFromSongs),
                       ),
                       if (hasCover)
                         TextButton.icon(
-                          onPressed: _clearCover,
+                          onPressed: clearCoverSelection,
                           icon: Icon(
                             Icons.clear,
                             size: 18,
@@ -259,45 +196,6 @@ class PlaylistFormDialogState extends State<PlaylistFormDialog> {
     );
   }
 
-  Widget _buildCoverPreview(ColorScheme colorScheme) {
-    // 本地文件预览
-    if (_coverMode == 'local' && _localFile != null) {
-      if (kIsWeb && _localFile!.bytes != null) {
-        return Image.memory(_localFile!.bytes!, fit: BoxFit.cover);
-      } else if (!kIsWeb && _localFile!.path != null) {
-        return Image.file(File(_localFile!.path!), fit: BoxFit.cover);
-      }
-    }
-
-    // 网络图片预览
-    final previewUrl = _previewCoverUrl;
-    if (previewUrl != null) {
-      return ExcludeSemantics(
-        child: CachedNetworkImage(
-          imageUrl: UrlHelper.buildCoverUrl(previewUrl),
-          fit: BoxFit.cover,
-          placeholder:
-              (context, url) =>
-                  const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-          errorWidget: (context, url, error) => _buildPlaceholder(colorScheme),
-        ),
-      );
-    }
-
-    // 占位图
-    return _buildPlaceholder(colorScheme);
-  }
-
-  Widget _buildPlaceholder(ColorScheme colorScheme) {
-    return Center(
-      child: Icon(
-        Icons.queue_music,
-        size: 40,
-        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-      ),
-    );
-  }
-
   void _submit() {
     if (_formKey.currentState?.validate() == true) {
       final Map<String, dynamic> result = {
@@ -311,10 +209,10 @@ class PlaylistFormDialogState extends State<PlaylistFormDialog> {
 
       // 编辑模式时添加封面信息
       if (widget.isEdit) {
-        result['coverMode'] = _coverMode;
-        result['localFile'] = _localFile;
-        result['selectedCoverUrl'] = _selectedCoverUrl;
-        result['selectedCoverSongId'] = _selectedCoverSongId;
+        result['coverMode'] = coverMode;
+        result['localFile'] = coverLocalFile;
+        result['selectedCoverUrl'] = coverSelectedUrl;
+        result['selectedCoverSongId'] = coverSelectedSongId;
       }
 
       Navigator.of(context).pop(result);
