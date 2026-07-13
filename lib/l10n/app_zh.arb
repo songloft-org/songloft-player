@@ -2387,5 +2387,31 @@
   "coreTrayExit": "退出",
   "coreUrlEmpty": "URL 不能为空",
   "coreUrlInvalid": "请输入有效的 URL（包含 http:// 或 https://）",
-  "corePickMusicDir": "选择音乐文件夹"
+  "corePickMusicDir": "选择音乐文件夹",
+  "categoryFieldGenre": "流派",
+  "categoryFieldArtist": "歌手",
+  "categoryFieldAlbum": "专辑",
+  "categoryFieldYear": "年份",
+  "categoryFieldDecade": "年代",
+  "categoryFieldLanguage": "语种",
+  "categoryFieldStyle": "风格",
+  "categoryValueUnknown": "未知",
+  "categoryValueYear": "{value} 年",
+  "@categoryValueYear": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "categoryValueDecade": "{value} 年代",
+  "@categoryValueDecade": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "categoryBrowseTitle": "分类浏览",
+  "categoryEmptyTitle": "暂无「{label}」分类",
+  "@categoryEmptyTitle": {
+    "placeholders": { "label": { "type": "String" } }
+  },
+  "categoryEmptySubtitle": "该维度下还没有可归类的歌曲",
+  "categorySongCount": "{count} 首",
+  "@categorySongCount": {
+    "placeholders": { "count": { "type": "int" } }
+  }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/models/song.dart';
 import '../../../playlist/presentation/providers/playlist_provider.dart'
     show PaginatedSongsState;
@@ -17,36 +18,36 @@ const List<String> categoryFields = [
   'style',
 ];
 
-/// 维度字段的中文名称。
-String categoryFieldLabel(String field) {
+/// 维度字段的展示名称。
+String categoryFieldLabel(AppLocalizations l10n, String field) {
   switch (field) {
     case 'genre':
-      return '流派';
+      return l10n.categoryFieldGenre;
     case 'artist':
-      return '歌手';
+      return l10n.categoryFieldArtist;
     case 'album':
-      return '专辑';
+      return l10n.categoryFieldAlbum;
     case 'year':
-      return '年份';
+      return l10n.categoryFieldYear;
     case 'decade':
-      return '年代';
+      return l10n.categoryFieldDecade;
     case 'language':
-      return '语种';
+      return l10n.categoryFieldLanguage;
     case 'style':
-      return '风格';
+      return l10n.categoryFieldStyle;
     default:
       return field;
   }
 }
 
 /// 某取值的展示文案（year/decade 做数字友好化，其余原样返回）。
-String categoryValueLabel(String field, String value) {
-  if (value.isEmpty) return '未知';
+String categoryValueLabel(AppLocalizations l10n, String field, String value) {
+  if (value.isEmpty) return l10n.categoryValueUnknown;
   switch (field) {
     case 'decade':
-      return '$value 年代';
+      return l10n.categoryValueDecade(value);
     case 'year':
-      return '$value 年';
+      return l10n.categoryValueYear(value);
     default:
       return value;
   }

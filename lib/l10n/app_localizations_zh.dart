@@ -3466,4 +3466,54 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get corePickMusicDir => '选择音乐文件夹';
+
+  @override
+  String get categoryFieldGenre => '流派';
+
+  @override
+  String get categoryFieldArtist => '歌手';
+
+  @override
+  String get categoryFieldAlbum => '专辑';
+
+  @override
+  String get categoryFieldYear => '年份';
+
+  @override
+  String get categoryFieldDecade => '年代';
+
+  @override
+  String get categoryFieldLanguage => '语种';
+
+  @override
+  String get categoryFieldStyle => '风格';
+
+  @override
+  String get categoryValueUnknown => '未知';
+
+  @override
+  String categoryValueYear(String value) {
+    return '$value 年';
+  }
+
+  @override
+  String categoryValueDecade(String value) {
+    return '$value 年代';
+  }
+
+  @override
+  String get categoryBrowseTitle => '分类浏览';
+
+  @override
+  String categoryEmptyTitle(String label) {
+    return '暂无「$label」分类';
+  }
+
+  @override
+  String get categoryEmptySubtitle => '该维度下还没有可归类的歌曲';
+
+  @override
+  String categorySongCount(int count) {
+    return '$count 首';
+  }
 }

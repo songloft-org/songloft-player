@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/responsive.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/models/song.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/error_view.dart';
@@ -24,9 +25,10 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage> {
   @override
   Widget build(BuildContext context) {
     final facetsAsync = ref.watch(facetsProvider(_field));
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('分类浏览')),
+      appBar: AppBar(title: Text(l10n.categoryBrowseTitle)),
       body: Column(
         children: [
           // 维度切换（横向滚动 Chip 行）
@@ -47,6 +49,7 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage> {
   }
 
   Widget _buildDimensionSelector(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final horizontalPadding = context.responsive<double>(
       mobile: AppSpacing.md,
       tablet: AppSpacing.lg,
@@ -63,7 +66,7 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage> {
         children: [
           for (final field in categoryFields) ...[
             ChoiceChip(
-              label: Text(categoryFieldLabel(field)),
+              label: Text(categoryFieldLabel(l10n, field)),
               selected: _field == field,
               onSelected: (selected) {
                 if (selected && _field != field) {
@@ -141,10 +144,11 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage> {
   }
 
   Widget _buildEmpty(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return EmptyState(
       icon: Icons.label_off_outlined,
-      title: '暂无「${categoryFieldLabel(_field)}」分类',
-      subtitle: '该维度下还没有可归类的歌曲',
+      title: l10n.categoryEmptyTitle(categoryFieldLabel(l10n, _field)),
+      subtitle: l10n.categoryEmptySubtitle,
     );
   }
 
@@ -172,6 +176,7 @@ class _FacetCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -191,7 +196,7 @@ class _FacetCard extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      categoryValueLabel(field, facet.value),
+                      categoryValueLabel(l10n, field, facet.value),
                       style: textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -200,7 +205,7 @@ class _FacetCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${facet.count} 首',
+                      l10n.categorySongCount(facet.count),
                       style: textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),

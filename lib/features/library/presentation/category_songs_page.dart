@@ -8,6 +8,7 @@ import '../../../shared/widgets/delete_song_dialog.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/error_view.dart';
 import '../../../shared/mixins/song_list_actions.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../player/presentation/providers/player_provider.dart';
 import '../../playlist/presentation/providers/playlist_provider.dart'
     show PaginatedSongsState;
@@ -256,9 +257,10 @@ class _CategorySongsPageState extends ConsumerState<CategorySongsPage>
       );
     }
 
+    final l10n = AppLocalizations.of(context);
     final title =
-        '${categoryFieldLabel(widget.field)} · '
-        '${categoryValueLabel(widget.field, widget.value)}';
+        '${categoryFieldLabel(l10n, widget.field)} · '
+        '${categoryValueLabel(l10n, widget.field, widget.value)}';
     return AppBar(
       title: Text(title),
       actions: [

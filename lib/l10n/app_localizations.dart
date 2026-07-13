@@ -6228,6 +6228,90 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'选择音乐文件夹'**
   String get corePickMusicDir;
+
+  /// No description provided for @categoryFieldGenre.
+  ///
+  /// In zh, this message translates to:
+  /// **'流派'**
+  String get categoryFieldGenre;
+
+  /// No description provided for @categoryFieldArtist.
+  ///
+  /// In zh, this message translates to:
+  /// **'歌手'**
+  String get categoryFieldArtist;
+
+  /// No description provided for @categoryFieldAlbum.
+  ///
+  /// In zh, this message translates to:
+  /// **'专辑'**
+  String get categoryFieldAlbum;
+
+  /// No description provided for @categoryFieldYear.
+  ///
+  /// In zh, this message translates to:
+  /// **'年份'**
+  String get categoryFieldYear;
+
+  /// No description provided for @categoryFieldDecade.
+  ///
+  /// In zh, this message translates to:
+  /// **'年代'**
+  String get categoryFieldDecade;
+
+  /// No description provided for @categoryFieldLanguage.
+  ///
+  /// In zh, this message translates to:
+  /// **'语种'**
+  String get categoryFieldLanguage;
+
+  /// No description provided for @categoryFieldStyle.
+  ///
+  /// In zh, this message translates to:
+  /// **'风格'**
+  String get categoryFieldStyle;
+
+  /// No description provided for @categoryValueUnknown.
+  ///
+  /// In zh, this message translates to:
+  /// **'未知'**
+  String get categoryValueUnknown;
+
+  /// No description provided for @categoryValueYear.
+  ///
+  /// In zh, this message translates to:
+  /// **'{value} 年'**
+  String categoryValueYear(String value);
+
+  /// No description provided for @categoryValueDecade.
+  ///
+  /// In zh, this message translates to:
+  /// **'{value} 年代'**
+  String categoryValueDecade(String value);
+
+  /// No description provided for @categoryBrowseTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'分类浏览'**
+  String get categoryBrowseTitle;
+
+  /// No description provided for @categoryEmptyTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无「{label}」分类'**
+  String categoryEmptyTitle(String label);
+
+  /// No description provided for @categoryEmptySubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'该维度下还没有可归类的歌曲'**
+  String get categoryEmptySubtitle;
+
+  /// No description provided for @categorySongCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 首'**
+  String categorySongCount(int count);
 }
 
 class _AppLocalizationsDelegate

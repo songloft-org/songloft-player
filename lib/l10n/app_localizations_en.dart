@@ -3607,4 +3607,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get corePickMusicDir => 'Select music folder';
+
+  @override
+  String get categoryFieldGenre => 'Genre';
+
+  @override
+  String get categoryFieldArtist => 'Artist';
+
+  @override
+  String get categoryFieldAlbum => 'Album';
+
+  @override
+  String get categoryFieldYear => 'Year';
+
+  @override
+  String get categoryFieldDecade => 'Decade';
+
+  @override
+  String get categoryFieldLanguage => 'Language';
+
+  @override
+  String get categoryFieldStyle => 'Style';
+
+  @override
+  String get categoryValueUnknown => 'Unknown';
+
+  @override
+  String categoryValueYear(String value) {
+    return '$value';
+  }
+
+  @override
+  String categoryValueDecade(String value) {
+    return '${value}s';
+  }
+
+  @override
+  String get categoryBrowseTitle => 'Browse by Category';
+
+  @override
+  String categoryEmptyTitle(String label) {
+    return 'No \"$label\" categories';
+  }
+
+  @override
+  String get categoryEmptySubtitle =>
+      'No songs to categorize in this dimension';
+
+  @override
+  String categorySongCount(int count) {
+    return '$count songs';
+  }
 }

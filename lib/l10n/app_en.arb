@@ -2282,5 +2282,31 @@
   "coreTrayExit": "Exit",
   "coreUrlEmpty": "URL cannot be empty",
   "coreUrlInvalid": "Enter a valid URL (including http:// or https://)",
-  "corePickMusicDir": "Select music folder"
+  "corePickMusicDir": "Select music folder",
+  "categoryFieldGenre": "Genre",
+  "categoryFieldArtist": "Artist",
+  "categoryFieldAlbum": "Album",
+  "categoryFieldYear": "Year",
+  "categoryFieldDecade": "Decade",
+  "categoryFieldLanguage": "Language",
+  "categoryFieldStyle": "Style",
+  "categoryValueUnknown": "Unknown",
+  "categoryValueYear": "{value}",
+  "@categoryValueYear": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "categoryValueDecade": "{value}s",
+  "@categoryValueDecade": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "categoryBrowseTitle": "Browse by Category",
+  "categoryEmptyTitle": "No \"{label}\" categories",
+  "@categoryEmptyTitle": {
+    "placeholders": { "label": { "type": "String" } }
+  },
+  "categoryEmptySubtitle": "No songs to categorize in this dimension",
+  "categorySongCount": "{count} songs",
+  "@categorySongCount": {
+    "placeholders": { "count": { "type": "int" } }
+  }
 }
