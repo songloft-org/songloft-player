@@ -1154,6 +1154,24 @@ abstract class AppLocalizations {
   /// **'官方'**
   String get jspluginOfficial;
 
+  /// No description provided for @jspluginAllSources.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部'**
+  String get jspluginAllSources;
+
+  /// No description provided for @jspluginAutoUpdate.
+  ///
+  /// In zh, this message translates to:
+  /// **'自动更新插件'**
+  String get jspluginAutoUpdate;
+
+  /// No description provided for @jspluginAutoUpdateHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'后台定时检查并更新已安装的插件'**
+  String get jspluginAutoUpdateHint;
+
   /// No description provided for @jspluginSearchHint.
   ///
   /// In zh, this message translates to:

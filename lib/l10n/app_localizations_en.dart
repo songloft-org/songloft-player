@@ -620,6 +620,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get jspluginOfficial => 'Official';
 
   @override
+  String get jspluginAllSources => 'All';
+
+  @override
+  String get jspluginAutoUpdate => 'Auto-update plugins';
+
+  @override
+  String get jspluginAutoUpdateHint =>
+      'Periodically check and update installed plugins in the background';
+
+  @override
   String get jspluginSearchHint => 'Search plugins...';
 
   @override

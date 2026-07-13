@@ -256,6 +256,9 @@ class RegistryPluginEntry {
   final String? installedVersion;
   final bool hasUpdate;
 
+  /// 该插件所属订阅源 URL（仅「全部」聚合模式返回），安装时回传给后端解析 token
+  final String? sourceUrl;
+
   RegistryPluginEntry({
     required this.name,
     required this.entryPath,
@@ -268,6 +271,7 @@ class RegistryPluginEntry {
     this.installed = false,
     this.installedVersion,
     this.hasUpdate = false,
+    this.sourceUrl,
   });
 
   factory RegistryPluginEntry.fromJson(Map<String, dynamic> json) {
@@ -283,6 +287,7 @@ class RegistryPluginEntry {
       installed: json['installed'] as bool? ?? false,
       installedVersion: json['installed_version'] as String?,
       hasUpdate: json['has_update'] as bool? ?? false,
+      sourceUrl: json['source_url'] as String?,
     );
   }
 }
@@ -523,7 +528,8 @@ class JSPluginApi {
   /// 刷新插件注册表
   /// POST /api/v1/jsplugins/registry/refresh
   Future<RegistryRefreshResponse> refreshRegistry({
-    required String registryUrl,
+    String registryUrl = '',
+    bool allSources = false,
     int page = 1,
     int pageSize = 20,
     String? search,
@@ -532,18 +538,23 @@ class JSPluginApi {
   }) async {
     try {
       final body = <String, dynamic>{
-        'registry_url': registryUrl,
         'page': page,
         'page_size': pageSize,
       };
+      // 聚合「全部」模式：忽略单源 URL 与 token，后端遍历所有启用源
+      if (allSources) {
+        body['all_sources'] = true;
+      } else {
+        body['registry_url'] = registryUrl;
+        if (token != null && token.isNotEmpty) {
+          body['token'] = token;
+        }
+      }
       if (search != null && search.isNotEmpty) {
         body['search'] = search;
       }
       if (githubProxy != null && githubProxy.isNotEmpty) {
         body['github_proxy'] = githubProxy;
-      }
-      if (token != null && token.isNotEmpty) {
-        body['token'] = token;
       }
       final response = await dio.post(
         '${AppConfig.apiPrefix}/jsplugins/registry/refresh',
@@ -563,6 +574,7 @@ class JSPluginApi {
     required String downloadUrl,
     String? githubProxy,
     String? token,
+    String? sourceUrl,
   }) async {
     try {
       final body = <String, dynamic>{'download_url': downloadUrl};
@@ -571,6 +583,10 @@ class JSPluginApi {
       }
       if (token != null && token.isNotEmpty) {
         body['token'] = token;
+      }
+      // 「全部」模式无本地 token 时，回传来源源 URL 让后端按源解析 token
+      if (sourceUrl != null && sourceUrl.isNotEmpty) {
+        body['source_url'] = sourceUrl;
       }
       final response = await dio.post(
         '${AppConfig.apiPrefix}/jsplugins/registry/install',

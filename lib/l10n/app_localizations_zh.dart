@@ -605,6 +605,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get jspluginOfficial => '官方';
 
   @override
+  String get jspluginAllSources => '全部';
+
+  @override
+  String get jspluginAutoUpdate => '自动更新插件';
+
+  @override
+  String get jspluginAutoUpdateHint => '后台定时检查并更新已安装的插件';
+
+  @override
   String get jspluginSearchHint => '搜索插件...';
 
   @override

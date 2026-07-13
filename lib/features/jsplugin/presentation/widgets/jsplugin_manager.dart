@@ -50,6 +50,32 @@ class _JSPluginManagerState extends ConsumerState<JSPluginManager>
     return kGithubProxyPresets.first.label;
   }
 
+  /// 插件自动更新开关
+  Widget _buildAutoUpdateTile(AppLocalizations l10n) {
+    final autoUpdateAsync = ref.watch(pluginAutoUpdateProvider);
+    return SwitchListTile(
+      secondary: const Icon(Icons.autorenew),
+      title: Text(l10n.jspluginAutoUpdate),
+      subtitle: Text(l10n.jspluginAutoUpdateHint),
+      value: autoUpdateAsync.asData?.value ?? false,
+      onChanged: autoUpdateAsync.isLoading
+          ? null
+          : (enabled) => _toggleAutoUpdate(enabled),
+    );
+  }
+
+  Future<void> _toggleAutoUpdate(bool enabled) async {
+    final api = ref.read(settingsApiProvider);
+    try {
+      await api.setPluginAutoUpdate(enabled);
+    } catch (e) {
+      if (!mounted) return;
+      ResponsiveSnackBar.showError(context, message: e.toString());
+    } finally {
+      ref.invalidate(pluginAutoUpdateProvider);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -115,6 +141,10 @@ class _JSPluginManagerState extends ConsumerState<JSPluginManager>
                     ],
                   ),
         ),
+        const Divider(height: 1),
+
+        // 自动更新开关
+        _buildAutoUpdateTile(l10n),
         const Divider(height: 1),
 
         // 插件列表

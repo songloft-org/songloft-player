@@ -19,6 +19,9 @@ import 'github_proxy_selection.dart';
 const _kOfficialRegistryUrl =
     'https://raw.githubusercontent.com/songloft-org/songloft-plugin-registry/main/registry.json';
 
+/// 源下拉中「全部」聚合选项的哨兵值
+const _kAllSourcesValue = '__all_sources__';
+
 /// 插件商店页面
 class PluginRegistryPage extends ConsumerStatefulWidget {
   const PluginRegistryPage({super.key});
@@ -36,6 +39,7 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
 
   List<PluginRegistryConfig> _registries = [];
   PluginRegistryConfig? _selectedRegistry;
+  bool _allSources = false;
   String _searchText = '';
   int _currentPage = 1;
   static const int _pageSize = 20;
@@ -77,8 +81,9 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
         _registries = registries;
         _loadingRegistries = false;
         final enabled = registries.where((r) => r.enabled).toList();
-        if (enabled.isNotEmpty && _selectedRegistry == null) {
-          _selectedRegistry = enabled.first;
+        // 首次加载默认选「全部」，打开商店即聚合展示所有启用源
+        if (enabled.isNotEmpty && _selectedRegistry == null && !_allSources) {
+          _allSources = true;
           _refreshPlugins();
         }
       });
@@ -91,7 +96,7 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
   }
 
   Future<void> _refreshPlugins() async {
-    if (_selectedRegistry == null) return;
+    if (!_allSources && _selectedRegistry == null) return;
     setState(() {
       _loadingPlugins = true;
       _pluginError = null;
@@ -99,12 +104,14 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
     try {
       final api = ref.read(jsPluginApiProvider);
       final response = await api.refreshRegistry(
-        registryUrl: _selectedRegistry!.url,
+        registryUrl: _allSources ? '' : _selectedRegistry!.url,
+        allSources: _allSources,
         page: _currentPage,
         pageSize: _pageSize,
         search: _searchText.isEmpty ? null : _searchText,
         githubProxy: effectiveProxy.isEmpty ? null : effectiveProxy,
-        token: _selectedRegistry!.token.isEmpty
+        // 「全部」模式各源用自身存储的 token，前端不传
+        token: _allSources || _selectedRegistry!.token.isEmpty
             ? null
             : _selectedRegistry!.token,
       );
@@ -139,9 +146,21 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
     });
   }
 
-  void _onRegistryChanged(PluginRegistryConfig? registry) {
+  /// 源下拉切换：值为哨兵 `_kAllSourcesValue` 时进入「全部」聚合模式，
+  /// 否则按 URL 定位到具体订阅源。
+  void _onRegistrySelectionChanged(String? value) {
+    if (value == null) return;
     setState(() {
-      _selectedRegistry = registry;
+      if (value == _kAllSourcesValue) {
+        _allSources = true;
+      } else {
+        _allSources = false;
+        final enabled = _registries.where((r) => r.enabled).toList();
+        final match = enabled.where((r) => r.url == value);
+        if (match.isNotEmpty) {
+          _selectedRegistry = match.first;
+        }
+      }
       _currentPage = 1;
       _pluginResponse = null;
     });
@@ -156,7 +175,7 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
         appBar: AppBar(
           title: Text(l10n.jspluginStoreTitle),
           actions: [
-            if (_selectedRegistry != null)
+            if (_allSources || _selectedRegistry != null)
               IconButton(
                 icon: const Icon(Icons.refresh),
                 tooltip: l10n.jspluginRefreshList,
@@ -295,8 +314,9 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              DropdownButtonFormField<PluginRegistryConfig>(
-                initialValue: _selectedRegistry,
+              DropdownButtonFormField<String>(
+                initialValue:
+                    _allSources ? _kAllSourcesValue : _selectedRegistry?.url,
                 decoration: InputDecoration(
                   labelText: l10n.jspluginRegistry,
                   border: const OutlineInputBorder(),
@@ -304,49 +324,60 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 ),
                 isExpanded: true,
-                items: enabledRegistries
-                    .map(
-                      (r) => DropdownMenuItem(
-                        value: r,
-                        child: Row(
-                          children: [
-                            Flexible(
-                              child: Text(
-                                r.name.isEmpty ? r.url : r.name,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                items: [
+                  // 「全部」聚合项置顶
+                  DropdownMenuItem(
+                    value: _kAllSourcesValue,
+                    child: Row(
+                      children: [
+                        const Icon(Icons.all_inclusive, size: 18),
+                        const SizedBox(width: 8),
+                        Text(l10n.jspluginAllSources),
+                      ],
+                    ),
+                  ),
+                  ...enabledRegistries.map(
+                    (r) => DropdownMenuItem(
+                      value: r.url,
+                      child: Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              r.name.isEmpty ? r.url : r.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            if (r.url == _kOfficialRegistryUrl) ...[
-                              const SizedBox(width: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 1,
-                                ),
-                                decoration: BoxDecoration(
+                          ),
+                          if (r.url == _kOfficialRegistryUrl) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 1,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .primaryContainer,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                l10n.jspluginOfficial,
+                                style: TextStyle(
+                                  fontSize: 10,
                                   color: Theme.of(context)
                                       .colorScheme
-                                      .primaryContainer,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  l10n.jspluginOfficial,
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onPrimaryContainer,
-                                  ),
+                                      .onPrimaryContainer,
                                 ),
                               ),
-                            ],
+                            ),
                           ],
-                        ),
+                        ],
                       ),
-                    )
-                    .toList(),
-                onChanged: _onRegistryChanged,
+                    ),
+                  ),
+                ],
+                onChanged: _onRegistrySelectionChanged,
               ),
               const SizedBox(height: AppSpacing.sm),
               TextField(
@@ -458,7 +489,8 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
                 _RegistryPluginItem(
                   entry: plugins[index],
                   githubProxy: effectiveProxy,
-                  token: _selectedRegistry?.token ?? '',
+                  // 「全部」模式无法确定插件来源，token 留空（私有源需切到具体源安装）
+                  token: _allSources ? '' : (_selectedRegistry?.token ?? ''),
                   onInstalled: () {
                     _refreshPlugins();
                     ref.invalidate(jsPluginsProvider);
@@ -550,16 +582,19 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage>
           setState(() {
             _registries = registries;
             final enabled = registries.where((r) => r.enabled).toList();
-            if (_selectedRegistry != null &&
+            // 选中的具体源被删除/禁用后回退：优先保持「全部」聚合
+            if (!_allSources &&
+                _selectedRegistry != null &&
                 !enabled.any((r) => r.url == _selectedRegistry!.url)) {
-              _selectedRegistry = enabled.isNotEmpty ? enabled.first : null;
+              _selectedRegistry = null;
+              _allSources = enabled.isNotEmpty;
             }
-            if (_selectedRegistry == null && enabled.isNotEmpty) {
-              _selectedRegistry = enabled.first;
+            if (!_allSources && _selectedRegistry == null && enabled.isNotEmpty) {
+              _allSources = true;
             }
           });
           ref.invalidate(pluginRegistriesProvider);
-          if (_selectedRegistry != null) {
+          if (_allSources || _selectedRegistry != null) {
             _refreshPlugins();
           } else {
             setState(() => _pluginResponse = null);
@@ -600,6 +635,7 @@ class _RegistryPluginItemState extends ConsumerState<_RegistryPluginItem> {
         downloadUrl: widget.entry.downloadUrl,
         githubProxy: widget.githubProxy.isEmpty ? null : widget.githubProxy,
         token: widget.token.isEmpty ? null : widget.token,
+        sourceUrl: widget.entry.sourceUrl,
       );
       if (!mounted) return;
       if (result.success > 0) {

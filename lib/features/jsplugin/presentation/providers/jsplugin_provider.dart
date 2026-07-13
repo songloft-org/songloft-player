@@ -45,3 +45,13 @@ final pluginKeepAliveProvider = FutureProvider<List<String>>((ref) async {
   final api = ref.watch(settingsApiProvider);
   return api.getPluginKeepAlive();
 });
+
+// ============================================================================
+// Plugin Auto-Update Providers
+// ============================================================================
+
+/// 获取插件自动更新开关状态
+final pluginAutoUpdateProvider = FutureProvider<bool>((ref) async {
+  final api = ref.watch(settingsApiProvider);
+  return api.getPluginAutoUpdate();
+});

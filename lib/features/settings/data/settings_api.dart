@@ -533,6 +533,31 @@ class SettingsApi {
     }
   }
 
+  // ---------- 插件自动更新开关 ----------
+
+  Future<bool> getPluginAutoUpdate() async {
+    try {
+      final response = await dio.get(
+        '${AppConfig.apiPrefix}/settings/plugin-auto-update',
+      );
+      final data = response.data as Map<String, dynamic>;
+      return data['enabled'] as bool? ?? false;
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  Future<void> setPluginAutoUpdate(bool enabled) async {
+    try {
+      await dio.put(
+        '${AppConfig.apiPrefix}/settings/plugin-auto-update',
+        data: {'enabled': enabled},
+      );
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
   // ---------- 自动扫描配置 ----------
 
   Future<AutoScanSetting> getAutoScan() async {
