@@ -24,7 +24,7 @@
   "deleteAlsoLocalFile": "同时删除本地文件",
   "deleteIrreversible": "删除后无法恢复",
   "navHome": "首页",
-  "navLibrary": "歌曲库",
+  "navLibrary": "曲库",
   "navPlaylists": "歌单",
   "navSettings": "设置",
   "favoriteAdded": "已添加到收藏",
@@ -515,7 +515,7 @@
     }
   },
   "libraryDeselectAll": "取消全选",
-  "libraryTitle": "歌曲库",
+  "libraryTitle": "曲库",
   "libraryPlayAll": "播放全部",
   "librarySort": "排序",
   "librarySortAddedAt": "最近加入",
@@ -534,7 +534,7 @@
   "libraryCleanInvalidSongs": "清理无效歌曲",
   "librarySearchHint": "搜索歌曲...",
   "libraryNoMatchingSongs": "未找到匹配的歌曲",
-  "libraryEmpty": "歌曲库为空",
+  "libraryEmpty": "曲库为空",
   "libraryTryOtherKeywords": "尝试其他关键词",
   "libraryEmptyHint": "添加一些歌曲开始吧",
   "libraryDeleteConfirmTitle": "确认删除",
@@ -983,7 +983,7 @@
   "playerSave": "保存",
   "playerNoLyricsToAdjust": "暂无可调整的歌词",
   "playerDeleteSongTitle": "删除歌曲",
-  "playerDeleteSongConfirm": "确定要从歌曲库中删除「{title}」吗？",
+  "playerDeleteSongConfirm": "确定要从曲库中删除「{title}」吗？",
   "@playerDeleteSongConfirm": {
     "placeholders": {
       "title": {
@@ -1080,7 +1080,7 @@
   "playlistDeselectAll": "取消全选",
   "playlistRemove": "移除",
   "playlistRemoveFromPlaylist": "从歌单移除",
-  "playlistDeleteFromLibrary": "从歌曲库删除",
+  "playlistDeleteFromLibrary": "从曲库删除",
   "playlistActionsCount": "操作({count})",
   "@playlistActionsCount": {
     "placeholders": {
@@ -1156,7 +1156,7 @@
   },
   "playlistSongRemoved": "歌曲已移除",
   "playlistDeleteSong": "删除歌曲",
-  "playlistDeleteSongConfirm": "确定要从歌曲库中删除「{title}」吗？",
+  "playlistDeleteSongConfirm": "确定要从曲库中删除「{title}」吗？",
   "@playlistDeleteSongConfirm": {
     "placeholders": {
       "title": {
@@ -1167,7 +1167,7 @@
   "playlistSongDeleted": "歌曲已删除",
   "playlistDeleteFailed": "删除失败",
   "playlistBatchDelete": "批量删除",
-  "playlistBatchDeleteSongsConfirm": "确定要从歌曲库中删除选中的 {count} 首歌曲吗？",
+  "playlistBatchDeleteSongsConfirm": "确定要从曲库中删除选中的 {count} 首歌曲吗？",
   "@playlistBatchDeleteSongsConfirm": {
     "placeholders": {
       "count": {
@@ -1501,7 +1501,7 @@
   "settingsClientDownloadSave": "保存",
   "settingsTabConfigTitle": "菜单设置",
   "settingsTabConfigBuiltInSection": "内置页面",
-  "settingsTabConfigLibrary": "歌曲库",
+  "settingsTabConfigLibrary": "曲库",
   "settingsTabConfigPlaylists": "歌单",
   "settingsTabConfigPluginEntry": "插件入口",
   "settingsTabConfigNoPlugins": "暂无可用插件",
@@ -1980,7 +1980,7 @@
   "settingsLocalMode": "本地模式",
   "settingsManage": "管理",
   "settingsMenuTitle": "菜单设置",
-  "settingsMenuLibrary": "歌曲库",
+  "settingsMenuLibrary": "曲库",
   "settingsMenuPlaylists": "歌单",
   "settingsTabsEnabledCount": "已启用 {count} 个标签（首页和设置固定显示）",
   "@settingsTabsEnabledCount": {

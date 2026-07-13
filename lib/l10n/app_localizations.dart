@@ -227,7 +227,7 @@ abstract class AppLocalizations {
   /// No description provided for @navLibrary.
   ///
   /// In zh, this message translates to:
-  /// **'歌曲库'**
+  /// **'曲库'**
   String get navLibrary;
 
   /// No description provided for @navPlaylists.
@@ -1349,7 +1349,7 @@ abstract class AppLocalizations {
   /// No description provided for @libraryTitle.
   ///
   /// In zh, this message translates to:
-  /// **'歌曲库'**
+  /// **'曲库'**
   String get libraryTitle;
 
   /// No description provided for @libraryPlayAll.
@@ -1463,7 +1463,7 @@ abstract class AppLocalizations {
   /// No description provided for @libraryEmpty.
   ///
   /// In zh, this message translates to:
-  /// **'歌曲库为空'**
+  /// **'曲库为空'**
   String get libraryEmpty;
 
   /// No description provided for @libraryTryOtherKeywords.
@@ -2843,7 +2843,7 @@ abstract class AppLocalizations {
   /// No description provided for @playerDeleteSongConfirm.
   ///
   /// In zh, this message translates to:
-  /// **'确定要从歌曲库中删除「{title}」吗？'**
+  /// **'确定要从曲库中删除「{title}」吗？'**
   String playerDeleteSongConfirm(String title);
 
   /// No description provided for @playerSongDeleted.
@@ -3113,7 +3113,7 @@ abstract class AppLocalizations {
   /// No description provided for @playlistDeleteFromLibrary.
   ///
   /// In zh, this message translates to:
-  /// **'从歌曲库删除'**
+  /// **'从曲库删除'**
   String get playlistDeleteFromLibrary;
 
   /// No description provided for @playlistActionsCount.
@@ -3275,7 +3275,7 @@ abstract class AppLocalizations {
   /// No description provided for @playlistDeleteSongConfirm.
   ///
   /// In zh, this message translates to:
-  /// **'确定要从歌曲库中删除「{title}」吗？'**
+  /// **'确定要从曲库中删除「{title}」吗？'**
   String playlistDeleteSongConfirm(String title);
 
   /// No description provided for @playlistSongDeleted.
@@ -3299,7 +3299,7 @@ abstract class AppLocalizations {
   /// No description provided for @playlistBatchDeleteSongsConfirm.
   ///
   /// In zh, this message translates to:
-  /// **'确定要从歌曲库中删除选中的 {count} 首歌曲吗？'**
+  /// **'确定要从曲库中删除选中的 {count} 首歌曲吗？'**
   String playlistBatchDeleteSongsConfirm(int count);
 
   /// No description provided for @playlistDeletedSongsCount.
@@ -4085,7 +4085,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsTabConfigLibrary.
   ///
   /// In zh, this message translates to:
-  /// **'歌曲库'**
+  /// **'曲库'**
   String get settingsTabConfigLibrary;
 
   /// No description provided for @settingsTabConfigPlaylists.
@@ -5207,7 +5207,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsMenuLibrary.
   ///
   /// In zh, this message translates to:
-  /// **'歌曲库'**
+  /// **'曲库'**
   String get settingsMenuLibrary;
 
   /// No description provided for @settingsMenuPlaylists.

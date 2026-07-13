@@ -121,7 +121,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 ),
           ),
 
-          // 歌曲库
+          // 曲库
           GoRoute(
             path: AppRoutes.library,
             pageBuilder:

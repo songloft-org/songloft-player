@@ -72,7 +72,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navHome => '首页';
 
   @override
-  String get navLibrary => '歌曲库';
+  String get navLibrary => '曲库';
 
   @override
   String get navPlaylists => '歌单';
@@ -713,7 +713,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get libraryDeselectAll => '取消全选';
 
   @override
-  String get libraryTitle => '歌曲库';
+  String get libraryTitle => '曲库';
 
   @override
   String get libraryPlayAll => '播放全部';
@@ -770,7 +770,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get libraryNoMatchingSongs => '未找到匹配的歌曲';
 
   @override
-  String get libraryEmpty => '歌曲库为空';
+  String get libraryEmpty => '曲库为空';
 
   @override
   String get libraryTryOtherKeywords => '尝试其他关键词';
@@ -1521,7 +1521,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String playerDeleteSongConfirm(String title) {
-    return '确定要从歌曲库中删除「$title」吗？';
+    return '确定要从曲库中删除「$title」吗？';
   }
 
   @override
@@ -1669,7 +1669,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get playlistRemoveFromPlaylist => '从歌单移除';
 
   @override
-  String get playlistDeleteFromLibrary => '从歌曲库删除';
+  String get playlistDeleteFromLibrary => '从曲库删除';
 
   @override
   String playlistActionsCount(int count) {
@@ -1765,7 +1765,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String playlistDeleteSongConfirm(String title) {
-    return '确定要从歌曲库中删除「$title」吗？';
+    return '确定要从曲库中删除「$title」吗？';
   }
 
   @override
@@ -1779,7 +1779,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String playlistBatchDeleteSongsConfirm(int count) {
-    return '确定要从歌曲库中删除选中的 $count 首歌曲吗？';
+    return '确定要从曲库中删除选中的 $count 首歌曲吗？';
   }
 
   @override
@@ -2235,7 +2235,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsTabConfigBuiltInSection => '内置页面';
 
   @override
-  String get settingsTabConfigLibrary => '歌曲库';
+  String get settingsTabConfigLibrary => '曲库';
 
   @override
   String get settingsTabConfigPlaylists => '歌单';
@@ -2881,7 +2881,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsMenuTitle => '菜单设置';
 
   @override
-  String get settingsMenuLibrary => '歌曲库';
+  String get settingsMenuLibrary => '曲库';
 
   @override
   String get settingsMenuPlaylists => '歌单';
