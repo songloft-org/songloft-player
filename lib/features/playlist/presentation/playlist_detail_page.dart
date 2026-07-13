@@ -1,9 +1,7 @@
 import 'dart:async';
-import 'dart:io' show File;
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -17,13 +15,15 @@ import '../../../shared/models/song.dart';
 import '../../../shared/utils/responsive_snackbar.dart';
 import '../../../shared/widgets/delete_song_dialog.dart';
 import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/error_view.dart';
+import '../../../shared/mixins/song_list_actions.dart';
 import '../../../shared/widgets/song_picker_modal.dart';
 import '../../library/presentation/providers/songs_provider.dart';
 import '../../library/presentation/song_edit_page.dart';
 import '../../player/presentation/providers/player_provider.dart';
 import '../domain/playlist.dart';
 import 'providers/playlist_provider.dart';
-import 'widgets/song_cover_picker_modal.dart';
+import 'widgets/playlist_edit_dialog.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 import '../../../l10n/app_localizations.dart';
 
@@ -37,7 +37,8 @@ class PlaylistDetailPage extends ConsumerStatefulWidget {
   ConsumerState<PlaylistDetailPage> createState() => _PlaylistDetailPageState();
 }
 
-class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
+class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
+    with SongListActions {
   int get _playlistIdInt => int.tryParse(widget.playlistId) ?? 0;
 
   /// 触底加载预留距离
@@ -165,7 +166,7 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
 
     // 检查排序前后是否有变化，避免无意义的 API 调用
     final originalIds = fullSongs.map((s) => s.id).toList();
-    if (_listEquals(songIds, originalIds)) {
+    if (listEquals(songIds, originalIds)) {
       if (mounted) {
         ResponsiveSnackBar.show(
           context,
@@ -237,7 +238,7 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
 
     // 检查排序前后是否有变化
     final originalIds = fullSongs.map((s) => s.id).toList();
-    if (_listEquals(songIds, originalIds)) {
+    if (listEquals(songIds, originalIds)) {
       if (mounted) {
         ResponsiveSnackBar.show(
           context,
@@ -268,14 +269,6 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
   }
 
   /// 比较两个整数列表是否相等
-  bool _listEquals(List<int> a, List<int> b) {
-    if (a.length != b.length) return false;
-    for (int i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) return false;
-    }
-    return true;
-  }
-
   /// 取消排序模式（不保存）
   void _cancelSortMode() {
     setState(() {
@@ -1382,39 +1375,12 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
   }
 
   Widget _buildError(String error) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final l10n = AppLocalizations.of(context);
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.error_outline, size: 64, color: colorScheme.error),
-            const SizedBox(height: 16),
-            Text(l10n.commonLoadFailed, style: textTheme.titleMedium),
-            const SizedBox(height: 8),
-            Text(
-              error,
-              style: textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: () {
-                ref.invalidate(playlistDetailProvider(_playlistIdInt));
-                ref.invalidate(playlistSongsProvider(_playlistIdInt));
-              },
-              icon: const Icon(Icons.refresh),
-              label: Text(l10n.commonRetry),
-            ),
-          ],
-        ),
-      ),
+    return ErrorView(
+      message: error,
+      onRetry: () {
+        ref.invalidate(playlistDetailProvider(_playlistIdInt));
+        ref.invalidate(playlistSongsProvider(_playlistIdInt));
+      },
     );
   }
 
@@ -1435,7 +1401,7 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
     final result = await showDialog<bool>(
       context: context,
       builder:
-          (context) => _PlaylistEditDialog(
+          (context) => PlaylistEditDialog(
             playlist: playlist,
             playlistId: _playlistIdInt,
           ),
@@ -1608,7 +1574,7 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
     }
   }
 
-  /// 编辑歌曲（跳转编辑页，返回后刷新歌单歌曲列表与歌曲库）
+  /// 编辑歌曲（跳转编辑页，返回后刷新歌单歌曲列表与曲库）
   Future<void> _navigateToEditSong(Song song) async {
     final result = await Navigator.push<bool>(
       context,
@@ -1637,7 +1603,7 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
           .deleteSong(song.id, deleteFiles: result.deleteFiles);
       ref.invalidate(playlistSongsProvider(_playlistIdInt));
       ref.invalidate(songsListProvider);
-      _removeDeletedSongsFromPlayerQueue({song.id});
+      removeDeletedSongsFromPlayerQueue({song.id});
       if (mounted) {
         ResponsiveSnackBar.showSuccess(context, message: l10n.playlistSongDeleted);
       }
@@ -1669,7 +1635,7 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
       );
       ref.invalidate(playlistSongsProvider(_playlistIdInt));
       ref.invalidate(songsListProvider);
-      _removeDeletedSongsFromPlayerQueue(ids);
+      removeDeletedSongsFromPlayerQueue(ids);
       _exitSelectMode();
       if (mounted) {
         ResponsiveSnackBar.showSuccess(
@@ -1684,15 +1650,6 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage> {
     }
   }
 
-  void _removeDeletedSongsFromPlayerQueue(Set<int> deletedIds) {
-    final playerNotifier = ref.read(playerStateProvider.notifier);
-    final queue = ref.read(playerStateProvider).playlist;
-    for (int i = queue.length - 1; i >= 0; i--) {
-      if (deletedIds.contains(queue[i].id)) {
-        playerNotifier.removeFromPlaylist(i);
-      }
-    }
-  }
 }
 
 /// 歌曲列表项组件
@@ -1896,336 +1853,3 @@ class _SongListTile extends StatelessWidget {
 }
 
 /// 歌单编辑对话框
-class _PlaylistEditDialog extends ConsumerStatefulWidget {
-  final Playlist playlist;
-  final int playlistId;
-
-  const _PlaylistEditDialog({required this.playlist, required this.playlistId});
-
-  @override
-  ConsumerState<_PlaylistEditDialog> createState() =>
-      _PlaylistEditDialogState();
-}
-
-class _PlaylistEditDialogState extends ConsumerState<_PlaylistEditDialog> {
-  late final TextEditingController _nameController;
-  late final TextEditingController _descController;
-
-  /// 封面选择模式
-  /// null: 未修改
-  /// 'local': 本地上传的图片
-  /// 'song': 从歌曲选择的封面
-  /// 'clear': 清除封面
-  String? _coverMode;
-
-  /// 本地选择的文件
-  PlatformFile? _localFile;
-
-  /// 从歌曲选择的封面信息
-  String? _selectedCoverUrl;
-  int? _selectedCoverSongId;
-
-  /// 是否正在保存
-  bool _isSaving = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _nameController = TextEditingController(text: widget.playlist.name);
-    _descController = TextEditingController(text: widget.playlist.description);
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _descController.dispose();
-    super.dispose();
-  }
-
-  /// 获取当前预览的封面 URL
-  String? get _previewCoverUrl {
-    if (_coverMode == 'clear') return null;
-    if (_coverMode == 'song') {
-      return _selectedCoverUrl;
-    }
-    if (_coverMode == 'local') {
-      return _localFile?.path;
-    }
-    // 未修改时显示原有封面
-    if (_coverMode == null) {
-      return widget.playlist.coverUrl;
-    }
-    return null;
-  }
-
-  /// 上传本地图片
-  Future<void> _pickLocalImage() async {
-    try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.image,
-        withData: kIsWeb,
-      );
-      if (result != null && result.files.isNotEmpty) {
-        setState(() {
-          _localFile = result.files.first;
-          _coverMode = 'local';
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ResponsiveSnackBar.showError(
-          context,
-          message: AppLocalizations.of(context).playlistPickImageFailed('$e'),
-        );
-      }
-    }
-  }
-
-  /// 从歌曲选择封面
-  Future<void> _pickFromSongs() async {
-    final result = await showSongCoverPicker(context, widget.playlistId);
-    if (result != null) {
-      setState(() {
-        _selectedCoverSongId = result['songId'] as int?;
-        _selectedCoverUrl = result['coverUrl'] as String?;
-        _coverMode = 'song';
-        _localFile = null;
-      });
-    }
-  }
-
-  /// 清除封面
-  void _clearCover() {
-    setState(() {
-      _coverMode = 'clear';
-      _localFile = null;
-      _selectedCoverUrl = null;
-      _selectedCoverSongId = null;
-    });
-  }
-
-  /// 保存
-  Future<void> _save() async {
-    final l10n = AppLocalizations.of(context);
-    final name = _nameController.text.trim();
-    if (name.isEmpty) {
-      ResponsiveSnackBar.showError(context, message: l10n.playlistNameRequired);
-      return;
-    }
-    setState(() => _isSaving = true);
-    try {
-      final notifier = ref.read(playlistNotifierProvider.notifier);
-      final description = _descController.text.trim();
-      // 处理封面上传
-      if (_coverMode == 'local' && _localFile != null) {
-        final file = _localFile!;
-        final uploadedPlaylist = await notifier.uploadPlaylistCover(
-          widget.playlistId,
-          bytes: file.bytes,
-          filePath: file.path,
-          fileName: file.name,
-        );
-        if (uploadedPlaylist == null) {
-          if (mounted) {
-            ResponsiveSnackBar.showError(
-              context,
-              message: l10n.playlistCoverUploadFailed,
-            );
-          }
-          return;
-        }
-        // 上传成功后更新其他信息，同时传递封面信息防止被后端覆盖
-        await notifier.updatePlaylist(
-          widget.playlistId,
-          name: name,
-          description: description.isEmpty ? null : description,
-        );
-      } else if (_coverMode == 'song' && _selectedCoverSongId != null) {
-        // 从歌曲选择的封面
-        await notifier.updatePlaylist(
-          widget.playlistId,
-          name: name,
-          description: description.isEmpty ? null : description,
-          coverSongId: _selectedCoverSongId,
-        );
-      } else if (_coverMode == 'clear') {
-        // 清除封面
-        await notifier.updatePlaylist(
-          widget.playlistId,
-          name: name,
-          description: description.isEmpty ? null : description,
-          coverPath: '',
-        );
-      } else {
-        // 未修改封面，只更新名称和描述
-        await notifier.updatePlaylist(
-          widget.playlistId,
-          name: name,
-          description: description.isEmpty ? null : description,
-        );
-      }
-      if (mounted) {
-        Navigator.of(context).pop(true);
-      }
-    } catch (e) {
-      if (mounted) {
-        ResponsiveSnackBar.showError(
-          context,
-          message: l10n.playlistSaveFailed('$e'),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final l10n = AppLocalizations.of(context);
-    final hasCover =
-        _coverMode != 'clear' &&
-        (_coverMode == 'local' ||
-            _coverMode == 'song' ||
-            widget.playlist.coverUrl?.isNotEmpty == true);
-    return AlertDialog(
-      title: Text(
-        widget.playlist.isBuiltIn
-            ? l10n.playlistEditCover
-            : l10n.playlistEditPlaylist,
-      ),
-      content: SingleChildScrollView(
-        child: SizedBox(
-          width: 320,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // 封面预览区域
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: _buildCoverPreview(colorScheme),
-              ),
-              const SizedBox(height: 12),
-              // 封面操作按钮
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                alignment: WrapAlignment.center,
-                children: [
-                  OutlinedButton.icon(
-                    onPressed: _isSaving ? null : _pickLocalImage,
-                    icon: const Icon(Icons.upload, size: 18),
-                    label: Text(l10n.playlistUploadImage),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: _isSaving ? null : _pickFromSongs,
-                    icon: const Icon(Icons.music_note, size: 18),
-                    label: Text(l10n.playlistPickFromSongs),
-                  ),
-                  if (hasCover)
-                    TextButton.icon(
-                      onPressed: _isSaving ? null : _clearCover,
-                      icon: Icon(
-                        Icons.clear,
-                        size: 18,
-                        color: colorScheme.error,
-                      ),
-                      label: Text(
-                        l10n.playlistClear,
-                        style: TextStyle(color: colorScheme.error),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              // 歌单名称
-              TextField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: l10n.playlistNameLabel,
-                  border: const OutlineInputBorder(),
-                ),
-                enabled: !_isSaving && !widget.playlist.isBuiltIn,
-              ),
-              const SizedBox(height: 16),
-              // 歌单描述
-              TextField(
-                controller: _descController,
-                decoration: InputDecoration(
-                  labelText: l10n.playlistDescLabel,
-                  border: const OutlineInputBorder(),
-                ),
-                maxLines: 3,
-                enabled: !_isSaving && !widget.playlist.isBuiltIn,
-              ),
-            ],
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
-          child: Text(l10n.commonCancel),
-        ),
-        FilledButton(
-          onPressed: _isSaving ? null : _save,
-          child:
-              _isSaving
-                  ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                  : Text(l10n.playlistSave),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCoverPreview(ColorScheme colorScheme) {
-    // 本地文件预览
-    if (_coverMode == 'local' && _localFile != null) {
-      if (kIsWeb && _localFile!.bytes != null) {
-        return Image.memory(_localFile!.bytes!, fit: BoxFit.cover);
-      } else if (!kIsWeb && _localFile!.path != null) {
-        return Image.file(File(_localFile!.path!), fit: BoxFit.cover);
-      }
-    }
-
-    // 网络图片预览
-    final previewUrl = _previewCoverUrl;
-    if (previewUrl != null && previewUrl.isNotEmpty) {
-      return ExcludeSemantics(
-        child: CachedNetworkImage(
-          imageUrl: UrlHelper.buildCoverUrl(previewUrl),
-          fit: BoxFit.cover,
-          placeholder:
-              (context, url) =>
-                  const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-          errorWidget: (context, url, error) => _buildPlaceholder(colorScheme),
-        ),
-      );
-    }
-
-    // 占位图
-    return _buildPlaceholder(colorScheme);
-  }
-
-  Widget _buildPlaceholder(ColorScheme colorScheme) {
-    return Center(
-      child: Icon(
-        Icons.queue_music,
-        size: 48,
-        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-      ),
-    );
-  }
-}
