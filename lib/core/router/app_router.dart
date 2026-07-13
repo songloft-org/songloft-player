@@ -10,6 +10,8 @@ import '../../features/home/presentation/home_page.dart';
 import '../../features/home/presentation/tv_home_page.dart';
 import '../../features/home/presentation/plugin_webview_page.dart';
 import '../../features/library/presentation/library_page.dart';
+import '../../features/library/presentation/categories_page.dart';
+import '../../features/library/presentation/category_songs_page.dart';
 import '../../features/playlist/presentation/playlists_page.dart';
 import '../../features/playlist/presentation/playlist_detail_page.dart';
 import '../../features/settings/presentation/servers_page.dart';
@@ -26,6 +28,7 @@ class AppRoutes {
   static const String login = '/login';
   static const String home = '/';
   static const String library = '/library';
+  static const String libraryCategories = '/library/categories';
   static const String playlists = '/playlists';
   static const String playlistDetail = '/playlists/:id';
   static const String settings = '/settings';
@@ -124,6 +127,25 @@ final routerProvider = Provider<GoRouter>((ref) {
             pageBuilder:
                 (context, state) =>
                     const NoTransitionPage(child: LibraryPage()),
+          ),
+
+          // 分类总览
+          GoRoute(
+            path: AppRoutes.libraryCategories,
+            pageBuilder:
+                (context, state) =>
+                    const NoTransitionPage(child: CategoriesPage()),
+          ),
+
+          // 某分类下的歌曲列表。value 走 query 参数：专辑/歌手名可能含
+          // % / 等字符，放路径段会触发 go_router 的编解码歧义与双重解码。
+          GoRoute(
+            path: '/library/categories/:field',
+            builder: (context, state) {
+              final field = state.pathParameters['field'] ?? '';
+              final value = state.uri.queryParameters['value'] ?? '';
+              return CategorySongsPage(field: field, value: value);
+            },
           ),
 
           // 歌单列表

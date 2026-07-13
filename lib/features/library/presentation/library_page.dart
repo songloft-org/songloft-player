@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../config/constants.dart';
+import '../../../core/router/app_router.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/responsive.dart';
@@ -204,6 +206,12 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
     return AppBar(
       title: Text(l10n.libraryTitle),
       actions: [
+        // 分类浏览
+        IconButton(
+          icon: const Icon(Icons.category_outlined),
+          tooltip: '分类浏览',
+          onPressed: () => context.push(AppRoutes.libraryCategories),
+        ),
         // 播放全部
         IconButton(
           icon: const Icon(Icons.play_circle_outline),

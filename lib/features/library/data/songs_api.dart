@@ -24,6 +24,13 @@ class SongsApi {
     String? keyword,
     String? pathPrefix,
     String? excludePlaylistLabels,
+    String? genre,
+    String? artist,
+    String? album,
+    String? language,
+    String? style,
+    int? year,
+    int? decade,
     int limit = 20,
     int offset = 0,
     String? sort,
@@ -42,6 +49,16 @@ class SongsApi {
     if (excludePlaylistLabels != null && excludePlaylistLabels.isNotEmpty) {
       queryParams['exclude_playlist_labels'] = excludePlaylistLabels;
     }
+    _applyTagFilters(
+      queryParams,
+      genre: genre,
+      artist: artist,
+      album: album,
+      language: language,
+      style: style,
+      year: year,
+      decade: decade,
+    );
     if (sort != null && sort.isNotEmpty) {
       queryParams['sort'] = sort;
     }
@@ -56,6 +73,42 @@ class SongsApi {
     return SongListResponse.fromJson(response.data!);
   }
 
+  /// 把标签分类过滤参数写入 query（供 getSongs/getSongIds 复用）。
+  void _applyTagFilters(
+    Map<String, dynamic> queryParams, {
+    String? genre,
+    String? artist,
+    String? album,
+    String? language,
+    String? style,
+    int? year,
+    int? decade,
+  }) {
+    if (genre != null && genre.isNotEmpty) queryParams['genre'] = genre;
+    if (artist != null && artist.isNotEmpty) queryParams['artist'] = artist;
+    if (album != null && album.isNotEmpty) queryParams['album'] = album;
+    if (language != null && language.isNotEmpty) {
+      queryParams['language'] = language;
+    }
+    if (style != null && style.isNotEmpty) queryParams['style'] = style;
+    if (year != null && year > 0) queryParams['year'] = year;
+    if (decade != null && decade > 0) queryParams['decade'] = decade;
+  }
+
+  /// 获取某维度的标签分类聚合清单（用于分类浏览的清单页）。
+  /// [field] 取值：genre/artist/album/language/style/year/decade。
+  /// 返回按歌曲数降序的 (value, count) 列表。
+  Future<List<SongFacet>> getFacets(String field) async {
+    final response = await dio.get<Map<String, dynamic>>(
+      '${AppConfig.apiPrefix}/songs/facets',
+      queryParameters: {'field': field},
+    );
+    final raw = (response.data?['facets'] as List<dynamic>? ?? const []);
+    return raw
+        .map((e) => SongFacet.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
   /// 获取匹配过滤条件的歌曲 ID 列表（用于「全选当前筛选」场景）
   /// 返回字段：ids（int 列表）、total（int）
   Future<List<int>> getSongIds({
@@ -63,6 +116,13 @@ class SongsApi {
     String? keyword,
     String? pathPrefix,
     String? excludePlaylistLabels,
+    String? genre,
+    String? artist,
+    String? album,
+    String? language,
+    String? style,
+    int? year,
+    int? decade,
     String? sort,
     String? order,
   }) async {
@@ -79,6 +139,16 @@ class SongsApi {
     if (excludePlaylistLabels != null && excludePlaylistLabels.isNotEmpty) {
       queryParams['exclude_playlist_labels'] = excludePlaylistLabels;
     }
+    _applyTagFilters(
+      queryParams,
+      genre: genre,
+      artist: artist,
+      album: album,
+      language: language,
+      style: style,
+      year: year,
+      decade: decade,
+    );
     if (sort != null && sort.isNotEmpty) {
       queryParams['sort'] = sort;
     }
@@ -247,12 +317,20 @@ class SongsApi {
     String? title,
     String? artist,
     String? album,
+    int? year,
+    String? genre,
+    String? language,
+    String? style,
     bool renameFile = false,
   }) async {
     final data = <String, dynamic>{
       if (title != null) 'title': title,
       if (artist != null) 'artist': artist,
       if (album != null) 'album': album,
+      if (year != null) 'year': year,
+      if (genre != null) 'genre': genre,
+      if (language != null) 'language': language,
+      if (style != null) 'style': style,
       'rename_file': renameFile,
     };
     final response = await dio.put<Map<String, dynamic>>(

@@ -52,6 +52,12 @@ class _ShellLayoutState extends ConsumerState<ShellLayout> {
       if (idx != null) return idx;
     }
 
+    // 曲库子路由（如 /library/categories...）归属「曲库」
+    if (location.startsWith('/library')) {
+      final idx = activeDest.routeToIndex['/library'];
+      if (idx != null) return idx;
+    }
+
     // 插件 Tab 前缀匹配（/plugin-tab/xxx）
     if (location.startsWith('/plugin-tab/')) {
       final idx = activeDest.routeToIndex[location];

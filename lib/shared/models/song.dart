@@ -5,6 +5,10 @@ class Song {
   final String title;
   final String? artist;
   final String? album;
+  final int year; // 发行年份，0 表示未知
+  final String? genre; // 流派
+  final String? language; // 语种
+  final String? style; // 风格
   final double duration;
   final String? filePath;
   final String? url;
@@ -27,6 +31,10 @@ class Song {
     required this.title,
     this.artist,
     this.album,
+    this.year = 0,
+    this.genre,
+    this.language,
+    this.style,
     required this.duration,
     this.filePath,
     this.url,
@@ -51,6 +59,10 @@ class Song {
       title: json['title'] as String,
       artist: json['artist'] as String?,
       album: json['album'] as String?,
+      year: json['year'] as int? ?? 0,
+      genre: json['genre'] as String?,
+      language: json['language'] as String?,
+      style: json['style'] as String?,
       duration: (json['duration'] as num?)?.toDouble() ?? 0.0,
       filePath: json['file_path'] as String?,
       url: json['url'] as String?,
@@ -82,6 +94,10 @@ class Song {
       'title': title,
       'artist': artist,
       'album': album,
+      'year': year,
+      'genre': genre,
+      'language': language,
+      'style': style,
       'duration': duration,
       'file_path': filePath,
       'url': url,
@@ -106,6 +122,10 @@ class Song {
     String? title,
     String? artist,
     String? album,
+    int? year,
+    String? genre,
+    String? language,
+    String? style,
     double? duration,
     String? filePath,
     String? url,
@@ -128,6 +148,10 @@ class Song {
       title: title ?? this.title,
       artist: artist ?? this.artist,
       album: album ?? this.album,
+      year: year ?? this.year,
+      genre: genre ?? this.genre,
+      language: language ?? this.language,
+      style: style ?? this.style,
       duration: duration ?? this.duration,
       filePath: filePath ?? this.filePath,
       url: url ?? this.url,
@@ -154,6 +178,21 @@ class Song {
 
   @override
   int get hashCode => id.hashCode;
+}
+
+/// 标签分类聚合项：某维度的一个取值及其歌曲数量（如 genre="Rock", count=42）。
+class SongFacet {
+  final String value;
+  final int count;
+
+  const SongFacet({required this.value, required this.count});
+
+  factory SongFacet.fromJson(Map<String, dynamic> json) {
+    return SongFacet(
+      value: json['value'] as String? ?? '',
+      count: json['count'] as int? ?? 0,
+    );
+  }
 }
 
 /// 歌曲列表响应
