@@ -351,6 +351,8 @@ class AdaptiveScaffold extends StatelessWidget {
 
   /// Auto/Car: 左侧 Dock 导航布局（宽高比 > 2.2 的超宽屏幕）
   Widget _buildAutoLayout(BuildContext context) {
+    // 超宽屏纵向空间稀缺：播放器改走右侧竖排常驻面板（bottomPlayer 在 auto 模式下
+    // 由 ShellLayout 传入 AutoSidePlayer），而非底部横条，避免吃掉宝贵的高度。
     return Scaffold(
       body: Row(
         children: [
@@ -361,6 +363,8 @@ class AdaptiveScaffold extends StatelessWidget {
           ),
           const VerticalDivider(thickness: 1, width: 1),
           Expanded(child: body),
+          if (playlistDrawer != null) playlistDrawer!,
+          if (bottomPlayer != null) bottomPlayer!,
         ],
       ),
     );

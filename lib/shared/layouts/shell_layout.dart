@@ -14,6 +14,7 @@ import '../../features/player/presentation/widgets/desktop_player.dart';
 import '../../features/player/presentation/widgets/mini_player.dart';
 import '../../features/player/presentation/widgets/player_shortcut_scope.dart';
 import '../../features/player/presentation/widgets/playlist_drawer.dart';
+import '../../features/player/presentation/widgets/side_player.dart';
 import '../../features/player/presentation/widgets/tv_player.dart';
 import '../../features/settings/data/settings_api.dart';
 import '../../features/settings/presentation/providers/settings_provider.dart';
@@ -217,8 +218,12 @@ class _ShellLayoutState extends ConsumerState<ShellLayout> {
           context.go(activeDest.indexToRoute[index]);
         }
       },
+      // 插件/设置页默认隐藏播放器以让出空间；但超宽屏（auto）用的是右侧竖排面板，
+      // 横向空间充足，这两类页面也保留播放器
       bottomPlayer:
-          (isPluginTab || isSettings) ? null : _buildBottomPlayer(context),
+          (!context.isAuto && (isPluginTab || isSettings))
+              ? null
+              : _buildBottomPlayer(context),
       playlistDrawer: showPlaylistDrawer ? const PlaylistDrawer() : null,
     );
 
@@ -237,8 +242,9 @@ class _ShellLayoutState extends ConsumerState<ShellLayout> {
       case ScreenType.desktop:
         return const DesktopPlayer();
       case ScreenType.auto_:
-        // 车机模式使用 MiniPlayer（屏幕纵向空间有限）
-        return const MiniPlayer();
+        // 车机/超宽屏纵向空间稀缺：改用右侧竖排常驻播放面板，AdaptiveScaffold 的
+        // _buildAutoLayout 会把它摆到最右侧，而非底部横条
+        return const AutoSidePlayer();
       case ScreenType.tv:
         // 仅在 Android TV 等真正的 TV 平台使用 TvMiniPlayer
         // 桌面/Web 大屏使用 DesktopPlayer 以保留完整工具栏

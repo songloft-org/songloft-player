@@ -233,21 +233,31 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
                         // 左侧：封面 + 歌曲信息
                         Expanded(
                           flex: 4,
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                // 封面带唱片环旋转
-                                VinylRing(
-                                  rotationAnimation: _rotationController,
-                                  child: _buildCover(
-                                    context,
-                                    coverUrl,
-                                    coverSize,
-                                    palette: palette,
-                                  ),
-                                ),
-                                const SizedBox(height: 24),
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              // 超宽屏又矮时（车机模式）纵向空间不足，按左栏实际可用
+                              // 高度动态收缩封面：为标题+艺术家+间距预留 ~100px、
+                              // 唱片环上下各 8px 预留 16px，其余留给封面，避免
+                              // 固定 coverSize 撑破 Column 造成底部溢出。
+                              final budget = constraints.maxHeight - 100 - 16;
+                              final maxCover = budget < 140.0 ? 140.0 : budget;
+                              final effectiveCover =
+                                  coverSize > maxCover ? maxCover : coverSize;
+                              return Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    // 封面带唱片环旋转
+                                    VinylRing(
+                                      rotationAnimation: _rotationController,
+                                      child: _buildCover(
+                                        context,
+                                        coverUrl,
+                                        effectiveCover,
+                                        palette: palette,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 24),
                                 // 歌曲标题
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
@@ -276,8 +286,10 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
                                   overflow: TextOverflow.ellipsis,
                                   textAlign: TextAlign.center,
                                 ),
-                              ],
-                            ),
+                                  ],
+                                ),
+                              );
+                            },
                           ),
                         ),
                         // 右侧：歌词
