@@ -125,13 +125,21 @@ class _ShellLayoutState extends ConsumerState<ShellLayout> {
         isPluginTab ? location.replaceFirst('/plugin-tab/', '') : null;
 
     // 构建 body：
-    // - Web：插件 tab 通过 Offstage 持久化，避免 CanvasKit 反复销毁/重建
-    //   iframe 触发渲染器段错误（见 32d8924）
-    // - 原生（桌面/移动）：只渲染当前激活的插件 tab，切走即销毁 WebView。
-    //   桌面端 flutter_inappwebview 的 WebView2 是独立原生表面，Offstage
-    //   无法隐藏它，保活会在切到其他页面后残留灰块（songloft-org/songloft#246）
+    // - Web + 移动端（Android/iOS）：插件 tab 通过 Offstage 持久化保活。
+    //   Web 避免 CanvasKit 反复销毁/重建 iframe 触发渲染器段错误（见 32d8924）
+    //   及 iframe 反复重载抖动（#278）；移动端避免 flutter_inappwebview 的 WebView
+    //   被销毁后再次打开时黑屏/底部导航栏消失（songloft-org/songloft#273 后续）。
+    //   plugin_tab_page_native 本就按 isActive 做保活设计（切走 clearFocus）。
+    // - 桌面端（Windows/macOS/Linux）：只渲染当前激活的插件 tab，切走即销毁。
+    //   其 flutter_inappwebview 是独立原生表面（尤其 Windows WebView2），Offstage
+    //   无法隐藏，保活会在切到其他页面后残留灰块（songloft-org/songloft#246）。
+    final isNativeDesktop =
+        !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.windows ||
+            defaultTargetPlatform == TargetPlatform.macOS ||
+            defaultTargetPlatform == TargetPlatform.linux);
     Widget body;
-    if (kIsWeb) {
+    if (!isNativeDesktop) {
       // 追踪已访问的插件 tab（首次访问时创建，之后通过 Offstage 保持存活）
       if (currentEntryPath != null) {
         _visitedPluginTabs.add(currentEntryPath);
@@ -164,7 +172,9 @@ class _ShellLayoutState extends ConsumerState<ShellLayout> {
             for (final ep in _visitedPluginTabs)
               Offstage(
                 // GlobalKey 挂在 PluginTabPage 上，使其在 Stack 内被重排/换父时
-                // 被移动而非重建，保住 iframe 的 platform view viewId（#278）。
+                // 被移动而非重建，保住底层 WebView / iframe 的 platform view
+                // viewId 不被销毁重建（Web 避免 iframe 反复重载抖动 #278，
+                // 移动端避免 WebView 重建黑屏 #273 后续）。
                 key: ValueKey('plugin-offstage-$ep'),
                 offstage: currentEntryPath != ep,
                 child: PluginTabPage(
