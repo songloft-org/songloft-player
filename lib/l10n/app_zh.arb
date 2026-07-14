@@ -2015,6 +2015,34 @@
   "settingsQualityDialogTitle": "选择音质",
   "settingsQualityOriginalDesc": "不转码，使用文件原始码率",
   "settingsQualityTranscodeDesc": "转码为 MP3，适合弱网环境",
+  "settingsShortcutsEntryTitle": "键盘快捷键",
+  "settingsShortcutsEntrySubtitle": "自定义播放控制按键",
+  "settingsShortcutsPageTitle": "键盘快捷键",
+  "settingsShortcutsEnableTitle": "启用键盘快捷键",
+  "settingsShortcutsEnableSubtitle": "在桌面窗口内使用快捷键控制播放",
+  "settingsShortcutActionPlayPause": "播放 / 暂停",
+  "settingsShortcutActionPlayNext": "下一首",
+  "settingsShortcutActionPlayPrev": "上一首",
+  "settingsShortcutActionSeekForward": "快进",
+  "settingsShortcutActionSeekBackward": "快退",
+  "settingsShortcutActionVolumeUp": "音量 +",
+  "settingsShortcutActionVolumeDown": "音量 -",
+  "settingsShortcutActionToggleMute": "静音切换",
+  "settingsShortcutRecordPrompt": "请按下快捷键组合…",
+  "settingsShortcutUnset": "未设置",
+  "settingsShortcutConflictTitle": "快捷键冲突",
+  "settingsShortcutConflict": "该组合键已被「{action}」占用",
+  "@settingsShortcutConflict": {
+    "placeholders": {
+      "action": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsShortcutOverride": "覆盖",
+  "settingsShortcutClear": "清除",
+  "settingsShortcutResetAll": "恢复全部默认",
+  "settingsShortcutResetAllConfirm": "确定要将所有快捷键恢复为默认值吗？",
   "settingsQualitySwitched": "音质已切换为{quality}",
   "@settingsQualitySwitched": {
     "placeholders": {

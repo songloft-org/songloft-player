@@ -1910,6 +1910,34 @@
   "settingsQualityDialogTitle": "Select audio quality",
   "settingsQualityOriginalDesc": "No transcoding, use the file's original bitrate",
   "settingsQualityTranscodeDesc": "Transcode to MP3, suited for weak networks",
+  "settingsShortcutsEntryTitle": "Keyboard shortcuts",
+  "settingsShortcutsEntrySubtitle": "Customize playback control keys",
+  "settingsShortcutsPageTitle": "Keyboard shortcuts",
+  "settingsShortcutsEnableTitle": "Enable keyboard shortcuts",
+  "settingsShortcutsEnableSubtitle": "Control playback with shortcuts inside the desktop window",
+  "settingsShortcutActionPlayPause": "Play / Pause",
+  "settingsShortcutActionPlayNext": "Next track",
+  "settingsShortcutActionPlayPrev": "Previous track",
+  "settingsShortcutActionSeekForward": "Seek forward",
+  "settingsShortcutActionSeekBackward": "Seek backward",
+  "settingsShortcutActionVolumeUp": "Volume up",
+  "settingsShortcutActionVolumeDown": "Volume down",
+  "settingsShortcutActionToggleMute": "Toggle mute",
+  "settingsShortcutRecordPrompt": "Press a key combination…",
+  "settingsShortcutUnset": "Not set",
+  "settingsShortcutConflictTitle": "Shortcut conflict",
+  "settingsShortcutConflict": "This combination is already used by \"{action}\"",
+  "@settingsShortcutConflict": {
+    "placeholders": {
+      "action": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsShortcutOverride": "Override",
+  "settingsShortcutClear": "Clear",
+  "settingsShortcutResetAll": "Reset all to defaults",
+  "settingsShortcutResetAllConfirm": "Reset all shortcuts to their defaults?",
   "settingsQualitySwitched": "Audio quality switched to {quality}",
   "@settingsQualitySwitched": {
     "placeholders": {

@@ -19,6 +19,7 @@ import '../../features/settings/presentation/settings_page.dart';
 import '../../features/settings/presentation/tab_config_page.dart';
 import '../../features/jsplugin/presentation/widgets/plugin_registry.dart';
 import '../../features/settings/presentation/duplicate_check_page.dart';
+import '../../features/settings/presentation/shortcut_settings_page.dart';
 import '../../features/settings/presentation/client_download_page.dart';
 import '../../shared/layouts/shell_layout.dart';
 import '../../l10n/app_localizations.dart';
@@ -35,6 +36,7 @@ class AppRoutes {
   static const String servers = '/settings/servers';
   static const String tabConfig = '/settings/tab-config';
   static const String duplicateCheck = '/settings/duplicate-check';
+  static const String shortcuts = '/settings/shortcuts';
   static const String clientDownload = '/settings/download';
   static const String pluginRegistry = '/settings/plugin-registry';
   static const String plugin = '/plugin';
@@ -191,6 +193,12 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.duplicateCheck,
             builder: (context, state) => const DuplicateCheckPage(),
+          ),
+
+          // 键盘快捷键（仅桌面从设置进入）
+          GoRoute(
+            path: AppRoutes.shortcuts,
+            builder: (context, state) => const ShortcutSettingsPage(),
           ),
 
           // 客户端下载（仅 Web 访问时从设置进入）

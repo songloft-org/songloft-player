@@ -3057,6 +3057,74 @@ class AppLocalizationsEn extends AppLocalizations {
       'Transcode to MP3, suited for weak networks';
 
   @override
+  String get settingsShortcutsEntryTitle => 'Keyboard shortcuts';
+
+  @override
+  String get settingsShortcutsEntrySubtitle =>
+      'Customize playback control keys';
+
+  @override
+  String get settingsShortcutsPageTitle => 'Keyboard shortcuts';
+
+  @override
+  String get settingsShortcutsEnableTitle => 'Enable keyboard shortcuts';
+
+  @override
+  String get settingsShortcutsEnableSubtitle =>
+      'Control playback with shortcuts inside the desktop window';
+
+  @override
+  String get settingsShortcutActionPlayPause => 'Play / Pause';
+
+  @override
+  String get settingsShortcutActionPlayNext => 'Next track';
+
+  @override
+  String get settingsShortcutActionPlayPrev => 'Previous track';
+
+  @override
+  String get settingsShortcutActionSeekForward => 'Seek forward';
+
+  @override
+  String get settingsShortcutActionSeekBackward => 'Seek backward';
+
+  @override
+  String get settingsShortcutActionVolumeUp => 'Volume up';
+
+  @override
+  String get settingsShortcutActionVolumeDown => 'Volume down';
+
+  @override
+  String get settingsShortcutActionToggleMute => 'Toggle mute';
+
+  @override
+  String get settingsShortcutRecordPrompt => 'Press a key combination…';
+
+  @override
+  String get settingsShortcutUnset => 'Not set';
+
+  @override
+  String get settingsShortcutConflictTitle => 'Shortcut conflict';
+
+  @override
+  String settingsShortcutConflict(String action) {
+    return 'This combination is already used by \"$action\"';
+  }
+
+  @override
+  String get settingsShortcutOverride => 'Override';
+
+  @override
+  String get settingsShortcutClear => 'Clear';
+
+  @override
+  String get settingsShortcutResetAll => 'Reset all to defaults';
+
+  @override
+  String get settingsShortcutResetAllConfirm =>
+      'Reset all shortcuts to their defaults?';
+
+  @override
   String settingsQualitySwitched(String quality) {
     return 'Audio quality switched to $quality';
   }

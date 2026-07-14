@@ -2929,6 +2929,71 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsQualityTranscodeDesc => '转码为 MP3，适合弱网环境';
 
   @override
+  String get settingsShortcutsEntryTitle => '键盘快捷键';
+
+  @override
+  String get settingsShortcutsEntrySubtitle => '自定义播放控制按键';
+
+  @override
+  String get settingsShortcutsPageTitle => '键盘快捷键';
+
+  @override
+  String get settingsShortcutsEnableTitle => '启用键盘快捷键';
+
+  @override
+  String get settingsShortcutsEnableSubtitle => '在桌面窗口内使用快捷键控制播放';
+
+  @override
+  String get settingsShortcutActionPlayPause => '播放 / 暂停';
+
+  @override
+  String get settingsShortcutActionPlayNext => '下一首';
+
+  @override
+  String get settingsShortcutActionPlayPrev => '上一首';
+
+  @override
+  String get settingsShortcutActionSeekForward => '快进';
+
+  @override
+  String get settingsShortcutActionSeekBackward => '快退';
+
+  @override
+  String get settingsShortcutActionVolumeUp => '音量 +';
+
+  @override
+  String get settingsShortcutActionVolumeDown => '音量 -';
+
+  @override
+  String get settingsShortcutActionToggleMute => '静音切换';
+
+  @override
+  String get settingsShortcutRecordPrompt => '请按下快捷键组合…';
+
+  @override
+  String get settingsShortcutUnset => '未设置';
+
+  @override
+  String get settingsShortcutConflictTitle => '快捷键冲突';
+
+  @override
+  String settingsShortcutConflict(String action) {
+    return '该组合键已被「$action」占用';
+  }
+
+  @override
+  String get settingsShortcutOverride => '覆盖';
+
+  @override
+  String get settingsShortcutClear => '清除';
+
+  @override
+  String get settingsShortcutResetAll => '恢复全部默认';
+
+  @override
+  String get settingsShortcutResetAllConfirm => '确定要将所有快捷键恢复为默认值吗？';
+
+  @override
   String settingsQualitySwitched(String quality) {
     return '音质已切换为$quality';
   }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/responsive.dart';
+import '../../core/utils/platform_utils.dart';
 import '../../features/home/presentation/plugin_tab_page.dart';
 import '../../features/jsplugin/presentation/providers/jsplugin_provider.dart';
 import '../../features/library/presentation/providers/favorite_provider.dart';
@@ -11,6 +12,7 @@ import '../../features/player/domain/player_state.dart';
 import '../../features/player/presentation/providers/player_provider.dart';
 import '../../features/player/presentation/widgets/desktop_player.dart';
 import '../../features/player/presentation/widgets/mini_player.dart';
+import '../../features/player/presentation/widgets/player_shortcut_scope.dart';
 import '../../features/player/presentation/widgets/playlist_drawer.dart';
 import '../../features/player/presentation/widgets/tv_player.dart';
 import '../../features/settings/data/settings_api.dart';
@@ -172,7 +174,7 @@ class _ShellLayoutState extends ConsumerState<ShellLayout> {
       body = widget.child;
     }
 
-    return AdaptiveScaffold(
+    final scaffold = AdaptiveScaffold(
       body: KeyedSubtree(key: _bodyKey, child: body),
       currentIndex: currentIndex,
       destinations: activeDest.destinations,
@@ -185,6 +187,10 @@ class _ShellLayoutState extends ConsumerState<ShellLayout> {
           (isPluginTab || isSettings) ? null : _buildBottomPlayer(context),
       playlistDrawer: showPlaylistDrawer ? const PlaylistDrawer() : null,
     );
+
+    // 桌面端挂载全局播放快捷键监听；移动/Web/TV 不包裹（零开销、零行为变化）
+    if (!PlatformUtils.isDesktop) return scaffold;
+    return PlayerShortcutScope(child: scaffold);
   }
 
   /// 根据屏幕类型构建底部播放器

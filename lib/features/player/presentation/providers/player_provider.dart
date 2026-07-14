@@ -679,6 +679,19 @@ class PlayerNotifier extends Notifier<PlayerState> {
     await _audioHandler.seek(position);
   }
 
+  /// 相对当前进度快进/快退，clamp 到 [0, duration]。
+  /// 直播流 / 未知时长时 no-op（seek 无意义且可能异常）。
+  Future<void> seekBy(Duration delta) async {
+    if (!state.hasSong) return;
+    if (state.currentSong?.isLive ?? false) return;
+    final total = state.duration;
+    if (total <= Duration.zero) return;
+    var target = state.currentTime + delta;
+    if (target < Duration.zero) target = Duration.zero;
+    if (target > total) target = total;
+    await seek(target);
+  }
+
   /// 设置音量 (0-100)
   Future<void> setVolume(double volume) async {
     final clampedVolume = volume.clamp(0.0, 100.0);

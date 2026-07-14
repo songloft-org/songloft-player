@@ -5288,6 +5288,132 @@ abstract class AppLocalizations {
   /// **'转码为 MP3，适合弱网环境'**
   String get settingsQualityTranscodeDesc;
 
+  /// No description provided for @settingsShortcutsEntryTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'键盘快捷键'**
+  String get settingsShortcutsEntryTitle;
+
+  /// No description provided for @settingsShortcutsEntrySubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'自定义播放控制按键'**
+  String get settingsShortcutsEntrySubtitle;
+
+  /// No description provided for @settingsShortcutsPageTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'键盘快捷键'**
+  String get settingsShortcutsPageTitle;
+
+  /// No description provided for @settingsShortcutsEnableTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'启用键盘快捷键'**
+  String get settingsShortcutsEnableTitle;
+
+  /// No description provided for @settingsShortcutsEnableSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'在桌面窗口内使用快捷键控制播放'**
+  String get settingsShortcutsEnableSubtitle;
+
+  /// No description provided for @settingsShortcutActionPlayPause.
+  ///
+  /// In zh, this message translates to:
+  /// **'播放 / 暂停'**
+  String get settingsShortcutActionPlayPause;
+
+  /// No description provided for @settingsShortcutActionPlayNext.
+  ///
+  /// In zh, this message translates to:
+  /// **'下一首'**
+  String get settingsShortcutActionPlayNext;
+
+  /// No description provided for @settingsShortcutActionPlayPrev.
+  ///
+  /// In zh, this message translates to:
+  /// **'上一首'**
+  String get settingsShortcutActionPlayPrev;
+
+  /// No description provided for @settingsShortcutActionSeekForward.
+  ///
+  /// In zh, this message translates to:
+  /// **'快进'**
+  String get settingsShortcutActionSeekForward;
+
+  /// No description provided for @settingsShortcutActionSeekBackward.
+  ///
+  /// In zh, this message translates to:
+  /// **'快退'**
+  String get settingsShortcutActionSeekBackward;
+
+  /// No description provided for @settingsShortcutActionVolumeUp.
+  ///
+  /// In zh, this message translates to:
+  /// **'音量 +'**
+  String get settingsShortcutActionVolumeUp;
+
+  /// No description provided for @settingsShortcutActionVolumeDown.
+  ///
+  /// In zh, this message translates to:
+  /// **'音量 -'**
+  String get settingsShortcutActionVolumeDown;
+
+  /// No description provided for @settingsShortcutActionToggleMute.
+  ///
+  /// In zh, this message translates to:
+  /// **'静音切换'**
+  String get settingsShortcutActionToggleMute;
+
+  /// No description provided for @settingsShortcutRecordPrompt.
+  ///
+  /// In zh, this message translates to:
+  /// **'请按下快捷键组合…'**
+  String get settingsShortcutRecordPrompt;
+
+  /// No description provided for @settingsShortcutUnset.
+  ///
+  /// In zh, this message translates to:
+  /// **'未设置'**
+  String get settingsShortcutUnset;
+
+  /// No description provided for @settingsShortcutConflictTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'快捷键冲突'**
+  String get settingsShortcutConflictTitle;
+
+  /// No description provided for @settingsShortcutConflict.
+  ///
+  /// In zh, this message translates to:
+  /// **'该组合键已被「{action}」占用'**
+  String settingsShortcutConflict(String action);
+
+  /// No description provided for @settingsShortcutOverride.
+  ///
+  /// In zh, this message translates to:
+  /// **'覆盖'**
+  String get settingsShortcutOverride;
+
+  /// No description provided for @settingsShortcutClear.
+  ///
+  /// In zh, this message translates to:
+  /// **'清除'**
+  String get settingsShortcutClear;
+
+  /// No description provided for @settingsShortcutResetAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'恢复全部默认'**
+  String get settingsShortcutResetAll;
+
+  /// No description provided for @settingsShortcutResetAllConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定要将所有快捷键恢复为默认值吗？'**
+  String get settingsShortcutResetAllConfirm;
+
   /// No description provided for @settingsQualitySwitched.
   ///
   /// In zh, this message translates to:

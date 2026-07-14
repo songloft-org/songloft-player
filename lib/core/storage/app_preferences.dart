@@ -285,6 +285,31 @@ class AppPreferences {
     await _prefs.remove(_sourcePlaylistIdKey);
   }
 
+  static const _shortcutsEnabledKey = 'shortcuts_enabled';
+  static const _shortcutBindingsKey = 'shortcut_bindings';
+
+  /// 桌面播放快捷键总开关（默认启用）
+  bool getShortcutsEnabled() {
+    return _prefs.getBool(_shortcutsEnabledKey) ?? true;
+  }
+
+  Future<bool> setShortcutsEnabled(bool value) {
+    return _prefs.setBool(_shortcutsEnabledKey, value);
+  }
+
+  /// 快捷键绑定表（原始 JSON 字符串，解析在 provider 层做）。null 表示从未自定义。
+  String? getShortcutBindings() {
+    return _prefs.getString(_shortcutBindingsKey);
+  }
+
+  Future<bool> setShortcutBindings(String json) {
+    return _prefs.setString(_shortcutBindingsKey, json);
+  }
+
+  Future<bool> clearShortcutBindings() {
+    return _prefs.remove(_shortcutBindingsKey);
+  }
+
   /// 清除所有偏好设置
   Future<bool> clear() {
     return _prefs.clear();

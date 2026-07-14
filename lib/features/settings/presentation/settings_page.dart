@@ -17,6 +17,7 @@ import '../../../core/router/app_router.dart';
 import '../../../core/storage/secure_storage.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/responsive.dart';
+import '../../../core/utils/platform_utils.dart';
 import '../../../shared/utils/responsive_snackbar.dart';
 import '../../auth/presentation/providers/auth_provider.dart';
 import '../../playlist/presentation/providers/playlist_provider.dart';
@@ -516,6 +517,17 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               }
             },
           ),
+          // 键盘快捷键（仅桌面）
+          if (PlatformUtils.isDesktop) ...[
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.keyboard_outlined),
+              title: Text(l10n.settingsShortcutsEntryTitle),
+              subtitle: Text(l10n.settingsShortcutsEntrySubtitle),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push(AppRoutes.shortcuts),
+            ),
+          ],
         ],
       ),
     ];
