@@ -5300,6 +5300,18 @@ abstract class AppLocalizations {
   /// **'启动客户端后自动继续上次的播放'**
   String get settingsAutoPlayOnLaunchDesc;
 
+  /// No description provided for @settingsAutoEnterLyricsOnLaunchTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'打开后自动进入歌词'**
+  String get settingsAutoEnterLyricsOnLaunchTitle;
+
+  /// No description provided for @settingsAutoEnterLyricsOnLaunchDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'启动客户端后自动进入全屏歌词界面（按屏幕自动适配）'**
+  String get settingsAutoEnterLyricsOnLaunchDesc;
+
   /// No description provided for @settingsShortcutsEntryTitle.
   ///
   /// In zh, this message translates to:

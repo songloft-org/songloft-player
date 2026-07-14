@@ -25,6 +25,20 @@ import 'lyrics_view.dart';
 class TvPlayer extends ConsumerStatefulWidget {
   const TvPlayer({super.key});
 
+  /// 显示 TV 全屏播放器（歌词界面）。返回按钮内部已处理 closeFullPlayer + maybePop。
+  static Future<void> show(BuildContext context) {
+    return Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: true,
+        pageBuilder:
+            (context, animation, secondaryAnimation) => const TvPlayer(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+      ),
+    );
+  }
+
   @override
   ConsumerState<TvPlayer> createState() => _TvPlayerState();
 }

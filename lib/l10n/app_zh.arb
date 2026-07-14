@@ -2017,6 +2017,8 @@
   "settingsQualityTranscodeDesc": "转码为 MP3，适合弱网环境",
   "settingsAutoPlayOnLaunchTitle": "打开后自动播放",
   "settingsAutoPlayOnLaunchDesc": "启动客户端后自动继续上次的播放",
+  "settingsAutoEnterLyricsOnLaunchTitle": "打开后自动进入歌词",
+  "settingsAutoEnterLyricsOnLaunchDesc": "启动客户端后自动进入全屏歌词界面（按屏幕自动适配）",
   "settingsShortcutsEntryTitle": "键盘快捷键",
   "settingsShortcutsEntrySubtitle": "自定义播放控制按键",
   "settingsShortcutsPageTitle": "键盘快捷键",

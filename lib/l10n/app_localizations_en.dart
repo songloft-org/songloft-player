@@ -3064,6 +3064,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Resume the last playback automatically when the app opens';
 
   @override
+  String get settingsAutoEnterLyricsOnLaunchTitle => 'Open lyrics on launch';
+
+  @override
+  String get settingsAutoEnterLyricsOnLaunchDesc =>
+      'Automatically open the full-screen lyrics view when the app opens (adapts to screen size)';
+
+  @override
   String get settingsShortcutsEntryTitle => 'Keyboard shortcuts';
 
   @override

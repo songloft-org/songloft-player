@@ -2935,6 +2935,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsAutoPlayOnLaunchDesc => '启动客户端后自动继续上次的播放';
 
   @override
+  String get settingsAutoEnterLyricsOnLaunchTitle => '打开后自动进入歌词';
+
+  @override
+  String get settingsAutoEnterLyricsOnLaunchDesc => '启动客户端后自动进入全屏歌词界面（按屏幕自动适配）';
+
+  @override
   String get settingsShortcutsEntryTitle => '键盘快捷键';
 
   @override

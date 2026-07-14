@@ -24,15 +24,20 @@ import 'volume_control.dart';
 
 /// 移动端全屏播放器
 class MobilePlayer extends ConsumerStatefulWidget {
-  const MobilePlayer({super.key});
+  /// 初始展示的 PageView 页（0: 封面，1: 歌词）。
+  /// 「打开后自动进入歌词」会传 1 直接落在歌词页。
+  final int initialPage;
+
+  const MobilePlayer({super.key, this.initialPage = 0});
 
   /// 显示全屏播放器
-  static Future<void> show(BuildContext context) {
+  static Future<void> show(BuildContext context, {int initialPage = 0}) {
     return Navigator.of(context).push(
       PageRouteBuilder(
         opaque: true,
         pageBuilder:
-            (context, animation, secondaryAnimation) => const MobilePlayer(),
+            (context, animation, secondaryAnimation) =>
+                MobilePlayer(initialPage: initialPage),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           // 从下往上滑入动画
           return SlideTransition(
@@ -56,10 +61,10 @@ class MobilePlayer extends ConsumerStatefulWidget {
 class _MobilePlayerState extends ConsumerState<MobilePlayer>
     with SingleTickerProviderStateMixin {
   /// PageView 控制器
-  final PageController _pageController = PageController();
+  late final PageController _pageController;
 
   /// 当前页面索引（0: 封面, 1: 歌词）
-  int _currentPage = 0;
+  late int _currentPage;
 
   /// 唱片环旋转动画控制器
   late final AnimationController _rotationController;
@@ -67,6 +72,8 @@ class _MobilePlayerState extends ConsumerState<MobilePlayer>
   @override
   void initState() {
     super.initState();
+    _currentPage = widget.initialPage;
+    _pageController = PageController(initialPage: widget.initialPage);
     _rotationController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 28),

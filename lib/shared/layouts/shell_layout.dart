@@ -4,13 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/responsive.dart';
+import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/home/presentation/plugin_tab_page.dart';
 import '../../features/jsplugin/presentation/providers/jsplugin_provider.dart';
 import '../../features/library/presentation/providers/favorite_provider.dart';
 import '../../features/player/domain/player_state.dart';
 import '../../features/player/presentation/providers/player_provider.dart';
+import '../../features/player/presentation/widgets/desktop_full_player.dart';
 import '../../features/player/presentation/widgets/desktop_player.dart';
 import '../../features/player/presentation/widgets/mini_player.dart';
+import '../../features/player/presentation/widgets/mobile_player.dart';
 import '../../features/player/presentation/widgets/playlist_drawer.dart';
 import '../../features/player/presentation/widgets/side_player.dart';
 import '../../features/player/presentation/widgets/tv_player.dart';
@@ -50,6 +53,68 @@ class _ShellLayoutState extends ConsumerState<ShellLayout> {
   /// 被 reparent 而非 dispose+重建，避免拖窗跨断点导致 InAppWebView reload
   /// （songloft-org/songloft-player#20）
   final _bodyKey = GlobalKey();
+
+  /// 「打开后自动进入全屏歌词」的一次性触发标记（songloft-org/songloft-player#19）。
+  /// Shell 是启动完成后第一个持久挂载的宿主，在此等待播放状态恢复出歌曲后触发一次。
+  bool _autoLyricsPending = false;
+  ProviderSubscription<PlayerState>? _autoLyricsSub;
+
+  @override
+  void initState() {
+    super.initState();
+    _scheduleAutoEnterLyrics();
+  }
+
+  @override
+  void dispose() {
+    _autoLyricsSub?.close();
+    super.dispose();
+  }
+
+  /// 若「打开后自动进入全屏歌词」开启：启动后一旦成功恢复出上次的歌曲，就按屏幕
+  /// 分辨率进入对应的全屏歌词界面。与「自动播放」相互独立，不要求正在播放。
+  Future<void> _scheduleAutoEnterLyrics() async {
+    try {
+      final prefs = await ref.read(appPreferencesProvider.future);
+      if (!prefs.getAutoEnterLyricsOnLaunch() || !mounted) return;
+      // 播放状态可能已同步恢复完成，也可能仍在异步恢复中
+      if (ref.read(playerStateProvider).hasSong) {
+        _openFullPlayerForScreen();
+        return;
+      }
+      _autoLyricsPending = true;
+      _autoLyricsSub = ref.listenManual<PlayerState>(playerStateProvider, (
+        prev,
+        next,
+      ) {
+        if (_autoLyricsPending && next.hasSong) {
+          _autoLyricsPending = false;
+          _autoLyricsSub?.close();
+          _autoLyricsSub = null;
+          _openFullPlayerForScreen();
+        }
+      });
+    } catch (_) {}
+  }
+
+  /// 按当前屏幕分辨率打开对应的全屏歌词界面，分派规则与 [_buildBottomPlayer] 一致：
+  /// 移动端 MobilePlayer（直接落在歌词页）、平板/桌面/车机 DesktopFullPlayer、
+  /// Android TV TvPlayer、其余大屏回退 DesktopFullPlayer。
+  void _openFullPlayerForScreen() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final screenType = context.screenType;
+      if (screenType == ScreenType.mobile) {
+        MobilePlayer.show(context, initialPage: 1);
+      } else if (screenType == ScreenType.tv &&
+          defaultTargetPlatform == TargetPlatform.android) {
+        TvPlayer.show(context);
+      } else {
+        // tablet / desktop / auto_ / 非 Android TV 大屏
+        DesktopFullPlayer.show(context);
+      }
+    });
+  }
 
   /// 根据当前路由路径计算导航索引
   int _getCurrentIndex(String location, ActiveDestinations activeDest) {

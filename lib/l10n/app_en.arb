@@ -1912,6 +1912,8 @@
   "settingsQualityTranscodeDesc": "Transcode to MP3, suited for weak networks",
   "settingsAutoPlayOnLaunchTitle": "Auto-play on launch",
   "settingsAutoPlayOnLaunchDesc": "Resume the last playback automatically when the app opens",
+  "settingsAutoEnterLyricsOnLaunchTitle": "Open lyrics on launch",
+  "settingsAutoEnterLyricsOnLaunchDesc": "Automatically open the full-screen lyrics view when the app opens (adapts to screen size)",
   "settingsShortcutsEntryTitle": "Keyboard shortcuts",
   "settingsShortcutsEntrySubtitle": "Customize playback control keys",
   "settingsShortcutsPageTitle": "Keyboard shortcuts",

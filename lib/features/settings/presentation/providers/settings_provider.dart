@@ -807,6 +807,40 @@ final autoPlayOnLaunchProvider =
       AutoPlayOnLaunchNotifier.new,
     );
 
+/// 「打开客户端后自动进入全屏歌词」开关（纯本地，不同步服务器，与自动播放独立，
+/// songloft-org/songloft-player#19）
+class AutoEnterLyricsOnLaunchNotifier extends Notifier<bool> {
+  @override
+  bool build() {
+    _load();
+    return false;
+  }
+
+  Future<void> _load() async {
+    try {
+      final prefs = await ref.read(appPreferencesProvider.future);
+      state = prefs.getAutoEnterLyricsOnLaunch();
+    } catch (_) {
+      state = false;
+    }
+  }
+
+  Future<void> setEnabled(bool value) async {
+    state = value;
+    try {
+      final prefs = await ref.read(appPreferencesProvider.future);
+      await prefs.setAutoEnterLyricsOnLaunch(value);
+      // 注意：本地设置，刻意不调用 pushPreferencesToServer
+    } catch (_) {}
+  }
+}
+
+/// 打开客户端后自动进入全屏歌词 Provider
+final autoEnterLyricsOnLaunchProvider =
+    NotifierProvider<AutoEnterLyricsOnLaunchNotifier, bool>(
+      AutoEnterLyricsOnLaunchNotifier.new,
+    );
+
 // ============================================================================
 // 网络歌曲标题来源 Provider
 // ============================================================================

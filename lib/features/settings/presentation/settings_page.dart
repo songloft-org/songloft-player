@@ -449,6 +449,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final l10n = AppLocalizations.of(context);
     final quality = ref.watch(audioQualityProvider);
     final autoPlayOnLaunch = ref.watch(autoPlayOnLaunchProvider);
+    final autoEnterLyrics = ref.watch(autoEnterLyricsOnLaunchProvider);
     final labels = {
       'original': l10n.settingsQualityOriginal,
       '128': l10n.settingsQualityLow,
@@ -527,6 +528,17 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             value: autoPlayOnLaunch,
             onChanged: (v) {
               ref.read(autoPlayOnLaunchProvider.notifier).setEnabled(v);
+            },
+          ),
+          const Divider(height: 1),
+          // 打开客户端后自动进入全屏歌词（纯本地设置，按屏幕分辨率进入对应界面）
+          SwitchListTile(
+            secondary: const Icon(Icons.lyrics_outlined),
+            title: Text(l10n.settingsAutoEnterLyricsOnLaunchTitle),
+            subtitle: Text(l10n.settingsAutoEnterLyricsOnLaunchDesc),
+            value: autoEnterLyrics,
+            onChanged: (v) {
+              ref.read(autoEnterLyricsOnLaunchProvider.notifier).setEnabled(v);
             },
           ),
           // 键盘快捷键（仅桌面）
