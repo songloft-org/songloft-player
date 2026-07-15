@@ -10,6 +10,7 @@ import '../providers/player_provider.dart';
 import 'desktop_full_player.dart';
 import 'play_controls.dart';
 import 'progress_bar.dart';
+import 'video_stage.dart';
 import 'volume_control.dart';
 
 /// 超宽屏（车机模式，isAuto）右侧常驻「正在播放」面板。
@@ -100,23 +101,28 @@ class AutoSidePlayer extends ConsumerWidget {
                   color: theme.colorScheme.surfaceContainerHighest,
                 ),
                 clipBehavior: Clip.antiAlias,
-                child:
-                    coverUrl != null && coverUrl.isNotEmpty
-                        ? Image.network(
-                          UrlHelper.buildCoverUrl(coverUrl),
-                          fit: BoxFit.cover,
-                          errorBuilder:
-                              (_, _, _) => Icon(
-                                Icons.music_note_rounded,
-                                size: 48,
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                        )
-                        : Icon(
-                          Icons.music_note_rounded,
-                          size: 48,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
+                // 视频歌曲在支持的桌面平台渲染画面，否则回退封面/占位图
+                child: VideoStage(
+                  song: song,
+                  borderRadius: BorderRadius.circular(12),
+                  fallback:
+                      coverUrl != null && coverUrl.isNotEmpty
+                          ? Image.network(
+                            UrlHelper.buildCoverUrl(coverUrl),
+                            fit: BoxFit.cover,
+                            errorBuilder:
+                                (_, _, _) => Icon(
+                                  Icons.music_note_rounded,
+                                  size: 48,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                          )
+                          : Icon(
+                            Icons.music_note_rounded,
+                            size: 48,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                ),
               ),
             ),
           ),

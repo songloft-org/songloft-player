@@ -8,10 +8,12 @@ import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/url_helper.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../l10n/l10n_holder.dart';
+import '../../../../shared/models/song.dart';
 import '../../../../shared/widgets/tv_focusable.dart';
 import '../../domain/player_state.dart';
 import '../providers/player_provider.dart';
 import 'lyrics_view.dart';
+import 'video_stage.dart';
 
 /// TV 全屏播放器界面
 ///
@@ -101,7 +103,11 @@ class _TvPlayerState extends ConsumerState<TvPlayer> {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                _buildCoverArt(context, coverUrl),
+                                _buildCoverArt(
+                                  context,
+                                  coverUrl,
+                                  state.currentSong,
+                                ),
                                 const SizedBox(height: TvTheme.spacingLarge),
                                 _buildSongInfo(context, state),
                               ],
@@ -177,8 +183,19 @@ class _TvPlayerState extends ConsumerState<TvPlayer> {
   }
 
   /// 封面图
-  Widget _buildCoverArt(BuildContext context, String? coverUrl) {
+  Widget _buildCoverArt(BuildContext context, String? coverUrl, Song? song) {
     final theme = Theme.of(context);
+
+    final cover =
+        coverUrl != null
+            ? ExcludeSemantics(
+              child: Image.network(
+                UrlHelper.buildCoverUrl(coverUrl),
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => _buildPlaceholderIcon(context),
+              ),
+            )
+            : _buildPlaceholderIcon(context);
 
     return Container(
       width: 360,
@@ -195,16 +212,15 @@ class _TvPlayerState extends ConsumerState<TvPlayer> {
         ],
       ),
       clipBehavior: Clip.antiAlias,
+      // 视频歌曲在支持的桌面平台渲染画面，否则回退封面/占位图
       child:
-          coverUrl != null
-              ? ExcludeSemantics(
-                child: Image.network(
-                  UrlHelper.buildCoverUrl(coverUrl),
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => _buildPlaceholderIcon(context),
-                ),
+          song != null
+              ? VideoStage(
+                song: song,
+                borderRadius: BorderRadius.circular(TvTheme.cardRadius),
+                fallback: cover,
               )
-              : _buildPlaceholderIcon(context),
+              : cover,
     );
   }
 
