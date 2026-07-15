@@ -1443,6 +1443,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerCollapse => 'Collapse';
 
   @override
+  String get playerSubtitleOn => 'Show subtitles';
+
+  @override
+  String get playerSubtitleOff => 'Hide subtitles';
+
+  @override
+  String get playerEnterFullscreen => 'Fullscreen';
+
+  @override
+  String get playerExitFullscreen => 'Exit fullscreen';
+
+  @override
   String get playerSleepTimerOn => 'Sleep timer (on)';
 
   @override

@@ -1832,3 +1832,15 @@ final sourcePlaylistIdProvider = Provider<int?>((ref) {
   final state = ref.watch(playerStateProvider);
   return state.sourcePlaylistId;
 });
+
+/// 视频界面字幕开关（会话内）：默认开启，控制歌词是否以字幕形式叠加在画面上。
+/// 仅影响视频/MV 播放界面，与音乐界面的歌词页无关。
+class SubtitleEnabledNotifier extends Notifier<bool> {
+  @override
+  bool build() => true;
+
+  void toggle() => state = !state;
+}
+
+final subtitleEnabledProvider =
+    NotifierProvider<SubtitleEnabledNotifier, bool>(SubtitleEnabledNotifier.new);

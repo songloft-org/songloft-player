@@ -18,6 +18,7 @@ import 'popup_controls.dart';
 import 'progress_bar.dart';
 import '../utils/player_song_actions.dart';
 import 'vinyl_ring.dart';
+import 'video_player_surface.dart';
 import 'video_stage.dart';
 import '../../../dlna/presentation/widgets/cast_button.dart';
 import 'volume_control.dart';
@@ -114,6 +115,16 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
     }
 
     final song = state.currentSong!;
+
+    // 视频/MV:切到视频播放器界面(画面铺满 + 叠加控制层 + 字幕),
+    // 不走下面的左封面/右歌词分栏音乐布局。
+    if (song.isVideo) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body: VideoPlayerSurface(song: song),
+      );
+    }
+
     final coverUrl = song.coverUrl;
 
     final paletteAsync = ref.watch(playerBackgroundPaletteProvider(song));

@@ -14,6 +14,7 @@ import '../../domain/player_state.dart';
 import '../providers/player_provider.dart';
 import 'lyrics_view.dart';
 import 'video_stage.dart';
+import 'video_subtitle_overlay.dart';
 
 /// TV 全屏播放器界面
 ///
@@ -91,37 +92,41 @@ class _TvPlayerState extends ConsumerState<TvPlayer> {
               children: [
                 // 顶部工具栏
                 _buildTopBar(context, notifier),
-                // 主内容：左右分栏
+                // 主内容：视频铺满画面(16:9 + 字幕),或音频的封面/歌词分栏
                 Expanded(
-                  child: Row(
-                    children: [
-                      // 左侧：封面 + 歌曲信息
-                      Expanded(
-                        flex: 4,
-                        child: Center(
-                          child: SingleChildScrollView(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                _buildCoverArt(
-                                  context,
-                                  coverUrl,
-                                  state.currentSong,
+                  child: (state.currentSong?.isVideo ?? false)
+                      ? _buildVideoArea(context, state.currentSong!)
+                      : Row(
+                          children: [
+                            // 左侧：封面 + 歌曲信息
+                            Expanded(
+                              flex: 4,
+                              child: Center(
+                                child: SingleChildScrollView(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      _buildCoverArt(
+                                        context,
+                                        coverUrl,
+                                        state.currentSong,
+                                      ),
+                                      const SizedBox(
+                                        height: TvTheme.spacingLarge,
+                                      ),
+                                      _buildSongInfo(context, state),
+                                    ],
+                                  ),
                                 ),
-                                const SizedBox(height: TvTheme.spacingLarge),
-                                _buildSongInfo(context, state),
-                              ],
+                              ),
                             ),
-                          ),
+                            // 右侧：歌词
+                            Expanded(
+                              flex: 5,
+                              child: _buildLyricsArea(context, state, notifier),
+                            ),
+                          ],
                         ),
-                      ),
-                      // 右侧：歌词
-                      Expanded(
-                        flex: 5,
-                        child: _buildLyricsArea(context, state, notifier),
-                      ),
-                    ],
-                  ),
                 ),
                 // 进度条
                 Padding(
@@ -178,6 +183,39 @@ class _TvPlayerState extends ConsumerState<TvPlayer> {
           // 占位，保持居中
           const SizedBox(width: 56),
         ],
+      ),
+    );
+  }
+
+  /// 视频/MV 画面区(TV):16:9 铺满 + 字幕叠加。进度条/控制行沿用下方 TV 焦点控件。
+  Widget _buildVideoArea(BuildContext context, Song song) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: TvTheme.contentPadding),
+      child: Center(
+        child: AspectRatio(
+          aspectRatio: 16 / 9,
+          child: DecoratedBox(
+            decoration: const BoxDecoration(color: Colors.black),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                VideoStage(
+                  song: song,
+                  borderRadius: BorderRadius.zero,
+                  fallback: const ColoredBox(color: Colors.black),
+                ),
+                const Positioned(
+                  left: 24,
+                  right: 24,
+                  bottom: 16,
+                  child: IgnorePointer(
+                    child: VideoSubtitleOverlay(fontSize: 24),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

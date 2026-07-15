@@ -2636,6 +2636,30 @@ abstract class AppLocalizations {
   /// **'收起'**
   String get playerCollapse;
 
+  /// No description provided for @playerSubtitleOn.
+  ///
+  /// In zh, this message translates to:
+  /// **'显示字幕'**
+  String get playerSubtitleOn;
+
+  /// No description provided for @playerSubtitleOff.
+  ///
+  /// In zh, this message translates to:
+  /// **'隐藏字幕'**
+  String get playerSubtitleOff;
+
+  /// No description provided for @playerEnterFullscreen.
+  ///
+  /// In zh, this message translates to:
+  /// **'全屏'**
+  String get playerEnterFullscreen;
+
+  /// No description provided for @playerExitFullscreen.
+  ///
+  /// In zh, this message translates to:
+  /// **'退出全屏'**
+  String get playerExitFullscreen;
+
   /// No description provided for @playerSleepTimerOn.
   ///
   /// In zh, this message translates to:

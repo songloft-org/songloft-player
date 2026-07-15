@@ -1412,6 +1412,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get playerCollapse => '收起';
 
   @override
+  String get playerSubtitleOn => '显示字幕';
+
+  @override
+  String get playerSubtitleOff => '隐藏字幕';
+
+  @override
+  String get playerEnterFullscreen => '全屏';
+
+  @override
+  String get playerExitFullscreen => '退出全屏';
+
+  @override
   String get playerSleepTimerOn => '睡眠定时 (已开启)';
 
   @override

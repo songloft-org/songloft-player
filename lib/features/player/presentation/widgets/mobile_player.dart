@@ -19,6 +19,7 @@ import '../../../dlna/presentation/widgets/cast_button.dart';
 import 'progress_bar.dart';
 import 'equalizer_panel.dart';
 import '../utils/player_song_actions.dart';
+import 'video_player_surface.dart';
 import 'video_stage.dart';
 import 'vinyl_ring.dart';
 import 'volume_control.dart';
@@ -127,6 +128,16 @@ class _MobilePlayerState extends ConsumerState<MobilePlayer>
     }
 
     final song = state.currentSong!;
+
+    // 视频/MV:切到视频播放器界面(画面铺满 + 叠加控制层 + 字幕),
+    // 不走下面的封面/歌词音乐布局。
+    if (song.isVideo) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body: VideoPlayerSurface(song: song),
+      );
+    }
+
     final coverUrl = song.coverUrl;
 
     final paletteAsync = ref.watch(playerBackgroundPaletteProvider(song));

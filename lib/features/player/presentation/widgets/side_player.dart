@@ -11,6 +11,7 @@ import 'desktop_full_player.dart';
 import 'play_controls.dart';
 import 'progress_bar.dart';
 import 'video_stage.dart';
+import 'video_subtitle_overlay.dart';
 import 'volume_control.dart';
 
 /// 超宽屏（车机模式，isAuto）右侧常驻「正在播放」面板。
@@ -93,35 +94,53 @@ class AutoSidePlayer extends ConsumerWidget {
             onTap: () => DesktopFullPlayer.show(context),
             behavior: HitTestBehavior.opaque,
             child: AspectRatio(
-              aspectRatio: 1,
+              // 视频用 16:9,音频用方形封面
+              aspectRatio: song.isVideo ? 16 / 9 : 1,
               child: Container(
-                constraints: const BoxConstraints(maxWidth: 200),
+                constraints: const BoxConstraints(maxWidth: 280),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  color: theme.colorScheme.surfaceContainerHighest,
+                  color: song.isVideo
+                      ? Colors.black
+                      : theme.colorScheme.surfaceContainerHighest,
                 ),
                 clipBehavior: Clip.antiAlias,
-                // 视频歌曲在支持的桌面平台渲染画面，否则回退封面/占位图
-                child: VideoStage(
-                  song: song,
-                  borderRadius: BorderRadius.circular(12),
-                  fallback:
-                      coverUrl != null && coverUrl.isNotEmpty
-                          ? Image.network(
-                            UrlHelper.buildCoverUrl(coverUrl),
-                            fit: BoxFit.cover,
-                            errorBuilder:
-                                (_, _, _) => Icon(
-                                  Icons.music_note_rounded,
-                                  size: 48,
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                          )
-                          : Icon(
-                            Icons.music_note_rounded,
-                            size: 48,
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
+                // 视频歌曲在支持的桌面平台渲染画面，否则回退封面/占位图；
+                // 视频叠加字幕(点击封面进入全屏视频界面看完整控制层)
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    VideoStage(
+                      song: song,
+                      borderRadius: BorderRadius.circular(12),
+                      fallback:
+                          coverUrl != null && coverUrl.isNotEmpty
+                              ? Image.network(
+                                UrlHelper.buildCoverUrl(coverUrl),
+                                fit: BoxFit.cover,
+                                errorBuilder:
+                                    (_, _, _) => Icon(
+                                      Icons.music_note_rounded,
+                                      size: 48,
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                              )
+                              : Icon(
+                                Icons.music_note_rounded,
+                                size: 48,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                    ),
+                    if (song.isVideo)
+                      const Positioned(
+                        left: 8,
+                        right: 8,
+                        bottom: 8,
+                        child: IgnorePointer(
+                          child: VideoSubtitleOverlay(fontSize: 14),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
