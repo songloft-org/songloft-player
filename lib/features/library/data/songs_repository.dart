@@ -78,6 +78,7 @@ class SongsRepository {
     String? coverUrl,
     double? duration,
     String? lyricRemoteUrl,
+    bool isVideo = false,
   }) async {
     try {
       return await songsApi.createRemoteSong(
@@ -88,6 +89,7 @@ class SongsRepository {
         coverUrl: coverUrl,
         duration: duration,
         lyricRemoteUrl: lyricRemoteUrl,
+        isVideo: isVideo,
       );
     } on DioException catch (e) {
       throw _handleError(e);
@@ -100,6 +102,7 @@ class SongsRepository {
     String? artist,
     required String url,
     String? coverUrl,
+    bool isVideo = false,
   }) async {
     try {
       return await songsApi.createRadioSong(
@@ -107,6 +110,7 @@ class SongsRepository {
         artist: artist,
         url: url,
         coverUrl: coverUrl,
+        isVideo: isVideo,
       );
     } on DioException catch (e) {
       throw _handleError(e);
@@ -123,6 +127,7 @@ class SongsRepository {
     String? coverUrl,
     double? duration,
     bool? isLive,
+    bool? isVideo,
   }) async {
     try {
       return await songsApi.updateSong(
@@ -134,6 +139,7 @@ class SongsRepository {
         coverUrl: coverUrl,
         duration: duration,
         isLive: isLive,
+        isVideo: isVideo,
       );
     } on DioException catch (e) {
       throw _handleError(e);

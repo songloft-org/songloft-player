@@ -1658,6 +1658,18 @@ abstract class AppLocalizations {
   /// **'按新标题重命名本地音频文件，同时写入 title 标签'**
   String get libraryRenameFileSubtitle;
 
+  /// No description provided for @libraryVideoToggleTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'视频内容'**
+  String get libraryVideoToggleTitle;
+
+  /// No description provided for @libraryVideoToggleSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'此链接含视频画面，开启后播放页渲染画面、投屏按视频推送'**
+  String get libraryVideoToggleSubtitle;
+
   /// No description provided for @libraryEditSourceUrlLabel.
   ///
   /// In zh, this message translates to:

@@ -490,6 +490,8 @@
   "libraryEditAlbumHint": "Please enter an album",
   "libraryRenameFileTitle": "Rename file in sync",
   "libraryRenameFileSubtitle": "Rename the local audio file to the new title and write the title tag",
+  "libraryVideoToggleTitle": "Video content",
+  "libraryVideoToggleSubtitle": "This link contains video; when on, the player renders the picture and casting streams it as video",
   "libraryEditSourceUrlLabel": "Source audio URL *",
   "libraryEditUrlLabel": "URL *",
   "libraryEditUrlHint": "Please enter an audio link",

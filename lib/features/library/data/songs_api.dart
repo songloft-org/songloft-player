@@ -193,6 +193,7 @@ class SongsApi {
     String? coverUrl,
     double? duration,
     String? lyricRemoteUrl,
+    bool isVideo = false,
   }) async {
     final songs = await createRemoteSongs([
       {
@@ -202,6 +203,7 @@ class SongsApi {
         'url': url,
         'cover_url': coverUrl,
         'duration': duration,
+        'is_video': isVideo,
         if (lyricRemoteUrl != null && lyricRemoteUrl.isNotEmpty) ...{
           'lyric': lyricRemoteUrl,
           'lyric_source': 'url',
@@ -227,6 +229,7 @@ class SongsApi {
     String? artist,
     required String url,
     String? coverUrl,
+    bool isVideo = false,
   }) async {
     final songs = await createRadioSongs([
       {
@@ -234,6 +237,7 @@ class SongsApi {
         'artist': artist,
         'url': url,
         'cover_url': coverUrl,
+        'is_video': isVideo,
       },
     ]);
     return songs.first;
@@ -249,6 +253,7 @@ class SongsApi {
     String? coverUrl,
     double? duration,
     bool? isLive,
+    bool? isVideo,
   }) async {
     final data = <String, dynamic>{};
     if (title != null) data['title'] = title;
@@ -258,6 +263,7 @@ class SongsApi {
     if (coverUrl != null) data['cover_url'] = coverUrl;
     if (duration != null) data['duration'] = duration;
     if (isLive != null) data['is_live'] = isLive;
+    if (isVideo != null) data['is_video'] = isVideo;
 
     final response = await dio.put<Map<String, dynamic>>(
       '${AppConfig.apiPrefix}/songs/$id',

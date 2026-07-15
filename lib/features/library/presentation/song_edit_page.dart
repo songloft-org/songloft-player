@@ -31,6 +31,7 @@ class _SongEditPageState extends ConsumerState<SongEditPage> {
   late final TextEditingController _lyricUrlController;
   bool _isSubmitting = false;
   bool _renameFile = true; // 本地歌曲：改标题时同步重命名文件，默认开启
+  bool _isVideo = false; // 网络歌曲/电台：是否含视频画面（不走扫描 ffprobe，需手动声明）
 
   bool get isEditMode => widget.song != null;
   bool get isRadio => widget.songType == AppConstants.songTypeRadio;
@@ -62,6 +63,7 @@ class _SongEditPageState extends ConsumerState<SongEditPage> {
     _lyricUrlController = TextEditingController(
       text: widget.song?.lyricRemoteUrl ?? '',
     );
+    _isVideo = widget.song?.isVideo ?? false;
   }
 
   @override
@@ -284,6 +286,16 @@ class _SongEditPageState extends ConsumerState<SongEditPage> {
                   ),
                   const SizedBox(height: 16),
                 ],
+
+                // 是否视频内容（网络歌曲/电台通用；不走扫描 ffprobe，需手动声明）
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  value: _isVideo,
+                  onChanged: (v) => setState(() => _isVideo = v),
+                  title: Text(l10n.libraryVideoToggleTitle),
+                  subtitle: Text(l10n.libraryVideoToggleSubtitle),
+                ),
+                const SizedBox(height: 8),
               ],
 
               // 封面预览
@@ -416,6 +428,7 @@ class _SongEditPageState extends ConsumerState<SongEditPage> {
           duration:
               isRadio ? null : (double.tryParse(_durationController.text)),
           isLive: null,
+          isVideo: _isVideo,
         );
 
         // 歌词 URL 变化时单独更新
@@ -451,6 +464,7 @@ class _SongEditPageState extends ConsumerState<SongEditPage> {
               _coverUrlController.text.trim().isEmpty
                   ? null
                   : _coverUrlController.text.trim(),
+          isVideo: _isVideo,
         );
       } else {
         // 创建网络歌曲
@@ -474,6 +488,7 @@ class _SongEditPageState extends ConsumerState<SongEditPage> {
               _lyricUrlController.text.trim().isEmpty
                   ? null
                   : _lyricUrlController.text.trim(),
+          isVideo: _isVideo,
         );
       }
 

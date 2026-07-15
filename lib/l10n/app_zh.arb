@@ -595,6 +595,8 @@
   "libraryEditAlbumHint": "请输入专辑",
   "libraryRenameFileTitle": "同步重命名文件",
   "libraryRenameFileSubtitle": "按新标题重命名本地音频文件，同时写入 title 标签",
+  "libraryVideoToggleTitle": "视频内容",
+  "libraryVideoToggleSubtitle": "此链接含视频画面，开启后播放页渲染画面、投屏按视频推送",
   "libraryEditSourceUrlLabel": "源音频 URL *",
   "libraryEditUrlLabel": "URL *",
   "libraryEditUrlHint": "请输入音频链接",

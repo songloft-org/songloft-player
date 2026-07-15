@@ -877,6 +877,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get libraryRenameFileSubtitle => '按新标题重命名本地音频文件，同时写入 title 标签';
 
   @override
+  String get libraryVideoToggleTitle => '视频内容';
+
+  @override
+  String get libraryVideoToggleSubtitle => '此链接含视频画面，开启后播放页渲染画面、投屏按视频推送';
+
+  @override
   String get libraryEditSourceUrlLabel => '源音频 URL *';
 
   @override

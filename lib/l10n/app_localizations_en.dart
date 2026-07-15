@@ -896,6 +896,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Rename the local audio file to the new title and write the title tag';
 
   @override
+  String get libraryVideoToggleTitle => 'Video content';
+
+  @override
+  String get libraryVideoToggleSubtitle =>
+      'This link contains video; when on, the player renders the picture and casting streams it as video';
+
+  @override
   String get libraryEditSourceUrlLabel => 'Source audio URL *';
 
   @override
