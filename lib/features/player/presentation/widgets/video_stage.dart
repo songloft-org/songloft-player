@@ -78,7 +78,8 @@ class _VideoStageState extends ConsumerState<VideoStage> {
     // 原生：需实际使用 media_kit 后端的平台才能派生 VideoController。
     if (!isInAppVideoSupported) return widget.fallback;
 
-    // 切歌后 Player 可能刚被创建，跟随当前歌曲变化重新绑定控制器。
+    // Player 由 just_audio 惰性创建；切歌后 firstPlayer 可能指向新实例，
+    // 跟随当前歌曲变化把 VideoController 同步到（可能重建的）Player。
     ref.listen(currentSongProvider, (_, _) {
       ref.read(videoControllerProvider.notifier).ensure();
     });

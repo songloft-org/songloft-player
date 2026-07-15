@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:just_audio_platform_interface/just_audio_platform_interface.dart';
 import 'package:media_kit/media_kit.dart';
+import 'package:media_kit_video/media_kit_video.dart';
 
 import 'songloft_mediakit_player.dart';
 
@@ -33,6 +34,13 @@ class SongloftJustAudioPlatform extends JustAudioPlatform {
   Player? get firstPlayer {
     if (_players.isEmpty) return null;
     return _players.values.first.player;
+  }
+
+  /// 首个 Player 随创建时即派生好的 VideoController（供视频画面渲染）。
+  /// 控制器在 Player 构造时就绪，故无绑定时序竞态。
+  VideoController? get firstVideoController {
+    if (_players.isEmpty) return null;
+    return _players.values.first.videoController;
   }
 
   @override

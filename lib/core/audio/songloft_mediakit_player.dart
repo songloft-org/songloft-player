@@ -4,6 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:just_audio_platform_interface/just_audio_platform_interface.dart';
 import 'package:media_kit/media_kit.dart';
+import 'package:media_kit_video/media_kit_video.dart';
+
+import 'audio_backend.dart';
 
 /// [MediaKitPlayer] 的本地重新实现，唯一区别是 [player] 字段为 public。
 /// 用于 Windows/Linux 平台的 EQ 均衡器——需要通过 [NativePlayer.setProperty]
@@ -13,8 +16,30 @@ class SongloftMediaKitPlayer extends AudioPlayerPlatform {
 
   late final Player player;
 
+  /// 视频画面控制器：在 [Player] 创建后、任何 `open()` 之前**立即**建好，
+  /// 使 media_kit 的 libmpv render context 在打开媒体时已就绪。
+  ///
+  /// 若推迟到 UI 首次渲染视频时才创建（旧做法），libmpv 会在 `open()` 时因
+  /// "No render context set" 直接 fatal 并**永久禁用**该会话的视频输出——
+  /// 表现为音频正常、画面全黑/回退封面（songloft-org/songloft#76）。
+  /// 纯音频歌曲也会持有此控制器，仅多一个空闲纹理，无画面开销。
+  /// Web 及回退到原生后端的平台不支持派生 VideoController，置空。
+  ///
+  /// 注意：必须在构造函数里 [player] 创建后**立即**（eagerly）赋值，
+  /// 不能用 `late final = ...` 惰性初始化——否则仍会推迟到首次访问才建，
+  /// 无法保证早于 `open()`。
+  late final VideoController? videoController;
+
   late final List<StreamSubscription> _streamSubscriptions;
   final _readyCompleter = Completer<void>();
+
+  /// 视频纹理（render context）就绪信号。VideoController 构造同步返回，但其原生
+  /// render context + 纹理是**异步**建立的；若 `open()` 抢在其之前执行，libmpv 仍会
+  /// 报 "No render context set" 而永久禁用视频输出（偶发黑屏）。故首次 `open()` 前
+  /// 等待此信号（纹理 id 变为非 null 即表示 render context 已挂上），加超时兜底。
+  /// videoController 为空（不支持视频的平台）时立即完成。
+  final _videoTextureReady = Completer<void>();
+  static const Duration _videoReadyTimeout = Duration(seconds: 3);
 
   Future<void> ready() => _readyCompleter.future;
 
@@ -60,6 +85,12 @@ class SongloftMediaKitPlayer extends AudioPlayerPlatform {
         ready: () => _readyCompleter.complete(),
       ),
     );
+
+    // 立即派生 VideoController（在任何 open() 之前），让 libmpv 的 render context
+    // 在打开媒体时已就绪，避免视频输出因 "No render context set" 被永久禁用。
+    videoController =
+        AudioBackend.usesMediaKit ? VideoController(player) : null;
+    _watchVideoTextureReady();
 
     if (JustAudioMediaKit.prefetchPlaylist) {
       _setMpvProperty('prefetch-playlist', 'yes');
@@ -211,6 +242,35 @@ class SongloftMediaKitPlayer extends AudioPlayerPlatform {
     _dataController.add(message);
   }
 
+  /// 监听 VideoController 纹理 id：非 null 即表示 render context 已建立，
+  /// 完成 [_videoTextureReady]。videoController 为空则立即完成。
+  void _watchVideoTextureReady() {
+    final controller = videoController;
+    if (controller == null || controller.id.value != null) {
+      if (!_videoTextureReady.isCompleted) _videoTextureReady.complete();
+      return;
+    }
+    void listener() {
+      if (controller.id.value != null && !_videoTextureReady.isCompleted) {
+        _videoTextureReady.complete();
+        controller.id.removeListener(listener);
+      }
+    }
+
+    controller.id.addListener(listener);
+  }
+
+  /// 首次 `open()` 前等待视频纹理就绪，避免 render context 未挂上就打开媒体导致
+  /// 视频输出被永久禁用。超时兜底（音频优先，不因纹理迟迟不就绪而卡住）。
+  Future<void> _awaitVideoTextureReady() async {
+    if (_videoTextureReady.isCompleted) return;
+    try {
+      await _videoTextureReady.future.timeout(_videoReadyTimeout);
+    } on TimeoutException {
+      debugPrint('[SongloftMediaKitPlayer] 视频纹理就绪超时，继续打开媒体');
+    }
+  }
+
   @override
   Stream<PlaybackEventMessage> get playbackEventMessageStream =>
       _eventController.stream;
@@ -232,6 +292,10 @@ class SongloftMediaKitPlayer extends AudioPlayerPlatform {
     _errorCode = null;
     _errorMessage = null;
     _updatePlaybackEvent();
+
+    // 打开媒体前确保视频 render context 已就绪（首次之后 completer 已完成，无开销），
+    // 消除 open() 抢跑于纹理建立之前导致的偶发黑屏。
+    await _awaitVideoTextureReady();
 
     if (request.audioSourceMessage is ConcatenatingAudioSourceMessage) {
       final audioSource =
