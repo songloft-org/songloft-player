@@ -60,6 +60,17 @@ class UrlHelper {
     return result;
   }
 
+  /// 构建视频播放 URL（用于应用内视频画面渲染与 DLNA 视频投屏）
+  ///
+  /// 追加 `media=video`：后端据此直出原容器（不转码，避免 ffmpeg -vn 丢画面），
+  /// 并按容器真实类型返回 Content-Type（如 video/mp4）。
+  /// 不追加 format/quality —— 视频需要保留完整音视频轨。
+  static String buildVideoUrl(String url) {
+    final result = buildResourceUrl(url);
+    if (result.isEmpty) return '';
+    return '$result${result.contains('?') ? '&' : '?'}media=video';
+  }
+
   /// 构建封面图片 URL（兼容旧接口，内部调用 buildResourceUrl）
   static String buildCoverUrl(String coverUrl) {
     return buildResourceUrl(coverUrl);

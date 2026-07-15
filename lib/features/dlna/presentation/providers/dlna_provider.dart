@@ -1,13 +1,94 @@
 import 'dart:async';
+import 'package:dlna_dart/xmlParser.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/audio/audio_service.dart';
+import '../../../../core/utils/audio_format_helper.dart';
 import '../../../../core/utils/url_helper.dart';
 import '../../../../main.dart';
+import '../../../../shared/models/song.dart';
 import '../../../player/domain/player_state.dart';
 import '../../../player/presentation/providers/player_provider.dart';
 import '../../data/dlna_service.dart';
 import '../../domain/dlna_state.dart';
+
+/// 一次投屏所需的参数：资源 URL + DIDL mime 类型。
+typedef _CastArgs = ({String url, PlayType mime});
+
+/// 按歌曲真实格式挑选投屏参数。
+///
+/// 视频歌曲：用 media=video URL（后端直出原容器，保留画面）+ 对应 VideoMime；
+/// 音频歌曲：用普通播放 URL（可能带平台转码）+ 与最终格式匹配的 AudioMime。
+/// 不再一律硬编码 audio/mp3，避免非 mp3/视频在严格渲染器上被拒。
+_CastArgs _castArgsFor(Song song) {
+  if (song.isVideo) {
+    return (url: UrlHelper.buildVideoUrl(song.url!), mime: _videoMime(song));
+  }
+  // 音频投屏若发生平台转码（如 wma→mp3），mime 应反映转码后的最终格式。
+  final effective =
+      AudioFormatHelper.getTranscodeFormat(song.format) ??
+      (song.format ?? '').toLowerCase();
+  return (
+    url: UrlHelper.buildSongUrl(song.url!, songFormat: song.format),
+    mime: _audioMime(effective),
+  );
+}
+
+/// 视频 mime：优先按文件扩展名判断真实容器（视频 mp4 的 song.format 会被后端归一化为 m4a，不可靠）。
+VideoMime _videoMime(Song song) {
+  var ext = (song.format ?? '').toLowerCase();
+  final path = song.filePath;
+  if (path != null && path.contains('.')) {
+    ext = path.split('.').last.toLowerCase();
+  }
+  switch (ext) {
+    case 'mp4':
+    case 'm4v':
+      return VideoMime.mp4;
+    case 'mkv':
+    case 'matroska':
+      return VideoMime.xMatroska;
+    case 'webm': // webm 是 matroska 子集，多数渲染器按 x-matroska 处理
+      return VideoMime.xMatroska;
+    case 'mov':
+    case 'quicktime':
+      return VideoMime.quicktime;
+    case 'avi':
+      return VideoMime.avi;
+    case 'wmv':
+      return VideoMime.xMsWmv;
+    case 'ts':
+    case 'mpegts':
+    case 'mp2t':
+      return VideoMime.ts;
+    default:
+      return VideoMime.any;
+  }
+}
+
+/// 音频 mime：按最终音频格式匹配，未知回退 mp3（兼容历史默认行为）。
+AudioMime _audioMime(String fmt) {
+  switch (fmt.toLowerCase()) {
+    case 'mp3':
+    case 'mpeg':
+      return AudioMime.mp3;
+    case 'm4a':
+    case 'mp4':
+    case 'aac':
+      return AudioMime.mp4;
+    case 'flac':
+      return AudioMime.xFlac;
+    case 'wav':
+    case 'wave':
+      return AudioMime.wav;
+    case 'wma':
+      return AudioMime.wma;
+    case 'ape':
+      return AudioMime.xApe;
+    default:
+      return AudioMime.mp3;
+  }
+}
 
 final dlnaServiceProvider = Provider<DlnaService>((ref) {
   final service = DlnaService();
@@ -68,8 +149,13 @@ class DlnaNotifier extends Notifier<DlnaState> {
     state = state.copyWith(error: () => null);
 
     try {
-      final url = UrlHelper.buildSongUrl(song.url!, songFormat: song.format);
-      await _service.castTo(device.id, url, title: song.title);
+      final args = _castArgsFor(song);
+      await _service.castTo(
+        device.id,
+        args.url,
+        title: song.title,
+        mime: args.mime,
+      );
 
       await _audioHandler.pause();
 
@@ -106,18 +192,23 @@ class DlnaNotifier extends Notifier<DlnaState> {
       if (next.id == _lastSongId) return;
       _lastSongId = next.id;
       if (next.url != null) {
-        final url = UrlHelper.buildSongUrl(next.url!, songFormat: next.format);
-        unawaited(_safeCast(url, next.title));
+        unawaited(_safeCast(next));
       }
     });
   }
 
   /// 带错误兜底的投歌（castTo 内部已带 HttpException 重试）
-  Future<void> _safeCast(String url, String title) async {
+  Future<void> _safeCast(Song song) async {
     final device = state.activeDevice;
     if (device == null) return;
     try {
-      await _service.castTo(device.id, url, title: title);
+      final args = _castArgsFor(song);
+      await _service.castTo(
+        device.id,
+        args.url,
+        title: song.title,
+        mime: args.mime,
+      );
       state = state.copyWith(isPlaying: true, error: () => null);
     } catch (e) {
       state = state.copyWith(error: () => e.toString());
@@ -139,9 +230,7 @@ class DlnaNotifier extends Notifier<DlnaState> {
       case PlayMode.single:
         final song = playerState.currentSong;
         if (song?.url != null) {
-          final url =
-              UrlHelper.buildSongUrl(song!.url!, songFormat: song.format);
-          unawaited(_safeCast(url, song.title));
+          unawaited(_safeCast(song!));
         }
         return;
       case PlayMode.order:

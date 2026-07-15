@@ -51,6 +51,7 @@ class DlnaService {
     String deviceId,
     String url, {
     String title = '',
+    PlayType mime = AudioMime.mp3,
   }) async {
     final device = _deviceManager?.deviceList[deviceId];
     if (device == null) throw Exception('Device not found: $deviceId');
@@ -60,8 +61,10 @@ class DlnaService {
     _suppressCompletion = true;
     _hasStartedPlaying = false;
     try {
+      // mime 由调用方按歌曲真实格式决定（视频→VideoMime，音频→对应 AudioMime），
+      // 不再硬编码 mp3：写死 mp3 会让 DIDL 永远声明 audio/mp3，非 mp3（flac/wav）或视频投屏可能被渲染器拒绝。
       await _sendWithRetry(
-        () => device.setUrl(url, title: title, type: AudioMime.mp3),
+        () => device.setUrl(url, title: title, type: mime),
       );
       await _sendWithRetry(() => device.play());
     } finally {
