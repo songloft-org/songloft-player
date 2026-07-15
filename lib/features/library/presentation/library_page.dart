@@ -371,12 +371,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
             },
           ),
         ],
-        _buildMoreMenu(context, state),
-        IconButton(
-          icon: const Icon(Icons.tune),
-          tooltip: l10n.libraryCustomizeViewsTooltip,
-          onPressed: () => _enterEditMode(config),
-        ),
+        _buildMoreMenu(context, state, config),
       ],
     );
   }
@@ -432,7 +427,11 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
     );
   }
 
-  Widget _buildMoreMenu(BuildContext context, SongsListState state) {
+  Widget _buildMoreMenu(
+    BuildContext context,
+    SongsListState state,
+    LibraryBrowseConfig config,
+  ) {
     final l10n = AppLocalizations.of(context);
     return PopupMenuButton<String>(
       icon: const Icon(Icons.more_vert),
@@ -449,6 +448,8 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
                 .setShowHidden(!state.showHidden);
           case 'clean':
             _showCleanConfirmDialog(context);
+          case 'customize_views':
+            _enterEditMode(config);
         }
       },
       itemBuilder: (context) => [
@@ -487,6 +488,15 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
           child: ListTile(
             leading: const Icon(Icons.cleaning_services),
             title: Text(l10n.libraryCleanInvalidSongs),
+            contentPadding: EdgeInsets.zero,
+          ),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem(
+          value: 'customize_views',
+          child: ListTile(
+            leading: const Icon(Icons.tune),
+            title: Text(l10n.libraryCustomizeViews),
             contentPadding: EdgeInsets.zero,
           ),
         ),
