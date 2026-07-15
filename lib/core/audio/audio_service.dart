@@ -390,12 +390,16 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
         throw Exception('无法播放：歌曲没有有效的播放源');
       }
 
-      // 原生平台无法携带 Authorization Header,UrlHelper 会自动拼接 baseUrl + access_token
-      final songUrl = UrlHelper.buildSongUrl(
-        song.url!,
-        songFormat: song.format,
-        quality: quality,
-      );
+      // 原生平台无法携带 Authorization Header,UrlHelper 会自动拼接 baseUrl + access_token。
+      // 视频歌曲用 buildVideoUrl（media=video）：后端直出原容器，保留画面供 media_kit 渲染，
+      // 不做平台音频转码（转码 -vn 会丢画面）。
+      final songUrl = song.isVideo
+          ? UrlHelper.buildVideoUrl(song.url!)
+          : UrlHelper.buildSongUrl(
+              song.url!,
+              songFormat: song.format,
+              quality: quality,
+            );
 
       debugPrint('[Player] SongloftAudioHandler: song url: $songUrl');
       final liveHeaders = _buildLiveStreamHeaders(song);
@@ -409,7 +413,9 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
       // 其他平台（Android/iOS/Linux/macOS）普通歌曲仍用 LockCachingAudioSource 边播边缓存。
       final isWindows =
           !kIsWeb && defaultTargetPlatform == TargetPlatform.windows;
-      final useLiveSource = kIsWeb || song.isLive || isWindows;
+      // 视频文件通常较大，同样走 AudioSource.uri：libmpv/原生后端直接支持网络流 seek，
+      // 后端已有透明缓存；避免 LockCachingAudioSource 代理大文件 seek 的性能/句柄问题。
+      final useLiveSource = kIsWeb || song.isLive || isWindows || song.isVideo;
       if (useLiveSource) {
         source = ja.AudioSource.uri(Uri.parse(songUrl), headers: liveHeaders);
       } else {

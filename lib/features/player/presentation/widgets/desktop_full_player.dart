@@ -18,6 +18,7 @@ import 'popup_controls.dart';
 import 'progress_bar.dart';
 import '../utils/player_song_actions.dart';
 import 'vinyl_ring.dart';
+import 'video_stage.dart';
 import '../../../dlna/presentation/widgets/cast_button.dart';
 import 'volume_control.dart';
 
@@ -247,14 +248,19 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    // 封面带唱片环旋转
-                                    VinylRing(
-                                      rotationAnimation: _rotationController,
-                                      child: _buildCover(
-                                        context,
-                                        coverUrl,
-                                        effectiveCover,
-                                        palette: palette,
+                                    // 视频歌曲渲染画面，否则封面带唱片环旋转（视频不可用时也回退到此）
+                                    VideoStage(
+                                      song: song,
+                                      width: effectiveCover,
+                                      height: effectiveCover,
+                                      fallback: VinylRing(
+                                        rotationAnimation: _rotationController,
+                                        child: _buildCover(
+                                          context,
+                                          coverUrl,
+                                          effectiveCover,
+                                          palette: palette,
+                                        ),
                                       ),
                                     ),
                                     const SizedBox(height: 24),
