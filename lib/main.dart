@@ -1,4 +1,4 @@
-import 'dart:io' show Platform, exit;
+import 'dart:io' show Platform;
 import 'dart:ui';
 
 import 'package:audio_service/audio_service.dart';
@@ -31,6 +31,7 @@ import 'core/theme/app_theme.dart';
 import 'core/theme/responsive.dart';
 import 'core/router/app_router.dart';
 import 'core/utils/file_logger.dart';
+import 'core/utils/force_terminate.dart';
 import 'core/utils/platform_utils.dart';
 import 'core/utils/window_tray_manager.dart';
 import 'features/player/presentation/widgets/player_shortcut_scope.dart';
@@ -343,17 +344,19 @@ void main(List<String> args) async {
         await smtcService?.dispose();
       });
       await runCleanup('音频停止', audioHandler.stop);
-      await runCleanup('音频释放', audioHandler.dispose);
+      // 注意：Windows 下**刻意不调** audioHandler.dispose()。dispose 会触发
+      // media_kit 的 Player.dispose()，其在返回后延迟销毁 libmpv 并派生后台线程，
+      // 正是该线程在进程 teardown 时触发 Fail Fast 报警框（songloft-org/songloft#271）。
+      // 反正下面立即硬杀整个进程，OS 会一并回收 libmpv，无需（也不该）优雅 dispose。
       await runCleanup('内嵌后端停止', EmbeddedBackendService.stop);
       await runCleanup('日志刷新', FileLogger.close);
 
-      // 强制终止进程：media_kit 在 Windows 上会在 Player.dispose() 返回后延迟销毁
-      // libmpv，其后台线程在窗口销毁后仍可能触发 Windows Fail Fast 报警框
-      // （songloft-org/songloft#271）。之前用 6 秒死等既拖慢退出又没根治报警。
-      // 清理完成后立即 exit(0)，让 OS 抢在 libmpv 后台线程之前回收整个进程，
-      // 既消除报警框又让退出瞬时完成。
-      debugPrint('[Main] 清理完成，强制退出进程');
-      exit(0);
+      // 强制终止进程：用 TerminateProcess(GetCurrentProcess()) 内核级硬杀，而非
+      // dart:io exit()。exit() 会跑 C runtime atexit/静态析构，libmpv 后台线程仍能
+      // 在该窗口内触发 Windows Fail Fast 报警框；TerminateProcess 立即回收进程及其
+      // 所有线程、不运行任何析构，报警线程根本没机会执行（songloft-org/songloft#271）。
+      debugPrint('[Main] 清理完成，强制终止进程');
+      forceTerminateProcess(0);
     };
   }
 
