@@ -124,10 +124,25 @@ TV 模式下：
 
 ### 各平台音频后端
 
-| 平台 | 后端 | 说明 |
+| 平台 | 后端（默认） | 说明 |
 |------|------|------|
-| Web | HTML5 Audio | 浏览器原生 |
-| Android | ExoPlayer | just_audio 默认 |
-| iOS | AVPlayer | just_audio 默认 |
-| macOS | AVPlayer | just_audio 默认 |
+| Web | HTML5 Audio + hls.js | 自定义 `SongloftWebJustAudioPlugin`（just_audio_web + 自接 hls.js 播 HLS 电台） |
+| Android | libmpv (media_kit) | `just_audio_media_kit`；可传 `--dart-define=SONGLOFT_MEDIAKIT_MOBILE=false` 回退 ExoPlayer |
+| iOS | libmpv (media_kit) | 同上；回退 AVPlayer |
+| macOS | libmpv (media_kit) | 可传 `--dart-define=SONGLOFT_MEDIAKIT_MACOS=false` 回退 AVPlayer |
 | Windows / Linux | libmpv (media_kit) | `just_audio_media_kit`，LGPL-2.1+ |
+
+> 后端选择集中在 `core/audio/audio_backend.dart` 的 `AudioBackend.usesMediaKit`。macOS/移动端默认用 media_kit 以统一后端并支持应用内视频画面（songloft-org/songloft#76），编译期开关作为 kill-switch 回退原生。
+
+### 视频画面渲染与 Web 后端决策（songloft-org/songloft#76）
+
+视频容器（mp4/mov/mkv/webm/avi/ts）扫描时由后端 ffprobe 探测 `is_video`。应用内画面渲染分两条路：
+
+- **原生平台**（Win/Linux/macOS/Android/iOS）：复用音频用的**同一个** media_kit `Player` 派生 `VideoController`（`core/audio/video_controller_provider.dart`），画面与音频同源、天然同步，无第二引擎。`VideoStage` 组件在视频歌曲时渲染画面、否则回退封面。
+- **Web**：用**静音的原生 `<video>`**（`features/player/.../web_video_view_web.dart`）只出画面，音频仍由 `SongloftWebJustAudioPlugin` 播放，二者按 `playerStateProvider` 的播放/暂停/进度同步。
+
+**为什么 Web 不迁到 media_kit 统一？**（已调研，勿反复重提）
+
+- media_kit 在 **Web 上不用 libmpv**，底层就是浏览器 `<video>` 元素，HLS 靠**动态注入 hls.js**（media_kit 源码 `media_kit/lib/src/player/web/utils/hls.dart`）。所以切到 media_kit **不能摆脱 hls.js**，只是把"自接 hls.js"换成"media_kit 帮你接"，HLS 能力无质变（官方称 web 格式支持 "extremely limited"）。
+- 桥接包 `just_audio_media_kit` 面向 **Windows/Linux**，**无 web 实现**。Web 用 media_kit 只能整层弃用 just_audio 改用 media_kit `Player` API（波及 `audio_service`/`player_provider` 全套状态机），成本远大于"少维护一套 hls 接入"的收益。
+- 结论：**Web 维持 just_audio_web + 自定义 hls.js（电台）+ 静音 `<video>`（画面）**。除非将来 Web 视频统一维护成为硬需求，再评估整层迁移。

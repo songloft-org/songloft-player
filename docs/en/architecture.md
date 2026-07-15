@@ -124,10 +124,25 @@ Integrates `audio_service` for system notification bar controls. Core design:
 
 ### Audio Backend per Platform
 
-| Platform | Backend | Notes |
+| Platform | Backend (default) | Notes |
 |----------|---------|-------|
-| Web | HTML5 Audio | Native browser |
-| Android | ExoPlayer | just_audio default |
-| iOS | AVPlayer | just_audio default |
-| macOS | AVPlayer | just_audio default |
+| Web | HTML5 Audio + hls.js | Custom `SongloftWebJustAudioPlugin` (just_audio_web + self-integrated hls.js for HLS radio) |
+| Android | libmpv (media_kit) | `just_audio_media_kit`; pass `--dart-define=SONGLOFT_MEDIAKIT_MOBILE=false` to fall back to ExoPlayer |
+| iOS | libmpv (media_kit) | Same; falls back to AVPlayer |
+| macOS | libmpv (media_kit) | Pass `--dart-define=SONGLOFT_MEDIAKIT_MACOS=false` to fall back to AVPlayer |
 | Windows / Linux | libmpv (media_kit) | `just_audio_media_kit`, LGPL-2.1+ |
+
+> Backend selection is centralized in `AudioBackend.usesMediaKit` (`core/audio/audio_backend.dart`). macOS/mobile default to media_kit to unify the backend and enable in-app video (songloft-org/songloft#76); the compile-time flags act as a kill-switch to fall back to native.
+
+### Video Rendering & the Web Backend Decision (songloft-org/songloft#76)
+
+Video containers (mp4/mov/mkv/webm/avi/ts) are probed by the backend's ffprobe for `is_video`. In-app picture rendering takes two paths:
+
+- **Native platforms** (Win/Linux/macOS/Android/iOS): derive a `VideoController` from the **same** media_kit `Player` used for audio (`core/audio/video_controller_provider.dart`) — picture and audio share one engine, naturally in sync, no second player. The `VideoStage` widget renders the picture for video songs, otherwise falls back to the cover.
+- **Web**: a **muted native `<video>`** (`features/player/.../web_video_view_web.dart`) shows only the picture; audio still plays through `SongloftWebJustAudioPlugin`, and the two are synced by play/pause/position from `playerStateProvider`.
+
+**Why not migrate Web to media_kit for a unified backend?** (investigated — don't relitigate)
+
+- media_kit **does not use libmpv on Web**; its web backend is just the browser `<video>` element, and HLS is enabled by **dynamically injecting hls.js** (media_kit source `media_kit/lib/src/player/web/utils/hls.dart`). So switching to media_kit **cannot drop hls.js** — it just replaces "we integrate hls.js" with "media_kit integrates it for you"; HLS capability doesn't improve (official docs call web format support "extremely limited").
+- The bridge package `just_audio_media_kit` targets **Windows/Linux** and has **no web implementation**. Using media_kit on Web would require abandoning just_audio for the media_kit `Player` API across the whole web layer (touching the entire `audio_service`/`player_provider` state machine) — a cost far exceeding the benefit of "maintaining one less hls.js hookup".
+- Conclusion: **Web keeps just_audio_web + custom hls.js (radio) + muted `<video>` (picture)**. Revisit a full-layer migration only if unified Web video maintenance becomes a hard requirement.

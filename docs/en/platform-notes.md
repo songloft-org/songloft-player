@@ -70,8 +70,8 @@ When the app is unsigned, Keychain is unavailable (FlutterSecureStorage depends 
 ### Audio Backend
 
 Windows uses libmpv as the audio backend via `just_audio_media_kit`:
-- Bundled as an **audio-only LGPL build** (without GPL encoders such as libx264/libx265)
-- Depends on `media_kit_libs_windows_audio`
+- Bundled as an **LGPL build** (without GPL encoders such as libx264/libx265)
+- Depends on `media_kit_libs_windows_video` (includes video output, replacing the old audio variant, for in-app video songloft-org/songloft#76)
 
 ### Build Requirements
 

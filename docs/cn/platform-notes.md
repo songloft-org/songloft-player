@@ -70,8 +70,8 @@ flutter clean && flutter pub get
 ### 音频后端
 
 Windows 端通过 `just_audio_media_kit` 使用 libmpv 作为音频后端：
-- 打包的是 **audio-only LGPL 构建**（不含 GPL 编码器如 libx264/libx265）
-- 依赖 `media_kit_libs_windows_audio`
+- 打包的是 **LGPL 构建**（不含 GPL 编码器如 libx264/libx265）
+- 依赖 `media_kit_libs_windows_video`（含视频输出，取代旧的 audio 变体，用于应用内视频画面 songloft-org/songloft#76）
 
 ### 构建要求
 
