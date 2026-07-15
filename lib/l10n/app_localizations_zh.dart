@@ -832,6 +832,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get libraryEdit => '编辑';
 
   @override
+  String get libraryCustomizeViews => '自定义视图';
+
+  @override
+  String get libraryCustomizeViewsTooltip => '自定义显示的视图与顺序';
+
+  @override
+  String get libraryViewsMinOne => '至少保留一个可见视图';
+
+  @override
   String get libraryEditLocalSong => '编辑本地歌曲';
 
   @override

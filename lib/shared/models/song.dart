@@ -186,17 +186,45 @@ class Song {
   int get hashCode => id.hashCode;
 }
 
-/// 标签分类聚合项：某维度的一个取值及其歌曲数量（如 genre="Rock", count=42）。
+/// 标签分类聚合项：某维度的一个取值、歌曲数量、及一首代表歌曲的封面 URL。
 class SongFacet {
   final String value;
   final int count;
 
-  const SongFacet({required this.value, required this.count});
+  /// 该取值下一首带封面歌曲的封面端点（后端拼好，无则为空 → 前端回退占位图标）。
+  final String coverUrl;
+
+  const SongFacet({
+    required this.value,
+    required this.count,
+    this.coverUrl = '',
+  });
 
   factory SongFacet.fromJson(Map<String, dynamic> json) {
     return SongFacet(
       value: json['value'] as String? ?? '',
       count: json['count'] as int? ?? 0,
+      coverUrl: json['cover_url'] as String? ?? '',
+    );
+  }
+}
+
+/// 标签分类聚合的分页响应（facets + total）。
+class SongFacetResponse {
+  final List<SongFacet> facets;
+  final int total;
+
+  const SongFacetResponse({required this.facets, required this.total});
+
+  factory SongFacetResponse.fromJson(Map<String, dynamic> json) {
+    final list =
+        (json['facets'] as List<dynamic>?)
+            ?.map((e) => SongFacet.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        <SongFacet>[];
+    return SongFacetResponse(
+      facets: list,
+      total: json['total'] as int? ?? list.length,
     );
   }
 }

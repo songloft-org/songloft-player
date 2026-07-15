@@ -53,17 +53,127 @@ String categoryValueLabel(AppLocalizations l10n, String field, String value) {
   }
 }
 
-/// 某维度的标签分类聚合清单 Provider。
+/// 某维度 facet 网格的分页状态。
+class FacetListState {
+  final List<SongFacet> items;
+  final int total;
+  final bool hasMore;
+  final bool isLoadingMore;
+
+  /// 当前生效的服务端搜索关键词。
+  final String keyword;
+  final Object? loadMoreError;
+
+  const FacetListState({
+    required this.items,
+    required this.total,
+    required this.hasMore,
+    this.isLoadingMore = false,
+    this.keyword = '',
+    this.loadMoreError,
+  });
+
+  FacetListState copyWith({
+    List<SongFacet>? items,
+    int? total,
+    bool? hasMore,
+    bool? isLoadingMore,
+    String? keyword,
+    Object? loadMoreError,
+    bool clearError = false,
+  }) => FacetListState(
+    items: items ?? this.items,
+    total: total ?? this.total,
+    hasMore: hasMore ?? this.hasMore,
+    isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+    keyword: keyword ?? this.keyword,
+    loadMoreError: clearError ? null : (loadMoreError ?? this.loadMoreError),
+  );
+}
+
+/// 某维度 facet 卡片网格的分页 Notifier。
 ///
-/// family 参数为维度字段（genre/artist/album/language/style/year/decade），
-/// 返回按歌曲数降序的 (value, count) 列表，供分类总览页渲染取值卡片。
-final facetsProvider = FutureProvider.family<List<SongFacet>, String>((
-  ref,
-  field,
-) async {
-  final api = ref.watch(songsApiProvider);
-  return api.getFacets(field);
-});
+/// - family 参数为维度字段（genre/artist/album/language/style/year/decade）。
+/// - 首屏加载 pageLimit 条；触底 [loadMore] 加载下一页；[search] 触发服务端关键词搜索重载。
+/// - 后端返回 total（去重取值总数），通过 `items.length < total` 判断是否还有更多。
+/// - 复用现有 [CategorySongsNotifier] 的 family 写法（extends AsyncNotifier + 构造注入 key）。
+class FacetListNotifier extends AsyncNotifier<FacetListState> {
+  FacetListNotifier(this._field);
+
+  final String _field;
+
+  /// 每页大小（网格视图，取偏大值减少翻页）。
+  static const int pageLimit = 60;
+
+  String _keyword = '';
+
+  Future<SongFacetResponse> _fetch({required int offset}) {
+    final api = ref.read(songsApiProvider);
+    return api.getFacets(
+      _field,
+      keyword: _keyword,
+      limit: pageLimit,
+      offset: offset,
+    );
+  }
+
+  FacetListState _fromResponse(SongFacetResponse resp) => FacetListState(
+    items: resp.facets,
+    total: resp.total,
+    hasMore: resp.facets.length < resp.total,
+    isLoadingMore: false,
+    keyword: _keyword,
+  );
+
+  @override
+  Future<FacetListState> build() async {
+    final resp = await _fetch(offset: 0);
+    return _fromResponse(resp);
+  }
+
+  /// 服务端关键词搜索（空串清除）。keyword 未变化时不重复请求。
+  Future<void> search(String keyword) async {
+    final normalized = keyword.trim();
+    if (normalized == _keyword) return;
+    _keyword = normalized;
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async => _fromResponse(await _fetch(offset: 0)));
+  }
+
+  /// 触底加载下一页。
+  Future<void> loadMore() async {
+    final current = state.value;
+    if (current == null) return;
+    if (!current.hasMore || current.isLoadingMore) return;
+
+    state = AsyncValue.data(
+      current.copyWith(isLoadingMore: true, clearError: true),
+    );
+    try {
+      final resp = await _fetch(offset: current.items.length);
+      final merged = [...current.items, ...resp.facets];
+      state = AsyncValue.data(
+        current.copyWith(
+          items: merged,
+          total: resp.total,
+          hasMore: merged.length < resp.total,
+          isLoadingMore: false,
+          clearError: true,
+        ),
+      );
+    } catch (e) {
+      state = AsyncValue.data(
+        current.copyWith(isLoadingMore: false, loadMoreError: e),
+      );
+    }
+  }
+}
+
+/// 某维度 facet 网格分页 Provider（family 参数为维度字段）。
+final facetListProvider =
+    AsyncNotifierProvider.family<FacetListNotifier, FacetListState, String>(
+      FacetListNotifier.new,
+    );
 
 /// 某分类下歌曲的分页 Notifier。
 ///

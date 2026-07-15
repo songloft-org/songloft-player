@@ -95,18 +95,32 @@ class SongsApi {
     if (decade != null && decade > 0) queryParams['decade'] = decade;
   }
 
-  /// 获取某维度的标签分类聚合清单（用于分类浏览的清单页）。
+  /// 获取某维度的标签分类聚合清单（用于分类浏览的卡片网格）。
   /// [field] 取值：genre/artist/album/language/style/year/decade。
-  /// 返回按歌曲数降序的 (value, count) 列表。
-  Future<List<SongFacet>> getFacets(String field) async {
+  /// 支持 [keyword] 服务端搜索、[limit]/[offset] 分页、[sort](count|name)/[order] 排序；
+  /// 返回 facets（含代表封面 cover_url）+ total（去重取值总数）。
+  Future<SongFacetResponse> getFacets(
+    String field, {
+    String? keyword,
+    int? limit,
+    int? offset,
+    String? sort,
+    String? order,
+  }) async {
+    final queryParams = <String, dynamic>{'field': field};
+    if (keyword != null && keyword.isNotEmpty) {
+      queryParams['keyword'] = keyword;
+    }
+    if (limit != null) queryParams['limit'] = limit;
+    if (offset != null) queryParams['offset'] = offset;
+    if (sort != null && sort.isNotEmpty) queryParams['sort'] = sort;
+    if (order != null && order.isNotEmpty) queryParams['order'] = order;
+
     final response = await dio.get<Map<String, dynamic>>(
       '${AppConfig.apiPrefix}/songs/facets',
-      queryParameters: {'field': field},
+      queryParameters: queryParams,
     );
-    final raw = (response.data?['facets'] as List<dynamic>? ?? const []);
-    return raw
-        .map((e) => SongFacet.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return SongFacetResponse.fromJson(response.data!);
   }
 
   /// 获取匹配过滤条件的歌曲 ID 列表（用于「全选当前筛选」场景）

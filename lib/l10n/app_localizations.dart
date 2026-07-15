@@ -1568,6 +1568,24 @@ abstract class AppLocalizations {
   /// **'编辑'**
   String get libraryEdit;
 
+  /// No description provided for @libraryCustomizeViews.
+  ///
+  /// In zh, this message translates to:
+  /// **'自定义视图'**
+  String get libraryCustomizeViews;
+
+  /// No description provided for @libraryCustomizeViewsTooltip.
+  ///
+  /// In zh, this message translates to:
+  /// **'自定义显示的视图与顺序'**
+  String get libraryCustomizeViewsTooltip;
+
+  /// No description provided for @libraryViewsMinOne.
+  ///
+  /// In zh, this message translates to:
+  /// **'至少保留一个可见视图'**
+  String get libraryViewsMinOne;
+
   /// No description provided for @libraryEditLocalSong.
   ///
   /// In zh, this message translates to:

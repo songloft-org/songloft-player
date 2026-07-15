@@ -642,6 +642,42 @@ final tabConfigProvider = AsyncNotifierProvider<TabConfigNotifier, TabConfig>(
 );
 
 // ============================================================================
+// 曲库浏览视图配置 Provider
+// ============================================================================
+
+/// 曲库浏览视图（显示 + 顺序）配置 Notifier。
+/// 业务端点：GET/PUT /api/v1/settings/library-browse
+class LibraryBrowseConfigNotifier extends AsyncNotifier<LibraryBrowseConfig> {
+  @override
+  Future<LibraryBrowseConfig> build() async {
+    final api = ref.watch(settingsApiProvider);
+    try {
+      return await api.getLibraryBrowseConfig();
+    } catch (_) {
+      return LibraryBrowseConfig.defaultConfig();
+    }
+  }
+
+  Future<void> updateConfig(LibraryBrowseConfig config) async {
+    state = AsyncValue.data(config);
+    try {
+      final api = ref.read(settingsApiProvider);
+      final saved = await api.updateLibraryBrowseConfig(config);
+      state = AsyncValue.data(saved);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
+  }
+}
+
+/// 曲库浏览视图配置 Provider
+final libraryBrowseConfigProvider =
+    AsyncNotifierProvider<LibraryBrowseConfigNotifier, LibraryBrowseConfig>(
+      LibraryBrowseConfigNotifier.new,
+    );
+
+// ============================================================================
 // Upgrade Progress Provider
 // ============================================================================
 

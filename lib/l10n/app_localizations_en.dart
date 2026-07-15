@@ -850,6 +850,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get libraryEdit => 'Edit';
 
   @override
+  String get libraryCustomizeViews => 'Customize views';
+
+  @override
+  String get libraryCustomizeViewsTooltip =>
+      'Customize which views show and their order';
+
+  @override
+  String get libraryViewsMinOne => 'Keep at least one view visible';
+
+  @override
   String get libraryEditLocalSong => 'Edit local song';
 
   @override

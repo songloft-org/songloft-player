@@ -206,6 +206,81 @@ class TabConfig {
   int get totalCount => 2 + optionalCount; // 首页 + 设置 + 可选项
 }
 
+/// 曲库统一浏览页的单个视图条目。
+///
+/// key 属于 11 个合法视图之一：
+/// all/artist/album/genre/year/decade/language/style（扁平列表 + 分类聚合）+ local/remote/radio（按 type 过滤）。
+/// 「网络」在后端即 remote。
+class LibraryViewEntry {
+  final String key;
+  final bool visible;
+
+  const LibraryViewEntry({required this.key, required this.visible});
+
+  factory LibraryViewEntry.fromJson(Map<String, dynamic> json) =>
+      LibraryViewEntry(
+        key: json['key'] as String? ?? '',
+        visible: json['visible'] as bool? ?? true,
+      );
+
+  Map<String, dynamic> toJson() => {'key': key, 'visible': visible};
+
+  LibraryViewEntry copyWith({String? key, bool? visible}) => LibraryViewEntry(
+    key: key ?? this.key,
+    visible: visible ?? this.visible,
+  );
+}
+
+/// 曲库浏览视图的显示与顺序配置。
+class LibraryBrowseConfig {
+  final List<LibraryViewEntry> views;
+
+  const LibraryBrowseConfig({required this.views});
+
+  /// 默认顺序：全部/歌手/专辑/流派/年份/年代/语种/风格/本地/网络/电台，全部可见。
+  /// 与后端 libraryViewKeys 保持一致。
+  static const List<String> defaultOrder = [
+    'all',
+    'artist',
+    'album',
+    'genre',
+    'year',
+    'decade',
+    'language',
+    'style',
+    'local',
+    'remote',
+    'radio',
+  ];
+
+  factory LibraryBrowseConfig.defaultConfig() => LibraryBrowseConfig(
+    views: defaultOrder
+        .map((k) => LibraryViewEntry(key: k, visible: true))
+        .toList(),
+  );
+
+  factory LibraryBrowseConfig.fromJson(Map<String, dynamic> json) {
+    final list =
+        (json['views'] as List?)
+            ?.map((e) => LibraryViewEntry.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        <LibraryViewEntry>[];
+    if (list.isEmpty) return LibraryBrowseConfig.defaultConfig();
+    return LibraryBrowseConfig(views: list);
+  }
+
+  Map<String, dynamic> toJson() => {
+    'views': views.map((e) => e.toJson()).toList(),
+  };
+
+  LibraryBrowseConfig copyWith({List<LibraryViewEntry>? views}) =>
+      LibraryBrowseConfig(views: views ?? this.views);
+
+  /// 仅可见视图，保持配置顺序。
+  List<LibraryViewEntry> get visibleViews =>
+      views.where((v) => v.visible).toList();
+}
+
 /// 用户偏好设置（跨设备同步）
 class UserPreferences {
   final String themeMode;
@@ -602,6 +677,37 @@ class SettingsApi {
         data: config.toJson(),
       );
       return TabConfig.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  // ---------- 曲库浏览视图配置 ----------
+
+  Future<LibraryBrowseConfig> getLibraryBrowseConfig() async {
+    try {
+      final response = await dio.get(
+        '${AppConfig.apiPrefix}/settings/library-browse',
+      );
+      return LibraryBrowseConfig.fromJson(
+        response.data as Map<String, dynamic>,
+      );
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  Future<LibraryBrowseConfig> updateLibraryBrowseConfig(
+    LibraryBrowseConfig config,
+  ) async {
+    try {
+      final response = await dio.put(
+        '${AppConfig.apiPrefix}/settings/library-browse',
+        data: config.toJson(),
+      );
+      return LibraryBrowseConfig.fromJson(
+        response.data as Map<String, dynamic>,
+      );
     } on DioException catch (e) {
       throw ApiException.fromDioException(e);
     }
