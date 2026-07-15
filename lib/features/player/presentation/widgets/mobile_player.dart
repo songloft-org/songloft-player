@@ -19,6 +19,7 @@ import '../../../dlna/presentation/widgets/cast_button.dart';
 import 'progress_bar.dart';
 import 'equalizer_panel.dart';
 import '../utils/player_song_actions.dart';
+import 'video_stage.dart';
 import 'vinyl_ring.dart';
 import 'volume_control.dart';
 
@@ -248,15 +249,20 @@ class _MobilePlayerState extends ConsumerState<MobilePlayer>
                             });
                           },
                           children: [
-                            // 页面1：封面（带唱片环旋转）
+                            // 页面1：视频歌曲渲染画面（支持的平台），否则封面（带唱片环旋转）
                             Center(
-                              child: VinylRing(
-                                rotationAnimation: _rotationController,
-                                child: _buildCover(
-                                  context,
-                                  coverUrl,
-                                  size.width * 0.75,
-                                  palette: palette,
+                              child: VideoStage(
+                                song: song,
+                                width: size.width * 0.75,
+                                height: size.width * 0.75,
+                                fallback: VinylRing(
+                                  rotationAnimation: _rotationController,
+                                  child: _buildCover(
+                                    context,
+                                    coverUrl,
+                                    size.width * 0.75,
+                                    palette: palette,
+                                  ),
                                 ),
                               ),
                             ),

@@ -17,6 +17,7 @@ import 'dart:math';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'config/app_config.dart';
+import 'core/audio/audio_backend.dart';
 import 'core/audio/audio_service.dart';
 import 'core/audio/smtc_service.dart';
 import 'core/audio/songloft_just_audio_platform.dart';
@@ -107,15 +108,18 @@ void main(List<String> args) async {
     }
   }
 
-  // Windows 和 Linux 平台需要 media_kit 作为 just_audio 的后端
-  // 必须在 AudioService.init() 之前调用
-  // 使用自定义 SongloftJustAudioPlatform 替代 JustAudioMediaKit，
-  // 以暴露 media_kit Player 实例供 EQ 均衡器设置 mpv 音频滤镜。
+  // just_audio 后端选择：使用 media_kit 的平台（Win/Linux 恒用；macOS/移动端由
+  // AudioBackend 的编译期开关决定，默认用各自原生后端）走自定义
+  // SongloftJustAudioPlatform，以暴露 media_kit Player 供 EQ 设置 mpv 滤镜、
+  // 并派生 VideoController 渲染视频画面（songloft-org/songloft#76）。
+  // 必须在 AudioService.init() 之前调用。
   if (!kIsWeb) {
     try {
-      if (Platform.isWindows || Platform.isLinux) {
+      if (AudioBackend.usesMediaKit) {
         SongloftJustAudioPlatform.register();
       } else {
+        // macOS/Android/iOS 默认分支：JustAudioMediaKit 在这些平台默认不接管，
+        // just_audio 回落到原生后端（AVPlayer / ExoPlayer）。
         JustAudioMediaKit.ensureInitialized();
       }
     } catch (e, stackTrace) {

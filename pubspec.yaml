@@ -29,6 +29,9 @@ dependencies:
   media_kit: any  # EQ 均衡器需要直接访问 NativePlayer 设置 mpv 音频滤镜
   media_kit_video: any  # 视频画面渲染（VideoController + Video widget，songloft-org/songloft#76）
   media_kit_libs_windows_video: any  # Windows 平台 media_kit 视频库（含视频输出，取代 audio 变体）
+  media_kit_libs_macos_video: any    # macOS media_kit 视频库（阶段三，AudioBackend 开关默认关）
+  media_kit_libs_ios_video: any      # iOS media_kit 视频库（阶段四，默认关）
+  media_kit_libs_android_video: any  # Android media_kit 视频库（阶段四，默认关）
   # Linux 走系统 libmpv（完整版，已支持视频输出），无需单独 libs 包
   audio_service: ^0.18.17
   audio_service_mpris: ^0.2.1  # Linux MPRIS 媒体键支持

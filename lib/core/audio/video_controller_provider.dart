@@ -1,21 +1,17 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
+import 'audio_backend.dart';
 import 'songloft_just_audio_platform.dart';
 
-/// 当前平台是否支持应用内视频画面渲染。
+/// 当前平台是否支持应用内视频画面渲染（基于 media_kit 后端派生 [VideoController]）。
 ///
-/// 阶段二（songloft-org/songloft#76）：仅桌面 Windows/Linux —— 它们通过
-/// [SongloftJustAudioPlatform] 使用 media_kit(libmpv) 后端，且已切换到含视频输出的
-/// libmpv（Windows 用 media_kit_libs_windows_video，Linux 用系统 libmpv）。
-/// macOS/Android/iOS/Web 走各自的纯音频后端，画面渲染在后续阶段接入，这里返回 false。
-bool get isInAppVideoSupported {
-  if (kIsWeb) return false;
-  return defaultTargetPlatform == TargetPlatform.windows ||
-      defaultTargetPlatform == TargetPlatform.linux;
-}
+/// 与音频后端绑定：只有实际使用 media_kit(libmpv) 后端的平台才能渲染画面。
+/// Windows/Linux 恒支持；macOS/Android/iOS 跟随 [AudioBackend] 的编译期开关
+/// （默认关，用原生后端 → 画面不可用，回退封面）；Web 走独立的 `<video>` 分流
+/// （见 features/player 的 web 视频组件），这里返回 false。
+bool get isInAppVideoSupported => AudioBackend.usesMediaKit;
 
 /// 视频画面控制器：对现有 media_kit [Player] 派生一个 [VideoController] 供 `Video` widget 渲染。
 ///
