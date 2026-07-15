@@ -1025,6 +1025,11 @@
   "playlistBack": "返回",
   "playlistSearch": "搜索",
   "playlistSearchHint": "搜索歌曲...",
+  "playlistListSearchHint": "搜索歌单 / 专辑...",
+  "playlistNoMatching": "未找到匹配的歌单",
+  "playlistTryOtherKeywords": "尝试其他关键词",
+  "playlistFilterNormal": "普通歌单",
+  "playlistFilterRadio": "电台歌单",
   "playlistMultiSelect": "多选",
   "playlistMore": "更多",
   "playlistDone": "完成",
@@ -2447,5 +2452,13 @@
   "categorySongCount": "{count} 首",
   "@categorySongCount": {
     "placeholders": { "count": { "type": "int" } }
+  },
+  "categorySearchHint": "搜索{label}…",
+  "@categorySearchHint": {
+    "placeholders": { "label": { "type": "String" } }
+  },
+  "categoryNoMatch": "未找到匹配的{label}",
+  "@categoryNoMatch": {
+    "placeholders": { "label": { "type": "String" } }
   }
 }

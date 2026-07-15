@@ -1,3 +1,4 @@
+import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:file_picker/file_picker.dart';
@@ -13,6 +14,7 @@ import '../../../core/utils/url_helper.dart';
 import '../../../shared/utils/responsive_snackbar.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/error_view.dart';
+import '../../../shared/widgets/filter_pill.dart';
 import '../../player/presentation/providers/player_provider.dart';
 import '../domain/playlist.dart';
 import 'providers/playlist_provider.dart';
@@ -47,6 +49,13 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
 
   late final ScrollController _scrollController;
 
+  /// 搜索输入控制器与防抖
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _searchDebounce;
+
+  /// 当前搜索关键词（跨类型切换时保持）
+  String _searchKeyword = '';
+
   @override
   void initState() {
     super.initState();
@@ -55,9 +64,43 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
+    _searchController.dispose();
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
+  }
+
+  /// 搜索输入变化（防抖 300ms 后触发）
+  void _onSearchChanged(String value) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 300), () {
+      _searchKeyword = value.trim();
+      ref
+          .read(playlistListProvider(_selectedType).notifier)
+          .search(_searchKeyword);
+    });
+  }
+
+  /// 清空搜索
+  void _clearSearch() {
+    _searchDebounce?.cancel();
+    _searchController.clear();
+    _searchKeyword = '';
+    ref.read(playlistListProvider(_selectedType).notifier).search('');
+  }
+
+  /// 切换类型筛选
+  void _onTypeChanged(String? type) {
+    if (_selectedType == type) return;
+    setState(() => _selectedType = type);
+    // 切换类型后，新的 family Notifier 以空关键词构建，
+    // 若当前处于搜索状态则重新应用关键词
+    if (_searchKeyword.isNotEmpty) {
+      ref
+          .read(playlistListProvider(_selectedType).notifier)
+          .search(_searchKeyword);
+    }
   }
 
   /// 滚动监听：接近底部时触发分页加载
@@ -128,7 +171,10 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
     if (mounted) {
       final l10n = AppLocalizations.of(context);
       if (success) {
-        ResponsiveSnackBar.showSuccess(context, message: l10n.playlistSortSaved);
+        ResponsiveSnackBar.showSuccess(
+          context,
+          message: l10n.playlistSortSaved,
+        );
       } else {
         ResponsiveSnackBar.showError(
           context,
@@ -185,9 +231,10 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
       if (success) {
         ResponsiveSnackBar.showSuccess(
           context,
-          message: ascending
-              ? l10n.playlistSortedByNameAsc
-              : l10n.playlistSortedByNameDesc,
+          message:
+              ascending
+                  ? l10n.playlistSortedByNameAsc
+                  : l10n.playlistSortedByNameDesc,
         );
       } else {
         ResponsiveSnackBar.showError(context, message: l10n.playlistSortFailed);
@@ -273,7 +320,6 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
   @override
   Widget build(BuildContext context) {
     final playlistsAsync = ref.watch(playlistListProvider(_selectedType));
-    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar:
@@ -285,91 +331,154 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
       body:
           _isSortMode
               ? _buildSortModeBody()
-              : RefreshIndicator(
-                onRefresh: () async {
-                  ref.invalidate(playlistListProvider(_selectedType));
-                },
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 1200),
-                    child: CustomScrollView(
-                  controller: _scrollController,
-                  slivers: [
-                    // 类型筛选
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: context.responsive<double>(
-                            mobile: AppSpacing.md,
-                            tablet: AppSpacing.lg,
-                            desktop: AppSpacing.xl,
-                            tv: AppSpacing.xxl,
-                          ),
-                          vertical: AppSpacing.md,
-                        ),
-                        child: SegmentedButton<String?>(
-                          segments: [
-                            ButtonSegment(
-                              value: null,
-                              label: Text(l10n.filterAll),
-                              icon: const Icon(Icons.list),
-                            ),
-                            ButtonSegment(
-                              value: AppConstants.playlistTypeNormal,
-                              label: Text(l10n.playlistTitle),
-                              icon: const Icon(Icons.queue_music),
-                            ),
-                            ButtonSegment(
-                              value: AppConstants.playlistTypeRadio,
-                              label: Text(l10n.songTypeRadio),
-                              icon: const Icon(Icons.radio),
-                            ),
-                          ],
-                          selected: {_selectedType},
-                          onSelectionChanged: (selected) {
-                            setState(() {
-                              _selectedType = selected.first;
-                            });
+              : Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1200),
+                  child: Column(
+                    children: [
+                      // 搜索栏（固定置顶，位于类型筛选上方，对齐曲库主页）
+                      _buildSearchBar(context),
+                      Expanded(
+                        child: RefreshIndicator(
+                          onRefresh: () async {
+                            ref.invalidate(playlistListProvider(_selectedType));
                           },
+                          child: CustomScrollView(
+                            controller: _scrollController,
+                            slivers: [
+                              // 类型筛选
+                              SliverToBoxAdapter(
+                                child: _buildTypeFilter(context),
+                              ),
+
+                              // 歌单列表
+                              playlistsAsync.when(
+                                data:
+                                    (state) => _buildPlaylistContent(
+                                      context,
+                                      state.items,
+                                    ),
+                                loading:
+                                    () => const SliverToBoxAdapter(
+                                      child: Padding(
+                                        padding: EdgeInsets.all(64),
+                                        child: Center(
+                                          child: CircularProgressIndicator(),
+                                        ),
+                                      ),
+                                    ),
+                                error:
+                                    (error, stack) => SliverToBoxAdapter(
+                                      child: _buildErrorContent(
+                                        error.toString(),
+                                      ),
+                                    ),
+                              ),
+
+                              // 加载更多指示器（仅在 hasMore 或 isLoadingMore 时显示）
+                              if (playlistsAsync.value != null)
+                                SliverToBoxAdapter(
+                                  child: _buildLoadMoreIndicator(
+                                    playlistsAsync.value!,
+                                  ),
+                                ),
+
+                              // 底部安全区域
+                              SliverToBoxAdapter(
+                                child: SizedBox(
+                                  height:
+                                      MediaQuery.of(context).padding.bottom +
+                                      80,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-
-                    // 歌单列表
-                    playlistsAsync.when(
-                      data:
-                          (state) =>
-                              _buildPlaylistContent(context, state.items),
-                      loading:
-                          () => const SliverToBoxAdapter(
-                            child: Padding(
-                              padding: EdgeInsets.all(64),
-                              child: Center(child: CircularProgressIndicator()),
-                            ),
-                          ),
-                      error:
-                          (error, stack) => SliverToBoxAdapter(
-                            child: _buildErrorContent(error.toString()),
-                          ),
-                    ),
-
-                    // 加载更多指示器（仅在 hasMore 或 isLoadingMore 时显示）
-                    if (playlistsAsync.value != null)
-                      SliverToBoxAdapter(
-                        child: _buildLoadMoreIndicator(playlistsAsync.value!),
-                      ),
-
-                    // 底部安全区域
-                    SliverToBoxAdapter(
-                      child: SizedBox(
-                        height: MediaQuery.of(context).padding.bottom + 80,
-                      ),
-                    ),
-                  ],
-                ),
+                    ],
                   ),
                 ),
               ),
+    );
+  }
+
+  /// 构建搜索栏
+  Widget _buildSearchBar(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final horizontalPadding = context.responsive<double>(
+      mobile: AppSpacing.md,
+      tablet: AppSpacing.lg,
+      desktop: AppSpacing.xl,
+      tv: AppSpacing.xxl,
+    );
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        horizontalPadding,
+        AppSpacing.md,
+        horizontalPadding,
+        0,
+      ),
+      child: TextField(
+        controller: _searchController,
+        decoration: InputDecoration(
+          hintText: l10n.playlistListSearchHint,
+          prefixIcon: const Icon(Icons.search),
+          suffixIcon:
+              _searchController.text.isNotEmpty
+                  ? IconButton(
+                    icon: const Icon(Icons.clear),
+                    tooltip: l10n.clearSearch,
+                    onPressed: _clearSearch,
+                  )
+                  : null,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppRadius.xl),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+        ),
+        onChanged: (value) {
+          // 更新 suffixIcon 显隐
+          setState(() {});
+          _onSearchChanged(value);
+        },
+      ),
+    );
+  }
+
+  /// 构建类型筛选栏（药丸形 Chip，与曲库筛选栏一致）
+  Widget _buildTypeFilter(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final horizontalPadding = context.responsive<double>(
+      mobile: AppSpacing.md,
+      tablet: AppSpacing.lg,
+      desktop: AppSpacing.xl,
+      tv: AppSpacing.xxl,
+    );
+    final types = <(String?, String)>[
+      (null, l10n.filterAll),
+      (AppConstants.playlistTypeNormal, l10n.playlistFilterNormal),
+      (AppConstants.playlistTypeRadio, l10n.playlistFilterRadio),
+    ];
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: horizontalPadding,
+        vertical: AppSpacing.sm,
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            for (var i = 0; i < types.length; i++) ...[
+              if (i > 0) const SizedBox(width: 8),
+              FilterPill(
+                label: types[i].$2,
+                isSelected: _selectedType == types[i].$1,
+                onTap: () => _onTypeChanged(types[i].$1),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 
@@ -525,12 +634,12 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
                   value: 'toggle_hidden',
                   child: ListTile(
                     leading: Icon(
-                      _showHidden
-                          ? Icons.visibility_off
-                          : Icons.visibility,
+                      _showHidden ? Icons.visibility_off : Icons.visibility,
                     ),
                     title: Text(
-                      _showHidden ? l10n.playlistHideHidden : l10n.playlistShowHidden,
+                      _showHidden
+                          ? l10n.playlistHideHidden
+                          : l10n.playlistShowHidden,
                     ),
                     contentPadding: EdgeInsets.zero,
                   ),
@@ -606,7 +715,8 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
                                 fit: BoxFit.cover,
                                 placeholder:
                                     (context, url) => Container(
-                                      color: colorScheme.surfaceContainerHighest,
+                                      color:
+                                          colorScheme.surfaceContainerHighest,
                                       child: Icon(
                                         Icons.queue_music,
                                         size: 24,
@@ -616,7 +726,8 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
                                     ),
                                 errorWidget:
                                     (context, url, error) => Container(
-                                      color: colorScheme.surfaceContainerHighest,
+                                      color:
+                                          colorScheme.surfaceContainerHighest,
                                       child: Icon(
                                         Icons.queue_music,
                                         size: 24,
@@ -867,10 +978,12 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
 
   Widget _buildEmptyContent() {
     final l10n = AppLocalizations.of(context);
+    final isSearching = _searchKeyword.isNotEmpty;
     return EmptyState(
-      icon: Icons.queue_music_outlined,
-      title: l10n.noPlaylists,
-      subtitle: l10n.playlistEmptyHint,
+      icon: isSearching ? Icons.search_off : Icons.queue_music_outlined,
+      title: isSearching ? l10n.playlistNoMatching : l10n.noPlaylists,
+      subtitle:
+          isSearching ? l10n.playlistTryOtherKeywords : l10n.playlistEmptyHint,
     );
   }
 
@@ -910,9 +1023,10 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
       context: context,
       builder:
           (context) => PlaylistFormDialog(
-            title: playlist.isBuiltIn
-                ? l10n.playlistEditCover
-                : l10n.playlistEditPlaylist,
+            title:
+                playlist.isBuiltIn
+                    ? l10n.playlistEditCover
+                    : l10n.playlistEditPlaylist,
             initialName: playlist.name,
             initialDescription: playlist.description,
             initialType: playlist.type,
@@ -941,7 +1055,10 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
           fileName: localFile.name,
         );
         if (uploadedPlaylist == null && mounted) {
-          ResponsiveSnackBar.showError(context, message: l10n.playlistCoverUploadFailed);
+          ResponsiveSnackBar.showError(
+            context,
+            message: l10n.playlistCoverUploadFailed,
+          );
           return;
         }
         // 更新其他信息，同时传递封面信息防止被后端覆盖
@@ -954,7 +1071,10 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
         );
 
         if (updated != null && mounted) {
-          ResponsiveSnackBar.showSuccess(context, message: l10n.playlistUpdated);
+          ResponsiveSnackBar.showSuccess(
+            context,
+            message: l10n.playlistUpdated,
+          );
         }
       } else if (coverMode == 'song' && selectedCoverSongId != null) {
         // 从歌曲选择的封面
@@ -966,7 +1086,10 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
         );
 
         if (updated != null && mounted) {
-          ResponsiveSnackBar.showSuccess(context, message: l10n.playlistUpdated);
+          ResponsiveSnackBar.showSuccess(
+            context,
+            message: l10n.playlistUpdated,
+          );
         }
       } else if (coverMode == 'clear') {
         // 清除封面
@@ -979,7 +1102,10 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
         );
 
         if (updated != null && mounted) {
-          ResponsiveSnackBar.showSuccess(context, message: l10n.playlistUpdated);
+          ResponsiveSnackBar.showSuccess(
+            context,
+            message: l10n.playlistUpdated,
+          );
         }
       } else {
         // 未修改封面
@@ -990,7 +1116,10 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
         );
 
         if (updated != null && mounted) {
-          ResponsiveSnackBar.showSuccess(context, message: l10n.playlistUpdated);
+          ResponsiveSnackBar.showSuccess(
+            context,
+            message: l10n.playlistUpdated,
+          );
         }
       }
     }
@@ -1037,7 +1166,10 @@ class _PlaylistsPageState extends ConsumerState<PlaylistsPage> {
             message: l10n.playlistDeletedCount(deleted),
           );
         } else {
-          ResponsiveSnackBar.showError(context, message: l10n.playlistDeleteFailed);
+          ResponsiveSnackBar.showError(
+            context,
+            message: l10n.playlistDeleteFailed,
+          );
         }
         setState(() {
           _isSelectionMode = false;

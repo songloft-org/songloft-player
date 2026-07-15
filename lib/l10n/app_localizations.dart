@@ -2924,6 +2924,36 @@ abstract class AppLocalizations {
   /// **'搜索歌曲...'**
   String get playlistSearchHint;
 
+  /// No description provided for @playlistListSearchHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索歌单 / 专辑...'**
+  String get playlistListSearchHint;
+
+  /// No description provided for @playlistNoMatching.
+  ///
+  /// In zh, this message translates to:
+  /// **'未找到匹配的歌单'**
+  String get playlistNoMatching;
+
+  /// No description provided for @playlistTryOtherKeywords.
+  ///
+  /// In zh, this message translates to:
+  /// **'尝试其他关键词'**
+  String get playlistTryOtherKeywords;
+
+  /// No description provided for @playlistFilterNormal.
+  ///
+  /// In zh, this message translates to:
+  /// **'普通歌单'**
+  String get playlistFilterNormal;
+
+  /// No description provided for @playlistFilterRadio.
+  ///
+  /// In zh, this message translates to:
+  /// **'电台歌单'**
+  String get playlistFilterRadio;
+
   /// No description provided for @playlistMultiSelect.
   ///
   /// In zh, this message translates to:
@@ -6474,6 +6504,18 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'{count} 首'**
   String categorySongCount(int count);
+
+  /// No description provided for @categorySearchHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索{label}…'**
+  String categorySearchHint(String label);
+
+  /// No description provided for @categoryNoMatch.
+  ///
+  /// In zh, this message translates to:
+  /// **'未找到匹配的{label}'**
+  String categoryNoMatch(String label);
 }
 
 class _AppLocalizationsDelegate

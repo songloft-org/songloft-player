@@ -41,12 +41,16 @@ class PaginatedPlaylistsState {
   /// 加载下一页时发生的错误（仅追加加载阶段，初次加载错误走 AsyncValue.error）
   final Object? loadMoreError;
 
+  /// 当前搜索关键词（空表示未搜索）
+  final String keyword;
+
   const PaginatedPlaylistsState({
     this.items = const [],
     this.totalCount = 0,
     this.hasMore = false,
     this.isLoadingMore = false,
     this.loadMoreError,
+    this.keyword = '',
   });
 
   PaginatedPlaylistsState copyWith({
@@ -56,6 +60,7 @@ class PaginatedPlaylistsState {
     bool? isLoadingMore,
     Object? loadMoreError,
     bool clearError = false,
+    String? keyword,
   }) {
     return PaginatedPlaylistsState(
       items: items ?? this.items,
@@ -63,6 +68,7 @@ class PaginatedPlaylistsState {
       hasMore: hasMore ?? this.hasMore,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       loadMoreError: clearError ? null : (loadMoreError ?? this.loadMoreError),
+      keyword: keyword ?? this.keyword,
     );
   }
 }
@@ -133,6 +139,9 @@ class PaginatedPlaylistsNotifier
   /// 排除的标签（默认 null，让后端默认排除 hidden）
   String? _excludeLabels;
 
+  /// 当前搜索关键词（空表示未搜索）
+  String _keyword = '';
+
   /// 每页大小
   static const int pageLimit = 30;
 
@@ -142,6 +151,7 @@ class PaginatedPlaylistsNotifier
     final response = await repository.getPlaylists(
       type: _typeArg,
       excludeLabels: _excludeLabels,
+      keyword: _keyword,
       limit: pageLimit,
       offset: 0,
     );
@@ -150,12 +160,22 @@ class PaginatedPlaylistsNotifier
       totalCount: response.total,
       hasMore: response.playlists.length >= pageLimit,
       isLoadingMore: false,
+      keyword: _keyword,
     );
   }
 
   /// 设置排除标签并刷新列表
   Future<void> setExcludeLabels(String? excludeLabels) async {
     _excludeLabels = excludeLabels;
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() => build());
+  }
+
+  /// 按关键词搜索歌单（匹配名称/描述），清空列表并重新加载首页
+  Future<void> search(String keyword) async {
+    final trimmed = keyword.trim();
+    if (trimmed == _keyword) return;
+    _keyword = trimmed;
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() => build());
   }
@@ -175,6 +195,7 @@ class PaginatedPlaylistsNotifier
       final response = await repository.getPlaylists(
         type: _typeArg,
         excludeLabels: _excludeLabels,
+        keyword: _keyword,
         limit: pageLimit,
         offset: current.items.length,
       );

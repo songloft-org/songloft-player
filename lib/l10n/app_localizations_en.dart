@@ -1607,6 +1607,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playlistSearchHint => 'Search songs...';
 
   @override
+  String get playlistListSearchHint => 'Search playlists / albums...';
+
+  @override
+  String get playlistNoMatching => 'No matching playlists found';
+
+  @override
+  String get playlistTryOtherKeywords => 'Try other keywords';
+
+  @override
+  String get playlistFilterNormal => 'Playlists';
+
+  @override
+  String get playlistFilterRadio => 'Radios';
+
+  @override
   String get playlistMultiSelect => 'Multi-select';
 
   @override
@@ -3746,5 +3761,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String categorySongCount(int count) {
     return '$count songs';
+  }
+
+  @override
+  String categorySearchHint(String label) {
+    return 'Search $label…';
+  }
+
+  @override
+  String categoryNoMatch(String label) {
+    return 'No matching $label found';
   }
 }

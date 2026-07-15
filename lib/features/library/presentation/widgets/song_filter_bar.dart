@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../config/constants.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../shared/widgets/filter_pill.dart';
 
 /// 歌曲类型筛选栏
 class SongFilterBar extends StatelessWidget {
@@ -32,25 +33,25 @@ class SongFilterBar extends StatelessWidget {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  _FilterChip(
+                  FilterPill(
                     label: l10n.filterAll,
                     isSelected: currentType == null,
                     onTap: () => onTypeChanged(null),
                   ),
                   const SizedBox(width: 8),
-                  _FilterChip(
+                  FilterPill(
                     label: l10n.songTypeLocal,
                     isSelected: currentType == AppConstants.songTypeLocal,
                     onTap: () => onTypeChanged(AppConstants.songTypeLocal),
                   ),
                   const SizedBox(width: 8),
-                  _FilterChip(
+                  FilterPill(
                     label: l10n.songTypeRemote,
                     isSelected: currentType == AppConstants.songTypeRemote,
                     onTap: () => onTypeChanged(AppConstants.songTypeRemote),
                   ),
                   const SizedBox(width: 8),
-                  _FilterChip(
+                  FilterPill(
                     label: l10n.songTypeRadio,
                     isSelected: currentType == AppConstants.songTypeRadio,
                     onTap: () => onTypeChanged(AppConstants.songTypeRadio),
@@ -71,62 +72,6 @@ class SongFilterBar extends StatelessWidget {
               ),
             ),
         ],
-      ),
-    );
-  }
-}
-
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _FilterChip({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Material(
-      color: isSelected ? colorScheme.secondaryContainer : Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(100),
-        side: isSelected
-            ? BorderSide.none
-            : BorderSide(color: colorScheme.outline),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(100),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (isSelected) ...[
-                Icon(
-                  Icons.check,
-                  size: 16,
-                  color: colorScheme.onSecondaryContainer,
-                ),
-                const SizedBox(width: 4),
-              ],
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: isSelected
-                      ? colorScheme.onSecondaryContainer
-                      : colorScheme.onSurfaceVariant,
-                  fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

@@ -1570,6 +1570,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get playlistSearchHint => '搜索歌曲...';
 
   @override
+  String get playlistListSearchHint => '搜索歌单 / 专辑...';
+
+  @override
+  String get playlistNoMatching => '未找到匹配的歌单';
+
+  @override
+  String get playlistTryOtherKeywords => '尝试其他关键词';
+
+  @override
+  String get playlistFilterNormal => '普通歌单';
+
+  @override
+  String get playlistFilterRadio => '电台歌单';
+
+  @override
   String get playlistMultiSelect => '多选';
 
   @override
@@ -3598,5 +3613,15 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String categorySongCount(int count) {
     return '$count 首';
+  }
+
+  @override
+  String categorySearchHint(String label) {
+    return '搜索$label…';
+  }
+
+  @override
+  String categoryNoMatch(String label) {
+    return '未找到匹配的$label';
   }
 }

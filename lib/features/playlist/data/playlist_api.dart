@@ -13,10 +13,11 @@ class PlaylistApi {
   PlaylistApi(this.dio);
 
   /// 获取歌单列表
-  /// GET /api/v1/playlists?type=normal&limit=20&offset=0
+  /// GET /api/v1/playlists?type=normal&keyword=&limit=20&offset=0
   Future<PlaylistListResponse> getPlaylists({
     String? type,
     String? excludeLabels,
+    String? keyword,
     int limit = 20,
     int offset = 0,
   }) async {
@@ -26,6 +27,9 @@ class PlaylistApi {
     }
     if (excludeLabels != null) {
       queryParams['exclude_labels'] = excludeLabels;
+    }
+    if (keyword != null && keyword.isNotEmpty) {
+      queryParams['keyword'] = keyword;
     }
 
     final response = await dio.get(

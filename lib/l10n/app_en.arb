@@ -920,6 +920,11 @@
   "playlistBack": "Back",
   "playlistSearch": "Search",
   "playlistSearchHint": "Search songs...",
+  "playlistListSearchHint": "Search playlists / albums...",
+  "playlistNoMatching": "No matching playlists found",
+  "playlistTryOtherKeywords": "Try other keywords",
+  "playlistFilterNormal": "Playlists",
+  "playlistFilterRadio": "Radios",
   "playlistMultiSelect": "Multi-select",
   "playlistMore": "More",
   "playlistDone": "Done",
@@ -2342,5 +2347,13 @@
   "categorySongCount": "{count} songs",
   "@categorySongCount": {
     "placeholders": { "count": { "type": "int" } }
+  },
+  "categorySearchHint": "Search {label}…",
+  "@categorySearchHint": {
+    "placeholders": { "label": { "type": "String" } }
+  },
+  "categoryNoMatch": "No matching {label} found",
+  "@categoryNoMatch": {
+    "placeholders": { "label": { "type": "String" } }
   }
 }

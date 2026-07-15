@@ -18,6 +18,7 @@ class PlaylistRepository {
   Future<PlaylistListResponse> getPlaylists({
     String? type,
     String? excludeLabels,
+    String? keyword,
     int limit = 20,
     int offset = 0,
   }) async {
@@ -25,6 +26,7 @@ class PlaylistRepository {
       return await playlistApi.getPlaylists(
         type: type,
         excludeLabels: excludeLabels,
+        keyword: keyword,
         limit: limit,
         offset: offset,
       );

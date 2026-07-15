@@ -8,6 +8,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../shared/models/song.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/error_view.dart';
+import '../../../shared/widgets/filter_pill.dart';
 import 'providers/category_provider.dart';
 
 /// 分类总览页：顶部切换维度，下方展示该维度所有取值卡片（含歌曲数）。
@@ -22,6 +23,37 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage> {
   /// 当前选中的维度字段（默认第一个：流派）
   String _field = categoryFields.first;
 
+  /// 分类取值搜索关键词（客户端过滤，实时生效）
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  /// 切换维度：清空搜索，不同维度取值空间不同，保留旧关键词会造成困惑。
+  void _onFieldChanged(String field) {
+    setState(() {
+      _field = field;
+      _searchController.clear();
+      _searchQuery = '';
+    });
+  }
+
+  /// 客户端过滤：按显示文案 + 原始取值做大小写不敏感子串匹配。
+  /// facets 已由 FutureProvider 全量加载到内存，过滤零网络开销、即时响应。
+  List<SongFacet> _filterFacets(List<SongFacet> facets) {
+    final query = _searchQuery.trim().toLowerCase();
+    if (query.isEmpty) return facets;
+    final l10n = AppLocalizations.of(context);
+    return facets.where((f) {
+      final label = categoryValueLabel(l10n, _field, f.value).toLowerCase();
+      return label.contains(query) || f.value.toLowerCase().contains(query);
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final facetsAsync = ref.watch(facetsProvider(_field));
@@ -31,19 +63,62 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage> {
       appBar: AppBar(title: Text(l10n.categoryBrowseTitle)),
       body: Column(
         children: [
+          // 搜索栏（固定置顶，位于维度筛选上方，对齐曲库主页）
+          _buildSearchBar(context),
           // 维度切换（横向滚动 Chip 行）
           _buildDimensionSelector(context),
           const Divider(height: 1),
-          // 取值清单
+          // 取值清单（客户端按关键词过滤）
           Expanded(
             child: facetsAsync.when(
-              data: (facets) => _buildFacetGrid(context, facets),
-              loading:
-                  () => const Center(child: CircularProgressIndicator()),
+              data: (facets) => _buildFacetGrid(context, _filterFacets(facets)),
+              loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, stack) => _buildError(context, error.toString()),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSearchBar(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final fieldLabel = categoryFieldLabel(l10n, _field);
+    final horizontalPadding = context.responsive<double>(
+      mobile: AppSpacing.md,
+      tablet: AppSpacing.lg,
+      desktop: AppSpacing.xl,
+      tv: AppSpacing.xxl,
+    );
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        horizontalPadding,
+        AppSpacing.sm,
+        horizontalPadding,
+        0,
+      ),
+      child: TextField(
+        controller: _searchController,
+        decoration: InputDecoration(
+          hintText: l10n.categorySearchHint(fieldLabel),
+          prefixIcon: const Icon(Icons.search),
+          suffixIcon:
+              _searchQuery.isNotEmpty
+                  ? IconButton(
+                    icon: const Icon(Icons.clear),
+                    tooltip: l10n.clearSearch,
+                    onPressed: () {
+                      _searchController.clear();
+                      setState(() => _searchQuery = '');
+                    },
+                  )
+                  : null,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppRadius.xl),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+        ),
+        onChanged: (value) => setState(() => _searchQuery = value),
       ),
     );
   }
@@ -64,17 +139,13 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage> {
       ),
       child: Row(
         children: [
-          for (final field in categoryFields) ...[
-            ChoiceChip(
-              label: Text(categoryFieldLabel(l10n, field)),
-              selected: _field == field,
-              onSelected: (selected) {
-                if (selected && _field != field) {
-                  setState(() => _field = field);
-                }
-              },
+          for (var i = 0; i < categoryFields.length; i++) ...[
+            if (i > 0) const SizedBox(width: AppSpacing.sm),
+            FilterPill(
+              label: categoryFieldLabel(l10n, categoryFields[i]),
+              isSelected: _field == categoryFields[i],
+              onTap: () => _onFieldChanged(categoryFields[i]),
             ),
-            const SizedBox(width: AppSpacing.sm),
           ],
         ],
       ),
@@ -145,9 +216,18 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage> {
 
   Widget _buildEmpty(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final fieldLabel = categoryFieldLabel(l10n, _field);
+    // 有关键词但过滤后为空 → 无匹配结果；否则该维度本身无数据。
+    if (_searchQuery.trim().isNotEmpty) {
+      return EmptyState(
+        icon: Icons.search_off,
+        title: l10n.categoryNoMatch(fieldLabel),
+        subtitle: l10n.libraryTryOtherKeywords,
+      );
+    }
     return EmptyState(
       icon: Icons.label_off_outlined,
-      title: l10n.categoryEmptyTitle(categoryFieldLabel(l10n, _field)),
+      title: l10n.categoryEmptyTitle(fieldLabel),
       subtitle: l10n.categoryEmptySubtitle,
     );
   }
@@ -213,10 +293,7 @@ class _FacetCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(
-                Icons.chevron_right,
-                color: colorScheme.onSurfaceVariant,
-              ),
+              Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
             ],
           ),
         ),
