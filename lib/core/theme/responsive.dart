@@ -46,11 +46,11 @@ extension ResponsiveContext on BuildContext {
   /// 是否是宽屏（平板以上）
   bool get isWideScreen => screenWidth >= ResponsiveBreakpoints.tablet;
 
-  /// 全站统一的双栏（主从）布局判断：平板及以上的常规宽屏，排除 TV（遥控器
-  /// 焦点导航走单栏更友好）与车机超宽比（isAuto）。所有需要「左右分栏 vs 单列」
-  /// 分叉的页面都应引用此 getter，避免各处各写断点组合导致漂移
-  /// (songloft-org/songloft#268)。
-  bool get useWideLayout => isWideScreen && !isTv && !isAuto;
+  /// 全站统一的双栏（主从）布局判断：平板及以上的常规宽屏（含超宽屏 isAuto），
+  /// 仅排除 TV（遥控器焦点导航走单栏更友好）。超宽屏（桌面超宽显示器 / 车机横屏）
+  /// 空间充裕，采用桌面两栏更合理。所有需要「左右分栏 vs 单列」分叉的页面都应引用
+  /// 此 getter，避免各处各写断点组合导致漂移 (songloft-org/songloft#268)。
+  bool get useWideLayout => isWideScreen && !isTv;
 
   /// 根据屏幕类型返回不同值
   T responsive<T>({

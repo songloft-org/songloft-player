@@ -16,6 +16,8 @@ import '../../../shared/widgets/error_view.dart';
 import '../../settings/data/settings_api.dart';
 import '../../settings/presentation/providers/settings_provider.dart';
 import '../../player/presentation/providers/player_provider.dart';
+import '../../playlist/presentation/providers/playlist_view_provider.dart';
+import '../../playlist/presentation/widgets/playlist_browse_view.dart';
 import 'providers/songs_provider.dart';
 import 'song_edit_page.dart';
 import 'widgets/facet_grid_view.dart';
@@ -103,8 +105,42 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
   void _enterEditMode(LibraryBrowseConfig config) {
     setState(() {
       _editMode = true;
-      _draftViews = List.of(config.views);
+      // 规整为按组连续的顺序（组内保留配置相对顺序），保证编辑与保存都是分组视图。
+      _draftViews = _groupedFlatten(config.views);
     });
+  }
+
+  /// 按固定组顺序（歌曲→分类→歌单）铺平，组内保留传入相对顺序。
+  List<LibraryViewEntry> _groupedFlatten(List<LibraryViewEntry> entries) {
+    final buckets = _groupDrafts(entries);
+    return [
+      for (final g in LibraryViewGroup.values) ...buckets[g]!,
+    ];
+  }
+
+  Map<LibraryViewGroup, List<LibraryViewEntry>> _groupDrafts(
+    List<LibraryViewEntry> entries,
+  ) {
+    final buckets = <LibraryViewGroup, List<LibraryViewEntry>>{
+      LibraryViewGroup.songs: [],
+      LibraryViewGroup.facets: [],
+      LibraryViewGroup.playlists: [],
+    };
+    for (final e in entries) {
+      buckets[libraryViewGroup(e.key)]!.add(e);
+    }
+    return buckets;
+  }
+
+  String _groupLabel(AppLocalizations l10n, LibraryViewGroup group) {
+    switch (group) {
+      case LibraryViewGroup.songs:
+        return l10n.libraryViewGroupSongs;
+      case LibraryViewGroup.facets:
+        return l10n.libraryViewGroupCategories;
+      case LibraryViewGroup.playlists:
+        return l10n.libraryViewGroupPlaylists;
+    }
   }
 
   Future<void> _saveEdit() async {
@@ -222,6 +258,13 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
     }
     if (isFlatLibraryView(selected)) {
       return _buildFlatContent(context, state);
+    }
+    if (isPlaylistLibraryView(selected)) {
+      // 歌单视图：嵌入自包含的歌单浏览视图（type 由视图 key 决定）。
+      return PlaylistBrowseView(
+        key: ValueKey('playlist-$selected'),
+        typeFilter: playlistViewType(selected),
+      );
     }
     // 分类聚合视图：facet 卡片网格（key 按维度隔离，切换维度重建为全新状态）。
     return FacetGridView(key: ValueKey('facet-$selected'), field: selected);
@@ -352,6 +395,9 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
     }
 
     final isFlat = selected != null && isFlatLibraryView(selected);
+    final isFacet = selected != null &&
+        !isFlatLibraryView(selected) &&
+        !isPlaylistLibraryView(selected);
 
     return AppBar(
       title: Text(l10n.libraryTitle),
@@ -371,8 +417,23 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
             },
           ),
         ],
-        _buildMoreMenu(context, state, config),
+        // 分类视图（歌手/专辑等）：grid/list 切换（与歌单页共享视图模式偏好）。
+        if (isFacet) _buildViewModeToggle(context),
+        _buildMoreMenu(context, state, config, isFlat),
       ],
+    );
+  }
+
+  Widget _buildViewModeToggle(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final isGrid = ref.watch(playlistViewModeProvider) == PlaylistViewMode.grid;
+    return IconButton(
+      icon: Icon(isGrid ? Icons.view_list : Icons.grid_view),
+      tooltip: isGrid
+          ? l10n.playlistSwitchToListView
+          : l10n.playlistSwitchToGridView,
+      onPressed: () =>
+          ref.read(playlistViewModeProvider.notifier).toggleViewMode(),
     );
   }
 
@@ -431,6 +492,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
     BuildContext context,
     SongsListState state,
     LibraryBrowseConfig config,
+    bool isFlat,
   ) {
     final l10n = AppLocalizations.of(context);
     return PopupMenuButton<String>(
@@ -453,45 +515,48 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
         }
       },
       itemBuilder: (context) => [
-        PopupMenuItem(
-          value: 'add_remote',
-          child: ListTile(
-            leading: const Icon(Icons.cloud),
-            title: Text(l10n.libraryAddRemoteSong),
-            contentPadding: EdgeInsets.zero,
-          ),
-        ),
-        PopupMenuItem(
-          value: 'add_radio',
-          child: ListTile(
-            leading: const Icon(Icons.radio),
-            title: Text(l10n.libraryAddRadio),
-            contentPadding: EdgeInsets.zero,
-          ),
-        ),
-        PopupMenuItem(
-          value: 'toggle_hidden',
-          child: ListTile(
-            leading: Icon(
-              state.showHidden ? Icons.visibility_off : Icons.visibility,
+        // 歌曲管理项仅在扁平歌曲视图下有意义。
+        if (isFlat) ...[
+          PopupMenuItem(
+            value: 'add_remote',
+            child: ListTile(
+              leading: const Icon(Icons.cloud),
+              title: Text(l10n.libraryAddRemoteSong),
+              contentPadding: EdgeInsets.zero,
             ),
-            title: Text(
-              state.showHidden
-                  ? l10n.libraryHideHiddenSongs
-                  : l10n.libraryShowHiddenSongs,
+          ),
+          PopupMenuItem(
+            value: 'add_radio',
+            child: ListTile(
+              leading: const Icon(Icons.radio),
+              title: Text(l10n.libraryAddRadio),
+              contentPadding: EdgeInsets.zero,
             ),
-            contentPadding: EdgeInsets.zero,
           ),
-        ),
-        PopupMenuItem(
-          value: 'clean',
-          child: ListTile(
-            leading: const Icon(Icons.cleaning_services),
-            title: Text(l10n.libraryCleanInvalidSongs),
-            contentPadding: EdgeInsets.zero,
+          PopupMenuItem(
+            value: 'toggle_hidden',
+            child: ListTile(
+              leading: Icon(
+                state.showHidden ? Icons.visibility_off : Icons.visibility,
+              ),
+              title: Text(
+                state.showHidden
+                    ? l10n.libraryHideHiddenSongs
+                    : l10n.libraryShowHiddenSongs,
+              ),
+              contentPadding: EdgeInsets.zero,
+            ),
           ),
-        ),
-        const PopupMenuDivider(),
+          PopupMenuItem(
+            value: 'clean',
+            child: ListTile(
+              leading: const Icon(Icons.cleaning_services),
+              title: Text(l10n.libraryCleanInvalidSongs),
+              contentPadding: EdgeInsets.zero,
+            ),
+          ),
+          const PopupMenuDivider(),
+        ],
         PopupMenuItem(
           value: 'customize_views',
           child: ListTile(
@@ -513,52 +578,89 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
       tablet: AppSpacing.lg,
       desktop: AppSpacing.xl,
     );
+    final buckets = _groupDrafts(_draftViews);
+
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 720),
-        child: ReorderableListView.builder(
+        child: ListView(
           padding: EdgeInsets.symmetric(
             horizontal: horizontalPadding,
             vertical: AppSpacing.sm,
           ),
-          buildDefaultDragHandles: false,
-          itemCount: _draftViews.length,
-          onReorder: (oldIndex, newIndex) {
-            setState(() {
-              if (newIndex > oldIndex) newIndex--;
-              final item = _draftViews.removeAt(oldIndex);
-              _draftViews.insert(newIndex, item);
-            });
-          },
-          itemBuilder: (context, index) {
-            final v = _draftViews[index];
-            return ListTile(
-              key: ValueKey(v.key),
-              leading: Icon(libraryViewIcon(v.key)),
-              title: Text(libraryViewLabel(l10n, v.key)),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Switch(
-                    value: v.visible,
-                    onChanged: (val) {
-                      setState(() {
-                        _draftViews[index] = v.copyWith(visible: val);
-                      });
-                    },
+          children: [
+            for (final group in LibraryViewGroup.values) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.sm,
+                  AppSpacing.md,
+                  AppSpacing.sm,
+                  AppSpacing.xs,
+                ),
+                child: Text(
+                  _groupLabel(l10n, group),
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
                   ),
-                  const SizedBox(width: AppSpacing.sm),
-                  ReorderableDragStartListener(
-                    index: index,
-                    child: const Icon(Icons.drag_handle),
-                  ),
-                ],
+                ),
               ),
-            );
-          },
+              ReorderableListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                buildDefaultDragHandles: false,
+                itemCount: buckets[group]!.length,
+                onReorder: (oldIndex, newIndex) =>
+                    _reorderInGroup(group, oldIndex, newIndex),
+                itemBuilder: (context, index) {
+                  final v = buckets[group]![index];
+                  return ListTile(
+                    key: ValueKey(v.key),
+                    leading: Icon(libraryViewIcon(v.key)),
+                    title: Text(libraryViewLabel(l10n, v.key)),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Switch(
+                          value: v.visible,
+                          onChanged: (val) => _setDraftVisible(v.key, val),
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        ReorderableDragStartListener(
+                          index: index,
+                          child: const Icon(Icons.drag_handle),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ],
+          ],
         ),
       ),
     );
+  }
+
+  void _reorderInGroup(LibraryViewGroup group, int oldIndex, int newIndex) {
+    setState(() {
+      final buckets = _groupDrafts(_draftViews);
+      final list = buckets[group]!;
+      if (newIndex > oldIndex) newIndex--;
+      final item = list.removeAt(oldIndex);
+      list.insert(newIndex, item);
+      _draftViews = [
+        for (final g in LibraryViewGroup.values) ...buckets[g]!,
+      ];
+    });
+  }
+
+  void _setDraftVisible(String key, bool visible) {
+    setState(() {
+      _draftViews = [
+        for (final e in _draftViews)
+          if (e.key == key) e.copyWith(visible: visible) else e,
+      ];
+    });
   }
 
   PopupMenuItem<String> _buildLibrarySortItem({

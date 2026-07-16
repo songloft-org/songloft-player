@@ -123,14 +123,9 @@ class _ShellLayoutState extends ConsumerState<ShellLayout> {
       return activeDest.routeToIndex[location]!;
     }
 
-    // 前缀匹配（处理子路由情况，如 /playlists/:id）
-    if (location.startsWith('/playlists')) {
-      final idx = activeDest.routeToIndex['/playlists'];
-      if (idx != null) return idx;
-    }
-
-    // 曲库子路由（如 /library/categories...）归属「曲库」
-    if (location.startsWith('/library')) {
+    // 歌单已并入曲库：歌单列表/详情（/playlists、/playlists/:id）归属「曲库」tab。
+    // 曲库子路由（如 /library/categories...）同样归属「曲库」。
+    if (location.startsWith('/playlists') || location.startsWith('/library')) {
       final idx = activeDest.routeToIndex['/library'];
       if (idx != null) return idx;
     }

@@ -1586,6 +1586,36 @@ abstract class AppLocalizations {
   /// **'至少保留一个可见视图'**
   String get libraryViewsMinOne;
 
+  /// No description provided for @libraryViewPlaylistAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部歌单'**
+  String get libraryViewPlaylistAll;
+
+  /// No description provided for @categorySongsEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'该分类下暂无歌曲'**
+  String get categorySongsEmpty;
+
+  /// No description provided for @libraryViewGroupSongs.
+  ///
+  /// In zh, this message translates to:
+  /// **'歌曲'**
+  String get libraryViewGroupSongs;
+
+  /// No description provided for @libraryViewGroupCategories.
+  ///
+  /// In zh, this message translates to:
+  /// **'分类'**
+  String get libraryViewGroupCategories;
+
+  /// No description provided for @libraryViewGroupPlaylists.
+  ///
+  /// In zh, this message translates to:
+  /// **'歌单'**
+  String get libraryViewGroupPlaylists;
+
   /// No description provided for @libraryEditLocalSong.
   ///
   /// In zh, this message translates to:

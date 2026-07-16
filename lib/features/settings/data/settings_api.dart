@@ -200,8 +200,8 @@ class TabConfig {
     pluginTabs: pluginTabs ?? this.pluginTabs,
   );
 
-  int get optionalCount =>
-      (showLibrary ? 1 : 0) + (showPlaylists ? 1 : 0) + pluginTabs.length;
+  // 歌单已并入曲库，不再计入底部 tab 数量（showPlaylists 字段仅为兼容旧配置保留）。
+  int get optionalCount => (showLibrary ? 1 : 0) + pluginTabs.length;
 
   int get totalCount => 2 + optionalCount; // 首页 + 设置 + 可选项
 }
@@ -237,10 +237,15 @@ class LibraryBrowseConfig {
 
   const LibraryBrowseConfig({required this.views});
 
-  /// 默认顺序：全部/歌手/专辑/流派/年份/年代/语种/风格/本地/网络/电台，全部可见。
-  /// 与后端 libraryViewKeys 保持一致。
+  /// 默认顺序，按三组连续排列，全部可见。与后端 libraryViewKeys 保持一致：
+  ///   - 歌曲组：全部/本地/网络/电台
+  ///   - 分类组：歌手/专辑/流派/年份/年代/语种/风格
+  ///   - 歌单组：全部歌单/普通歌单/电台歌单
   static const List<String> defaultOrder = [
     'all',
+    'local',
+    'remote',
+    'radio',
     'artist',
     'album',
     'genre',
@@ -248,9 +253,9 @@ class LibraryBrowseConfig {
     'decade',
     'language',
     'style',
-    'local',
-    'remote',
-    'radio',
+    'playlist',
+    'playlist_normal',
+    'playlist_radio',
   ];
 
   factory LibraryBrowseConfig.defaultConfig() => LibraryBrowseConfig(
@@ -266,7 +271,27 @@ class LibraryBrowseConfig {
             .toList() ??
         <LibraryViewEntry>[];
     if (list.isEmpty) return LibraryBrowseConfig.defaultConfig();
-    return LibraryBrowseConfig(views: list);
+    // 兜底归一化：丢弃非法/重复 key，并把缺失的默认 key 追加到末尾（visible=true）。
+    // 保证即使后端为旧版本（未下发歌单等新视图）前端仍呈现完整的视图集合。
+    return LibraryBrowseConfig(views: list).ensureAllViews();
+  }
+
+  /// 补齐所有默认视图 key（去重去非法 + 追加缺失，缺失项默认可见），
+  /// 顺序：已有项保留相对顺序，缺失项按 [defaultOrder] 追加到末尾。
+  LibraryBrowseConfig ensureAllViews() {
+    final seen = <String>{};
+    final result = <LibraryViewEntry>[];
+    for (final v in views) {
+      if (!defaultOrder.contains(v.key) || seen.contains(v.key)) continue;
+      seen.add(v.key);
+      result.add(v);
+    }
+    for (final k in defaultOrder) {
+      if (!seen.contains(k)) {
+        result.add(LibraryViewEntry(key: k, visible: true));
+      }
+    }
+    return LibraryBrowseConfig(views: result);
   }
 
   Map<String, dynamic> toJson() => {

@@ -321,6 +321,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         title: l10n.settingsMenuTitle,
         icon: Icons.tab_outlined,
         children: [
+          // 歌单已并入曲库，不再作为独立底部 tab；此处仅保留「曲库」开关。
           SwitchListTile(
             secondary: const Icon(Icons.library_music_outlined),
             title: Text(l10n.settingsMenuLibrary),
@@ -330,19 +331,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     ? null
                     : (value) => _updateTabConfig(
                       config.copyWith(showLibrary: value),
-                      atLimit && value,
-                    ),
-          ),
-          const Divider(height: 1),
-          SwitchListTile(
-            secondary: const Icon(Icons.queue_music_outlined),
-            title: Text(l10n.settingsMenuPlaylists),
-            value: config.showPlaylists,
-            onChanged:
-                atLimit && !config.showPlaylists
-                    ? null
-                    : (value) => _updateTabConfig(
-                      config.copyWith(showPlaylists: value),
                       atLimit && value,
                     ),
           ),

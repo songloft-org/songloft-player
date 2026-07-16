@@ -860,6 +860,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get libraryViewsMinOne => 'Keep at least one view visible';
 
   @override
+  String get libraryViewPlaylistAll => 'All Playlists';
+
+  @override
+  String get categorySongsEmpty => 'No songs in this category';
+
+  @override
+  String get libraryViewGroupSongs => 'Songs';
+
+  @override
+  String get libraryViewGroupCategories => 'Categories';
+
+  @override
+  String get libraryViewGroupPlaylists => 'Playlists';
+
+  @override
   String get libraryEditLocalSong => 'Edit local song';
 
   @override

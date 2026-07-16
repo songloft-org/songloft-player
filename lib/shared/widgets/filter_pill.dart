@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 /// 药丸形筛选 Chip：选中时填充 secondaryContainer 并前置对勾，未选中时描边。
 ///
-/// 曲库筛选栏（[SongFilterBar]）与歌单类型筛选共用此组件，保证两处外观完全一致。
+/// 曲库视图切换条与歌单类型筛选共用此组件，保证两处外观完全一致。
 class FilterPill extends StatelessWidget {
   final String label;
   final bool isSelected;

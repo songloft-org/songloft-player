@@ -43,6 +43,8 @@ class TabConfigPage extends ConsumerWidget {
             title: l10n.settingsTabConfigBuiltInSection,
             icon: Icons.dashboard_outlined,
             children: [
+              // 歌单已并入曲库（作为曲库的歌单视图），不再作为独立底部 tab，
+              // 故此处仅保留「曲库」开关。
               SwitchListTile(
                 secondary: const Icon(Icons.library_music_outlined),
                 title: Text(l10n.settingsTabConfigLibrary),
@@ -53,20 +55,6 @@ class TabConfigPage extends ConsumerWidget {
                           context,
                           ref,
                           config.copyWith(showLibrary: value),
-                          atLimit && value,
-                        ),
-              ),
-              const Divider(height: 1),
-              SwitchListTile(
-                secondary: const Icon(Icons.queue_music_outlined),
-                title: Text(l10n.settingsTabConfigPlaylists),
-                value: config.showPlaylists,
-                onChanged: atLimit && !config.showPlaylists
-                    ? null
-                    : (value) => _updateConfig(
-                          context,
-                          ref,
-                          config.copyWith(showPlaylists: value),
                           atLimit && value,
                         ),
               ),

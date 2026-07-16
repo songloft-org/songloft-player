@@ -1,12 +1,11 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_dimensions.dart';
-import '../../../../core/utils/url_helper.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../shared/widgets/browse_card.dart';
 import '../../domain/playlist.dart';
+import 'playlist_browse_adapters.dart';
 
-/// 歌单列表项组件（列表视图）
+/// 歌单列表项：通用 [BrowseCard]（list 形态）的歌单适配封装。
 class PlaylistListItem extends StatelessWidget {
   final Playlist playlist;
   final VoidCallback? onTap;
@@ -39,301 +38,43 @@ class PlaylistListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
-
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      shape:
-          (isSelectionMode && isSelected) || isCurrentPlaylist
-              ? RoundedRectangleBorder(
-                borderRadius: AppRadius.mdAll,
-                side: BorderSide(color: colorScheme.primary, width: 2),
-              )
-              : RoundedRectangleBorder(borderRadius: AppRadius.mdAll),
-      child: InkWell(
-        onTap: isSelectionMode ? onSelect : onTap,
-        onLongPress: isSelectionMode ? null : onLongPress,
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Row(
-            children: [
-              // 多选模式下显示 Checkbox
-              if (isSelectionMode)
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: Checkbox(
-                    value: isSelected,
-                    onChanged: (_) => onSelect?.call(),
-                  ),
-                ),
-              // 左侧：方形封面 56x56
-              ClipRRect(
-                borderRadius: AppRadius.smAll,
-                child: SizedBox(
-                  width: 56,
-                  height: 56,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      playlist.coverImageUrl != null
-                          ? ExcludeSemantics(
-                            child: CachedNetworkImage(
-                              imageUrl: UrlHelper.buildCoverUrl(
-                                playlist.coverImageUrl!,
-                              ),
-                              fit: BoxFit.cover,
-                              placeholder:
-                                  (context, url) =>
-                                      _buildPlaceholder(colorScheme),
-                              errorWidget:
-                                  (context, url, error) =>
-                                      _buildPlaceholder(colorScheme),
-                            ),
-                          )
-                          : _buildPlaceholder(colorScheme),
-                      if (isCurrentPlaylist && isPlaying)
-                        Container(
-                          color: Colors.black54,
-                          child: Center(
-                            child: Icon(
-                              Icons.equalizer_rounded,
-                              size: 24,
-                              color: colorScheme.primary,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-
-              // 中间：歌单信息（Expanded）
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // 第一行：歌单名称 + 电台标签
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            playlist.name,
-                            style: textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: isCurrentPlaylist
-                                  ? colorScheme.primary
-                                  : null,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (playlist.type == 'radio') ...[
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: colorScheme.secondary,
-                              borderRadius: BorderRadius.circular(AppRadius.sm),
-                            ),
-                            child: Text(
-                              l10n.songTypeRadio,
-                              style: textTheme.labelSmall?.copyWith(
-                                color: colorScheme.onSecondary,
-                                fontSize: 10,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-
-                    // 第二行：歌曲数量 · 描述
-                    Text(
-                      _buildSubtitle(l10n),
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-
-                    // 第三行：标签（可选）
-                    if (playlist.labels.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Wrap(
-                        spacing: 4,
-                        runSpacing: 2,
-                        children:
-                            playlist.labels.map((label) {
-                              return _buildLabel(context, label);
-                            }).toList(),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-
-              // 右侧：操作按钮（多选模式下隐藏）
-              if (!isSelectionMode) ...[
-                if (onPlayAll != null)
-                  IconButton(
-                    onPressed: onPlayAll,
-                    icon: const Icon(Icons.play_arrow),
-                    tooltip: l10n.playlistPlayAll,
-                  ),
-                IconButton(
-                  onPressed: _showMoreMenu(context),
-                  icon: const Icon(Icons.more_vert),
-                  tooltip: l10n.playlistMoreActions,
-                ),
-              ],
-            ],
-          ),
-        ),
+    return BrowseCard(
+      layout: BrowseCardLayout.list,
+      coverUrl: playlist.coverImageUrl,
+      placeholderIcon:
+          playlist.type == 'radio' ? Icons.radio : Icons.queue_music,
+      title: playlist.name,
+      subtitle: _subtitle(l10n),
+      chips: playlistLabelChips(context, playlist),
+      typeBadge: playlistTypeBadge(context, playlist),
+      highlighted: (isSelectionMode && isSelected) || isCurrentPlaylist,
+      highlightTitle: isCurrentPlaylist,
+      isSelectionMode: isSelectionMode,
+      isSelected: isSelected,
+      onSelect: onSelect,
+      isPlaying: isCurrentPlaylist && isPlaying,
+      onTap: onTap,
+      onLongPress: onLongPress,
+      onPlayAll: onPlayAll,
+      playAllTooltip: l10n.playlistPlayAll,
+      menuTooltip: l10n.playlistMoreActions,
+      menuActions: playlistMenuActions(
+        context: context,
+        playlist: playlist,
+        onEdit: onEdit,
+        onToggleVisibility: onToggleVisibility,
+        onDelete: onDelete,
       ),
     );
   }
 
-  /// 构建副标题：歌曲数量 · 描述
-  String _buildSubtitle(AppLocalizations l10n) {
+  /// 副标题：歌曲数量 · 描述。
+  String _subtitle(AppLocalizations l10n) {
     final parts = <String>[l10n.songsCount(playlist.songCount)];
     if (playlist.description?.isNotEmpty == true) {
       parts.add(playlist.description!);
     }
     return parts.join(' · ');
-  }
-
-  Widget _buildPlaceholder(ColorScheme colorScheme) {
-    return Container(
-      color: colorScheme.surfaceContainerHighest,
-      child: Center(
-        child: Icon(
-          playlist.type == 'radio' ? Icons.radio : Icons.queue_music,
-          size: 24,
-          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLabel(BuildContext context, String label) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final l10n = AppLocalizations.of(context);
-
-    String displayLabel;
-    Color backgroundColor;
-
-    switch (label) {
-      case 'built_in':
-        displayLabel = l10n.playlistLabelBuiltIn;
-        backgroundColor = colorScheme.primaryContainer;
-        break;
-      case 'auto_created':
-        displayLabel = l10n.playlistLabelAuto;
-        backgroundColor = colorScheme.secondaryContainer;
-        break;
-      case 'hidden':
-        displayLabel = l10n.playlistLabelHidden;
-        backgroundColor = colorScheme.errorContainer;
-        break;
-      default:
-        displayLabel = label;
-        backgroundColor = colorScheme.tertiaryContainer;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        displayLabel,
-        style: textTheme.labelSmall?.copyWith(
-          color: colorScheme.onSurfaceVariant,
-        ),
-      ),
-    );
-  }
-
-  /// 更多按钮点击显示菜单
-  VoidCallback? _showMoreMenu(BuildContext context) {
-    if (onEdit == null && onDelete == null) return null;
-
-    return () {
-      final RenderBox? renderBox = context.findRenderObject() as RenderBox?;
-      if (renderBox == null) return;
-
-      final position = renderBox.localToGlobal(Offset.zero);
-      final size = renderBox.size;
-
-      showMenu(
-        context: context,
-        position: RelativeRect.fromLTRB(
-          position.dx + size.width - 48,
-          position.dy + size.height,
-          position.dx + size.width,
-          position.dy + size.height,
-        ),
-        items: _buildMenuItems(context),
-      );
-    };
-  }
-
-  /// 构建菜单项
-  List<PopupMenuEntry<void>> _buildMenuItems(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return [
-      if (onEdit != null)
-        PopupMenuItem(
-          onTap: onEdit,
-          child: ListTile(
-            leading: const Icon(Icons.edit),
-            title: Text(l10n.playlistEditAction),
-            dense: true,
-            contentPadding: EdgeInsets.zero,
-          ),
-        ),
-      if (onToggleVisibility != null && !playlist.isBuiltIn)
-        PopupMenuItem(
-          onTap: onToggleVisibility,
-          child: ListTile(
-            leading: Icon(
-              playlist.isHidden
-                  ? Icons.visibility
-                  : Icons.visibility_off,
-            ),
-            title: Text(playlist.isHidden ? l10n.playlistUnhide : l10n.playlistHide),
-            dense: true,
-            contentPadding: EdgeInsets.zero,
-          ),
-        ),
-      if (onDelete != null && !playlist.isBuiltIn)
-        PopupMenuItem(
-          onTap: onDelete,
-          child: ListTile(
-            leading: Icon(
-              Icons.delete,
-              color: Theme.of(context).colorScheme.error,
-            ),
-            title: Text(
-              l10n.commonDelete,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
-            dense: true,
-            contentPadding: EdgeInsets.zero,
-          ),
-        ),
-    ];
   }
 }

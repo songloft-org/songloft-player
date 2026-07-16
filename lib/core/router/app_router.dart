@@ -11,7 +11,6 @@ import '../../features/home/presentation/tv_home_page.dart';
 import '../../features/home/presentation/plugin_webview_page.dart';
 import '../../features/library/presentation/library_page.dart';
 import '../../features/library/presentation/category_songs_page.dart';
-import '../../features/playlist/presentation/playlists_page.dart';
 import '../../features/playlist/presentation/playlist_detail_page.dart';
 import '../../features/settings/presentation/servers_page.dart';
 import '../../features/settings/presentation/settings_page.dart';
@@ -136,16 +135,20 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) {
               final field = state.pathParameters['field'] ?? '';
               final value = state.uri.queryParameters['value'] ?? '';
-              return CategorySongsPage(field: field, value: value);
+              final cover = state.uri.queryParameters['cover'];
+              return CategorySongsPage(
+                field: field,
+                value: value,
+                coverUrl: cover,
+              );
             },
           ),
 
-          // 歌单列表
+          // 歌单列表已并入曲库（曲库的「全部歌单/普通歌单/电台歌单」视图）。
+          // 旧入口重定向到曲库，避免死链。
           GoRoute(
             path: AppRoutes.playlists,
-            pageBuilder:
-                (context, state) =>
-                    const NoTransitionPage(child: PlaylistsPage()),
+            redirect: (context, state) => AppRoutes.library,
           ),
 
           // 歌单详情

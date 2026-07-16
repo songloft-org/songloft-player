@@ -46,16 +46,8 @@ class ActiveDestinations {
       indexToRoute.add(AppRoutes.library);
     }
 
-    if (config.showPlaylists) {
-      destinations.add(
-        NavDestination(
-          label: l10n.navPlaylists,
-          icon: const Icon(Icons.queue_music_outlined),
-          selectedIcon: const Icon(Icons.queue_music),
-        ),
-      );
-      indexToRoute.add(AppRoutes.playlists);
-    }
+    // 歌单已并入曲库（作为「全部歌单 / 普通歌单 / 电台歌单」视图），
+    // 不再作为独立底部 tab。config.showPlaylists 保留以兼容旧配置但不再生成 tab。
 
     for (final pt in config.pluginTabs) {
       final plugin =

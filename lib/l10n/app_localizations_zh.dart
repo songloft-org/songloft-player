@@ -841,6 +841,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get libraryViewsMinOne => '至少保留一个可见视图';
 
   @override
+  String get libraryViewPlaylistAll => '全部歌单';
+
+  @override
+  String get categorySongsEmpty => '该分类下暂无歌曲';
+
+  @override
+  String get libraryViewGroupSongs => '歌曲';
+
+  @override
+  String get libraryViewGroupCategories => '分类';
+
+  @override
+  String get libraryViewGroupPlaylists => '歌单';
+
+  @override
   String get libraryEditLocalSong => '编辑本地歌曲';
 
   @override
