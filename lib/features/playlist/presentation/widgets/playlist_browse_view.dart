@@ -77,6 +77,9 @@ class PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
   void didUpdateWidget(covariant PlaylistBrowseView oldWidget) {
     super.didUpdateWidget(oldWidget);
     // 切换歌单子视图（全部/普通/电台）时重置交互态与搜索。
+    // 注意：不要在此同步调用 onModeChanged（父级 setState）——那会在 build 阶段重入，
+    // 导致同一 GlobalKey 组件瞬时并存报错。父级切视图时已自行 setState 重建 AppBar，
+    // 此处仅重置本地字段即可（紧随其后的 build 会用到新值）。
     if (oldWidget.typeFilter != widget.typeFilter) {
       _searchDebounce?.cancel();
       _searchController.clear();
@@ -85,7 +88,6 @@ class PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
       _selectedPlaylistIds.clear();
       _isSortMode = false;
       _sortablePlaylists = [];
-      _notify();
     }
   }
 
