@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../config/constants.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -7,15 +6,17 @@ import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/responsive.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../shared/models/song.dart';
+import '../../../../shared/widgets/browse_card.dart' show BrowseCardAction;
 import '../../../../shared/widgets/cover_image.dart';
 import '../../../../shared/widgets/favorite_button.dart';
+import '../../../../shared/widgets/song_tile.dart';
 
 /// 桌面端「操作按钮」列宽度。tile 内的按钮区与列表表头占位需保持一致，
 /// 否则表头与行的操作列对不齐；宽度需容纳 5 个紧凑按钮（play/收藏/编辑/加歌单/删除）。
 const double kDesktopActionsWidth = 180;
 
-/// 歌曲列表项组件
-class SongListTile extends ConsumerWidget {
+/// 曲库歌曲列表项：窄屏复用通用 [SongTile]，宽屏为库特有的多列表格行。
+class SongListTile extends StatelessWidget {
   final Song song;
   final int index;
   final bool isSelected;
@@ -46,13 +47,13 @@ class SongListTile extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         // 使用实际可用宽度判断，而非屏幕宽度，避免在窄容器中溢出
         if (context.isMobile ||
             constraints.maxWidth < ResponsiveBreakpoints.tablet) {
-          return _buildMobileLayout(context);
+          return _buildMobileTile(context);
         } else {
           return _buildDesktopLayout(context);
         }
@@ -60,34 +61,51 @@ class SongListTile extends ConsumerWidget {
     );
   }
 
-  Widget _buildMobileLayout(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final coverUrl = song.coverUrl;
+  Widget _buildMobileTile(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final actions = isSelectionMode
+        ? const <BrowseCardAction>[]
+        : <BrowseCardAction>[
+            if (onTap != null)
+              BrowseCardAction(
+                value: 'play',
+                icon: Icons.play_arrow,
+                label: l10n.libraryPlay,
+                onTap: onTap!,
+              ),
+            if (onEdit != null)
+              BrowseCardAction(
+                value: 'edit',
+                icon: Icons.edit,
+                label: l10n.libraryEdit,
+                onTap: onEdit!,
+              ),
+            if (onAddToPlaylist != null)
+              BrowseCardAction(
+                value: 'add_to_playlist',
+                icon: Icons.playlist_add,
+                label: l10n.addToPlaylist,
+                onTap: onAddToPlaylist!,
+              ),
+            if (onDelete != null)
+              BrowseCardAction(
+                value: 'delete',
+                icon: Icons.delete,
+                label: l10n.commonDelete,
+                onTap: onDelete!,
+              ),
+          ];
 
-    return ListTile(
-      tileColor: isCurrentSong ? colorScheme.secondaryContainer : null,
-      shape: isCurrentSong
-          ? RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
-          : null,
-      leading:
-          isSelectionMode
-              ? Checkbox(value: isSelected, onChanged: (_) => onSelect?.call())
-              : _buildCoverImage(coverUrl, 48),
-      title: Text(
-        song.title,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: isCurrentSong
-            ? TextStyle(color: colorScheme.primary, fontWeight: FontWeight.w600)
-            : null,
-      ),
-      subtitle: Text(
-        song.artist ?? AppLocalizations.of(context).libraryUnknownArtist,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(color: colorScheme.onSurfaceVariant),
-      ),
-      trailing: _buildTrailingActions(context),
+    return SongTile(
+      song: song,
+      placeholderIcon: _getTypeIcon(),
+      isCurrentSong: isCurrentSong,
+      showCover: !isSelectionMode,
+      showCheckbox: isSelectionMode,
+      isChecked: isSelected,
+      onCheckChanged: (_) => onSelect?.call(),
+      showFavorite: !isSelectionMode,
+      menuActions: actions,
       onTap: isSelectionMode ? onSelect : onTap,
       onLongPress: isSelectionMode ? null : onLongPress,
     );
@@ -257,72 +275,6 @@ class SongListTile extends ConsumerWidget {
         style: TextStyle(fontSize: 12, color: color),
         textAlign: TextAlign.center,
       ),
-    );
-  }
-
-  Widget _buildTrailingActions(BuildContext context) {
-    if (isSelectionMode) return const SizedBox.shrink();
-
-    final l10n = AppLocalizations.of(context);
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        FavoriteButton(songId: song.id, songType: song.type, size: 20),
-        PopupMenuButton<String>(
-          icon: const Icon(Icons.more_vert),
-          onSelected: (value) {
-            switch (value) {
-              case 'play':
-                onTap?.call();
-                break;
-              case 'edit':
-                onEdit?.call();
-                break;
-              case 'add_to_playlist':
-                onAddToPlaylist?.call();
-                break;
-              case 'delete':
-                onDelete?.call();
-                break;
-            }
-          },
-          itemBuilder:
-              (context) => [
-                PopupMenuItem(
-                  value: 'play',
-                  child: ListTile(
-                    leading: const Icon(Icons.play_arrow),
-                    title: Text(l10n.libraryPlay),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'edit',
-                  child: ListTile(
-                    leading: const Icon(Icons.edit),
-                    title: Text(l10n.libraryEdit),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'add_to_playlist',
-                  child: ListTile(
-                    leading: const Icon(Icons.playlist_add),
-                    title: Text(l10n.addToPlaylist),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'delete',
-                  child: ListTile(
-                    leading: const Icon(Icons.delete),
-                    title: Text(l10n.commonDelete),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-              ],
-        ),
-      ],
     );
   }
 

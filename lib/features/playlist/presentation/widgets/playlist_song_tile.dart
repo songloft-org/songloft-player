@@ -1,11 +1,11 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../core/utils/formatters.dart';
-import '../../../../core/utils/url_helper.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/models/song.dart';
+import '../../../../shared/widgets/browse_card.dart' show BrowseCardAction;
+import '../../../../shared/widgets/song_tile.dart';
 
+/// 歌单详情歌曲行：通用 [SongTile] 的歌单适配封装（序号/拖拽/复选 + 编辑/移除/删除菜单）。
 class PlaylistSongTile extends StatelessWidget {
   final Song song;
   final int index;
@@ -48,159 +48,46 @@ class PlaylistSongTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
 
-    final coverUrl = song.coverUrl;
+    final actions = <BrowseCardAction>[
+      if (showTrailing && onEdit != null)
+        BrowseCardAction(
+          value: 'edit',
+          icon: Icons.edit,
+          label: l10n.playlistEditAction,
+          onTap: onEdit!,
+        ),
+      if (showTrailing)
+        BrowseCardAction(
+          value: 'remove',
+          icon: Icons.remove_circle_outline,
+          label: l10n.playlistRemoveFromPlaylist,
+          onTap: onRemove,
+        ),
+      if (showTrailing && onDeleteFromLibrary != null)
+        BrowseCardAction(
+          value: 'delete',
+          icon: Icons.delete_outline,
+          label: l10n.playlistDeleteFromLibrary,
+          onTap: onDeleteFromLibrary!,
+          destructive: true,
+        ),
+    ];
 
-    return ListTile(
+    return SongTile(
+      song: song,
+      index: index,
+      showIndex: !showDragHandle && !showCheckbox,
+      showDragHandle: showDragHandle,
+      dragIndex: index - 1,
+      showCheckbox: showCheckbox,
+      isChecked: isChecked,
+      onCheckChanged: onCheckChanged,
+      showDuration: showTrailing,
+      menuActions: actions,
       onTap: onTap,
       onLongPress: onLongPress,
-      leading: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // 拖拽手柄（排序模式）
-          if (showDragHandle)
-            ReorderableDragStartListener(
-              index: index - 1,
-              child: Icon(
-                Icons.drag_handle,
-                color: colorScheme.onSurfaceVariant,
-              ),
-            )
-          // 复选框（多选模式）
-          else if (showCheckbox)
-            SizedBox(
-              width: 32,
-              child: Checkbox(value: isChecked, onChanged: onCheckChanged),
-            )
-          // 序号（正常模式）
-          else
-            SizedBox(
-              width: 32,
-              child: Text(
-                '$index',
-                style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          const SizedBox(width: 8),
-          // 封面
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: SizedBox(
-              width: 48,
-              height: 48,
-              child:
-                  coverUrl != null
-                      ? ExcludeSemantics(
-                        child: CachedNetworkImage(
-                          imageUrl: UrlHelper.buildCoverUrl(coverUrl),
-                          fit: BoxFit.cover,
-                          placeholder:
-                              (context, url) =>
-                                  _buildCoverPlaceholder(colorScheme),
-                          errorWidget:
-                              (context, url, error) =>
-                                  _buildCoverPlaceholder(colorScheme),
-                        ),
-                      )
-                      : _buildCoverPlaceholder(colorScheme),
-            ),
-          ),
-        ],
-      ),
-      title: Text(song.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-      subtitle: Text(
-        song.artist ?? l10n.playlistUnknownArtist,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: textTheme.bodySmall?.copyWith(
-          color: colorScheme.onSurfaceVariant,
-        ),
-      ),
-      trailing:
-          showTrailing
-              ? Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // 时长
-                  Text(
-                    Formatters.formatDuration(song.duration),
-                    style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  // 更多按钮
-                  PopupMenuButton<String>(
-                    icon: Icon(
-                      Icons.more_vert,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                    onSelected: (value) {
-                      if (value == 'edit') {
-                        onEdit?.call();
-                      } else if (value == 'remove') {
-                        onRemove();
-                      } else if (value == 'delete') {
-                        onDeleteFromLibrary?.call();
-                      }
-                    },
-                    itemBuilder:
-                        (context) => [
-                          if (onEdit != null)
-                            PopupMenuItem(
-                              value: 'edit',
-                              child: ListTile(
-                                leading: const Icon(Icons.edit),
-                                title: Text(l10n.playlistEditAction),
-                                dense: true,
-                                contentPadding: EdgeInsets.zero,
-                              ),
-                            ),
-                          PopupMenuItem(
-                            value: 'remove',
-                            child: ListTile(
-                              leading: const Icon(Icons.remove_circle_outline),
-                              title: Text(l10n.playlistRemoveFromPlaylist),
-                              dense: true,
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: 'delete',
-                            child: ListTile(
-                              leading: Icon(
-                                Icons.delete_outline,
-                                color: colorScheme.error,
-                              ),
-                              title: Text(
-                                l10n.playlistDeleteFromLibrary,
-                                style: TextStyle(color: colorScheme.error),
-                              ),
-                              dense: true,
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                          ),
-                        ],
-                  ),
-                ],
-              )
-              : null,
-    );
-  }
-
-  Widget _buildCoverPlaceholder(ColorScheme colorScheme) {
-    return Container(
-      color: colorScheme.surfaceContainerHighest,
-      child: Icon(
-        Icons.music_note,
-        size: 24,
-        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-      ),
     );
   }
 }
