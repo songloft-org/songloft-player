@@ -390,6 +390,17 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
         throw Exception('无法播放：歌曲没有有效的播放源');
       }
 
+      // 桌面原生端播放 HLS 电台时请求后端直连源站、绕过反代：桌面 player(libmpv)自带
+      // HLS 解析、无 CORS 限制，且下方 _buildLiveStreamHeaders 已为桌面附带 Referer/UA
+      // 应对防盗链；直连避免直播切片经反代往返后过期 404（songloft-org/songloft#249）。
+      // 移动端不带此参数（其原生 player 不发 Referer/UA，保留反代以兼容防盗链源）。
+      final isDesktopLive =
+          !kIsWeb &&
+          song.isLive &&
+          (defaultTargetPlatform == TargetPlatform.windows ||
+              defaultTargetPlatform == TargetPlatform.linux ||
+              defaultTargetPlatform == TargetPlatform.macOS);
+
       // 原生平台无法携带 Authorization Header,UrlHelper 会自动拼接 baseUrl + access_token。
       // 视频歌曲用 buildVideoUrl（media=video）：后端直出原容器，保留画面供 media_kit 渲染，
       // 不做平台音频转码（转码 -vn 会丢画面）。
@@ -399,6 +410,7 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
               song.url!,
               songFormat: song.format,
               quality: quality,
+              hlsDirect: isDesktopLive,
             );
 
       debugPrint('[Player] SongloftAudioHandler: song url: $songUrl');

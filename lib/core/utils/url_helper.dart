@@ -43,10 +43,15 @@ class UrlHelper {
   /// [songFormat] 歌曲原始格式（如 "wma"），用于判断当前平台是否需要转码。
   /// 当平台不支持该格式时自动追加 format 参数请求服务端转码。
   /// [quality] 音质偏好（'128'/'192'/'320'），非空且非 'original' 时追加 quality 参数。
+  /// [hlsDirect] 为 true 时追加 `hls=direct`：让后端对 HLS 电台强制 302 直连源站、
+  /// 绕过本机 HLS 反代（即使反代开关已开）。原生 player 自带 HLS 解析且无 CORS 限制，
+  /// 直连可避免直播切片经反代往返后过期导致 404（songloft-org/songloft#249）；
+  /// 后端对非 HLS 电台忽略此参数，故传入无害。浏览器不应传（需反代解决 CORS）。
   static String buildSongUrl(
     String url, {
     String? songFormat,
     String? quality,
+    bool hlsDirect = false,
   }) {
     var result = buildResourceUrl(url);
     if (result.isEmpty) return '';
@@ -56,6 +61,9 @@ class UrlHelper {
     }
     if (quality != null && quality.isNotEmpty && quality != 'original') {
       result += '${result.contains('?') ? '&' : '?'}quality=$quality';
+    }
+    if (hlsDirect) {
+      result += '${result.contains('?') ? '&' : '?'}hls=direct';
     }
     return result;
   }
