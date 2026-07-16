@@ -141,13 +141,10 @@ class WindowTrayManager with WindowListener, TrayListener {
   Future<void> _exitApp() async {
     _isExiting = true;
 
-    try {
-      await onBeforeExit?.call();
-    } catch (e, stackTrace) {
-      debugPrint('[WindowTrayManager] onBeforeExit error: $e');
-      debugPrint('[WindowTrayManager] Stack trace: $stackTrace');
-    }
-
+    // 先移除托盘图标，再执行 onBeforeExit。Windows 下 onBeforeExit 内会用
+    // TerminateProcess 内核级硬杀进程且**永不返回**（songloft-org/songloft#271 的退出报警修复），
+    // 若把 trayManager.destroy() 放在 onBeforeExit 之后就是死代码——Shell_NotifyIcon
+    // 的托盘图标不会被移除，残留在通知区直到鼠标划过才消失。故提前到硬杀之前。
     windowManager.removeListener(this);
     trayManager.removeListener(this);
 
@@ -157,6 +154,14 @@ class WindowTrayManager with WindowListener, TrayListener {
       debugPrint('[WindowTrayManager] tray destroy error: $e');
     }
 
+    try {
+      await onBeforeExit?.call();
+    } catch (e, stackTrace) {
+      debugPrint('[WindowTrayManager] onBeforeExit error: $e');
+      debugPrint('[WindowTrayManager] Stack trace: $stackTrace');
+    }
+
+    // onBeforeExit 未硬杀（非 Windows，或未注入回调）时走正常窗口关闭。
     try {
       await windowManager.setPreventClose(false);
       await windowManager.close();
