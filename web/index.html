@@ -40,45 +40,115 @@
   <script src="hls_bridge.js"></script>
   <script src="deploy-mode.js"></script>
   <script>
-    // WebGL context recovery for mobile browsers.
-    // Mobile browsers may destroy WebGL contexts when tabs are backgrounded,
-    // causing CanvasKit to render a black screen when the user returns.
-    (function() {
-      document.addEventListener('webglcontextlost', function(e) {
+    // In-place CanvasKit surface rebuild for mobile browsers.
+    //
+    // On mobile Chrome the WebGL context backing CanvasKit is discarded when the
+    // tab is backgrounded under memory pressure. The app keeps running (gestures
+    // and routing work) but the GPU surface can come back black. Rather than
+    // reloading the whole page (losing playback, scroll and session), we rebuild
+    // the CanvasKit surface *in place*: forcing a WebGL context loss on Flutter's
+    // onscreen canvas via WEBGL_lose_context.loseContext() drives the engine to
+    // acquire a fresh canvas + GL context + SkSurface and drop the dead one --
+    // the same path the engine's own triggerContextLoss() uses.
+    //
+    // This requires the onscreen (multi-surface) rasterizer, forced on mobile in
+    // the config block below, so the WebGL context lives on a reachable DOM
+    // <canvas> (Chrome otherwise renders through an off-DOM OffscreenCanvas whose
+    // context is invisible to the page). The only WebGL canvas on this page is
+    // Flutter's (equalizer.js uses Web Audio, hls.js uses MediaSource).
+    (function () {
+      var HIDDEN_RECOVER_MS = 1500;
+      var hiddenAt = 0;
+      var lostSinceHidden = false;
+
+      document.addEventListener('webglcontextlost', function (e) {
+        // Allow the browser to restore the context, and remember that a loss
+        // happened so we only intervene on resume when recovery is warranted.
         e.preventDefault();
+        lostSinceHidden = true;
       }, true);
 
-      document.addEventListener('visibilitychange', function() {
-        if (document.visibilityState !== 'visible') return;
+      // Collect every <canvas>, descending into shadow roots to be safe.
+      function collectCanvases(root, out) {
+        var direct = root.querySelectorAll('canvas');
+        for (var i = 0; i < direct.length; i++) out.push(direct[i]);
+        var all = root.querySelectorAll('*');
+        for (var j = 0; j < all.length; j++) {
+          if (all[j].shadowRoot) collectCanvases(all[j].shadowRoot, out);
+        }
+        return out;
+      }
 
-        setTimeout(function() {
-          var canvases = document.querySelectorAll('canvas');
-          var hasLostContext = false;
+      function glOf(canvas) {
+        try {
+          return canvas.getContext('webgl2') || canvas.getContext('webgl');
+        } catch (_) {
+          return null;
+        }
+      }
 
-          for (var i = 0; i < canvases.length; i++) {
-            var gl = canvases[i].getContext('webgl2') || canvases[i].getContext('webgl');
-            if (gl && gl.isContextLost()) {
-              hasLostContext = true;
-              try {
-                var ext = gl.getExtension('WEBGL_lose_context');
-                if (ext) ext.restoreContext();
-              } catch (_) {}
+      function anyContextLost() {
+        var canvases = collectCanvases(document, []);
+        for (var i = 0; i < canvases.length; i++) {
+          var gl = glOf(canvases[i]);
+          if (gl && gl.isContextLost()) return true;
+        }
+        return false;
+      }
+
+      // Force Flutter to rebuild its GL surface in place by triggering a context
+      // loss on every live WebGL canvas. Canvases already lost are left to
+      // Flutter's own webglcontextlost handler (and the reload fallback).
+      function rebuildInPlace() {
+        var canvases = collectCanvases(document, []);
+        for (var i = 0; i < canvases.length; i++) {
+          var gl = glOf(canvases[i]);
+          if (!gl || gl.isContextLost()) continue;
+          try {
+            var ext = gl.getExtension('WEBGL_lose_context');
+            if (ext) ext.loseContext();
+          } catch (_) {}
+        }
+        // Nudge Flutter to repaint the current scene onto the fresh surface.
+        try { window.dispatchEvent(new Event('resize')); } catch (_) {}
+      }
+
+      document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState !== 'visible') {
+          hiddenAt = Date.now();
+          return;
+        }
+        var hiddenMs = hiddenAt ? (Date.now() - hiddenAt) : 0;
+        hiddenAt = 0;
+        // Skip trivial alt-tabs; the surface is only dropped after a real stint.
+        if (hiddenMs < HIDDEN_RECOVER_MS) return;
+
+        // Only intervene when a context loss actually occurred (observed event
+        // or a canvas currently reporting lost); otherwise leave a healthy app
+        // untouched so we don't cause a needless rebuild flash on every return.
+        var needsRecovery = lostSinceHidden || anyContextLost();
+        lostSinceHidden = false;
+        if (!needsRecovery) return;
+
+        setTimeout(function () {
+          rebuildInPlace();
+
+          // Verify: if a live context is still lost after a grace period (the
+          // rebuild failed, e.g. the GPU is still unavailable), reload the page
+          // as an absolute last resort -- mirroring the manual refresh.
+          var tries = 0;
+          var timer = setInterval(function () {
+            tries++;
+            if (!anyContextLost()) {
+              clearInterval(timer); // recovered in place
+              return;
             }
-          }
-
-          if (hasLostContext) {
-            setTimeout(function() {
-              var cs = document.querySelectorAll('canvas');
-              for (var j = 0; j < cs.length; j++) {
-                var g = cs[j].getContext('webgl2') || cs[j].getContext('webgl');
-                if (g && g.isContextLost()) {
-                  window.location.reload();
-                  return;
-                }
-              }
-            }, 3000);
-          }
-        }, 500);
+            if (tries >= 8) { // ~4s
+              clearInterval(timer);
+              window.location.reload();
+            }
+          }, 500);
+        }, 250);
       });
     })();
   </script>
@@ -89,6 +159,22 @@
     var config = {
       canvasKitVariant: "full",
     };
+
+    // Force the onscreen (multi-surface) CanvasKit rasterizer on mobile
+    // browsers. Chrome's default OffscreenCanvas rasterizer keeps its WebGL
+    // context on an OffscreenCanvas that is never attached to the DOM, so a
+    // background GPU-context loss is invisible to the page and cannot be
+    // recovered (the app paints black until a manual refresh). The onscreen
+    // rasterizer (already the default on Safari/Firefox) puts the context on a
+    // DOM <canvas>, which lets Flutter auto-recover on context loss and lets the
+    // in-place rebuild above reach the context. Desktop keeps the offscreen path.
+    var isMobileBrowser = /Android|iPhone|iPad|iPod|Mobile|Silk|Kindle/i.test(
+      navigator.userAgent || ''
+    );
+    if (isMobileBrowser) {
+      config.canvasKitForceMultiSurfaceRasterizer = true;
+    }
+
     if (typeof _deployMode !== 'undefined' && _deployMode === 'embedded') {
       config.fontFallbackBaseUrl = "fonts/";
     }
