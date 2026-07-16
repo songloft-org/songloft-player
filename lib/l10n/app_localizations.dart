@@ -2999,7 +2999,7 @@ abstract class AppLocalizations {
   /// No description provided for @playlistListSearchHint.
   ///
   /// In zh, this message translates to:
-  /// **'搜索歌单 / 专辑...'**
+  /// **'搜索歌单...'**
   String get playlistListSearchHint;
 
   /// No description provided for @playlistNoMatching.

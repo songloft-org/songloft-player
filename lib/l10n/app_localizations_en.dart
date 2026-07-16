@@ -1644,7 +1644,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playlistSearchHint => 'Search songs...';
 
   @override
-  String get playlistListSearchHint => 'Search playlists / albums...';
+  String get playlistListSearchHint => 'Search playlists...';
 
   @override
   String get playlistNoMatching => 'No matching playlists found';

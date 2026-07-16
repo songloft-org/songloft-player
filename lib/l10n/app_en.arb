@@ -932,7 +932,7 @@
   "playlistBack": "Back",
   "playlistSearch": "Search",
   "playlistSearchHint": "Search songs...",
-  "playlistListSearchHint": "Search playlists / albums...",
+  "playlistListSearchHint": "Search playlists...",
   "playlistNoMatching": "No matching playlists found",
   "playlistTryOtherKeywords": "Try other keywords",
   "playlistFilterNormal": "Playlists",

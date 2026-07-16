@@ -1606,7 +1606,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get playlistSearchHint => '搜索歌曲...';
 
   @override
-  String get playlistListSearchHint => '搜索歌单 / 专辑...';
+  String get playlistListSearchHint => '搜索歌单...';
 
   @override
   String get playlistNoMatching => '未找到匹配的歌单';

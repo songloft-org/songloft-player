@@ -1037,7 +1037,7 @@
   "playlistBack": "返回",
   "playlistSearch": "搜索",
   "playlistSearchHint": "搜索歌曲...",
-  "playlistListSearchHint": "搜索歌单 / 专辑...",
+  "playlistListSearchHint": "搜索歌单...",
   "playlistNoMatching": "未找到匹配的歌单",
   "playlistTryOtherKeywords": "尝试其他关键词",
   "playlistFilterNormal": "普通歌单",
