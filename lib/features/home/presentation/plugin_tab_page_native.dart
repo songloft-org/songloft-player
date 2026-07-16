@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../config/app_config.dart';
 import '../../../core/storage/secure_storage.dart';
 import '../../../core/theme/responsive.dart';
+import '../../../core/utils/webview_environment.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../settings/presentation/providers/settings_provider.dart';
 import 'plugin_theme_utils.dart';
@@ -40,6 +41,10 @@ class _PluginTabPageState extends ConsumerState<PluginTabPage>
   String? _errorMessage;
   String? _lastTheme;
   bool _windowVisible = true;
+  // 重试计数：作为 InAppWebView 的 ValueKey，递增即重建整个 WebView 部件。
+  // Windows 上 WebView 实例创建失败时 onWebViewCreated 不触发、_webViewController 恒为
+  // null，controller.reload() 是 no-op；必须重建部件才能重新走环境创建。(songloft#271)
+  int _reloadSeq = 0;
 
   @override
   void initState() {
@@ -193,6 +198,8 @@ class _PluginTabPageState extends ConsumerState<PluginTabPage>
     return Offstage(
       offstage: !_windowVisible,
       child: InAppWebView(
+        key: ValueKey(_reloadSeq),
+        webViewEnvironment: SongloftWebViewEnvironment.instance,
         initialUrlRequest: URLRequest(url: WebUri(_buildPluginUrl(theme))),
         initialUserScripts:
             tokenScript.isNotEmpty
@@ -287,9 +294,12 @@ class _PluginTabPageState extends ConsumerState<PluginTabPage>
               setState(() {
                 _errorMessage = null;
                 _isLoading = true;
+                // 重建整个 WebView 部件而非 controller.reload()：实例创建失败时
+                // controller 为 null，reload 无效；换 key 强制重建才能重新创建实例。
+                _reloadSeq++;
+                _webViewController = null;
               });
               _startLoadTimer();
-              _webViewController?.reload();
             },
             icon: const Icon(Icons.refresh),
             label: Text(AppLocalizations.of(context).commonRetry),

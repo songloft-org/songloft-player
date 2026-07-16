@@ -33,6 +33,7 @@ import 'core/router/app_router.dart';
 import 'core/utils/file_logger.dart';
 import 'core/utils/force_terminate.dart';
 import 'core/utils/platform_utils.dart';
+import 'core/utils/webview_environment.dart';
 import 'core/utils/window_tray_manager.dart';
 import 'features/player/presentation/widgets/player_shortcut_scope.dart';
 import 'features/settings/presentation/providers/settings_provider.dart';
@@ -142,6 +143,16 @@ void main(List<String> args) async {
     await WindowTrayManager.setup().timeout(_desktopPluginStartupTimeout);
   } catch (e, stackTrace) {
     debugPrint('[Main] Windows 托盘初始化失败，继续启动: $e');
+    debugPrint('[Main] Stack trace: $stackTrace');
+  }
+
+  // 初始化 Windows WebView2 环境（指定可写用户数据目录），使免安装版插件页 WebView
+  // 能正常创建（songloft-org/songloft#271）。仅 Windows 生效，失败不阻塞启动。
+  try {
+    await SongloftWebViewEnvironment.ensureInitialized()
+        .timeout(_desktopPluginStartupTimeout);
+  } catch (e, stackTrace) {
+    debugPrint('[Main] WebView2 环境初始化失败，继续启动: $e');
     debugPrint('[Main] Stack trace: $stackTrace');
   }
 

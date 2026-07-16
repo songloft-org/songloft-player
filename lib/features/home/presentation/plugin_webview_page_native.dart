@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/storage/secure_storage.dart';
+import '../../../core/utils/webview_environment.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../settings/presentation/providers/settings_provider.dart';
 import 'plugin_theme_utils.dart';
@@ -38,6 +39,9 @@ class _PluginWebViewPageState extends ConsumerState<PluginWebViewPage>
   String? _errorMessage;
   String? _lastTheme;
   bool _windowVisible = true;
+  // 重试计数：作为 InAppWebView 的 ValueKey，递增即重建整个 WebView 部件，
+  // 以恢复 Windows 上「实例创建失败→controller 为 null→reload 无效」的死循环。(songloft#271)
+  int _reloadSeq = 0;
 
   @override
   void initState() {
@@ -203,6 +207,8 @@ class _PluginWebViewPageState extends ConsumerState<PluginWebViewPage>
     return Offstage(
       offstage: !_windowVisible,
       child: InAppWebView(
+        key: ValueKey(_reloadSeq),
+        webViewEnvironment: SongloftWebViewEnvironment.instance,
         initialUrlRequest: URLRequest(url: WebUri(_buildPluginUrl(theme))),
         initialUserScripts:
             tokenScript.isNotEmpty
@@ -285,9 +291,11 @@ class _PluginWebViewPageState extends ConsumerState<PluginWebViewPage>
               setState(() {
                 _errorMessage = null;
                 _isLoading = true;
+                // 重建整个 WebView 部件而非 controller.reload()（controller 可能为 null）。
+                _reloadSeq++;
+                _webViewController = null;
               });
               _startLoadTimer();
-              _webViewController?.reload();
             },
             icon: const Icon(Icons.refresh),
             label: Text(AppLocalizations.of(context).commonRetry),
