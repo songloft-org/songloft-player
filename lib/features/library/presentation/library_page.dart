@@ -53,6 +53,9 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
   bool _editMode = false;
   List<LibraryViewEntry> _draftViews = [];
 
+  /// 歌单视图的内嵌 View，供顶部 AppBar 驱动其多选/排序/新建等操作。
+  final GlobalKey<PlaylistBrowseViewState> _playlistViewKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
@@ -260,10 +263,14 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
       return _buildFlatContent(context, state);
     }
     if (isPlaylistLibraryView(selected)) {
-      // 歌单视图：嵌入自包含的歌单浏览视图（type 由视图 key 决定）。
+      // 歌单视图：嵌入歌单浏览视图（type 由视图 key 决定）；工具栏由顶部 AppBar 驱动，
+      // 模式变化经 onModeChanged 通知本页重建 AppBar。
       return PlaylistBrowseView(
-        key: ValueKey('playlist-$selected'),
+        key: _playlistViewKey,
         typeFilter: playlistViewType(selected),
+        onModeChanged: () {
+          if (mounted) setState(() {});
+        },
       );
     }
     // 分类聚合视图：facet 卡片网格（key 按维度隔离，切换维度重建为全新状态）。
@@ -394,6 +401,11 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
       );
     }
 
+    // 歌单视图：工具栏(视图切换/多选/排序/更多)统一放到顶部 AppBar。
+    if (selected != null && isPlaylistLibraryView(selected)) {
+      return _buildPlaylistAppBar(context, config);
+    }
+
     final isFlat = selected != null && isFlatLibraryView(selected);
     final isFacet = selected != null &&
         !isFlatLibraryView(selected) &&
@@ -434,6 +446,196 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
           : l10n.playlistSwitchToGridView,
       onPressed: () =>
           ref.read(playlistViewModeProvider.notifier).toggleViewMode(),
+    );
+  }
+
+  // ---------- 歌单视图的顶部 AppBar（正常/多选/排序三态） ----------
+
+  PreferredSizeWidget _buildPlaylistAppBar(
+    BuildContext context,
+    LibraryBrowseConfig config,
+  ) {
+    final l10n = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final vs = _playlistViewKey.currentState;
+
+    // 排序模式
+    if (vs?.isSortMode ?? false) {
+      return AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          tooltip: l10n.commonCancel,
+          onPressed: () => _playlistViewKey.currentState?.cancelSortMode(),
+        ),
+        title: Text(l10n.playlistSortModeTitle),
+        actions: [
+          TextButton(
+            onPressed: () => _playlistViewKey.currentState?.saveSortMode(),
+            child: Text(l10n.playlistDone),
+          ),
+        ],
+      );
+    }
+
+    // 多选模式
+    if (vs?.isSelectionMode ?? false) {
+      final count = vs?.selectedCount ?? 0;
+      return AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          tooltip: l10n.playlistExitMultiSelect,
+          onPressed: () => _playlistViewKey.currentState?.exitSelectionMode(),
+        ),
+        title: Text(l10n.playlistSelectedCount(count)),
+        actions: [
+          TextButton.icon(
+            icon: Icon(
+              Icons.play_arrow,
+              color: count == 0 ? null : colorScheme.primary,
+            ),
+            label: Text(l10n.playlistPlayCount(count)),
+            onPressed: count == 0
+                ? null
+                : () => _playlistViewKey.currentState?.playSelected(),
+          ),
+          TextButton.icon(
+            icon: Icon(
+              Icons.delete,
+              color: count == 0 ? null : colorScheme.error,
+            ),
+            label: Text(
+              l10n.playlistDeleteCount(count),
+              style: TextStyle(color: count == 0 ? null : colorScheme.error),
+            ),
+            onPressed: count == 0
+                ? null
+                : () => _playlistViewKey.currentState?.deleteSelected(),
+          ),
+          TextButton(
+            onPressed: () =>
+                _playlistViewKey.currentState?.selectAllInSelection(),
+            child: Text(l10n.selectAll),
+          ),
+        ],
+      );
+    }
+
+    // 正常模式
+    return AppBar(
+      title: Text(l10n.libraryTitle),
+      actions: [
+        _buildViewModeToggle(context),
+        IconButton(
+          icon: const Icon(Icons.checklist),
+          tooltip: l10n.playlistMultiSelect,
+          onPressed: () => _playlistViewKey.currentState?.enterSelectionMode(),
+        ),
+        _buildPlaylistSortMenu(context),
+        _buildPlaylistMoreMenu(context, config),
+      ],
+    );
+  }
+
+  Widget _buildPlaylistSortMenu(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.sort),
+      tooltip: l10n.playlistSort,
+      onSelected: (value) {
+        final vs = _playlistViewKey.currentState;
+        switch (value) {
+          case 'name_asc':
+            vs?.autoSortByName(ascending: true);
+          case 'name_desc':
+            vs?.autoSortByName(ascending: false);
+          case 'number_asc':
+            vs?.autoSortByNumberPrefix();
+          case 'manual':
+            vs?.enterSortMode();
+        }
+      },
+      itemBuilder: (context) => [
+        _playlistSortItem('name_asc', Icons.sort_by_alpha, l10n.playlistSortNameAsc),
+        _playlistSortItem(
+          'name_desc',
+          Icons.sort_by_alpha,
+          l10n.playlistSortNameDesc,
+        ),
+        _playlistSortItem(
+          'number_asc',
+          Icons.format_list_numbered,
+          l10n.playlistSortNumberPrefix,
+        ),
+        _playlistSortItem('manual', Icons.drag_handle, l10n.playlistSortManual),
+      ],
+    );
+  }
+
+  PopupMenuItem<String> _playlistSortItem(
+    String value,
+    IconData icon,
+    String title,
+  ) {
+    return PopupMenuItem(
+      value: value,
+      child: ListTile(
+        leading: Icon(icon),
+        title: Text(title),
+        dense: true,
+        contentPadding: EdgeInsets.zero,
+      ),
+    );
+  }
+
+  /// 歌单视图的「更多」菜单：合并歌单专属项(新建/显隐)与曲库项(自定义视图)。
+  Widget _buildPlaylistMoreMenu(
+    BuildContext context,
+    LibraryBrowseConfig config,
+  ) {
+    final l10n = AppLocalizations.of(context);
+    final showHidden = _playlistViewKey.currentState?.showHidden ?? false;
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.more_vert),
+      tooltip: l10n.libraryMore,
+      onSelected: (value) {
+        switch (value) {
+          case 'create':
+            _playlistViewKey.currentState?.createPlaylist();
+          case 'toggle_hidden':
+            _playlistViewKey.currentState?.toggleShowHidden();
+          case 'customize_views':
+            _enterEditMode(config);
+        }
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: 'create',
+          child: ListTile(
+            leading: const Icon(Icons.add),
+            title: Text(l10n.playlistCreate),
+            contentPadding: EdgeInsets.zero,
+          ),
+        ),
+        PopupMenuItem(
+          value: 'toggle_hidden',
+          child: ListTile(
+            leading: Icon(showHidden ? Icons.visibility_off : Icons.visibility),
+            title: Text(
+              showHidden ? l10n.playlistHideHidden : l10n.playlistShowHidden,
+            ),
+            contentPadding: EdgeInsets.zero,
+          ),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem(
+          value: 'customize_views',
+          child: ListTile(
+            leading: const Icon(Icons.tune),
+            title: Text(l10n.libraryCustomizeViews),
+            contentPadding: EdgeInsets.zero,
+          ),
+        ),
+      ],
     );
   }
 

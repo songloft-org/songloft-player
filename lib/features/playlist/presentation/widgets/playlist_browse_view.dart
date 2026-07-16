@@ -26,17 +26,22 @@ import 'playlist_form_dialog.dart';
 /// 可嵌入的歌单浏览视图：搜索 + 通用卡片（grid/list）+ 分页 + 多选/排序/新建。
 ///
 /// 由曲库页在「全部歌单 / 普通歌单 / 电台歌单」视图下嵌入使用，[typeFilter] 固定该视图的
-/// 歌单 type（null=全部）。自带内容区顶部工具栏（不依赖外层 AppBar）。
+/// 歌单 type（null=全部）。**工具栏由曲库顶部 AppBar 驱动**：本视图仅渲染搜索 + 内容
+/// （多选/排序模式下切换内容形态），通过公共方法/getter 暴露操作，模式变化经
+/// [onModeChanged] 通知父级重建 AppBar。
 class PlaylistBrowseView extends ConsumerStatefulWidget {
   final String? typeFilter;
 
-  const PlaylistBrowseView({super.key, this.typeFilter});
+  /// 多选/排序等模式或选中数变化时回调，供父级(曲库页)重建顶部 AppBar。
+  final VoidCallback? onModeChanged;
+
+  const PlaylistBrowseView({super.key, this.typeFilter, this.onModeChanged});
 
   @override
-  ConsumerState<PlaylistBrowseView> createState() => _PlaylistBrowseViewState();
+  ConsumerState<PlaylistBrowseView> createState() => PlaylistBrowseViewState();
 }
 
-class _PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
+class PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
   static const double _loadMoreThreshold = 300.0;
 
   late final ScrollController _scrollController;
@@ -50,14 +55,38 @@ class _PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
   bool _isSortMode = false;
   List<Playlist> _sortablePlaylists = [];
 
-  bool _showHidden = false;
+  bool _showHiddenState = false;
 
   String? get _type => widget.typeFilter;
+
+  // ---------- 供父级 AppBar 读取的状态 ----------
+  bool get isSelectionMode => _isSelectionMode;
+  bool get isSortMode => _isSortMode;
+  int get selectedCount => _selectedPlaylistIds.length;
+  bool get showHidden => _showHiddenState;
+
+  void _notify() => widget.onModeChanged?.call();
 
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController()..addListener(_onScroll);
+  }
+
+  @override
+  void didUpdateWidget(covariant PlaylistBrowseView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // 切换歌单子视图（全部/普通/电台）时重置交互态与搜索。
+    if (oldWidget.typeFilter != widget.typeFilter) {
+      _searchDebounce?.cancel();
+      _searchController.clear();
+      _searchKeyword = '';
+      _isSelectionMode = false;
+      _selectedPlaylistIds.clear();
+      _isSortMode = false;
+      _sortablePlaylists = [];
+      _notify();
+    }
   }
 
   @override
@@ -97,11 +126,11 @@ class _PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
     final playlistsAsync = ref.watch(playlistListProvider(_type));
 
     if (_isSortMode) {
-      return Column(
-        children: [
-          _buildSortToolbar(context),
-          Expanded(child: _buildSortModeBody(context)),
-        ],
+      return Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: _buildSortModeBody(context),
+        ),
       );
     }
 
@@ -110,7 +139,6 @@ class _PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
         constraints: const BoxConstraints(maxWidth: 1200),
         child: Column(
           children: [
-            _buildToolbar(context, playlistsAsync.value),
             _buildSearchBar(context),
             Expanded(
               child: playlistsAsync.when(
@@ -128,189 +156,6 @@ class _PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
       ),
     );
   }
-
-  // ---------- 工具栏 ----------
-
-  Widget _buildToolbar(BuildContext context, PaginatedPlaylistsState? state) {
-    final l10n = AppLocalizations.of(context);
-    final hp = context.responsive<double>(
-      mobile: AppSpacing.md,
-      tablet: AppSpacing.lg,
-      desktop: AppSpacing.xl,
-      tv: AppSpacing.xxl,
-    );
-
-    if (_isSelectionMode) {
-      return Padding(
-        padding: EdgeInsets.fromLTRB(hp, AppSpacing.sm, hp, 0),
-        child: Row(
-          children: [
-            IconButton(
-              icon: const Icon(Icons.close),
-              tooltip: l10n.playlistExitMultiSelect,
-              onPressed: _toggleSelectMode,
-            ),
-            Expanded(
-              child: Text(
-                l10n.playlistSelectedCount(_selectedPlaylistIds.length),
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.play_arrow),
-              tooltip: l10n.playlistPlayCount(_selectedPlaylistIds.length),
-              onPressed:
-                  _selectedPlaylistIds.isEmpty ? null : _playSelectedPlaylists,
-            ),
-            IconButton(
-              icon: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
-              tooltip: l10n.playlistDeleteCount(_selectedPlaylistIds.length),
-              onPressed: _selectedPlaylistIds.isEmpty ? null : _confirmBatchDelete,
-            ),
-            TextButton(
-              onPressed: () async {
-                await ref.read(playlistListProvider(_type).notifier).loadAll();
-                final s = ref.read(playlistListProvider(_type)).value;
-                if (s != null) _selectAll(s.items);
-              },
-              child: Text(l10n.selectAll),
-            ),
-          ],
-        ),
-      );
-    }
-
-    final playlists = state?.items ?? [];
-    return Padding(
-      padding: EdgeInsets.fromLTRB(hp, AppSpacing.sm, hp, 0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          IconButton(
-            icon: Icon(
-              ref.watch(playlistViewModeProvider) == PlaylistViewMode.grid
-                  ? Icons.view_list
-                  : Icons.grid_view,
-            ),
-            tooltip: ref.watch(playlistViewModeProvider) == PlaylistViewMode.grid
-                ? l10n.playlistSwitchToListView
-                : l10n.playlistSwitchToGridView,
-            onPressed: () =>
-                ref.read(playlistViewModeProvider.notifier).toggleViewMode(),
-          ),
-          IconButton(
-            icon: const Icon(Icons.checklist),
-            tooltip: l10n.playlistMultiSelect,
-            onPressed: _toggleSelectMode,
-          ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.sort),
-            tooltip: l10n.playlistSort,
-            onSelected: (value) {
-              switch (value) {
-                case 'name_asc':
-                  _autoSortByName(playlists, ascending: true);
-                case 'name_desc':
-                  _autoSortByName(playlists, ascending: false);
-                case 'number_asc':
-                  _autoSortByNumberPrefix(playlists);
-                case 'manual':
-                  _enterSortMode(playlists);
-              }
-            },
-            itemBuilder: (context) => [
-              _sortItem('name_asc', Icons.sort_by_alpha, l10n.playlistSortNameAsc),
-              _sortItem(
-                'name_desc',
-                Icons.sort_by_alpha,
-                l10n.playlistSortNameDesc,
-              ),
-              _sortItem(
-                'number_asc',
-                Icons.format_list_numbered,
-                l10n.playlistSortNumberPrefix,
-              ),
-              _sortItem('manual', Icons.drag_handle, l10n.playlistSortManual),
-            ],
-          ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
-            tooltip: l10n.playlistMore,
-            onSelected: (value) {
-              switch (value) {
-                case 'create':
-                  _showCreateDialog();
-                case 'toggle_hidden':
-                  _toggleShowHidden();
-              }
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'create',
-                child: ListTile(
-                  leading: const Icon(Icons.add),
-                  title: Text(l10n.playlistCreate),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-              PopupMenuItem(
-                value: 'toggle_hidden',
-                child: ListTile(
-                  leading: Icon(
-                    _showHidden ? Icons.visibility_off : Icons.visibility,
-                  ),
-                  title: Text(
-                    _showHidden ? l10n.playlistHideHidden : l10n.playlistShowHidden,
-                  ),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  PopupMenuItem<String> _sortItem(String value, IconData icon, String title) {
-    return PopupMenuItem(
-      value: value,
-      child: ListTile(
-        leading: Icon(icon),
-        title: Text(title),
-        dense: true,
-        contentPadding: EdgeInsets.zero,
-      ),
-    );
-  }
-
-  Widget _buildSortToolbar(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.xs,
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.close),
-            tooltip: l10n.commonCancel,
-            onPressed: _cancelSortMode,
-          ),
-          Expanded(
-            child: Text(
-              l10n.playlistSortModeTitle,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ),
-          TextButton(onPressed: _exitSortMode, child: Text(l10n.playlistDone)),
-        ],
-      ),
-    );
-  }
-
-  // ---------- 搜索栏 ----------
 
   Widget _buildSearchBar(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -347,8 +192,6 @@ class _PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
     );
   }
 
-  // ---------- 内容 ----------
-
   Widget _buildContent(BuildContext context, PaginatedPlaylistsState state) {
     if (state.items.isEmpty) return _buildEmpty(context);
 
@@ -366,49 +209,52 @@ class _PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
       onRefresh: () async => ref.invalidate(playlistListProvider(_type)),
       cardBuilder: (context, index) {
         final playlist = state.items[index];
-        final common = _PlaylistCardCallbacks(
-          onTap: () => context.push('/playlists/${playlist.id}'),
-          onEdit: () => _showEditDialog(playlist),
-          onDelete: playlist.isBuiltIn ? null : () => _confirmDelete(playlist),
-          onToggleVisibility: () => _togglePlaylistVisibility(playlist),
-          onPlayAll: () => _playAll(playlist),
-          onLongPress: () {
-            setState(() {
-              _isSelectionMode = true;
-              _selectedPlaylistIds.clear();
-            });
-            _togglePlaylistSelection(playlist);
-          },
-          onSelect: () => _togglePlaylistSelection(playlist),
-        );
+        void onTap() => context.push('/playlists/${playlist.id}');
+        void onEdit() => _showEditDialog(playlist);
+        final VoidCallback? onDelete =
+            playlist.isBuiltIn ? null : () => _confirmDelete(playlist);
+        void onToggleVisibility() => _togglePlaylistVisibility(playlist);
+        void onPlayAll() => _playAll(playlist);
+        void onLongPress() {
+          setState(() {
+            _isSelectionMode = true;
+            _selectedPlaylistIds.clear();
+          });
+          _togglePlaylistSelection(playlist);
+        }
+
+        void onSelect() => _togglePlaylistSelection(playlist);
+        final isSelected = _selectedPlaylistIds.contains(playlist.id);
+        final isCurrent = playlist.id == currentPlaylistId;
+
         if (layout == BrowseCardLayout.list) {
           return PlaylistListItem(
             playlist: playlist,
-            onTap: common.onTap,
-            onEdit: common.onEdit,
-            onDelete: common.onDelete,
-            onToggleVisibility: common.onToggleVisibility,
-            onPlayAll: common.onPlayAll,
-            onLongPress: common.onLongPress,
+            onTap: onTap,
+            onEdit: onEdit,
+            onDelete: onDelete,
+            onToggleVisibility: onToggleVisibility,
+            onPlayAll: onPlayAll,
+            onLongPress: onLongPress,
             isSelectionMode: _isSelectionMode,
-            isSelected: _selectedPlaylistIds.contains(playlist.id),
-            onSelect: common.onSelect,
-            isCurrentPlaylist: playlist.id == currentPlaylistId,
+            isSelected: isSelected,
+            onSelect: onSelect,
+            isCurrentPlaylist: isCurrent,
             isPlaying: isPlaying,
           );
         }
         return PlaylistCard(
           playlist: playlist,
-          onTap: common.onTap,
-          onEdit: common.onEdit,
-          onDelete: common.onDelete,
-          onToggleVisibility: common.onToggleVisibility,
-          onPlayAll: common.onPlayAll,
-          onLongPress: common.onLongPress,
+          onTap: onTap,
+          onEdit: onEdit,
+          onDelete: onDelete,
+          onToggleVisibility: onToggleVisibility,
+          onPlayAll: onPlayAll,
+          onLongPress: onLongPress,
           isSelectionMode: _isSelectionMode,
-          isSelected: _selectedPlaylistIds.contains(playlist.id),
-          onSelect: common.onSelect,
-          isCurrentPlaylist: playlist.id == currentPlaylistId,
+          isSelected: isSelected,
+          onSelect: onSelect,
+          isCurrentPlaylist: isCurrent,
           isPlaying: isPlaying,
         );
       },
@@ -426,7 +272,7 @@ class _PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
     );
   }
 
-  // ---------- 排序模式 ----------
+  // ---------- 排序模式内容 ----------
 
   Widget _buildSortModeBody(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -438,7 +284,7 @@ class _PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
     }
 
     return ReorderableListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       itemCount: _sortablePlaylists.length,
       onReorder: _onReorder,
       itemBuilder: (context, index) {
@@ -513,13 +359,22 @@ class _PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
     });
   }
 
-  // ---------- 选择 / 排序 / CRUD 逻辑（自 PlaylistsPage 迁移） ----------
+  // ---------- 公共操作（由父级 AppBar 调用） ----------
 
-  void _toggleSelectMode() {
+  void enterSelectionMode() {
     setState(() {
-      _isSelectionMode = !_isSelectionMode;
-      if (!_isSelectionMode) _selectedPlaylistIds.clear();
+      _isSelectionMode = true;
+      _selectedPlaylistIds.clear();
     });
+    _notify();
+  }
+
+  void exitSelectionMode() {
+    setState(() {
+      _isSelectionMode = false;
+      _selectedPlaylistIds.clear();
+    });
+    _notify();
   }
 
   void _togglePlaylistSelection(Playlist playlist) {
@@ -531,9 +386,13 @@ class _PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
         _selectedPlaylistIds.add(playlist.id);
       }
     });
+    _notify();
   }
 
-  void _selectAll(List<Playlist> playlists) {
+  Future<void> selectAllInSelection() async {
+    await ref.read(playlistListProvider(_type).notifier).loadAll();
+    if (!mounted) return;
+    final playlists = ref.read(playlistListProvider(_type)).value?.items ?? [];
     setState(() {
       final selectableIds =
           playlists.where((p) => !p.isBuiltIn).map((p) => p.id).toSet();
@@ -543,23 +402,26 @@ class _PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
         _selectedPlaylistIds.addAll(selectableIds);
       }
     });
+    _notify();
   }
 
-  Future<void> _enterSortMode(List<Playlist> playlists) async {
+  Future<void> enterSortMode() async {
     await ref.read(playlistListProvider(_type).notifier).loadAll();
     if (!mounted) return;
-    final full = ref.read(playlistListProvider(_type)).value?.items ?? playlists;
+    final full = ref.read(playlistListProvider(_type)).value?.items ?? [];
     setState(() {
       _isSortMode = true;
       _isSelectionMode = false;
       _selectedPlaylistIds.clear();
       _sortablePlaylists = List.from(full);
     });
+    _notify();
   }
 
-  Future<void> _exitSortMode() async {
+  Future<void> saveSortMode() async {
     final playlistIds = _sortablePlaylists.map((p) => p.id).toList();
     setState(() => _isSortMode = false);
+    _notify();
     final success = await ref
         .read(playlistNotifierProvider.notifier)
         .reorderPlaylists(playlistIds);
@@ -575,29 +437,23 @@ class _PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
     }
   }
 
-  void _cancelSortMode() {
+  void cancelSortMode() {
     setState(() {
       _isSortMode = false;
       _sortablePlaylists = [];
     });
+    _notify();
   }
 
-  Future<void> _autoSortByName(
-    List<Playlist> playlists, {
-    bool ascending = true,
-  }) async {
+  Future<void> autoSortByName({bool ascending = true}) async {
     await ref.read(playlistListProvider(_type).notifier).loadAll();
     if (!mounted) return;
-    final full = ref.read(playlistListProvider(_type)).value?.items ?? playlists;
+    final full = ref.read(playlistListProvider(_type)).value?.items ?? [];
     final sorted = List<Playlist>.from(full)..sort((a, b) {
       final r = a.name.toLowerCase().compareTo(b.name.toLowerCase());
       return ascending ? r : -r;
     });
-    await _applyReorder(
-      sorted,
-      full,
-      ascending ? _L.nameAsc : _L.nameDesc,
-    );
+    await _applyReorder(sorted, full, ascending ? _L.nameAsc : _L.nameDesc);
   }
 
   int? _extractFirstNumber(String title) {
@@ -606,10 +462,10 @@ class _PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
     return int.tryParse(match.group(1)!);
   }
 
-  Future<void> _autoSortByNumberPrefix(List<Playlist> playlists) async {
+  Future<void> autoSortByNumberPrefix() async {
     await ref.read(playlistListProvider(_type).notifier).loadAll();
     if (!mounted) return;
-    final full = ref.read(playlistListProvider(_type)).value?.items ?? playlists;
+    final full = ref.read(playlistListProvider(_type)).value?.items ?? [];
     final sorted = List<Playlist>.from(full)..sort((a, b) {
       final numA = _extractFirstNumber(a.name);
       final numB = _extractFirstNumber(b.name);
@@ -655,11 +511,12 @@ class _PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
     }
   }
 
-  void _toggleShowHidden() {
-    setState(() => _showHidden = !_showHidden);
+  void toggleShowHidden() {
+    setState(() => _showHiddenState = !_showHiddenState);
+    _notify();
     ref
         .read(playlistListProvider(_type).notifier)
-        .setExcludeLabels(_showHidden ? 'none' : null);
+        .setExcludeLabels(_showHiddenState ? 'none' : null);
   }
 
   Future<void> _togglePlaylistVisibility(Playlist playlist) async {
@@ -676,7 +533,7 @@ class _PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
     }
   }
 
-  Future<void> _showCreateDialog() async {
+  Future<void> createPlaylist() async {
     final l10n = AppLocalizations.of(context);
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
@@ -776,7 +633,7 @@ class _PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
     }
   }
 
-  Future<void> _confirmBatchDelete() async {
+  Future<void> deleteSelected() async {
     final count = _selectedPlaylistIds.length;
     if (count == 0) return;
     final l10n = AppLocalizations.of(context);
@@ -820,6 +677,7 @@ class _PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
           _isSelectionMode = false;
           _selectedPlaylistIds.clear();
         });
+        _notify();
       }
     }
   }
@@ -856,9 +714,9 @@ class _PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
     }
   }
 
-  Future<void> _playSelectedPlaylists() async {
+  Future<void> playSelected() async {
     final ids = _selectedPlaylistIds.toList();
-    _toggleSelectMode();
+    exitSelectionMode();
     final total = await ref
         .read(playerStateProvider.notifier)
         .playMultiplePlaylistsById(ids);
@@ -897,24 +755,3 @@ class _PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
 
 /// 自动排序类型（决定成功提示文案）。
 enum _L { nameAsc, nameDesc, number }
-
-/// 一组卡片回调，减少 grid/list 两分支的重复。
-class _PlaylistCardCallbacks {
-  final VoidCallback onTap;
-  final VoidCallback onEdit;
-  final VoidCallback? onDelete;
-  final VoidCallback onToggleVisibility;
-  final VoidCallback onPlayAll;
-  final VoidCallback onLongPress;
-  final VoidCallback onSelect;
-
-  const _PlaylistCardCallbacks({
-    required this.onTap,
-    required this.onEdit,
-    required this.onDelete,
-    required this.onToggleVisibility,
-    required this.onPlayAll,
-    required this.onLongPress,
-    required this.onSelect,
-  });
-}
