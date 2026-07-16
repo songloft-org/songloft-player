@@ -7,10 +7,12 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/responsive.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../shared/utils/responsive_snackbar.dart';
 import '../../../../shared/widgets/browse_card.dart';
 import '../../../../shared/widgets/browse_collection_view.dart';
 import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/error_view.dart';
+import '../../../player/presentation/providers/player_provider.dart';
 import '../../../playlist/presentation/providers/playlist_view_provider.dart';
 import '../providers/category_provider.dart';
 import 'library_view_switcher.dart';
@@ -69,6 +71,25 @@ class _FacetGridViewState extends ConsumerState<FacetGridView> {
     _debounceTimer = Timer(const Duration(milliseconds: 300), () {
       ref.read(facetListProvider(widget.field).notifier).search(value);
     });
+  }
+
+  /// 播放某分类取值下的全部歌曲（先加载全部再播放），与歌单卡片的「播放全部」一致。
+  Future<void> _playFacet(String value) async {
+    final key = (field: widget.field, value: value);
+    await ref.read(categorySongsProvider(key).notifier).loadAll();
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context);
+    final songs = ref.read(categorySongsProvider(key)).value?.items ?? [];
+    if (songs.isEmpty) {
+      ResponsiveSnackBar.show(context, message: l10n.libraryNoPlayableSongs);
+      return;
+    }
+    ref.read(playerStateProvider.notifier).playPlaylist(songs, startIndex: 0);
+    if (!mounted) return;
+    ResponsiveSnackBar.show(
+      context,
+      message: l10n.libraryPlayingAllSongs(songs.length),
+    );
   }
 
   @override
@@ -172,7 +193,8 @@ class _FacetGridViewState extends ConsumerState<FacetGridView> {
           placeholderIcon: libraryViewIcon(widget.field),
           title: categoryValueLabel(l10n, widget.field, facet.value),
           subtitle: l10n.categorySongCount(facet.count),
-          showChevron: true,
+          onPlayAll: () => _playFacet(facet.value),
+          playAllTooltip: l10n.libraryPlayAll,
           onTap: () {
             // value / cover 走 query 参数：Uri 负责编码，避免路径段里的 % / 等
             // 字符引发 go_router 编解码问题（沿用原 categories_page 做法）。

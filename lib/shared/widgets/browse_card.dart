@@ -81,9 +81,6 @@ class BrowseCard extends StatelessWidget {
   final List<BrowseCardAction> menuActions;
   final String? menuTooltip;
 
-  /// list 形态右侧显示下钻箭头（分类取值卡片用）。
-  final bool showChevron;
-
   const BrowseCard({
     super.key,
     required this.layout,
@@ -106,7 +103,6 @@ class BrowseCard extends StatelessWidget {
     this.playAllTooltip,
     this.menuActions = const [],
     this.menuTooltip,
-    this.showChevron = false,
   });
 
   @override
@@ -366,8 +362,6 @@ class BrowseCard extends StatelessWidget {
                     tooltip: playAllTooltip,
                   ),
                 if (menuActions.isNotEmpty) _buildMenu(context),
-                if (showChevron && onPlayAll == null && menuActions.isEmpty)
-                  Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
               ],
             ],
           ),
