@@ -96,12 +96,25 @@
         var orig = console[m] ? console[m].bind(console) : function () {};
         console[m] = function () { try { push(m === 'debug' ? 'log' : m, fmt(arguments)); } catch (_) {} orig.apply(null, arguments); };
       });
+      function describeError(err) {
+        if (!err) return '';
+        var parts = [];
+        try { var s = err.toString(); if (s && s !== '[object Object]') parts.push(s); } catch (_) {}
+        try { if (err.message && parts.indexOf(err.message) === -1) parts.push('message: ' + err.message); } catch (_) {}
+        // dart2js 把原始 Dart 异常挂在这些字段上,取到才能看到真实报错文本
+        try { if (err.dartException) parts.push('dartException: ' + err.dartException); } catch (_) {}
+        try { if (err.$thrownJsError && err.$thrownJsError !== err) parts.push('thrown: ' + err.$thrownJsError); } catch (_) {}
+        try { if (err.stack) parts.push('stack:\n' + String(err.stack).split('\n').slice(0, 10).join('\n')); } catch (_) {}
+        return parts.join('\n');
+      }
       window.addEventListener('error', function (e) {
-        push('error', 'window.onerror: ' + (e.message || '') + (e.filename ? (' @ ' + e.filename + ':' + e.lineno) : ''));
+        var head = 'window.onerror @ ' + (e.filename || '') + ':' + (e.lineno || '') + ':' + (e.colno || '');
+        var detail = describeError(e.error) || (e.message || '(no message)');
+        push('error', head + '\n' + detail);
       });
       window.addEventListener('unhandledrejection', function (e) {
-        var r = e && e.reason;
-        push('error', 'unhandledrejection: ' + ((r && (r.stack || r.message)) || String(r)));
+        var detail = describeError(e && e.reason) || String(e && e.reason);
+        push('error', 'unhandledrejection:\n' + detail);
       });
 
       function build() {
