@@ -40,30 +40,40 @@
   <script src="hls_bridge.js"></script>
   <script src="deploy-mode.js"></script>
   <script>
-    // In-place CanvasKit surface rebuild for mobile browsers.
+    // Reload-free CanvasKit surface recovery for mobile browsers.
     //
-    // On mobile Chrome the WebGL context backing CanvasKit is discarded when the
-    // tab is backgrounded under memory pressure. The app keeps running (gestures
-    // and routing work) but the GPU surface can come back black. Rather than
-    // reloading the whole page (losing playback, scroll and session), we rebuild
-    // the CanvasKit surface *in place*: forcing a WebGL context loss on Flutter's
-    // onscreen canvas via WEBGL_lose_context.loseContext() drives the engine to
-    // acquire a fresh canvas + GL context + SkSurface and drop the dead one --
-    // the same path the engine's own triggerContextLoss() uses.
+    // On mobile Chrome the WebGL/GPU context backing CanvasKit is discarded when
+    // the tab is backgrounded (memory pressure / GPU reclaim). The engine's
+    // Surface receives 'webglcontextlost', flags `_forceNewContext = true`, calls
+    // preventDefault() to opt into restoration, then waits passively for a
+    // 'webglcontextrestored' event to re-render -- an event Android Chrome often
+    // never fires. The app keeps running (gestures/routing) but paints black.
+    //
+    // The engine already carries all the machinery to recover: its multi-surface
+    // rasterizer calls Surface.createOrUpdateSurface() on EVERY rendered frame,
+    // and when `_forceNewContext` is set that call builds a brand-new <canvas> +
+    // fresh GL context + SkSurface, dropping the dead one. So we don't destroy or
+    // reload anything -- on resume we simply DRIVE A FRAME and let the engine
+    // rebuild its surface in place. If the GPU is momentarily still unavailable
+    // the engine falls back to a CPU surface (still visible, not black).
     //
     // This requires the onscreen (multi-surface) rasterizer, forced on mobile in
-    // the config block below, so the WebGL context lives on a reachable DOM
-    // <canvas> (Chrome otherwise renders through an off-DOM OffscreenCanvas whose
-    // context is invisible to the page). The only WebGL canvas on this page is
+    // the config block below, so the context lives on a reachable DOM <canvas>
+    // (Chrome otherwise renders through an off-DOM OffscreenCanvas whose context
+    // the engine cannot observe as lost). The only WebGL canvas on this page is
     // Flutter's (equalizer.js uses Web Audio, hls.js uses MediaSource).
+    //
+    // NB: two earlier bugs made this path fall through to window.location.reload
+    // (the full refresh users disliked): (1) forcing WEBGL_lose_context.loseContext()
+    // without ever calling restoreContext() stranded the context permanently; and
+    // (2) nudging the engine with `window.dispatchEvent('resize')` -- but the
+    // full-page dimensions provider listens on `window.visualViewport`, so the
+    // event never reached the engine. Both are fixed below; there is no reload.
     (function () {
-      var HIDDEN_RECOVER_MS = 1500;
-      var hiddenAt = 0;
       var lostSinceHidden = false;
 
       document.addEventListener('webglcontextlost', function (e) {
-        // Allow the browser to restore the context, and remember that a loss
-        // happened so we only intervene on resume when recovery is warranted.
+        // Opt into browser restoration and remember a loss happened while hidden.
         e.preventDefault();
         lostSinceHidden = true;
       }, true);
@@ -87,68 +97,63 @@
         }
       }
 
-      function anyContextLost() {
+      function lostCanvases() {
+        var out = [];
         var canvases = collectCanvases(document, []);
         for (var i = 0; i < canvases.length; i++) {
           var gl = glOf(canvases[i]);
-          if (gl && gl.isContextLost()) return true;
+          if (gl && gl.isContextLost()) out.push(canvases[i]);
         }
-        return false;
+        return out;
       }
 
-      // Force Flutter to rebuild its GL surface in place by triggering a context
-      // loss on every live WebGL canvas. Canvases already lost are left to
-      // Flutter's own webglcontextlost handler (and the reload fallback).
-      function rebuildInPlace() {
-        var canvases = collectCanvases(document, []);
-        for (var i = 0; i < canvases.length; i++) {
-          var gl = glOf(canvases[i]);
-          if (!gl || gl.isContextLost()) continue;
-          try {
-            var ext = gl.getExtension('WEBGL_lose_context');
-            if (ext) ext.loseContext();
-          } catch (_) {}
-        }
-        // Nudge Flutter to repaint the current scene onto the fresh surface.
+      // Route a frame through the engine so its rasterizer runs
+      // createOrUpdateSurface() and rebuilds the surface in place. The full-page
+      // dimensions provider listens for 'resize' on visualViewport (falling back
+      // to window on older browsers), so dispatch to both. This reaches
+      // invokeOnMetricsChanged() -> a forced frame -> a fresh canvas+context when
+      // the engine has `_forceNewContext` set.
+      function driveFrame() {
+        try {
+          if (window.visualViewport) {
+            window.visualViewport.dispatchEvent(new Event('resize'));
+          }
+        } catch (_) {}
         try { window.dispatchEvent(new Event('resize')); } catch (_) {}
       }
 
       document.addEventListener('visibilitychange', function () {
-        if (document.visibilityState !== 'visible') {
-          hiddenAt = Date.now();
-          return;
-        }
-        var hiddenMs = hiddenAt ? (Date.now() - hiddenAt) : 0;
-        hiddenAt = 0;
-        // Skip trivial alt-tabs; the surface is only dropped after a real stint.
-        if (hiddenMs < HIDDEN_RECOVER_MS) return;
+        if (document.visibilityState !== 'visible') return;
 
-        // Only intervene when a context loss actually occurred (observed event
-        // or a canvas currently reporting lost); otherwise leave a healthy app
-        // untouched so we don't cause a needless rebuild flash on every return.
-        var needsRecovery = lostSinceHidden || anyContextLost();
+        // Only intervene when a context loss actually occurred (observed event or
+        // a canvas currently reporting lost); a healthy app is left untouched so
+        // we never cause a needless rebuild flash on an ordinary tab switch.
+        if (!lostSinceHidden && lostCanvases().length === 0) return;
         lostSinceHidden = false;
-        if (!needsRecovery) return;
 
-        setTimeout(function () {
-          rebuildInPlace();
-
-          // Verify: if a live context is still lost after a grace period (the
-          // rebuild failed, e.g. the GPU is still unavailable), reload the page
-          // as an absolute last resort -- mirroring the manual refresh.
-          var tries = 0;
-          var timer = setInterval(function () {
-            tries++;
-            if (!anyContextLost()) {
-              clearInterval(timer); // recovered in place
-              return;
+        // Drive frames over a short window. The engine normally rebuilds on the
+        // first frame after resume (it already flagged _forceNewContext when it
+        // saw the real 'webglcontextlost'). If a canvas still reports lost after
+        // a couple of nudges, re-dispatch a synthetic 'webglcontextlost' on it to
+        // (re-)arm the engine's _forceNewContext, then drive another frame. No
+        // context is destroyed and the page is NEVER reloaded.
+        var tries = 0;
+        driveFrame();
+        var timer = setInterval(function () {
+          tries++;
+          var lost = lostCanvases();
+          if (lost.length === 0) {
+            clearInterval(timer); // recovered in place
+            return;
+          }
+          if (tries >= 2) {
+            for (var i = 0; i < lost.length; i++) {
+              try { lost[i].dispatchEvent(new Event('webglcontextlost')); } catch (_) {}
             }
-            if (tries >= 8) { // ~4s
-              clearInterval(timer);
-              window.location.reload();
-            }
-          }, 500);
-        }, 250);
+          }
+          driveFrame();
+          if (tries >= 12) clearInterval(timer); // ~5s; give up quietly, never reload
+        }, 400);
       });
     })();
   </script>
