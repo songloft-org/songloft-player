@@ -60,6 +60,9 @@ class SongloftMediaKitPlayer extends AudioPlayerPlatform {
   Duration? _setPosition;
   bool _released = false;
 
+  /// 是否曾修改过 mpv 的 tls-verify 属性（用于在用户关闭 insecureTls 后恢复默认值）。
+  bool _tlsVerifyOverridden = false;
+
   Media? get _currentMedia {
     final playlist = player.state.playlist;
     final index = _validPlaylistIndex(playlist);
@@ -300,8 +303,18 @@ class SongloftMediaKitPlayer extends AudioPlayerPlatform {
 
     // 用户开启「忽略 SSL 证书校验」时同步设置 mpv 的 tls-verify=no，
     // 使 AudioSource.uri 路径（Windows 普通歌曲、直播流、视频）也能连接自签证书服务器。
-    if (AppConfig.insecureTls) {
-      await _setMpvProperty('tls-verify', 'no');
+    // 关闭时恢复 tls-verify=yes（仅在之前改过的情况下才恢复，避免改变默认行为）。
+    // try-catch 兜底：mpv 版本若不支持该属性，不能阻塞播放主路径。
+    try {
+      if (AppConfig.insecureTls) {
+        await _setMpvProperty('tls-verify', 'no');
+        _tlsVerifyOverridden = true;
+      } else if (_tlsVerifyOverridden) {
+        await _setMpvProperty('tls-verify', 'yes');
+        _tlsVerifyOverridden = false;
+      }
+    } catch (e) {
+      debugPrint('[SongloftMediaKitPlayer] tls-verify 设置失败 (ignored): $e');
     }
 
     if (request.audioSourceMessage is ConcatenatingAudioSourceMessage) {
