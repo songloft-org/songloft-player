@@ -17,6 +17,7 @@ import '../../../../core/router/app_router.dart';
 import '../../../../core/storage/secure_storage.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/utils/platform_utils.dart';
+import '../../../../core/utils/web_cache_clearer.dart' as web_cache;
 import '../../../../shared/utils/responsive_snackbar.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../playlist/presentation/providers/playlist_provider.dart';
@@ -636,6 +637,10 @@ class _SettingsCategoryContentState
           _buildLogLevelTile(),
           if (kIsWeb) ...[
             const Divider(height: 1),
+            _buildWebDebugConsoleTile(),
+          ],
+          if (kIsWeb) ...[
+            const Divider(height: 1),
             ListTile(
               leading: const Icon(Icons.download_outlined),
               title: Text(l10n.settingsDownloadAppTitle),
@@ -1014,6 +1019,31 @@ class _SettingsCategoryContentState
                   );
                 }
               },
+    );
+  }
+
+  Widget _buildWebDebugConsoleTile() {
+    final l10n = AppLocalizations.of(context);
+    final enabled = ref.watch(webDebugConsoleProvider);
+
+    return SwitchListTile(
+      secondary: const Icon(Icons.bug_report_outlined),
+      title: Text(l10n.settingsWebDebugConsoleTitle),
+      subtitle: Text(l10n.settingsWebDebugConsoleSubtitle),
+      value: enabled,
+      onChanged: (value) async {
+        await ref.read(webDebugConsoleProvider.notifier).setEnabled(value);
+        if (!mounted) return;
+        ResponsiveSnackBar.show(
+          context,
+          message:
+              value
+                  ? l10n.settingsWebDebugConsoleEnabled
+                  : l10n.settingsWebDebugConsoleDisabled,
+        );
+        await Future.delayed(const Duration(milliseconds: 500));
+        web_cache.reloadPage();
+      },
     );
   }
 

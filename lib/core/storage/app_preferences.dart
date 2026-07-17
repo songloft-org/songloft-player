@@ -312,6 +312,8 @@ class AppPreferences {
   static const _autoEnterLyricsOnLaunchKey =
       'player_auto_enter_lyrics_on_launch';
 
+  static const _webDebugConsoleKey = 'web_debug_console';
+
   /// 打开客户端后是否自动进入全屏歌词界面（默认关闭）。与「自动播放」相互独立：
   /// 只要启动后成功恢复出上次的歌曲，就按屏幕分辨率进入对应的全屏歌词界面。
   /// 纯本地设置，不参与服务器偏好同步（songloft-org/songloft-player#19）。
@@ -321,6 +323,14 @@ class AppPreferences {
 
   Future<bool> setAutoEnterLyricsOnLaunch(bool value) {
     return _prefs.setBool(_autoEnterLyricsOnLaunchKey, value);
+  }
+
+  bool getWebDebugConsole() {
+    return _prefs.getBool(_webDebugConsoleKey) ?? false;
+  }
+
+  Future<bool> setWebDebugConsole(bool value) {
+    return _prefs.setBool(_webDebugConsoleKey, value);
   }
 
   /// 快捷键绑定表（原始 JSON 字符串，解析在 provider 层做）。null 表示从未自定义。

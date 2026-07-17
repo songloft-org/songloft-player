@@ -2650,7 +2650,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsServersTitle => '服务器';
 
   @override
-  String get settingsServersTestAll => '全部���试';
+  String get settingsServersTestAll => '全部测试';
 
   @override
   String get settingsServersEmptyTitle => '尚未添加服务器';
@@ -3107,6 +3107,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settingsDownloadAppSubtitle => '获取手机 / 桌面原生客户端，支持后台播放、缓存等';
+
+  @override
+  String get settingsWebDebugConsoleTitle => '调试控制台';
+
+  @override
+  String get settingsWebDebugConsoleSubtitle => '启用 NextConsole 网页调试面板（需刷新页面）';
+
+  @override
+  String get settingsWebDebugConsoleEnabled => '调试控制台已启用，页面将刷新';
+
+  @override
+  String get settingsWebDebugConsoleDisabled => '调试控制台已关闭，页面将刷新';
 
   @override
   String get settingsAboutTitle => '关于';

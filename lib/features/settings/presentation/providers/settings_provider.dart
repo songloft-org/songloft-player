@@ -878,6 +878,39 @@ final autoEnterLyricsOnLaunchProvider =
     );
 
 // ============================================================================
+// Web 调试控制台 Provider（仅 Web 端使用，纯本地设置）
+// ============================================================================
+
+class WebDebugConsoleNotifier extends Notifier<bool> {
+  @override
+  bool build() {
+    _load();
+    return false;
+  }
+
+  Future<void> _load() async {
+    try {
+      final prefs = await ref.read(appPreferencesProvider.future);
+      state = prefs.getWebDebugConsole();
+    } catch (_) {
+      state = false;
+    }
+  }
+
+  Future<void> setEnabled(bool value) async {
+    state = value;
+    try {
+      final prefs = await ref.read(appPreferencesProvider.future);
+      await prefs.setWebDebugConsole(value);
+    } catch (_) {}
+  }
+}
+
+final webDebugConsoleProvider = NotifierProvider<WebDebugConsoleNotifier, bool>(
+  WebDebugConsoleNotifier.new,
+);
+
+// ============================================================================
 // 网络歌曲标题来源 Provider
 // ============================================================================
 

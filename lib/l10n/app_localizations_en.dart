@@ -3248,6 +3248,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'Get the mobile / desktop native client with background playback, caching and more';
 
   @override
+  String get settingsWebDebugConsoleTitle => 'Debug Console';
+
+  @override
+  String get settingsWebDebugConsoleSubtitle =>
+      'Enable NextConsole web debug panel (requires page reload)';
+
+  @override
+  String get settingsWebDebugConsoleEnabled =>
+      'Debug console enabled, page will reload';
+
+  @override
+  String get settingsWebDebugConsoleDisabled =>
+      'Debug console disabled, page will reload';
+
+  @override
   String get settingsAboutTitle => 'About';
 
   @override

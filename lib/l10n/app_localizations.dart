@@ -5636,6 +5636,30 @@ abstract class AppLocalizations {
   /// **'获取手机 / 桌面原生客户端，支持后台播放、缓存等'**
   String get settingsDownloadAppSubtitle;
 
+  /// No description provided for @settingsWebDebugConsoleTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'调试控制台'**
+  String get settingsWebDebugConsoleTitle;
+
+  /// No description provided for @settingsWebDebugConsoleSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'启用 NextConsole 网页调试面板（需刷新页面）'**
+  String get settingsWebDebugConsoleSubtitle;
+
+  /// No description provided for @settingsWebDebugConsoleEnabled.
+  ///
+  /// In zh, this message translates to:
+  /// **'调试控制台已启用，页面将刷新'**
+  String get settingsWebDebugConsoleEnabled;
+
+  /// No description provided for @settingsWebDebugConsoleDisabled.
+  ///
+  /// In zh, this message translates to:
+  /// **'调试控制台已关闭，页面将刷新'**
+  String get settingsWebDebugConsoleDisabled;
+
   /// No description provided for @settingsAboutTitle.
   ///
   /// In zh, this message translates to:
