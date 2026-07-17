@@ -163,10 +163,11 @@
   <script src="hls_bridge.js"></script>
   <script src="deploy-mode.js"></script>
   <!--
-    移动端切后台回来黑/白屏的根因是引擎 bug flutter/flutter#184683(CanvasKit
-    处理 WebGL context 丢失时访问未初始化的 late 字段,抛 LateInitializationError,
-    渲染帧崩溃)。已由 web 构建改用含官方修复 #185116 的 beta 3.47 从引擎层解决,
-    无需页面侧的渲染器强制或恢复干预。待 3.47 进 stable 后统一。
+    已知问题:移动端切后台回来可能白屏。根因是引擎 bug flutter/flutter#184683
+    (CanvasKit 处理 WebGL context 丢失时访问未初始化的 late 字段,抛
+    LateInitializationError,渲染帧崩溃)。官方修复 #185116 尚未进 stable 3.44.6
+    (仅 beta 3.47+),当前按现状接受;待 3.47 进 stable 后升级即可根治。页面侧的
+    渲染器强制/恢复绕法已移除(在含 bug 的版本上要么无效、要么反而触发崩溃)。
   -->
   <script>
     {{flutter_js}}
