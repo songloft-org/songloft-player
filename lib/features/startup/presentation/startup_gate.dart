@@ -1,9 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-
-import 'web_surface_recovery.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -73,45 +70,14 @@ class _StartupGateState extends ConsumerState<StartupGate>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (!kIsWeb || state != AppLifecycleState.resumed) return;
-    // Web/CanvasKit 切后台回前台的黑屏/白屏恢复。
-    //
-    // 切后台时浏览器会丢弃 CanvasKit 的 WebGL context。引擎收到
-    // 'webglcontextlost' 会标记 _forceNewContext 并在「下一帧」重建 GL surface,
-    // 但它自己不会产帧;而普通 scheduleFrame 在渲染树无 dirty 节点时同样不产帧。
-    // 于是重建出来的 surface 是空的(透明)→ 露出白色 body(旧版更早还会丢
-    // context 停在黑屏)。引擎也不缓存/重放上一帧,必须由 framework 真正产出一帧
-    // render(scene),把当前场景重新光栅化到重建后的 surface 上才有内容。
-    //
-    // 因此这里在回前台时:标脏整棵渲染树的 paint + scheduleForcedFrame(即使无
-    // dirty 也强制产帧)。多次尝试是为覆盖 'webglcontextlost' 稍晚才触发、
-    // surface 稍后才重建的时序。全程不整页 reload。
-    for (final ms in const [0, 200, 500, 1000, 1600]) {
-      Future.delayed(Duration(milliseconds: ms), _forceWebRepaint);
+    // Web 回前台时轻量补几帧。切后台 WebGL context 丢失的根因(引擎
+    // flutter/flutter#184683 的 LateInitializationError)已由 web 构建改用含
+    // #185116 修复的 beta 3.47 从引擎层解决,这里无需再做重建/补发等干预。
+    for (var i = 0; i < 3; i++) {
+      Future.delayed(Duration(milliseconds: i * 200), () {
+        if (mounted) WidgetsBinding.instance.scheduleFrame();
+      });
     }
-  }
-
-  /// Web 端 WebGL context 丢失后的重绘辅助。仅在 [kIsWeb] 下由
-  /// [didChangeAppLifecycleState] 调用:
-  ///
-  /// 1. [reportLostWebGlContexts]:仅诊断记录当前有多少 canvas 的 context 已
-  ///    丢失(不干预;由引擎自身的 context-lost 恢复机制处理)。
-  /// 2. 标脏整棵渲染树 + [SchedulerBinding.scheduleForcedFrame]:即使无 dirty
-  ///    节点也强制产出一帧,把当前场景重新光栅化到引擎(可能已)重建的 surface
-  ///    上(普通 scheduleFrame 无 dirty 时不产帧,故不可用)。
-  void _forceWebRepaint() {
-    if (!mounted) return;
-
-    reportLostWebGlContexts();
-
-    void markTree(RenderObject node) {
-      node.markNeedsPaint();
-      node.visitChildren(markTree);
-    }
-
-    for (final view in RendererBinding.instance.renderViews) {
-      markTree(view);
-    }
-    WidgetsBinding.instance.scheduleForcedFrame();
   }
 
   Future<void> _bootstrap() async {

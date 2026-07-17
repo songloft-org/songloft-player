@@ -163,15 +163,10 @@
   <script src="hls_bridge.js"></script>
   <script src="deploy-mode.js"></script>
   <!--
-    移动端切后台回来黑屏/白屏的恢复逻辑在 Dart 侧处理(见
-    lib/features/startup/presentation/startup_gate.dart)。原因:切后台时浏览器
-    会丢弃 CanvasKit 的 WebGL context,引擎收到 'webglcontextlost' 会重建 GL
-    surface,但重建后的 surface 是空的,必须由 framework 强制产出一帧完整重绘
-    才有内容;而页面 JS 无法从外部强制 Flutter 产帧(仅派发 resize 只会调用
-    invokeOnMetricsChanged 通知 framework,同尺寸下不产帧 → 白屏)。因此恢复必须
-    在 Dart 侧用 scheduleForcedFrame + 标脏渲染树完成。此处仅保留下方的
-    canvasKitForceMultiSurfaceRasterizer 配置:把 WebGL context 放到可观测的 DOM
-    <canvas> 上,让引擎能收到 'webglcontextlost' 并重建。
+    移动端切后台回来黑/白屏的根因是引擎 bug flutter/flutter#184683(CanvasKit
+    处理 WebGL context 丢失时访问未初始化的 late 字段,抛 LateInitializationError,
+    渲染帧崩溃)。已由 web 构建改用含官方修复 #185116 的 beta 3.47 从引擎层解决,
+    无需页面侧的渲染器强制或恢复干预。待 3.47 进 stable 后统一。
   -->
   <script>
     {{flutter_js}}
@@ -180,21 +175,6 @@
     var config = {
       canvasKitVariant: "full",
     };
-
-    // Force the onscreen (multi-surface) CanvasKit rasterizer on mobile
-    // browsers. Chrome's default OffscreenCanvas rasterizer keeps its WebGL
-    // context on an OffscreenCanvas that is never attached to the DOM, so a
-    // background GPU-context loss is invisible to the page and cannot be
-    // recovered (the app paints black until a manual refresh). The onscreen
-    // rasterizer (already the default on Safari/Firefox) puts the context on a
-    // DOM <canvas>, which lets Flutter auto-recover on context loss and lets the
-    // in-place rebuild above reach the context. Desktop keeps the offscreen path.
-    var isMobileBrowser = /Android|iPhone|iPad|iPod|Mobile|Silk|Kindle/i.test(
-      navigator.userAgent || ''
-    );
-    if (isMobileBrowser) {
-      config.canvasKitForceMultiSurfaceRasterizer = true;
-    }
 
     if (typeof _deployMode !== 'undefined' && _deployMode === 'embedded') {
       config.fontFallbackBaseUrl = "fonts/";
