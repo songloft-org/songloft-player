@@ -922,7 +922,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
                 physics: const NeverScrollableScrollPhysics(),
                 buildDefaultDragHandles: false,
                 itemCount: buckets[groupOrder[gi]]!.length,
-                onReorder: (oldIndex, newIndex) =>
+                onReorderItem: (oldIndex, newIndex) =>
                     _reorderInGroup(groupOrder[gi], oldIndex, newIndex),
                 itemBuilder: (context, index) {
                   final v = buckets[groupOrder[gi]]![index];
@@ -958,7 +958,6 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
     setState(() {
       final buckets = _groupDrafts(_draftViews);
       final list = buckets[group]!;
-      if (newIndex > oldIndex) newIndex--;
       final item = list.removeAt(oldIndex);
       list.insert(newIndex, item);
       // 保持当前分组顺序不变（不要打回固定顺序）。

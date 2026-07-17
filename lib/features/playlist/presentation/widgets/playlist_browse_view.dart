@@ -288,7 +288,7 @@ class PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
     return ReorderableListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       itemCount: _sortablePlaylists.length,
-      onReorder: _onReorder,
+      onReorderItem: _onReorder,
       itemBuilder: (context, index) {
         final playlist = _sortablePlaylists[index];
         return Card(
@@ -355,7 +355,6 @@ class PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
 
   void _onReorder(int oldIndex, int newIndex) {
     setState(() {
-      if (newIndex > oldIndex) newIndex -= 1;
       final item = _sortablePlaylists.removeAt(oldIndex);
       _sortablePlaylists.insert(newIndex, item);
     });

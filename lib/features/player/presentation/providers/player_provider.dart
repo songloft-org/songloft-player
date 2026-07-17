@@ -833,14 +833,20 @@ class PlayerNotifier extends Notifier<PlayerState> {
   }
 
   /// 拖拽排序播放列表
+  /// 拖拽排序（经典 onReorder 语义：newIndex 为"移除前"索引）。
+  /// 供 JS 插件 reorderQueue 入口复用；widget 侧走 onReorderItem → [moveInPlaylist]。
   void reorderPlaylist(int oldIndex, int newIndex) {
-    if (oldIndex == newIndex) return;
+    final insertIndex = newIndex > oldIndex ? newIndex - 1 : newIndex;
+    moveInPlaylist(oldIndex, insertIndex);
+  }
+
+  /// 将 oldIndex 处歌曲移动到 insertIndex。
+  /// onReorderItem 语义：insertIndex 已是"移除后"的最终目标索引，无需再调整。
+  void moveInPlaylist(int oldIndex, int insertIndex) {
+    if (oldIndex == insertIndex) return;
 
     final newPlaylist = List<Song>.from(state.playlist);
     final song = newPlaylist.removeAt(oldIndex);
-
-    // 如果新位置在旧位置之后，需要调整
-    final insertIndex = newIndex > oldIndex ? newIndex - 1 : newIndex;
     newPlaylist.insert(insertIndex, song);
 
     // 调整当前索引

@@ -366,12 +366,9 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
     }
   }
 
-  /// 拖拽排序回调
+  /// 拖拽排序回调（onReorderItem：newIndex 已是移除后的最终目标索引）
   void _onReorder(int oldIndex, int newIndex) {
     setState(() {
-      if (newIndex > oldIndex) {
-        newIndex -= 1;
-      }
       final item = _sortableSongs.removeAt(oldIndex);
       _sortableSongs.insert(newIndex, item);
     });
@@ -1304,7 +1301,7 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: _sortableSongs.length,
-          onReorder: _onReorder,
+          onReorderItem: _onReorder,
           itemBuilder: (context, index) {
             final song = _sortableSongs[index];
             return PlaylistSongTile(

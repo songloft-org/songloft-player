@@ -43,9 +43,9 @@ class ServersNotifier extends AsyncNotifier<List<ServerEntry>> {
     await _save(next);
   }
 
+  /// onReorderItem：newIndex 已是移除后的最终目标索引，无需再自行调整。
   Future<void> reorder(int oldIndex, int newIndex) async {
     final current = [...(state.value ?? const <ServerEntry>[])];
-    if (newIndex > oldIndex) newIndex -= 1;
     final item = current.removeAt(oldIndex);
     current.insert(newIndex, item);
     await _save(current);

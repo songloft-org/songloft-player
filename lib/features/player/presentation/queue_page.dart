@@ -202,7 +202,7 @@ class QueueBottomSheet extends ConsumerWidget {
         bottom: MediaQuery.of(context).padding.bottom + 16,
       ),
       itemCount: state.playlist.length,
-      onReorder: notifier.reorderPlaylist,
+      onReorderItem: notifier.moveInPlaylist,
       buildDefaultDragHandles: false,
       itemBuilder: (context, index) {
         final song = state.playlist[index];

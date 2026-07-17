@@ -207,8 +207,7 @@ class _PluginTabReorderList extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       buildDefaultDragHandles: false,
       itemCount: pluginTabs.length,
-      onReorder: (oldIndex, newIndex) {
-        if (newIndex > oldIndex) newIndex--;
+      onReorderItem: (oldIndex, newIndex) {
         final newList = List<PluginTabEntry>.from(pluginTabs);
         final item = newList.removeAt(oldIndex);
         newList.insert(newIndex, item);

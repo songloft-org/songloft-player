@@ -13,7 +13,7 @@
 // 注册见 lib/main.dart：web 平台将 JustAudioPlatform.instance 指向 SongloftWebJustAudioPlugin。
 //
 // 本文件为 vendoring 的上游代码，保留原有代码风格，豁免项目 lint（单引号 / super 参数）。
-// ignore_for_file: prefer_single_quotes, use_super_parameters
+// ignore_for_file: prefer_single_quotes, use_super_parameters, invalid_runtime_check_with_js_interop_types
 import 'dart:async';
 import 'dart:js_interop';
 import 'dart:math';

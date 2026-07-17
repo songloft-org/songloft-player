@@ -144,7 +144,7 @@ class PlaylistDrawer extends ConsumerWidget {
     return ReorderableListView.builder(
       padding: const EdgeInsets.only(bottom: 16),
       itemCount: state.playlist.length,
-      onReorder: notifier.reorderPlaylist,
+      onReorderItem: notifier.moveInPlaylist,
       buildDefaultDragHandles: false,
       itemBuilder: (context, index) {
         final song = state.playlist[index];
