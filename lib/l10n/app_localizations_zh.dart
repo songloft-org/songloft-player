@@ -856,6 +856,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get libraryViewGroupPlaylists => '歌单';
 
   @override
+  String get libraryViewGroupMoveUp => '上移分组';
+
+  @override
+  String get libraryViewGroupMoveDown => '下移分组';
+
+  @override
   String get libraryEditLocalSong => '编辑本地歌曲';
 
   @override

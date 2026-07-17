@@ -875,6 +875,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get libraryViewGroupPlaylists => 'Playlists';
 
   @override
+  String get libraryViewGroupMoveUp => 'Move group up';
+
+  @override
+  String get libraryViewGroupMoveDown => 'Move group down';
+
+  @override
   String get libraryEditLocalSong => 'Edit local song';
 
   @override

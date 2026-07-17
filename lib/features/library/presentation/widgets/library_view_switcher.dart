@@ -122,20 +122,23 @@ LibraryViewGroup libraryViewGroup(String key) {
   return LibraryViewGroup.facets;
 }
 
-/// 把视图 key 按固定组顺序归类，组内保留传入的相对顺序，仅返回非空组。
+/// 把视图 key 归类分组，组顺序按各组在 [keys] 中**首次出现**的先后决定，
+/// 组内保留传入的相对顺序，仅返回非空组。
+///
+/// 组顺序不再固定（歌曲→分类→歌单），而是跟随用户在自定义视图里配置的顺序：
+/// 由于配置的 views 列表按组连续排列，各组首次出现的先后即用户设定的组顺序。
 List<List<String>> groupLibraryViewKeys(List<String> keys) {
-  final buckets = <LibraryViewGroup, List<String>>{
-    LibraryViewGroup.songs: [],
-    LibraryViewGroup.facets: [],
-    LibraryViewGroup.playlists: [],
-  };
+  final order = <LibraryViewGroup>[];
+  final buckets = <LibraryViewGroup, List<String>>{};
   for (final k in keys) {
-    buckets[libraryViewGroup(k)]!.add(k);
+    final g = libraryViewGroup(k);
+    if (!buckets.containsKey(g)) {
+      order.add(g);
+      buckets[g] = [];
+    }
+    buckets[g]!.add(k);
   }
-  return [
-    for (final g in LibraryViewGroup.values)
-      if (buckets[g]!.isNotEmpty) buckets[g]!,
-  ];
+  return [for (final g in order) buckets[g]!];
 }
 
 /// 窄屏顶部视图切换条：横向可滚动 FilterPill 行，按组分段并在组间加竖向分隔。

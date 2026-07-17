@@ -483,6 +483,8 @@
   "libraryViewGroupSongs": "Songs",
   "libraryViewGroupCategories": "Categories",
   "libraryViewGroupPlaylists": "Playlists",
+  "libraryViewGroupMoveUp": "Move group up",
+  "libraryViewGroupMoveDown": "Move group down",
   "libraryEditLocalSong": "Edit local song",
   "libraryEditRadio": "Edit radio",
   "libraryEditRemoteSong": "Edit remote song",

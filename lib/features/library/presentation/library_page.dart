@@ -32,7 +32,11 @@ import 'widgets/song_list_tile.dart';
 /// - 窄屏用顶部横向 [LibraryViewSwitcher] 切换条 + 下方内容区。
 /// 视图的「显示 + 顺序」由 [libraryBrowseConfigProvider] 驱动，AppBar「编辑」进入页内编辑模式。
 class LibraryPage extends ConsumerStatefulWidget {
-  const LibraryPage({super.key});
+  /// 进入时要选中的视图 key（来自路由 `?view=`）。允许选中被隐藏的视图，
+  /// 供首页「查看全部」等入口直达指定视图（如全部歌单）使用。
+  final String? initialViewKey;
+
+  const LibraryPage({super.key, this.initialViewKey});
 
   @override
   ConsumerState<LibraryPage> createState() => _LibraryPageState();
@@ -45,6 +49,10 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
 
   /// 当前选中的视图 key（null 时在 build 里回退到第一个可见视图）。
   String? _selectedViewKey;
+
+  /// 经路由参数强制选中的视图 key。仅此 key 允许绕过「可见性」校验被选中，
+  /// 用户手动切换视图后清空。用于「查看全部」直达被隐藏的视图。
+  String? _forcedViewKey;
 
   /// 已为扁平视图同步过 type 过滤的 key，避免在 build 里重复触发加载。
   String? _syncedFlatKey;
@@ -60,6 +68,24 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    _applyInitialViewKey(widget.initialViewKey);
+  }
+
+  @override
+  void didUpdateWidget(LibraryPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // 同一 LibraryPage 实例被路由复用时（如再次以新的 ?view= 导航进来），
+    // 仅在参数变化时应用，避免覆盖用户的手动切换。
+    if (widget.initialViewKey != oldWidget.initialViewKey) {
+      _applyInitialViewKey(widget.initialViewKey);
+    }
+  }
+
+  /// 应用路由传入的视图 key：合法即选中并标记为「强制」（允许其被隐藏）。
+  void _applyInitialViewKey(String? key) {
+    if (key == null || !LibraryBrowseConfig.defaultOrder.contains(key)) return;
+    _selectedViewKey = key;
+    _forcedViewKey = key;
   }
 
   @override
@@ -91,7 +117,10 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
     if (ref.read(songsListProvider).isSelectionMode) {
       ref.read(songsListProvider.notifier).toggleSelectMode();
     }
-    setState(() => _selectedViewKey = key);
+    setState(() {
+      _selectedViewKey = key;
+      _forcedViewKey = null; // 用户手动切换后不再强制保留隐藏视图。
+    });
   }
 
   /// 扁平视图首次进入 / 切换时，把 type 过滤同步到共享的 songsListProvider。
@@ -108,18 +137,33 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
   void _enterEditMode(LibraryBrowseConfig config) {
     setState(() {
       _editMode = true;
-      // 规整为按组连续的顺序（组内保留配置相对顺序），保证编辑与保存都是分组视图。
+      // 规整为按组连续的顺序（组顺序沿用配置里各组首次出现的先后，组内保留相对顺序），
+      // 保证编辑与保存都是分组视图。
       _draftViews = _groupedFlatten(config.views);
     });
   }
 
-  /// 按固定组顺序（歌曲→分类→歌单）铺平，组内保留传入相对顺序。
+  /// 按各组在 [entries] 中首次出现的先后铺平（组内保留相对顺序）。
+  /// 组顺序不固定，跟随用户已保存的分组顺序。
   List<LibraryViewEntry> _groupedFlatten(List<LibraryViewEntry> entries) {
     final buckets = _groupDrafts(entries);
     return [
-      for (final g in LibraryViewGroup.values) ...buckets[g]!,
+      for (final g in _groupOrderOf(entries)) ...buckets[g]!,
     ];
   }
+
+  /// 从条目列表推导当前的分组顺序（按各组首次出现的先后）。
+  List<LibraryViewGroup> _groupOrderOf(List<LibraryViewEntry> entries) {
+    final order = <LibraryViewGroup>[];
+    for (final e in entries) {
+      final g = libraryViewGroup(e.key);
+      if (!order.contains(g)) order.add(g);
+    }
+    return order;
+  }
+
+  /// 当前草稿的分组顺序。
+  List<LibraryViewGroup> _draftGroupOrder() => _groupOrderOf(_draftViews);
 
   Map<LibraryViewGroup, List<LibraryViewEntry>> _groupDrafts(
     List<LibraryViewEntry> entries,
@@ -133,6 +177,63 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
       buckets[libraryViewGroup(e.key)]!.add(e);
     }
     return buckets;
+  }
+
+  /// 整组上移/下移（delta = -1 上移 / +1 下移），组内顺序不变。
+  void _moveGroup(LibraryViewGroup group, int delta) {
+    setState(() {
+      final order = _draftGroupOrder();
+      final idx = order.indexOf(group);
+      final newIdx = idx + delta;
+      if (idx < 0 || newIdx < 0 || newIdx >= order.length) return;
+      order.removeAt(idx);
+      order.insert(newIdx, group);
+      final buckets = _groupDrafts(_draftViews);
+      _draftViews = [
+        for (final g in order) ...buckets[g]!,
+      ];
+    });
+  }
+
+  /// 编辑器里的分组标题行：组名 + 整组上移/下移按钮（首/末位对应按钮禁用）。
+  Widget _buildGroupHeader(
+    AppLocalizations l10n,
+    LibraryViewGroup group, {
+    required bool isFirst,
+    required bool isLast,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.sm,
+        AppSpacing.md,
+        AppSpacing.xs,
+        AppSpacing.xs,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              _groupLabel(l10n, group),
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.keyboard_arrow_up),
+            tooltip: l10n.libraryViewGroupMoveUp,
+            visualDensity: VisualDensity.compact,
+            onPressed: isFirst ? null : () => _moveGroup(group, -1),
+          ),
+          IconButton(
+            icon: const Icon(Icons.keyboard_arrow_down),
+            tooltip: l10n.libraryViewGroupMoveDown,
+            visualDensity: VisualDensity.compact,
+            onPressed: isLast ? null : () => _moveGroup(group, 1),
+          ),
+        ],
+      ),
+    );
   }
 
   String _groupLabel(AppLocalizations l10n, LibraryViewGroup group) {
@@ -189,24 +290,41 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
         LibraryBrowseConfig.defaultConfig();
 
     final visibleKeys = config.visibleViews.map((v) => v.key).toList();
+    final allKeys = config.views.map((v) => v.key).toList();
+
     String? selected = _selectedViewKey;
-    if (selected == null || !visibleKeys.contains(selected)) {
+    // 强制选中的视图（来自 ?view=）即使被隐藏也可选中，只要它是合法视图。
+    final canUseHidden = selected != null &&
+        selected == _forcedViewKey &&
+        allKeys.contains(selected);
+    if (selected == null ||
+        (!visibleKeys.contains(selected) && !canUseHidden)) {
       selected = visibleKeys.isNotEmpty ? visibleKeys.first : null;
     }
     if (selected != null) {
       _scheduleFlatSync(selected);
     }
 
+    // 切换条/侧栏展示的 key：正常为可见视图；当强制选中一个被隐藏的视图时，
+    // 把它按完整配置顺序临时插回，使其也显示对应 pill 且分组归位正确。
+    final displayKeys =
+        (canUseHidden && selected != null && !visibleKeys.contains(selected))
+        ? [
+            for (final k in allKeys)
+              if (k == selected || visibleKeys.contains(k)) k,
+          ]
+        : visibleKeys;
+
     return Scaffold(
       appBar: _buildAppBar(context, state, config, selected),
-      body: _buildBody(context, state, visibleKeys, selected),
+      body: _buildBody(context, state, displayKeys, selected),
     );
   }
 
   Widget _buildBody(
     BuildContext context,
     SongsListState state,
-    List<String> visibleKeys,
+    List<String> displayKeys,
     String? selected,
   ) {
     if (_editMode) {
@@ -222,7 +340,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
           SizedBox(
             width: 240,
             child: LibraryViewRail(
-              viewKeys: visibleKeys,
+              viewKeys: displayKeys,
               selectedKey: selected ?? '',
               onSelected: _selectView,
             ),
@@ -236,7 +354,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
     return Column(
       children: [
         LibraryViewSwitcher(
-          viewKeys: visibleKeys,
+          viewKeys: displayKeys,
           selectedKey: selected ?? '',
           onSelected: _selectView,
         ),
@@ -781,6 +899,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
       desktop: AppSpacing.xl,
     );
     final buckets = _groupDrafts(_draftViews);
+    final groupOrder = _draftGroupOrder();
 
     return Center(
       child: ConstrainedBox(
@@ -791,30 +910,22 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
             vertical: AppSpacing.sm,
           ),
           children: [
-            for (final group in LibraryViewGroup.values) ...[
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.sm,
-                  AppSpacing.md,
-                  AppSpacing.sm,
-                  AppSpacing.xs,
-                ),
-                child: Text(
-                  _groupLabel(l10n, group),
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
+            for (var gi = 0; gi < groupOrder.length; gi++) ...[
+              _buildGroupHeader(
+                l10n,
+                groupOrder[gi],
+                isFirst: gi == 0,
+                isLast: gi == groupOrder.length - 1,
               ),
               ReorderableListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 buildDefaultDragHandles: false,
-                itemCount: buckets[group]!.length,
+                itemCount: buckets[groupOrder[gi]]!.length,
                 onReorder: (oldIndex, newIndex) =>
-                    _reorderInGroup(group, oldIndex, newIndex),
+                    _reorderInGroup(groupOrder[gi], oldIndex, newIndex),
                 itemBuilder: (context, index) {
-                  final v = buckets[group]![index];
+                  final v = buckets[groupOrder[gi]]![index];
                   return ListTile(
                     key: ValueKey(v.key),
                     leading: Icon(libraryViewIcon(v.key)),
@@ -850,8 +961,9 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
       if (newIndex > oldIndex) newIndex--;
       final item = list.removeAt(oldIndex);
       list.insert(newIndex, item);
+      // 保持当前分组顺序不变（不要打回固定顺序）。
       _draftViews = [
-        for (final g in LibraryViewGroup.values) ...buckets[g]!,
+        for (final g in _draftGroupOrder()) ...buckets[g]!,
       ];
     });
   }

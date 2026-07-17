@@ -588,6 +588,8 @@
   "libraryViewGroupSongs": "歌曲",
   "libraryViewGroupCategories": "分类",
   "libraryViewGroupPlaylists": "歌单",
+  "libraryViewGroupMoveUp": "上移分组",
+  "libraryViewGroupMoveDown": "下移分组",
   "libraryEditLocalSong": "编辑本地歌曲",
   "libraryEditRadio": "编辑电台",
   "libraryEditRemoteSong": "编辑网络歌曲",

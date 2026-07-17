@@ -111,7 +111,8 @@ class HomePage extends ConsumerWidget {
           SectionHeader(
             title: l10n.homeMyPlaylists,
             actionText: l10n.homeViewAll,
-            onAction: () => context.go(AppRoutes.playlists),
+            // 跳转到曲库的「全部歌单」视图；即使该视图在自定义配置里被隐藏也能到达。
+            onAction: () => context.go('${AppRoutes.library}?view=playlist'),
           ),
           const SizedBox(height: AppSpacing.md),
           if (isWide)

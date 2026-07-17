@@ -124,8 +124,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.library,
             pageBuilder:
-                (context, state) =>
-                    const NoTransitionPage(child: LibraryPage()),
+                (context, state) => NoTransitionPage(
+                  child: LibraryPage(
+                    initialViewKey: state.uri.queryParameters['view'],
+                  ),
+                ),
           ),
 
           // 某分类下的歌曲列表。value 走 query 参数：专辑/歌手名可能含

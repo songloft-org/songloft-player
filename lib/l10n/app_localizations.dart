@@ -1616,6 +1616,18 @@ abstract class AppLocalizations {
   /// **'歌单'**
   String get libraryViewGroupPlaylists;
 
+  /// No description provided for @libraryViewGroupMoveUp.
+  ///
+  /// In zh, this message translates to:
+  /// **'上移分组'**
+  String get libraryViewGroupMoveUp;
+
+  /// No description provided for @libraryViewGroupMoveDown.
+  ///
+  /// In zh, this message translates to:
+  /// **'下移分组'**
+  String get libraryViewGroupMoveDown;
+
   /// No description provided for @libraryEditLocalSong.
   ///
   /// In zh, this message translates to:
