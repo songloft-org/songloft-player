@@ -18,7 +18,7 @@ class AppConfig {
   ///
   /// 运行期 single source of truth 由 [insecureTlsProvider] 持有并 mirror 到此处，
   /// 供非 Riverpod 上下文（如 [ServerProbe.probeOne]）同步读取。
-  /// 仅影响 Dart 层 HTTP（Dio）；原生音频播放器的 TLS 不受此开关影响。
+  /// 同时影响 Dart 层 HTTP（Dio / HttpClient）和原生音频播放器（libmpv）的 TLS 证书校验。
   static bool insecureTls = false;
   static const Duration connectTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);

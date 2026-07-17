@@ -7,6 +7,7 @@ import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
 import 'audio_backend.dart';
+import '../../config/app_config.dart';
 
 /// [MediaKitPlayer] 的本地重新实现，唯一区别是 [player] 字段为 public。
 /// 用于 Windows/Linux 平台的 EQ 均衡器——需要通过 [NativePlayer.setProperty]
@@ -296,6 +297,12 @@ class SongloftMediaKitPlayer extends AudioPlayerPlatform {
     // 打开媒体前确保视频 render context 已就绪（首次之后 completer 已完成，无开销），
     // 消除 open() 抢跑于纹理建立之前导致的偶发黑屏。
     await _awaitVideoTextureReady();
+
+    // 用户开启「忽略 SSL 证书校验」时同步设置 mpv 的 tls-verify=no，
+    // 使 AudioSource.uri 路径（Windows 普通歌曲、直播流、视频）也能连接自签证书服务器。
+    if (AppConfig.insecureTls) {
+      await _setMpvProperty('tls-verify', 'no');
+    }
 
     if (request.audioSourceMessage is ConcatenatingAudioSourceMessage) {
       final audioSource =

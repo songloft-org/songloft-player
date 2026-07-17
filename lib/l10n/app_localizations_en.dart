@@ -3346,7 +3346,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsInsecureTlsSubtitle =>
-      'Enable when connecting to a server with a self-signed or invalid HTTPS certificate. Note: only applies to API/login requests; audio playback uses the native player and is unaffected by this switch.';
+      'Enable when connecting to a server with a self-signed or invalid HTTPS certificate. Applies to both API requests and audio playback.';
 
   @override
   String get settingsInsecureTlsEnabled => 'Certificate verification ignored';

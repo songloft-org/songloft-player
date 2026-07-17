@@ -15,3 +15,18 @@ void applyInsecureTls(Dio dio) {
     },
   );
 }
+
+class _InsecureHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    final client = super.createHttpClient(context);
+    client.badCertificateCallback = (cert, host, port) => true;
+    return client;
+  }
+}
+
+/// 设置全局 [HttpOverrides]，使所有 Dart [HttpClient] 实例（包括 just_audio 的
+/// [LockCachingAudioSource] 内部 HTTP 客户端）在 [insecure] 为 true 时接受任意证书。
+void applyGlobalInsecureHttpOverrides(bool insecure) {
+  HttpOverrides.global = insecure ? _InsecureHttpOverrides() : null;
+}

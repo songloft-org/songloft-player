@@ -2058,7 +2058,7 @@
   "settingsHlsProxyEnabled": "HLS proxy enabled",
   "settingsHlsProxyDisabled": "HLS proxy disabled",
   "settingsInsecureTlsTitle": "Ignore SSL certificate verification",
-  "settingsInsecureTlsSubtitle": "Enable when connecting to a server with a self-signed or invalid HTTPS certificate. Note: only applies to API/login requests; audio playback uses the native player and is unaffected by this switch.",
+  "settingsInsecureTlsSubtitle": "Enable when connecting to a server with a self-signed or invalid HTTPS certificate. Applies to both API requests and audio playback.",
   "settingsInsecureTlsEnabled": "Certificate verification ignored",
   "settingsInsecureTlsDisabled": "Certificate verification enabled",
   "settingsInsecureTlsWarnTitle": "Reduced security",

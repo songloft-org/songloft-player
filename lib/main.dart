@@ -24,6 +24,7 @@ import 'core/audio/songloft_just_audio_platform.dart';
 import 'core/audio/web_audio_platform.dart';
 import 'core/backend/embedded_backend_service.dart';
 import 'core/env/tv_detector.dart';
+import 'core/network/dio_insecure.dart' show applyGlobalInsecureHttpOverrides;
 import 'core/storage/app_preferences.dart';
 import 'core/storage/secure_storage.dart';
 import 'core/tracely/tracely_client.dart';
@@ -184,6 +185,9 @@ void main(List<String> args) async {
       await prefs.migrateLegacyApiBaseUrl();
       // 预加载「忽略 SSL 证书校验」偏好，避免首个登录/探测请求早于 provider 异步回读
       AppConfig.insecureTls = prefs.getInsecureTls();
+      if (AppConfig.insecureTls) {
+        applyGlobalInsecureHttpOverrides(true);
+      }
     } catch (e) {
       debugPrint('[Main] SharedPreferences 初始化失败，使用默认配置: $e');
     }

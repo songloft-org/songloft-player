@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../config/app_config.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
+import 'dio_insecure.dart' show applyGlobalInsecureHttpOverrides;
 
 /// 是否忽略 HTTPS 证书校验（不安全）。
 ///
@@ -23,6 +24,7 @@ class InsecureTlsNotifier extends Notifier<bool> {
       final prefs = await ref.read(appPreferencesProvider.future);
       final value = prefs.getInsecureTls();
       AppConfig.insecureTls = value;
+      applyGlobalInsecureHttpOverrides(value);
       state = value;
     } catch (_) {
       // 偏好读取失败保持默认（安全）
@@ -31,6 +33,7 @@ class InsecureTlsNotifier extends Notifier<bool> {
 
   Future<void> setValue(bool value) async {
     AppConfig.insecureTls = value;
+    applyGlobalInsecureHttpOverrides(value);
     state = value;
     try {
       final prefs = await ref.read(appPreferencesProvider.future);

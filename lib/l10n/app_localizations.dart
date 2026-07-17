@@ -5800,7 +5800,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsInsecureTlsSubtitle.
   ///
   /// In zh, this message translates to:
-  /// **'连接使用自签或无效 HTTPS 证书的服务器时开启。注意：仅对接口/登录等请求生效，音频播放走原生播放器不受此开关影响'**
+  /// **'连接使用自签或无效 HTTPS 证书的服务器时开启。同时对接口请求和音频播放生效'**
   String get settingsInsecureTlsSubtitle;
 
   /// No description provided for @settingsInsecureTlsEnabled.

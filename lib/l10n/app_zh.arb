@@ -2163,7 +2163,7 @@
   "settingsHlsProxyEnabled": "已开启 HLS 代理",
   "settingsHlsProxyDisabled": "已关闭 HLS 代理",
   "settingsInsecureTlsTitle": "忽略 SSL 证书校验",
-  "settingsInsecureTlsSubtitle": "连接使用自签或无效 HTTPS 证书的服务器时开启。注意：仅对接口/登录等请求生效，音频播放走原生播放器不受此开关影响",
+  "settingsInsecureTlsSubtitle": "连接使用自签或无效 HTTPS 证书的服务器时开启。同时对接口请求和音频播放生效",
   "settingsInsecureTlsEnabled": "已开启忽略证书校验",
   "settingsInsecureTlsDisabled": "已关闭忽略证书校验",
   "settingsInsecureTlsWarnTitle": "降低安全性",
