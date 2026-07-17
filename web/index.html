@@ -35,6 +35,116 @@
 
 </head>
 <body>
+  <!-- ============================================================
+       悬浮 Console 调试工具(真机排查用,例如切后台白屏时观察
+       [WebSurfaceRecovery] 日志与 WebGL 报错)。
+       默认不启用;在 URL 加 ?slconsole(或 #slconsole)激活,激活后写
+       localStorage,SPA 导航/刷新仍保持,直到面板里点「关闭」或访问
+       ?slconsole=0 关闭。它是盖在 canvas 之上的 DOM,白屏时也能显示。
+       捕获 console.log/info/warn/error/debug + window.onerror +
+       unhandledrejection。默认收起为右下角 🐛 按钮,点开查看/复制。
+       正式环境无副作用(未激活即整段 no-op);不需要时可整段删除。
+       ============================================================ -->
+  <script>
+  (function () {
+    try {
+      var url = (location.search || '') + ' ' + (location.hash || '');
+      if (/slconsole=0/.test(url)) { try { localStorage.removeItem('sl_console'); } catch (_) {} }
+      var stored = false;
+      try { stored = localStorage.getItem('sl_console') === '1'; } catch (_) {}
+      var active = /slconsole(?!=0)/.test(url) || stored;
+      if (!active) return;
+      try { if (/slconsole(?!=0)/.test(url)) localStorage.setItem('sl_console', '1'); } catch (_) {}
+
+      var buffer = [];
+      var MAX = 800;
+      var logEl = null;
+
+      function ts() {
+        var d = new Date();
+        function p(n, w) { n = '' + n; while (n.length < (w || 2)) n = '0' + n; return n; }
+        return p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()) + '.' + p(d.getMilliseconds(), 3);
+      }
+      function fmt(args) {
+        var out = [];
+        for (var i = 0; i < args.length; i++) {
+          var a = args[i];
+          if (a instanceof Error) out.push(a.stack || (a.name + ': ' + a.message));
+          else if (a && typeof a === 'object') { try { out.push(JSON.stringify(a)); } catch (_) { out.push(String(a)); } }
+          else out.push(String(a));
+        }
+        return out.join(' ');
+      }
+      function colorFor(level) {
+        return level === 'error' ? '#ff6b6b' : level === 'warn' ? '#ffd166' : level === 'info' ? '#4dabf7' : '#c9d1d9';
+      }
+      function appendRow(entry) {
+        var row = document.createElement('div');
+        row.style.cssText = 'padding:2px 6px;border-bottom:1px solid rgba(255,255,255,.06);white-space:pre-wrap;word-break:break-word;color:' + colorFor(entry.level);
+        row.textContent = entry.time + ' ' + entry.text;
+        logEl.appendChild(row);
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+      function push(level, text) {
+        var entry = { level: level, text: text, time: ts() };
+        buffer.push(entry);
+        if (buffer.length > MAX) buffer.shift();
+        if (logEl) appendRow(entry);
+      }
+
+      ['log', 'info', 'warn', 'error', 'debug'].forEach(function (m) {
+        var orig = console[m] ? console[m].bind(console) : function () {};
+        console[m] = function () { try { push(m === 'debug' ? 'log' : m, fmt(arguments)); } catch (_) {} orig.apply(null, arguments); };
+      });
+      window.addEventListener('error', function (e) {
+        push('error', 'window.onerror: ' + (e.message || '') + (e.filename ? (' @ ' + e.filename + ':' + e.lineno) : ''));
+      });
+      window.addEventListener('unhandledrejection', function (e) {
+        var r = e && e.reason;
+        push('error', 'unhandledrejection: ' + ((r && (r.stack || r.message)) || String(r)));
+      });
+
+      function build() {
+        var launcher = document.createElement('button');
+        launcher.textContent = '🐛';
+        launcher.style.cssText = 'position:fixed;right:10px;bottom:10px;z-index:2147483647;width:44px;height:44px;border-radius:50%;border:none;background:#1f6feb;color:#fff;font-size:20px;box-shadow:0 2px 8px rgba(0,0,0,.4);pointer-events:auto;';
+
+        var panel = document.createElement('div');
+        panel.style.cssText = 'position:fixed;left:0;right:0;bottom:0;height:45vh;z-index:2147483647;display:none;flex-direction:column;background:rgba(13,17,23,.96);color:#c9d1d9;font:12px/1.4 monospace;box-shadow:0 -2px 12px rgba(0,0,0,.5);pointer-events:auto;';
+
+        launcher.onclick = function () { panel.style.display = 'flex'; launcher.style.display = 'none'; };
+
+        var bar = document.createElement('div');
+        bar.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 8px;background:#161b22;flex:0 0 auto;';
+        var title = document.createElement('span'); title.textContent = 'Console'; title.style.cssText = 'font-weight:bold;margin-right:auto;';
+        function mkBtn(label) { var b = document.createElement('button'); b.textContent = label; b.style.cssText = 'border:1px solid #30363d;background:#21262d;color:#c9d1d9;border-radius:4px;padding:4px 8px;font:12px monospace;'; return b; }
+        var copyBtn = mkBtn('复制'), clearBtn = mkBtn('清空'), hideBtn = mkBtn('隐藏'), closeBtn = mkBtn('关闭');
+        copyBtn.onclick = function () {
+          var text = buffer.map(function (e) { return e.time + ' [' + e.level + '] ' + e.text; }).join('\n');
+          function done() { copyBtn.textContent = '已复制'; setTimeout(function () { copyBtn.textContent = '复制'; }, 1200); }
+          if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(done).catch(function () {}); }
+          else { var ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); done(); } catch (_) {} document.body.removeChild(ta); }
+        };
+        clearBtn.onclick = function () { buffer.length = 0; logEl.innerHTML = ''; };
+        hideBtn.onclick = function () { panel.style.display = 'none'; launcher.style.display = 'block'; };
+        closeBtn.onclick = function () { try { localStorage.removeItem('sl_console'); } catch (_) {} panel.remove(); launcher.remove(); };
+        bar.appendChild(title); bar.appendChild(copyBtn); bar.appendChild(clearBtn); bar.appendChild(hideBtn); bar.appendChild(closeBtn);
+
+        logEl = document.createElement('div');
+        logEl.style.cssText = 'flex:1 1 auto;overflow:auto;-webkit-overflow-scrolling:touch;';
+
+        panel.appendChild(bar); panel.appendChild(logEl);
+        document.body.appendChild(panel);
+        document.body.appendChild(launcher);
+        for (var i = 0; i < buffer.length; i++) appendRow(buffer[i]);
+      }
+
+      if (document.body) build();
+      else document.addEventListener('DOMContentLoaded', build);
+      push('info', '[slconsole] 悬浮日志已启用');
+    } catch (_) { /* 调试工具本身不得影响 app */ }
+  })();
+  </script>
   <script src="equalizer.js"></script>
   <script src="hls.min.js"></script>
   <script src="hls_bridge.js"></script>
