@@ -43,7 +43,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  FLUTTER_VERSION: '3.41.5'
+  # 原生/桌面等非 web 平台用 stable 3.44.6;web 构建单独走 beta 3.47(见 build-web
+  # job 的 flutter-action),因为切后台 WebGL context 丢失恢复的引擎修复仅在 3.47+。
+  FLUTTER_VERSION: '3.44.6'
 
 permissions:
   contents: write
@@ -61,10 +63,14 @@ jobs:
         mode: [standalone, embedded]
     steps:
       - uses: actions/checkout@v4
+      # Web 专用 beta 3.47:切后台 WebGL context 丢失恢复的引擎修复
+      # (flutter/flutter#184683 → #185116)至今仅在 beta 3.47+/master,未进 stable。
+      # Web 产物与原生 Flutter 版本无关,故仅 web 构建走 beta,其余平台仍用
+      # ${{ env.FLUTTER_VERSION }} stable。待 3.47 进 stable 后回退统一。
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
+          flutter-version: 3.47.0-0.1.pre
+          channel: beta
           cache: true
       - run: flutter pub get
       - name: Extract version from pubspec.yaml

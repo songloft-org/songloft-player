@@ -90,19 +90,18 @@ class _StartupGateState extends ConsumerState<StartupGate>
     }
   }
 
-  /// Web 端 WebGL context 丢失后的恢复。仅在 [kIsWeb] 下由
-  /// [didChangeAppLifecycleState] 调用。分两步:
+  /// Web 端 WebGL context 丢失后的重绘辅助。仅在 [kIsWeb] 下由
+  /// [didChangeAppLifecycleState] 调用:
   ///
-  /// 1. [recoverLostWebGlContexts]:对已丢失 context 的 canvas 补发
-  ///    `webglcontextlost`,让引擎标记需要重建(覆盖 Android Chrome 静默丢
-  ///    context 却不派发事件、引擎从不重建的情况)。
+  /// 1. [reportLostWebGlContexts]:仅诊断记录当前有多少 canvas 的 context 已
+  ///    丢失(不干预;由引擎自身的 context-lost 恢复机制处理)。
   /// 2. 标脏整棵渲染树 + [SchedulerBinding.scheduleForcedFrame]:即使无 dirty
-  ///    节点也强制产出一帧,把当前场景重新光栅化到引擎重建后的 surface 上
-  ///    (普通 scheduleFrame 无 dirty 时不产帧,故不可用)。
+  ///    节点也强制产出一帧,把当前场景重新光栅化到引擎(可能已)重建的 surface
+  ///    上(普通 scheduleFrame 无 dirty 时不产帧,故不可用)。
   void _forceWebRepaint() {
     if (!mounted) return;
 
-    recoverLostWebGlContexts();
+    reportLostWebGlContexts();
 
     void markTree(RenderObject node) {
       node.markNeedsPaint();
