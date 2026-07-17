@@ -170,8 +170,9 @@ class PlayerNotifier extends Notifier<PlayerState> {
         final gen = ++_playGeneration;
         await _playCurrent(gen);
       }
-      // 触发歌词 Provider 创建，确保灵动岛能收到歌词更新
-      ref.read(lyricStateProvider);
+      // 歌词 Provider 的 eager 创建改由根 widget（SongloftApp）负责：player 是
+      // lyricStateProvider 的被依赖方（LyricNotifier.build 里 watch 本 Provider），
+      // 若在此处 read(lyricStateProvider) 会形成 CircularDependencyError。
     } catch (e) {
       debugPrint('[Player] Failed to load preferences: $e');
       await _audioHandler.setVolume(state.volume / 100);
