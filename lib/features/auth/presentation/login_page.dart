@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../../config/app_config.dart';
+import '../../../core/theme/responsive.dart';
 import '../../../core/backend/embedded_backend_service.dart';
 import '../../../core/backend/run_mode_provider.dart';
 import '../../../core/network/base_url_provider.dart';
@@ -168,10 +169,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  /// 判断是否为 TV 端（屏幕宽度 >= 1920）
-  bool _isTv(BuildContext context) {
-    return MediaQuery.of(context).size.width >= 1920;
-  }
+  /// 判断是否为 TV 端。复用全站统一的 [ResponsiveContext.isTv]：需真实运行在电视系统
+  /// （[AppConfig.isTvMode]）且宽度达标，避免高分桌面/Web 大屏被误判为 TV 布局。
+  bool _isTv(BuildContext context) => context.isTv;
 
   @override
   Widget build(BuildContext context) {

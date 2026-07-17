@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../config/app_config.dart';
+
 enum ScreenType { mobile, tablet, desktop, auto_, tv }
 
 class ResponsiveBreakpoints {
@@ -17,10 +19,18 @@ extension ResponsiveContext on BuildContext {
   bool get isTablet =>
       screenWidth >= ResponsiveBreakpoints.tablet &&
       screenWidth < ResponsiveBreakpoints.desktop;
-  bool get isDesktop =>
-      screenWidth >= ResponsiveBreakpoints.desktop &&
-      screenWidth < ResponsiveBreakpoints.tv;
-  bool get isTv => screenWidth >= ResponsiveBreakpoints.tv;
+  bool get isDesktop => screenWidth >= ResponsiveBreakpoints.desktop && !isTv;
+
+  /// 是否为电视布局。仅当**真实运行在电视系统上**（[AppConfig.isTvMode]，由原生
+  /// 平台检测，Web/桌面/iOS 恒为 false）且宽度达到 TV 断点时才成立。
+  ///
+  /// 历史上仅按宽度 `>= 1920` 判定，导致 4K/高分桌面显示器与部分 Web 环境（如设备
+  /// 模拟器上报物理像素宽度）被误判为 TV：不仅套用遥控器焦点的顶部 Tab 导航，还使
+  /// [useWideLayout] 变为 false，让曲库、设置等 master-detail 页塌成单列。加上
+  /// [AppConfig.isTvMode] 门槛后，真 TV 行为不变（仍需宽度达标），非 TV 的大屏回归
+  /// 桌面双栏布局。
+  bool get isTv =>
+      AppConfig.isTvMode && screenWidth >= ResponsiveBreakpoints.tv;
 
   /// 车机模式：宽度 >= 900 且宽高比 > 2.2:1（横向超宽屏幕）
   bool get isAuto {
@@ -47,7 +57,7 @@ extension ResponsiveContext on BuildContext {
   bool get isWideScreen => screenWidth >= ResponsiveBreakpoints.tablet;
 
   /// 全站统一的双栏（主从）布局判断：平板及以上的常规宽屏（含超宽屏 isAuto），
-  /// 仅排除 TV（遥控器焦点导航走单栏更友好）。超宽屏（桌面超宽显示器 / 车机横屏）
+  /// 仅排除真实 TV（[isTv]，遥控器焦点导航走单栏更友好）。超宽屏（桌面超宽显示器 / 车机横屏）
   /// 空间充裕，采用桌面两栏更合理。所有需要「左右分栏 vs 单列」分叉的页面都应引用
   /// 此 getter，避免各处各写断点组合导致漂移 (songloft-org/songloft#268)。
   bool get useWideLayout => isWideScreen && !isTv;
