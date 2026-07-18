@@ -1,12 +1,9 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../config/app_config.dart';
 import '../../../../core/router/app_router.dart';
-import '../../../../core/storage/secure_storage.dart';
 import '../../../../core/theme/responsive.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/jsplugin_api.dart';
@@ -148,24 +145,13 @@ class _JSPluginCard extends StatelessWidget {
 
     final url =
         '${AppConfig.baseUrl}${AppConfig.basePath}/api/v1/jsplugin/${plugin.entryPath}';
-    final theme =
-        Theme.of(context).brightness == Brightness.dark ? 'dark' : 'light';
 
-    if (kIsWeb) {
-      // Web 平台：使用 launchUrl 在新标签页打开
-      final token = SecureStorageService.cachedAccessToken ?? '';
-      final params = <String>['theme=$theme'];
-      if (token.isNotEmpty) params.add('access_token=$token');
-      final webUrl = Uri.parse('$url?${params.join('&')}');
-      launchUrl(webUrl, mode: LaunchMode.externalApplication);
-    } else {
-      // 原生平台：应用内 WebView（主题由 WebView 页面自行处理）
-      context.push(
-        Uri(
-          path: AppRoutes.plugin,
-          queryParameters: {'url': url, 'name': plugin.displayName},
-        ).toString(),
-      );
-    }
+    // Web/native 统一走应用内 WebView（传裸 url，theme/token 由 WebView 页面内部补齐）。
+    context.push(
+      Uri(
+        path: AppRoutes.plugin,
+        queryParameters: {'url': url, 'name': plugin.displayName},
+      ).toString(),
+    );
   }
 }
