@@ -5,8 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/models/song.dart';
+import '../../domain/lyric_parser.dart';
 import '../lyric_adjust_page.dart';
 import '../providers/lyric_provider.dart';
+import 'karaoke_line.dart';
 
 /// 歌词显示组件
 ///
@@ -48,7 +50,13 @@ class _LyricsViewState extends ConsumerState<LyricsView> {
   Timer? _resumeTimer;
   int _lastScrolledIndex = -1;
 
-  static const double _lineHeight = 48.0;
+  /// 每行统一高度，随是否含翻译/罗马音在 build 中动态计算。
+  /// 保持统一便于用 `index * _lineHeight` 精确定位滚动。
+  double _lineHeight = _mainRowHeight;
+
+  static const double _mainRowHeight = 48.0;
+  static const double _translationRowHeight = 22.0;
+  static const double _romajiRowHeight = 20.0;
   static const Duration _resumeDelay = Duration(seconds: 3);
 
   @override
@@ -129,6 +137,73 @@ class _LyricsViewState extends ConsumerState<LyricsView> {
     }
   }
 
+  /// 构建单行：主歌词（当前行有逐字数据时用 [KaraokeLine] 逐字高亮，否则行级高亮）
+  /// + 可选翻译 / 罗马音子行。
+  Widget _buildLine(ThemeData theme, LyricLine lyric, bool isCurrent) {
+    final primary = theme.colorScheme.primary;
+    final dim = theme.colorScheme.onSurface.withValues(alpha: 0.5);
+
+    Widget main;
+    if (isCurrent && lyric.hasWords) {
+      main = KaraokeLine(
+        line: lyric,
+        activeColor: primary,
+        inactiveColor: dim,
+        fontSize: 18,
+      );
+    } else {
+      final text = lyric.text;
+      main = Text(
+        text.isEmpty ? '...' : text,
+        style: TextStyle(
+          fontSize: isCurrent ? 18 : 15,
+          fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
+          color: isCurrent ? primary : dim,
+        ),
+        textAlign: TextAlign.center,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+
+    final children = <Widget>[main];
+    final translation = lyric.translation;
+    final romaji = lyric.romaji;
+    // 罗马音置于原文与译文之间，符合常见排版
+    if (romaji != null) {
+      children.add(Text(
+        romaji,
+        style: TextStyle(
+          fontSize: isCurrent ? 13 : 12,
+          color: (isCurrent ? primary : dim).withValues(alpha: 0.75),
+        ),
+        textAlign: TextAlign.center,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ));
+    }
+    if (translation != null) {
+      children.add(Text(
+        translation,
+        style: TextStyle(
+          fontSize: isCurrent ? 14 : 13,
+          fontWeight: isCurrent ? FontWeight.w500 : FontWeight.normal,
+          color: (isCurrent ? primary : dim).withValues(alpha: 0.85),
+        ),
+        textAlign: TextAlign.center,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ));
+    }
+
+    if (children.length == 1) return main;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: children,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -196,6 +271,13 @@ class _LyricsViewState extends ConsumerState<LyricsView> {
 
     final lyrics = lyricState.lyrics;
 
+    // 统一行高：轨道含翻译/罗马音时为所有行预留对应行高，保持等距，滚动定位精确。
+    final hasTranslations = lyrics.any((l) => l.translation != null);
+    final hasRomaji = lyrics.any((l) => l.romaji != null);
+    _lineHeight = _mainRowHeight +
+        (hasTranslations ? _translationRowHeight : 0) +
+        (hasRomaji ? _romajiRowHeight : 0);
+
     final body = LayoutBuilder(
       builder: (context, constraints) {
         final verticalPadding = ((constraints.maxHeight - _lineHeight) / 2)
@@ -215,6 +297,7 @@ class _LyricsViewState extends ConsumerState<LyricsView> {
               vertical: verticalPadding,
               horizontal: 24,
             ),
+            itemExtent: _lineHeight,
             itemCount: lyrics.length,
             itemBuilder: (context, index) {
               final lyric = lyrics[index];
@@ -232,27 +315,11 @@ class _LyricsViewState extends ConsumerState<LyricsView> {
                     }
                   },
                   child: Container(
-                  height: _lineHeight,
-                  alignment: Alignment.center,
-                  child: Text(
-                    lyric.text.isEmpty ? '...' : lyric.text,
-                    style: TextStyle(
-                      fontSize: isCurrent ? 18 : 15,
-                      fontWeight:
-                          isCurrent ? FontWeight.bold : FontWeight.normal,
-                      color:
-                          isCurrent
-                              ? theme.colorScheme.primary
-                              : theme.colorScheme.onSurface.withValues(
-                                alpha: 0.5,
-                              ),
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                    height: _lineHeight,
+                    alignment: Alignment.center,
+                    child: _buildLine(theme, lyric, isCurrent),
                   ),
                 ),
-              ),
               );
             },
           ),

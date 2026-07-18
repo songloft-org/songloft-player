@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,6 +26,12 @@ class LyricState {
     this.loadFailed = false,
     this.rawLyricText,
   });
+
+  /// 当前应高亮的歌词行对象（含逐字 words / 翻译 / 罗马音），无则为 null。
+  LyricLine? get currentLine {
+    if (currentIndex < 0 || currentIndex >= lyrics.length) return null;
+    return lyrics[currentIndex];
+  }
 
   String get currentLyricText {
     if (currentIndex < 0 || currentIndex >= lyrics.length) return '';
@@ -121,22 +129,7 @@ class LyricNotifier extends Notifier<LyricState> {
 
     final cached = await LyricCacheService().get(lyricUrl);
     if (cached != null) {
-      _lastLoadedUrl = lyricUrl;
-      final lyrics = LyricParser.parse(cached);
-      final position = ref.read(playerStateProvider).currentTime;
-      final index = LyricParser.findCurrentLine(lyrics, position);
-      state = LyricState(
-        lyrics: lyrics,
-        currentIndex: index,
-        rawLyricText: cached,
-      );
-      LiveActivityService().updateLyric(
-        state.currentLyricText,
-        state.nextLyricText,
-      );
-      ref.read(audioHandlerProvider).updateNowPlayingLyric(
-        state.currentLyricText,
-      );
+      _applyPayload(lyricUrl, _decodeCached(cached));
       return;
     }
 
@@ -144,37 +137,93 @@ class LyricNotifier extends Notifier<LyricState> {
       final fullUrl = UrlHelper.buildLyricUrl(lyricUrl);
       final response = await Dio().get<Map<String, dynamic>>(fullUrl);
 
-      String lyricText = '';
-      final body = response.data;
-      if (body is Map<String, dynamic>) {
-        final main = body['lyric'];
-        if (main is String) lyricText = main;
-      }
+      final body = response.data is Map<String, dynamic>
+          ? response.data as Map<String, dynamic>
+          : const <String, dynamic>{};
 
-      _lastLoadedUrl = lyricUrl;
-      final lyrics = LyricParser.parse(lyricText);
-      final position = ref.read(playerStateProvider).currentTime;
-      final index = LyricParser.findCurrentLine(lyrics, position);
-      state = LyricState(
-        lyrics: lyrics,
-        currentIndex: index,
-        rawLyricText: lyricText,
-      );
-      LiveActivityService().updateLyric(
-        state.currentLyricText,
-        state.nextLyricText,
-      );
-      ref.read(audioHandlerProvider).updateNowPlayingLyric(
-        state.currentLyricText,
-      );
+      _applyPayload(lyricUrl, body);
 
-      if (lyricText.isNotEmpty) {
-        await LyricCacheService().put(lyricUrl, lyricText);
+      // 缓存完整 payload（含逐字/翻译/罗马音），有主歌词或逐字才写入
+      final main = _stringField(body, 'lyric');
+      final lx = _stringField(body, 'lxlyric');
+      if (main.isNotEmpty || lx.isNotEmpty) {
+        await LyricCacheService().put(
+          lyricUrl,
+          jsonEncode({
+            'lyric': main,
+            'lxlyric': lx,
+            'tlyric': _stringField(body, 'tlyric'),
+            'rlyric': _stringField(body, 'rlyric'),
+          }),
+        );
       }
     } catch (e) {
       debugPrint('[LyricProvider] Failed to load lyric: $e');
       state = state.copyWith(isLoading: false, loadFailed: true);
     }
+  }
+
+  /// 从歌词 payload 解析出（可含逐字/翻译/罗马音的）歌词行并写入 state。
+  void _applyPayload(String lyricUrl, Map<String, dynamic> body) {
+    final main = _stringField(body, 'lyric');
+    final lx = _stringField(body, 'lxlyric');
+
+    // 逐字源：优先 lxlyric；否则若主歌词本身内嵌逐字标记则用主歌词
+    String wbwSource = '';
+    if (lx.isNotEmpty) {
+      wbwSource = lx;
+    } else if (main.isNotEmpty && LyricParser.containsWordByWord(main)) {
+      wbwSource = main;
+    }
+
+    var lyrics = wbwSource.isNotEmpty
+        ? LyricParser.parseWordByWord(wbwSource)
+        : LyricParser.parse(main);
+    lyrics = LyricParser.mergeTranslations(
+      lyrics,
+      tlyric: _nullableStringField(body, 'tlyric'),
+      rlyric: _nullableStringField(body, 'rlyric'),
+    );
+
+    _lastLoadedUrl = lyricUrl;
+    final position = ref.read(playerStateProvider).currentTime;
+    final index = LyricParser.findCurrentLine(lyrics, position);
+    state = LyricState(
+      lyrics: lyrics,
+      currentIndex: index,
+      rawLyricText: main.isEmpty ? null : main,
+    );
+    LiveActivityService().updateLyric(
+      state.currentLyricText,
+      state.nextLyricText,
+    );
+    ref.read(audioHandlerProvider).updateNowPlayingLyric(
+      state.currentLyricText,
+    );
+  }
+
+  /// 解析缓存字符串：新格式为 payload JSON；旧格式为纯 LRC 文本（降级到 lyric 字段）。
+  Map<String, dynamic> _decodeCached(String cached) {
+    final trimmed = cached.trimLeft();
+    if (trimmed.startsWith('{')) {
+      try {
+        final decoded = jsonDecode(cached);
+        if (decoded is Map<String, dynamic>) return decoded;
+      } catch (_) {
+        // 落到纯文本分支
+      }
+    }
+    return {'lyric': cached};
+  }
+
+  static String _stringField(Map<String, dynamic> body, String key) {
+    final v = body[key];
+    return v is String ? v : '';
+  }
+
+  static String? _nullableStringField(Map<String, dynamic> body, String key) {
+    final v = body[key];
+    return (v is String && v.isNotEmpty) ? v : null;
   }
 
   /// 强制重新加载歌词（歌词调整后调用）
