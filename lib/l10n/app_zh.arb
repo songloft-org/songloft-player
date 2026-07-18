@@ -2040,6 +2040,8 @@
   "settingsAutoPlayOnLaunchDesc": "启动客户端后自动继续上次的播放",
   "settingsAutoEnterLyricsOnLaunchTitle": "打开后自动进入歌词",
   "settingsAutoEnterLyricsOnLaunchDesc": "启动客户端后自动进入全屏歌词界面（按屏幕自动适配）",
+  "settingsNotificationLyricInTitleTitle": "通知栏歌词占用标题行",
+  "settingsNotificationLyricInTitleDesc": "开启：标题行显示歌词、歌名归副标题；关闭：标题行显示歌名、副标题显示歌词",
   "settingsShortcutsEntryTitle": "键盘快捷键",
   "settingsShortcutsEntrySubtitle": "自定义播放控制按键",
   "settingsShortcutsPageTitle": "键盘快捷键",

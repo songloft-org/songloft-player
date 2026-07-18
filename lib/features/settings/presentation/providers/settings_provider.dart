@@ -877,6 +877,40 @@ final autoEnterLyricsOnLaunchProvider =
       AutoEnterLyricsOnLaunchNotifier.new,
     );
 
+/// 「系统媒体通知里歌词显示在标题行」开关（纯本地，不同步服务器）。
+/// 开启（默认）：标题=歌词、副标题="歌名 - 艺术家"；关闭：标题=歌名、副标题=纯歌词。
+class NotificationLyricInTitleNotifier extends Notifier<bool> {
+  @override
+  bool build() {
+    _load();
+    return true;
+  }
+
+  Future<void> _load() async {
+    try {
+      final prefs = await ref.read(appPreferencesProvider.future);
+      state = prefs.getNotificationLyricInTitle();
+    } catch (_) {
+      state = true;
+    }
+  }
+
+  Future<void> setEnabled(bool value) async {
+    state = value;
+    try {
+      final prefs = await ref.read(appPreferencesProvider.future);
+      await prefs.setNotificationLyricInTitle(value);
+      // 注意：本地设置，刻意不调用 pushPreferencesToServer
+    } catch (_) {}
+  }
+}
+
+/// 系统媒体通知歌词显示位置 Provider
+final notificationLyricInTitleProvider =
+    NotifierProvider<NotificationLyricInTitleNotifier, bool>(
+      NotificationLyricInTitleNotifier.new,
+    );
+
 // ============================================================================
 // Web 调试控制台 Provider（仅 Web 端使用，纯本地设置）
 // ============================================================================

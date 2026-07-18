@@ -1935,6 +1935,8 @@
   "settingsAutoPlayOnLaunchDesc": "Resume the last playback automatically when the app opens",
   "settingsAutoEnterLyricsOnLaunchTitle": "Open lyrics on launch",
   "settingsAutoEnterLyricsOnLaunchDesc": "Automatically open the full-screen lyrics view when the app opens (adapts to screen size)",
+  "settingsNotificationLyricInTitleTitle": "Lyrics in the notification title",
+  "settingsNotificationLyricInTitleDesc": "On: the title line shows lyrics and the song name moves to the subtitle. Off: the title line shows the song name and lyrics move to the subtitle",
   "settingsShortcutsEntryTitle": "Keyboard shortcuts",
   "settingsShortcutsEntrySubtitle": "Customize playback control keys",
   "settingsShortcutsPageTitle": "Keyboard shortcuts",

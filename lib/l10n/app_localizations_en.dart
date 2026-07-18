@@ -3136,6 +3136,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Automatically open the full-screen lyrics view when the app opens (adapts to screen size)';
 
   @override
+  String get settingsNotificationLyricInTitleTitle =>
+      'Lyrics in the notification title';
+
+  @override
+  String get settingsNotificationLyricInTitleDesc =>
+      'On: the title line shows lyrics and the song name moves to the subtitle. Off: the title line shows the song name and lyrics move to the subtitle';
+
+  @override
   String get settingsShortcutsEntryTitle => 'Keyboard shortcuts';
 
   @override

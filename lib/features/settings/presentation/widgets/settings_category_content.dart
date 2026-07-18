@@ -403,6 +403,7 @@ class _SettingsCategoryContentState
     final quality = ref.watch(audioQualityProvider);
     final autoPlayOnLaunch = ref.watch(autoPlayOnLaunchProvider);
     final autoEnterLyrics = ref.watch(autoEnterLyricsOnLaunchProvider);
+    final lyricInTitle = ref.watch(notificationLyricInTitleProvider);
     final labels = {
       'original': l10n.settingsQualityOriginal,
       '128': l10n.settingsQualityLow,
@@ -492,6 +493,19 @@ class _SettingsCategoryContentState
             value: autoEnterLyrics,
             onChanged: (v) {
               ref.read(autoEnterLyricsOnLaunchProvider.notifier).setEnabled(v);
+            },
+          ),
+          const Divider(height: 1),
+          // 系统媒体通知里歌词的显示位置（纯本地设置）
+          SwitchListTile(
+            secondary: const Icon(Icons.subtitles_outlined),
+            title: Text(l10n.settingsNotificationLyricInTitleTitle),
+            subtitle: Text(l10n.settingsNotificationLyricInTitleDesc),
+            value: lyricInTitle,
+            onChanged: (v) {
+              ref
+                  .read(notificationLyricInTitleProvider.notifier)
+                  .setEnabled(v);
             },
           ),
           // 键盘快捷键（仅桌面）

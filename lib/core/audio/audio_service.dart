@@ -573,8 +573,10 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
     debugPrint('[AudioService] MediaItem added to stream');
   }
 
-  /// 用当前歌词行替换 Now Playing 标题，原歌曲名和艺术家合并到副标题
-  void updateNowPlayingLyric(String lyricLine) {
+  /// 用当前歌词行更新 Now Playing 元数据。
+  /// [inTitle] 为 true（默认）：标题=歌词行，副标题="歌名 - 艺术家"；
+  /// 为 false：标题=歌名，副标题=纯歌词行。
+  void updateNowPlayingLyric(String lyricLine, {bool inTitle = true}) {
     final current = mediaItem.value;
     if (current == null || _originalTitle == null) return;
 
@@ -583,12 +585,16 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
       return;
     }
 
-    final artist =
-        _originalArtist?.isNotEmpty == true
-            ? '$_originalTitle - $_originalArtist'
-            : _originalTitle!;
-
-    mediaItem.add(current.copyWith(title: lyricLine, artist: artist));
+    if (inTitle) {
+      final artist =
+          _originalArtist?.isNotEmpty == true
+              ? '$_originalTitle - $_originalArtist'
+              : _originalTitle!;
+      mediaItem.add(current.copyWith(title: lyricLine, artist: artist));
+    } else {
+      // 歌名放标题，副标题显示纯歌词行
+      mediaItem.add(current.copyWith(title: _originalTitle!, artist: lyricLine));
+    }
   }
 
   /// 恢复 Now Playing 元数据为原始歌曲信息

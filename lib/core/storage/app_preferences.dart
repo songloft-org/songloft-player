@@ -325,6 +325,20 @@ class AppPreferences {
     return _prefs.setBool(_autoEnterLyricsOnLaunchKey, value);
   }
 
+  static const _notificationLyricInTitleKey =
+      'player_notification_lyric_in_title';
+
+  /// 系统媒体通知（通知栏/锁屏/桌面媒体控件）里歌词的显示位置（默认开启）。
+  /// 开启：标题行显示当前歌词、歌名归副标题；关闭：标题行显示歌名、副标题显示纯歌词。
+  /// 纯本地设置，不参与服务器偏好同步。
+  bool getNotificationLyricInTitle() {
+    return _prefs.getBool(_notificationLyricInTitleKey) ?? true;
+  }
+
+  Future<bool> setNotificationLyricInTitle(bool value) {
+    return _prefs.setBool(_notificationLyricInTitleKey, value);
+  }
+
   bool getWebDebugConsole() {
     return _prefs.getBool(_webDebugConsoleKey) ?? false;
   }

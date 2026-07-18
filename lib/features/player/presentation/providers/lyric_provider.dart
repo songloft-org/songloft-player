@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/platform/live_activity_service.dart';
 import '../../../../core/storage/lyric_cache_service.dart';
 import '../../../../core/utils/url_helper.dart';
+import '../../../../features/settings/presentation/providers/settings_provider.dart';
 import '../../../../main.dart';
 import '../../domain/lyric_parser.dart';
 import 'player_provider.dart';
@@ -86,6 +87,16 @@ class LyricNotifier extends Notifier<LyricState> {
       _updateCurrentLine(next);
     });
 
+    // 通知栏歌词显示位置切换时，若当前有歌词行则用新模式立即重推一次（即时生效，无需切歌）
+    ref.listen(notificationLyricInTitleProvider, (prev, next) {
+      final text = state.currentLyricText;
+      if (text.isNotEmpty) {
+        ref
+            .read(audioHandlerProvider)
+            .updateNowPlayingLyric(text, inTitle: next);
+      }
+    });
+
     if (lyricUrl != null && lyricUrl.isNotEmpty) {
       Future.microtask(() => _loadLyrics(lyricUrl));
       return const LyricState(isLoading: true);
@@ -107,6 +118,7 @@ class LyricNotifier extends Notifier<LyricState> {
       );
       ref.read(audioHandlerProvider).updateNowPlayingLyric(
         state.currentLyricText,
+        inTitle: ref.read(notificationLyricInTitleProvider),
       );
     }
   }
@@ -199,6 +211,7 @@ class LyricNotifier extends Notifier<LyricState> {
     );
     ref.read(audioHandlerProvider).updateNowPlayingLyric(
       state.currentLyricText,
+      inTitle: ref.read(notificationLyricInTitleProvider),
     );
   }
 

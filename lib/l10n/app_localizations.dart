@@ -5438,6 +5438,18 @@ abstract class AppLocalizations {
   /// **'启动客户端后自动进入全屏歌词界面（按屏幕自动适配）'**
   String get settingsAutoEnterLyricsOnLaunchDesc;
 
+  /// No description provided for @settingsNotificationLyricInTitleTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'通知栏歌词占用标题行'**
+  String get settingsNotificationLyricInTitleTitle;
+
+  /// No description provided for @settingsNotificationLyricInTitleDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'开启：标题行显示歌词、歌名归副标题；关闭：标题行显示歌名、副标题显示歌词'**
+  String get settingsNotificationLyricInTitleDesc;
+
   /// No description provided for @settingsShortcutsEntryTitle.
   ///
   /// In zh, this message translates to:

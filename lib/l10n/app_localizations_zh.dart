@@ -3004,6 +3004,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsAutoEnterLyricsOnLaunchDesc => '启动客户端后自动进入全屏歌词界面（按屏幕自动适配）';
 
   @override
+  String get settingsNotificationLyricInTitleTitle => '通知栏歌词占用标题行';
+
+  @override
+  String get settingsNotificationLyricInTitleDesc =>
+      '开启：标题行显示歌词、歌名归副标题；关闭：标题行显示歌名、副标题显示歌词';
+
+  @override
   String get settingsShortcutsEntryTitle => '键盘快捷键';
 
   @override
