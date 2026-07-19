@@ -46,7 +46,15 @@
       var s = document.createElement('script');
       s.src = 'nextconsole.umd.js';
       s.onload = function () {
-        try { new NextConsole({ theme: 'dark' }); } catch (_) {}
+        try {
+          // 官方 UMD 产物的全局 window.NextConsole 是命名空间对象
+          // ({ NextConsole: 类, default: 类, ... })，并非构造函数本身；
+          // 官方 README 的 `new NextConsole()` 示例在 UMD 下会抛
+          // TypeError。取命名空间里的类再实例化。
+          var ns = window.NextConsole;
+          var Ctor = (ns && (ns.NextConsole || ns.default)) || ns;
+          new Ctor({ theme: 'dark' });
+        } catch (e) { console.error('[NextConsole] init failed', e); }
       };
       document.head.appendChild(s);
     } catch (_) {}
