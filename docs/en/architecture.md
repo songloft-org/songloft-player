@@ -127,12 +127,12 @@ Integrates `audio_service` for system notification bar controls. Core design:
 | Platform | Backend (default) | Notes |
 |----------|---------|-------|
 | Web | HTML5 Audio + hls.js | Custom `SongloftWebJustAudioPlugin` (just_audio_web + self-integrated hls.js for HLS radio) |
-| Android | libmpv (media_kit) | `just_audio_media_kit`; pass `--dart-define=SONGLOFT_MEDIAKIT_MOBILE=false` to fall back to ExoPlayer |
-| iOS | libmpv (media_kit) | Same; falls back to AVPlayer |
-| macOS | libmpv (media_kit) | Pass `--dart-define=SONGLOFT_MEDIAKIT_MACOS=false` to fall back to AVPlayer |
+| Android | libmpv (media_kit) | `just_audio_media_kit`; unified media_kit(libmpv), supports in-app video |
+| iOS | libmpv (media_kit) | Same; unified media_kit(libmpv), supports in-app video |
+| macOS | libmpv (media_kit) | Same; unified media_kit(libmpv), supports in-app video |
 | Windows / Linux | libmpv (media_kit) | `just_audio_media_kit`, LGPL-2.1+ |
 
-> Backend selection is centralized in `AudioBackend.usesMediaKit` (`core/audio/audio_backend.dart`). macOS/mobile default to media_kit to unify the backend and enable in-app video (songloft-org/songloft#76); the compile-time flags act as a kill-switch to fall back to native.
+> All native platforms (Win/Linux/macOS/Android/iOS) uniformly use media_kit(libmpv) — no fallback, no kill-switch. Backend selection is centralized in `AudioBackend.usesMediaKit` (`core/audio/audio_backend.dart`, simplified to `!kIsWeb`), unifying the backend and enabling in-app video (songloft-org/songloft#76).
 
 ### Video Rendering & the Web Backend Decision (songloft-org/songloft#76)
 

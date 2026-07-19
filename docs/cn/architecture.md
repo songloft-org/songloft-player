@@ -127,12 +127,12 @@ TV 模式下：
 | 平台 | 后端（默认） | 说明 |
 |------|------|------|
 | Web | HTML5 Audio + hls.js | 自定义 `SongloftWebJustAudioPlugin`（just_audio_web + 自接 hls.js 播 HLS 电台） |
-| Android | libmpv (media_kit) | `just_audio_media_kit`；可传 `--dart-define=SONGLOFT_MEDIAKIT_MOBILE=false` 回退 ExoPlayer |
-| iOS | libmpv (media_kit) | 同上；回退 AVPlayer |
-| macOS | libmpv (media_kit) | 可传 `--dart-define=SONGLOFT_MEDIAKIT_MACOS=false` 回退 AVPlayer |
+| Android | libmpv (media_kit) | `just_audio_media_kit`；统一 media_kit(libmpv)，支持应用内视频画面 |
+| iOS | libmpv (media_kit) | 同上；统一 media_kit(libmpv)，支持应用内视频画面 |
+| macOS | libmpv (media_kit) | 同上；统一 media_kit(libmpv)，支持应用内视频画面 |
 | Windows / Linux | libmpv (media_kit) | `just_audio_media_kit`，LGPL-2.1+ |
 
-> 后端选择集中在 `core/audio/audio_backend.dart` 的 `AudioBackend.usesMediaKit`。macOS/移动端默认用 media_kit 以统一后端并支持应用内视频画面（songloft-org/songloft#76），编译期开关作为 kill-switch 回退原生。
+> 所有原生平台（Win/Linux/macOS/Android/iOS）统一使用 media_kit(libmpv)，无回退、无 kill-switch。后端选择集中在 `core/audio/audio_backend.dart` 的 `AudioBackend.usesMediaKit`（简化为 `!kIsWeb`），统一后端并支持应用内视频画面（songloft-org/songloft#76）。
 
 ### 视频画面渲染与 Web 后端决策（songloft-org/songloft#76）
 
