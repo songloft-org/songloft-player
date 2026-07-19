@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:web/web.dart' as web;
 
+import '../../../core/a11y/web_semantics_controller.dart';
 import '../../../core/storage/secure_storage.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../player/domain/player_state.dart';
@@ -81,6 +82,11 @@ class _PluginWebViewPageState extends ConsumerState<PluginWebViewPage> {
     _viewType = 'plugin-webview-${widget.pluginUrl.hashCode}';
     _activeStates[_stateKey] = this;
 
+    // 全屏插件 iframe 页展示期间暂停常驻语义树，避免残留语义节点遮挡 iframe
+    // （songloft-org/songloft#295）。此路由为独立全屏路由，随页面挂载/销毁精确对应
+    // 展示/离开。非 Web 平台为 no-op。
+    WebSemanticsController.instance.suspendForPlugin();
+
     // 监听来自本 iframe 的客户端 SDK 调用（songloft-host-call）。
     _msgSub = web.window.onMessage.listen(_onWindowMessage);
 
@@ -109,6 +115,8 @@ class _PluginWebViewPageState extends ConsumerState<PluginWebViewPage> {
     _msgSub?.cancel();
     _iframe?.src = 'about:blank';
     _iframe = null;
+    // 离开全屏插件页：恢复常驻语义树。
+    WebSemanticsController.instance.resume();
     super.dispose();
   }
 

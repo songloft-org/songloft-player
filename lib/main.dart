@@ -5,7 +5,6 @@ import 'package:audio_service/audio_service.dart';
 import 'package:audio_service_mpris/audio_service_mpris.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -17,6 +16,7 @@ import 'dart:math';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'config/app_config.dart';
+import 'core/a11y/web_semantics_controller.dart';
 import 'core/audio/audio_backend.dart';
 import 'core/audio/audio_service.dart';
 import 'core/audio/smtc_service.dart';
@@ -88,9 +88,11 @@ void main(List<String> args) async {
     return true;
   };
 
-  // Web 端默认启用语义树，无需用户手动点击 "Enable accessibility"
+  // Web 端默认启用语义树，无需用户手动点击 "Enable accessibility"。
+  // 句柄交由 WebSemanticsController 持有：进入插件 Tab 时临时释放，避免 Flutter
+  // 引擎残留 bug 让语义节点遮挡插件 iframe（songloft-org/songloft#295）。
   if (kIsWeb) {
-    SemanticsBinding.instance.ensureSemantics();
+    WebSemanticsController.instance.enableByDefault();
   }
 
   // Web 上 dart:io 的 Platform 不可用，调用任意 getter 会抛 UnsupportedError，

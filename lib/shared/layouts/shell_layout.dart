@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart'
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/a11y/web_semantics_controller.dart';
 import '../../core/theme/responsive.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/home/presentation/plugin_tab_page.dart';
@@ -58,6 +59,9 @@ class _ShellLayoutState extends ConsumerState<ShellLayout> {
   /// Shell 是启动完成后第一个持久挂载的宿主，在此等待播放状态恢复出歌曲后触发一次。
   bool _autoLyricsPending = false;
   ProviderSubscription<PlayerState>? _autoLyricsSub;
+
+  /// 上一次是否处于插件 Tab（仅用于 Web 语义树暂停/恢复的边沿触发）。
+  bool? _lastPluginActiveForSemantics;
 
   @override
   void initState() {
@@ -179,6 +183,21 @@ class _ShellLayoutState extends ConsumerState<ShellLayout> {
 
     final isPluginTab = location.startsWith('/plugin-tab/');
     final isSettings = location.startsWith('/settings');
+
+    // Web 端：进入插件 Tab（iframe 平台视图）时临时关闭常驻语义树，离开时恢复，
+    // 规避 Flutter 引擎残留 bug 导致语义节点遮挡插件 iframe（songloft-org/songloft#295）。
+    // 边沿触发 + post-frame 回调，避免在 build 内产生副作用。
+    if (kIsWeb && _lastPluginActiveForSemantics != isPluginTab) {
+      _lastPluginActiveForSemantics = isPluginTab;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        if (isPluginTab) {
+          WebSemanticsController.instance.suspendForPlugin();
+        } else {
+          WebSemanticsController.instance.resume();
+        }
+      });
+    }
 
     final currentEntryPath =
         isPluginTab ? location.replaceFirst('/plugin-tab/', '') : null;
