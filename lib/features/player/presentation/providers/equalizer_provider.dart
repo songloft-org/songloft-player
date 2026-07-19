@@ -6,15 +6,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/audio/equalizer_service.dart';
 import '../../../../core/audio/equalizer_service_factory.dart';
 import '../../../../core/network/api_client.dart';
-import '../../../../main.dart';
 import '../../../settings/data/settings_api.dart';
 import '../../domain/equalizer_setting.dart';
 
 final equalizerServiceProvider = Provider<EqualizerService>((ref) {
-  final audioHandler = ref.watch(audioHandlerProvider);
-  return createEqualizerService(
-    androidEqualizer: audioHandler.androidEqualizer,
-  );
+  // 统一 media_kit 后端：EQ 走 mpv `af`（MpvEqualizerService 惰性绑定当前 Player），
+  // 无需依赖 audioHandler / AndroidEqualizer。
+  return createEqualizerService();
 });
 
 final equalizerProvider =

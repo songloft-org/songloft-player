@@ -6,7 +6,6 @@ import 'package:audio_service_mpris/audio_service_mpris.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:windows_single_instance/windows_single_instance.dart';
@@ -17,7 +16,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'config/app_config.dart';
 import 'core/a11y/web_semantics_controller.dart';
-import 'core/audio/audio_backend.dart';
 import 'core/audio/audio_service.dart';
 import 'core/audio/smtc_service.dart';
 import 'core/audio/songloft_just_audio_platform.dart';
@@ -113,19 +111,12 @@ void main(List<String> args) async {
     }
   }
 
-  // just_audio 后端选择：使用 media_kit 的平台（Win/Linux 恒用；macOS/移动端默认也用，
-  // 可由 AudioBackend 的 kill-switch 开关回退原生）走自定义 SongloftJustAudioPlatform，
-  // 以暴露 media_kit Player 供 EQ 设置 mpv 滤镜、并派生 VideoController 渲染视频画面
+  // 所有原生平台统一用 media_kit(libmpv) 后端：注册自定义 SongloftJustAudioPlatform，
+  // 暴露 media_kit Player 供 EQ 设置 mpv `af` 滤镜、并派生 VideoController 渲染视频画面
   // （songloft-org/songloft#76）。必须在 AudioService.init() 之前调用。
   if (!kIsWeb) {
     try {
-      if (AudioBackend.usesMediaKit) {
-        SongloftJustAudioPlatform.register();
-      } else {
-        // 回退分支（显式传 SONGLOFT_MEDIAKIT_*=false）：JustAudioMediaKit 在
-        // macOS/Android/iOS 不接管，just_audio 回落到原生后端（AVPlayer / ExoPlayer）。
-        JustAudioMediaKit.ensureInitialized();
-      }
+      SongloftJustAudioPlatform.register();
     } catch (e, stackTrace) {
       debugPrint('[Main] MediaKit 初始化失败，音频功能将不可用: $e');
       debugPrint('[Main] Stack trace: $stackTrace');

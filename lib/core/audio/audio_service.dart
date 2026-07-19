@@ -22,16 +22,11 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
   static const String _streamUserAgent =
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36 Songloft/1.0';
 
-  final ja.AndroidEqualizer androidEqualizer = ja.AndroidEqualizer();
-
-  late final ja.AudioPlayer _player = ja.AudioPlayer(
-    audioPipeline: ja.AudioPipeline(
-      androidAudioEffects:
-          !kIsWeb && defaultTargetPlatform == TargetPlatform.android
-              ? [androidEqualizer]
-              : const [],
-    ),
-  );
+  // 所有原生平台统一 media_kit(libmpv) 后端，EQ 走 mpv `af`（见 MpvEqualizerService），
+  // 不再使用 just_audio 的 AndroidEqualizer / AudioPipeline androidAudioEffects——后者会让
+  // just_audio 对平台 player 调 androidEqualizerGetParameters()，而 media_kit 的
+  // SongloftMediaKitPlayer 不实现该 Android 专属方法，会致全曲无法播放（songloft-org/songloft#76）。
+  late final ja.AudioPlayer _player = ja.AudioPlayer();
 
   String? _originalTitle;
   String? _originalArtist;
