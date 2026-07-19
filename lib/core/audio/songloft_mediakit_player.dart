@@ -470,6 +470,18 @@ class SongloftMediaKitPlayer extends AudioPlayerPlatform {
   Future<SetPitchResponse> setPitch(SetPitchRequest request) =>
       player.setPitch(request.pitch).then((_) => SetPitchResponse());
 
+  /// Android 专属：just_audio 在 Android 上（经 audio_session 配置）会对平台 player 调用
+  /// 此方法设置原生 AudioAttributes。基类默认实现直接 `throw UnimplementedError`，而
+  /// media_kit 后端未重写它 —— 于是 6d7110c 把移动端默认后端翻成 media_kit 后，Android
+  /// 上每次 `setAudioSource` 都抛 "setAndroidAudioAttributes() has not been implemented."
+  /// 导致**全部歌曲无法播放**（桌面从不调用此方法，故只在 Android 复现）。
+  /// libmpv 自管音频输出（ao=audiotrack/opensles），AudioAttributes 不经此通道下发，
+  /// 故实现为安全 no-op：吞掉调用、返回空响应，让加载/播放继续（songloft-org/songloft#76）。
+  @override
+  Future<SetAndroidAudioAttributesResponse> setAndroidAudioAttributes(
+    SetAndroidAudioAttributesRequest request,
+  ) async => SetAndroidAudioAttributesResponse();
+
   @override
   Future<SetLoopModeResponse> setLoopMode(SetLoopModeRequest request) async {
     await player.setPlaylistMode(_loopModeToPlaylistMode(request.loopMode));
