@@ -9,7 +9,9 @@ import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart' as ja;
 
+import '../../config/app_config.dart';
 import '../../features/playlist/domain/playlist.dart';
+import '../network/insecure_media_proxy.dart';
 import '../../shared/models/song.dart';
 import '../utils/url_helper.dart';
 import 'media_browse_data_source.dart';
@@ -429,8 +431,39 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
       // 后端已有透明缓存；避免 LockCachingAudioSource 代理大文件 seek 的性能/句柄问题。
       final useLiveSource = kIsWeb || song.isLive || isWindows || song.isVideo;
       if (useLiveSource) {
-        source = ja.AudioSource.uri(Uri.parse(songUrl), headers: liveHeaders);
+        final isMobile =
+            !kIsWeb &&
+            (defaultTargetPlatform == TargetPlatform.android ||
+                defaultTargetPlatform == TargetPlatform.iOS);
+        final isHls = songUrl.toLowerCase().contains('.m3u8');
+
+        if (AppConfig.insecureTls && isMobile && isHls) {
+          // 移动端 HLS 电台连自签服务器：just_audio 自带代理只按单一 URL 注册 handler，
+          // 无法处理 m3u8 里指向别的 path 的切片（相对 URL 触发空指针、绝对 URL 直连自签
+          // 源站），故改走自研 HLS-aware trust-all 本地代理：拉取 m3u8 → 递归改写所有子
+          // 资源经本机代理 → 全程 trust-all（songloft-org/songloft#272）。桌面端直播不走此
+          // 分支（保留 #249 的 hlsDirect 直连源站逻辑，避免回归）。
+          final proxied = await InsecureMediaProxy.instance.wrapHls(songUrl);
+          source = ja.AudioSource.uri(Uri.parse(proxied));
+        } else {
+          // 「忽略 SSL 证书校验」开启时，AudioSource.uri 直连路径（视频 / Windows 普通歌曲 /
+          // 非 HLS 直播 / 桌面直播）会把 URL 直接交给原生播放器（libmpv / ExoPlayer /
+          // AVPlayer），其 TLS 握手在 dart:io 之外，不受 HttpOverrides 的 trust-all 影响，
+          // 导致自签证书服务器上「能登录、不能播放」（songloft-org/songloft#272）。此处强制
+          // 附带一个非空 header，触发 just_audio 启用本地明文回环代理（127.0.0.1）：原生
+          // 播放器只连本机 http，真正的上游 HTTPS 改由 just_audio 内部的 Dart HttpClient
+          // 拉取——后者继承 HttpOverrides.global 的 trust-all，从而让 SSL 忽略覆盖到播放路径。
+          // （HLS 由上面的自研代理处理，此处的单资源代理对切片无能为力。）
+          // 关闭该开关时行为不变（不多一跳代理）。web 不走原生代理，浏览器自行处理 TLS。
+          final headers =
+              (!kIsWeb && AppConfig.insecureTls)
+                  ? <String, String>{'Accept': '*/*', ...?liveHeaders}
+                  : liveHeaders;
+          source = ja.AudioSource.uri(Uri.parse(songUrl), headers: headers);
+        }
       } else {
+        // 普通歌曲用 LockCachingAudioSource（本身即经本地代理 + Dart HttpClient 边播边缓存），
+        // 上游 HTTPS 已受 HttpOverrides trust-all 覆盖，无需额外处理。
         source = ja.LockCachingAudioSource(Uri.parse(songUrl));
       }
 

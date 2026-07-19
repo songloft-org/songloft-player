@@ -60,9 +60,6 @@ class SongloftMediaKitPlayer extends AudioPlayerPlatform {
   Duration? _setPosition;
   bool _released = false;
 
-  /// 是否曾修改过 mpv 的 tls-verify 属性（用于在用户关闭 insecureTls 后恢复默认值）。
-  bool _tlsVerifyOverridden = false;
-
   Media? get _currentMedia {
     final playlist = player.state.playlist;
     final index = _validPlaylistIndex(playlist);
@@ -301,20 +298,19 @@ class SongloftMediaKitPlayer extends AudioPlayerPlatform {
     // 消除 open() 抢跑于纹理建立之前导致的偶发黑屏。
     await _awaitVideoTextureReady();
 
-    // 用户开启「忽略 SSL 证书校验」时同步设置 mpv 的 tls-verify=no，
-    // 使 AudioSource.uri 路径（Windows 普通歌曲、直播流、视频）也能连接自签证书服务器。
-    // 关闭时恢复 tls-verify=yes（仅在之前改过的情况下才恢复，避免改变默认行为）。
-    // try-catch 兜底：mpv 版本若不支持该属性，不能阻塞播放主路径。
-    try {
-      if (AppConfig.insecureTls) {
+    // 用户开启「忽略 SSL 证书校验」时设 mpv 的 tls-verify=no，作为未经本地代理的直连
+    // 路径（AudioSource.uri）的兜底——正常情况下 audio_service 已在开关开启时把这些源
+    // 导向 just_audio 本地明文代理，libmpv 只连 127.0.0.1、无需 TLS；此处再设一层以防
+    // 有遗漏的直连路径（songloft-org/songloft#272）。
+    // **关闭开关时刻意不设 tls-verify=yes**：media_kit 内置 libmpv 多数未打包 CA 证书，
+    // 强制开启校验会导致连有效证书（如 Let's Encrypt）也校验失败而无法播放；保持 mpv
+    // 构建默认值最安全。try-catch 兜底：旧版 mpv 不支持该属性时不能阻塞播放主路径。
+    if (AppConfig.insecureTls) {
+      try {
         await _setMpvProperty('tls-verify', 'no');
-        _tlsVerifyOverridden = true;
-      } else if (_tlsVerifyOverridden) {
-        await _setMpvProperty('tls-verify', 'yes');
-        _tlsVerifyOverridden = false;
+      } catch (e) {
+        debugPrint('[SongloftMediaKitPlayer] tls-verify 设置失败 (ignored): $e');
       }
-    } catch (e) {
-      debugPrint('[SongloftMediaKitPlayer] tls-verify 设置失败 (ignored): $e');
     }
 
     if (request.audioSourceMessage is ConcatenatingAudioSourceMessage) {
