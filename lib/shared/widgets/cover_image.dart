@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 import '../../core/utils/url_helper.dart';
@@ -34,6 +35,31 @@ class CoverImage extends StatelessWidget {
     this.semanticLabel,
   });
 
+  /// 诊断日志用的短标识：优先取 /songs/{id}/cover 的 id，否则取去掉 query 的路径。
+  /// 避免打印含 access_token 的超长 URL。
+  static String _tag(String url) {
+    final m = RegExp(r'/songs/(\d+)/cover').firstMatch(url);
+    if (m != null) return 'song ${m.group(1)}';
+    final q = url.indexOf('?');
+    return q > 0 ? url.substring(0, q) : url;
+  }
+
+  /// 临时诊断（仅 web，节流 1.5s）：打印 imageCache 状态，观察重新进列表时缓存是否
+  /// 被淘汰/清空（size/live 跌落）——判断是否为 LRU 淘汰触发重解码。
+  static DateTime _lastCacheDump = DateTime.fromMillisecondsSinceEpoch(0);
+  static void _maybeDumpCache() {
+    if (!kIsWeb) return;
+    final now = DateTime.now();
+    if (now.difference(_lastCacheDump).inMilliseconds < 1500) return;
+    _lastCacheDump = now;
+    final c = PaintingBinding.instance.imageCache;
+    debugPrint(
+      '[Cover] cache size=${c.currentSize}/${c.maximumSize} '
+      'bytes=${c.currentSizeBytes}/${c.maximumSizeBytes} '
+      'live=${c.liveImageCount} pending=${c.pendingImageCount}',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // 使用 UrlHelper 处理封面 URL（自动拼接 baseUrl + access_token）
@@ -48,6 +74,8 @@ class CoverImage extends StatelessWidget {
     final dpr = MediaQuery.of(context).devicePixelRatio;
     final decodeWidth = (size * dpr).clamp(64.0, 1024.0).round();
 
+    _maybeDumpCache();
+
     final imageWidget = ClipRRect(
       borderRadius: BorderRadius.circular(borderRadius),
       child: SizedBox(
@@ -60,9 +88,31 @@ class CoverImage extends StatelessWidget {
                   fit: fit,
                   memCacheWidth: decodeWidth,
                   maxWidthDiskCache: decodeWidth,
-                  placeholder: (context, url) => _buildPlaceholder(context),
-                  errorWidget:
-                      (context, url, error) => _buildPlaceholder(context),
+                  // ==== 临时诊断日志（仅 web）：区分封面"正常/黑/icon"三态走的代码路径 ====
+                  // imageBuilder 被调用 = 解码成功、ImageInfo 就绪（若此时仍显示黑 →
+                  //   纹理/渲染层问题）；errorWidget 被调用 = 加载真失败（显示 icon），
+                  //   error 打出具体类型与内容；placeholder = 仍在加载中。
+                  imageBuilder: (context, imageProvider) {
+                    if (kIsWeb) {
+                      debugPrint('[Cover] OK   ${_tag(displayUrl)}');
+                    }
+                    return Image(image: imageProvider, fit: fit);
+                  },
+                  placeholder: (context, url) {
+                    if (kIsWeb) {
+                      debugPrint('[Cover] LOAD ${_tag(displayUrl)}');
+                    }
+                    return _buildPlaceholder(context);
+                  },
+                  errorWidget: (context, url, error) {
+                    if (kIsWeb) {
+                      debugPrint(
+                        '[Cover] ERR  ${_tag(displayUrl)} :: '
+                        '${error.runtimeType} :: $error',
+                      );
+                    }
+                    return _buildPlaceholder(context);
+                  },
                 )
                 : _buildPlaceholder(context),
       ),
