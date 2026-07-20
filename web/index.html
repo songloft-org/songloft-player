@@ -77,15 +77,6 @@
 
     var config = {
       canvasKitVariant: "full",
-      // Web 强制 CanvasKit CPU(软件)光栅：关闭 WebGL、消除 GPU 纹理，根治列表封面
-      // 切页面 / 切后台回来偶发纯黑。根因是 Chrome 单 WebGL context 在 platform view
-      // (插件 iframe / 视频)造成 GPU 压力时触发 context-loss、封面 WebCodecs VideoFrame
-      // 惰性纹理失效(flutter/flutter#184683 同族；#185116 只修崩溃、不修纹理变黑)。应用层
-      // imageCache.evict + 重解码只能概率缓解惰性纹理绑 context 的时序竞态、无法根治，故
-      // 关 GPU 兜底。代价：全局软件光栅，播放页全屏模糊背景进页/切歌有卡顿(封面列表页无
-      // 模糊、影响小)。插件 iframe / 视频是 DOM 元素、不经 Flutter GPU 合成，零影响。
-      // 原生平台不读本文件，仅作用于 web/embedded。删除本行重新构建即恢复 GPU 渲染。
-      canvasKitForceCpuOnly: true,
     };
 
     if (typeof _deployMode !== 'undefined' && _deployMode === 'embedded') {

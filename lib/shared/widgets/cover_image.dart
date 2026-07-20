@@ -42,6 +42,12 @@ class CoverImage extends StatelessWidget {
             ? UrlHelper.buildCoverUrl(coverUrl!)
             : null;
 
+    // 按显示尺寸的物理像素解码（而非原图全分辨率），大幅降低单张解码内存与 CPU 开销，
+    // 让更多封面能塞进 imageCache 不被淘汰——直接缓解切 tab/筛选重建时的重解码风暴
+    // （封面丢失变黑/占位图标的根因）。封面为方形，仅限宽即可等比缩放。
+    final dpr = MediaQuery.of(context).devicePixelRatio;
+    final decodeWidth = (size * dpr).clamp(64.0, 1024.0).round();
+
     final imageWidget = ClipRRect(
       borderRadius: BorderRadius.circular(borderRadius),
       child: SizedBox(
@@ -52,6 +58,8 @@ class CoverImage extends StatelessWidget {
                 ? CachedNetworkImage(
                   imageUrl: displayUrl,
                   fit: fit,
+                  memCacheWidth: decodeWidth,
+                  maxWidthDiskCache: decodeWidth,
                   placeholder: (context, url) => _buildPlaceholder(context),
                   errorWidget:
                       (context, url, error) => _buildPlaceholder(context),

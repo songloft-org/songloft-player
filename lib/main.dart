@@ -54,6 +54,16 @@ const _audioStartupTimeout = Duration(seconds: 5);
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // 调大图片解码缓存：Flutter 默认仅 1000 张 / 100 MiB LRU。列表/网格封面在切 tab、
+  // 切筛选、页面重建时随 widget dispose 失去 live 引用、被 LRU 淘汰，返回时整批重新
+  // 抓取 + 解码——web/CanvasKit 上表现为封面丢失（GPU 纹理风暴变黑 / CPU 解码失败变
+  // 占位图标），并发重解码还拖卡 UI（常驻的播放器大图因永久 live 引用从不淘汰，故不丢）。
+  // 调大后已解码封面跨重建存活、不再触发重解码风暴；配合 CoverImage 的 memCacheWidth
+  // 缩略解码，单张仅数十 KB，容量足以覆盖大曲库。
+  PaintingBinding.instance.imageCache
+    ..maximumSize = 2000
+    ..maximumSizeBytes = 200 << 20; // 200 MiB
+
   // 初始化文件日志并拦截 debugPrint，使所有日志同时写入控制台和文件。
   // 必须在所有 debugPrint 调用之前完成，确保捕获完整的启动日志。
   await FileLogger.init();
