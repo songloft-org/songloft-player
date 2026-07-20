@@ -12,7 +12,6 @@ import '../../../core/network/server_entry.dart';
 import '../../../core/network/server_probe.dart';
 import '../../../core/network/servers_provider.dart';
 import '../../../core/storage/secure_storage.dart';
-import '../../../core/utils/image_recovery.dart';
 import '../../../l10n/app_localizations.dart';
 
 /// 启动时显示一个简单 Splash，期间完成：
@@ -47,9 +46,6 @@ class _StartupGateState extends ConsumerState<StartupGate>
   _StartupHint _hint = _StartupHint.starting;
   String _connectingTarget = '';
 
-  /// 上次执行 Web 重绘恢复的时间，用于节流（避免频繁切后台抖动时连续重建整树）。
-  DateTime _lastWebRepaint = DateTime.fromMillisecondsSinceEpoch(0);
-
   @override
   void initState() {
     super.initState();
@@ -74,35 +70,14 @@ class _StartupGateState extends ConsumerState<StartupGate>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (!kIsWeb || state != AppLifecycleState.resumed) return;
-    _forceWebRepaint();
-  }
-
-  /// Web 切后台回前台的封面纹理恢复。
-  ///
-  /// Android Chrome 后台会丢弃 WebGL context，beta 3.47 引擎(#185116)只修了
-  /// LateInitializationError 崩溃、重建 GrContext/SkSurface，**不会重传已解码位图的
-  /// GPU 纹理**；返回时封面(CachedNetworkImage)会绘制失效纹理 → 纯黑(errorWidget
-  /// 捕获不到)。与应用内切页面变黑同族(flutter/flutter#86809/#91881)。
-  ///
-  /// [bumpImageRecovery] 让所有挂载的 CoverImage 驱逐自身缓存条目并换 key 重建、
-  /// 重新解码重传纹理(见 image_recovery.dart)——比 reassembleApplication 精准、无
-  /// 打断临时状态的副作用。另清一次全局 imageCache 兜底非 CoverImage 的图(占位/
-  /// asset 等)。矢量内容每帧从 Picture 重录自动恢复，无需额外处理。
-  void _forceWebRepaint() {
-    if (!mounted) return;
-
-    // 节流：切后台频繁抖动时避免连续重建可见封面。
-    final now = DateTime.now();
-    if (now.difference(_lastWebRepaint) < const Duration(seconds: 2)) return;
-    _lastWebRepaint = now;
-
-    // 兜底清理非 CoverImage 图（占位/asset 等）的死纹理条目。
-    final imageCache = PaintingBinding.instance.imageCache;
-    imageCache.clear();
-    imageCache.clearLiveImages();
-
-    // 精准恢复所有挂载的封面：evict 自身缓存 + 换 key 重建 → 重解码重传纹理。
-    bumpImageRecovery();
+    // Web 回前台轻量补几帧。切后台 WebGL context 丢失/纹理失效导致的黑屏/封面黑，
+    // 已由 web 构建强制 CanvasKit CPU 渲染（canvasKitForceCpuOnly，见 web/index.html）
+    // 从根上消除（无 WebGL context 即无纹理丢失），这里无需再做缓存驱逐/重建等干预。
+    for (var i = 0; i < 3; i++) {
+      Future.delayed(Duration(milliseconds: i * 200), () {
+        if (mounted) WidgetsBinding.instance.scheduleFrame();
+      });
+    }
   }
 
   Future<void> _bootstrap() async {

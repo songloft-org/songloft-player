@@ -25,7 +25,6 @@ import '../../features/settings/presentation/shortcut_settings_page.dart';
 import '../../features/settings/presentation/client_download_page.dart';
 import '../../shared/layouts/shell_layout.dart';
 import '../../l10n/app_localizations.dart';
-import '../utils/image_recovery.dart';
 
 /// 路由路径常量
 class AppRoutes {
@@ -63,7 +62,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     authChangeNotifier.dispose();
   });
 
-  final router = GoRouter(
+  return GoRouter(
     initialLocation: AppRoutes.home,
     debugLogDiagnostics: true,
     refreshListenable: authChangeNotifier,
@@ -277,13 +276,4 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ),
   );
-
-  // Web/CanvasKit：每次路由变化（routerDelegate 覆盖根 + shell 内所有导航）触发
-  // 封面纹理恢复。修复切到插件 WebView 等 platform view 页面（context.push('/plugin')）
-  // 再返回后，列表封面因跨 WebGL context 纹理失效而变黑（flutter/flutter#86809/#91881，
-  // 详见 image_recovery.dart）。bumpImageRecovery 内部已判 kIsWeb，原生平台为 no-op。
-  router.routerDelegate.addListener(bumpImageRecovery);
-  ref.onDispose(() => router.routerDelegate.removeListener(bumpImageRecovery));
-
-  return router;
 });
