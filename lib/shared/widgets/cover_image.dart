@@ -1,4 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cached_network_image_platform_interface/cached_network_image_platform_interface.dart'
+    show ImageRenderMethodForWeb;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
@@ -86,22 +88,23 @@ class CoverImage extends StatelessWidget {
                 ? CachedNetworkImage(
                   imageUrl: displayUrl,
                   fit: fit,
+                  // web 改走字节解码路径（HttpGet），而非默认的 <img> 惰性纹理
+                  // （HtmlImage）。原因：
+                  // (1) 默认 HtmlImage 路径下 memCacheWidth 不生效，封面按原图全分辨率
+                  //     上传为 GPU 纹理（实测 ~1.5MB/张）；反复进出列表累积大量满分辨率
+                  //     纹理，叠加插件 iframe/视频 platform view 各自占用的 WebGL context，
+                  //     挤爆浏览器 GPU 显存预算 → CanvasKit 单一 WebGL context 被丢弃
+                  //     → 已上传纹理失效（封面变黑）、新解码 MakeLazyImage 返回 null 抛
+                  //     ImageCodecException（封面变默认图标）。
+                  // (2) HttpGet 路径 memCacheWidth 生效，封面缩到显示尺寸解码（数十 KB），
+                  //     大幅降低 GPU 显存压力；且字节解码结果在 context 恢复后可从保留
+                  //     字节重建，比 <img> 元素惰性纹理更抗 context 丢失。
+                  imageRenderMethodForWeb: ImageRenderMethodForWeb.HttpGet,
                   memCacheWidth: decodeWidth,
                   maxWidthDiskCache: decodeWidth,
-                  // ==== 临时诊断日志（仅 web）：区分封面"正常/黑/icon"三态走的代码路径 ====
-                  // imageBuilder 被调用 = 解码成功、ImageInfo 就绪（若此时仍显示黑 →
-                  //   纹理/渲染层问题）；errorWidget 被调用 = 加载真失败（显示 icon），
-                  //   error 打出具体类型与内容；placeholder = 仍在加载中。
-                  imageBuilder: (context, imageProvider) {
-                    if (kIsWeb) {
-                      debugPrint('[Cover] OK   ${_tag(displayUrl)}');
-                    }
-                    return Image(image: imageProvider, fit: fit);
-                  },
+                  // ==== 临时诊断日志（仅 web）：LOAD=加载中 / ERR=解码或加载失败 ====
                   placeholder: (context, url) {
-                    if (kIsWeb) {
-                      debugPrint('[Cover] LOAD ${_tag(displayUrl)}');
-                    }
+                    if (kIsWeb) debugPrint('[Cover] LOAD ${_tag(displayUrl)}');
                     return _buildPlaceholder(context);
                   },
                   errorWidget: (context, url, error) {

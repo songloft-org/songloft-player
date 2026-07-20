@@ -44,6 +44,8 @@ dependencies:
   path_provider: ^2.1.0
   # 图片缓存
   cached_network_image: ^3.4.1
+  # 显式声明以使用 ImageRenderMethodForWeb（cached_network_image 未 re-export 该枚举）
+  cached_network_image_platform_interface: ^4.1.1
   # 颜色提取
   palette_generator: ^0.3.3+4
   # UI
