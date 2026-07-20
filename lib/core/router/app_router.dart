@@ -25,6 +25,7 @@ import '../../features/settings/presentation/shortcut_settings_page.dart';
 import '../../features/settings/presentation/client_download_page.dart';
 import '../../shared/layouts/shell_layout.dart';
 import '../../l10n/app_localizations.dart';
+import 'web_image_cache_guard.dart';
 
 /// 路由路径常量
 class AppRoutes {
@@ -111,6 +112,10 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // 主应用路由（使用 ShellRoute 包含导航和播放器）
       ShellRoute(
+        // Web/CanvasKit：shell 内切页面回来时列表封面会因 imageCache 复用纹理已
+        // 失效的 ui.Image 而变黑（flutter/flutter#86809/#91881）。该观察者在每次
+        // 导航时驱逐图片缓存，迫使目标页封面重新解码重传纹理。详见 WebImageCacheGuard。
+        observers: [WebImageCacheGuard()],
         builder: (context, state, child) => ShellLayout(child: child),
         routes: [
           // 首页
