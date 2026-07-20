@@ -12,6 +12,7 @@ import '../../../core/network/server_entry.dart';
 import '../../../core/network/server_probe.dart';
 import '../../../core/network/servers_provider.dart';
 import '../../../core/storage/secure_storage.dart';
+import '../../../core/utils/image_recovery.dart';
 import '../../../l10n/app_localizations.dart';
 
 /// 启动时显示一个简单 Splash，期间完成：
@@ -76,54 +77,32 @@ class _StartupGateState extends ConsumerState<StartupGate>
     _forceWebRepaint();
   }
 
-  /// Web 切后台回前台的渲染恢复。
+  /// Web 切后台回前台的封面纹理恢复。
   ///
-  /// Android Chrome 后台会丢弃标签页的 WebGL context。web 构建钉在含引擎修复
-  /// flutter/flutter#185116 的 beta 3.47，该修复只去掉 `_handledContextLostEvent`
-  /// 的 `late`（避免 `webglcontextlost` 同步触发时的 LateInitializationError 崩溃
-  /// = 切后台回来黑屏），引擎(`canvaskit/surface.dart` onContextLost)随后只重建
-  /// GrContext/SkSurface，**不会重传已解码位图的 GPU 纹理**。
+  /// Android Chrome 后台会丢弃 WebGL context，beta 3.47 引擎(#185116)只修了
+  /// LateInitializationError 崩溃、重建 GrContext/SkSurface，**不会重传已解码位图的
+  /// GPU 纹理**；返回时封面(CachedNetworkImage)会绘制失效纹理 → 纯黑(errorWidget
+  /// 捕获不到)。与应用内切页面变黑同族(flutter/flutter#86809/#91881)。
   ///
-  /// 后果分两类：
-  /// - **矢量内容**（渐变/纯色/占位）每帧从 Picture 重新录制光栅化，自动恢复；
-  /// - **封面等位图**走 cached_network_image_web 的 WebCodecs VideoFrame 惰性纹理，
-  ///   其源在后台被浏览器回收后，重绘时从死源惰性重传出全零像素 → **偶发纯黑封面**
-  ///   （errorWidget 捕获不到，因为解码在框架层是“成功”的，失败发生在 GPU 绘制层）。
-  ///
-  /// 修复：resume 时驱逐图片缓存（含活图，保证后续 resolve 缓存未命中），再
-  /// `reassembleApplication()` 让每个 Image 重新 resolve → 走 flutter_cache_manager
-  /// 字节缓存重新解码 → 新建 VideoFrame → 上传到重建后的 GrContext。缺一不可：只清
-  /// 缓存 widget 不会 re-resolve（复用死图）；只 reassemble 又会命中旧缓存（复用死图）。
-  /// 单纯 `scheduleFrame` 只重录矢量、对死纹理无效。
+  /// [bumpImageRecovery] 让所有挂载的 CoverImage 驱逐自身缓存条目并换 key 重建、
+  /// 重新解码重传纹理(见 image_recovery.dart)——比 reassembleApplication 精准、无
+  /// 打断临时状态的副作用。另清一次全局 imageCache 兜底非 CoverImage 的图(占位/
+  /// asset 等)。矢量内容每帧从 Picture 重录自动恢复，无需额外处理。
   void _forceWebRepaint() {
     if (!mounted) return;
 
-    // 节流：切后台频繁抖动时避免连续重建整棵树，退化为轻量补帧。
+    // 节流：切后台频繁抖动时避免连续重建可见封面。
     final now = DateTime.now();
-    if (now.difference(_lastWebRepaint) < const Duration(seconds: 2)) {
-      WidgetsBinding.instance.scheduleFrame();
-      return;
-    }
+    if (now.difference(_lastWebRepaint) < const Duration(seconds: 2)) return;
     _lastWebRepaint = now;
 
-    // 1) 驱逐图片缓存（含活图）。clear() 只清 keepAlive 缓存、不动活图，且清缓存
-    //    本身不触发重解码，故必须同时 clearLiveImages()。
+    // 兜底清理非 CoverImage 图（占位/asset 等）的死纹理条目。
     final imageCache = PaintingBinding.instance.imageCache;
     imageCache.clear();
     imageCache.clearLiveImages();
 
-    // 2) 强制整棵树重新 resolve 图片（否则已挂载 widget 复用旧的死 ui.Image）。
-    //    延后到下一帧，避开 resume 回调期间的构建阶段。
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) WidgetsBinding.instance.reassembleApplication();
-    });
-
-    // 3) 兜底补几帧，确保矢量层与重建后的树都被重绘。
-    for (var i = 0; i < 3; i++) {
-      Future.delayed(Duration(milliseconds: i * 200), () {
-        if (mounted) WidgetsBinding.instance.scheduleFrame();
-      });
-    }
+    // 精准恢复所有挂载的封面：evict 自身缓存 + 换 key 重建 → 重解码重传纹理。
+    bumpImageRecovery();
   }
 
   Future<void> _bootstrap() async {
