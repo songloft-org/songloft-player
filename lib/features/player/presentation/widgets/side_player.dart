@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/url_helper.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/favorite_button.dart';
@@ -179,30 +178,11 @@ class AutoSidePlayer extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 16),
-        // 进度条
+        // 进度条（含两侧时间显示）
         PlayerProgressBar(
           position: state.currentTime,
           duration: state.duration,
           onSeek: notifier.seek,
-        ),
-        const SizedBox(height: 4),
-        // 时间
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              Formatters.formatDuration(state.currentTime.inSeconds.toDouble()),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            Text(
-              Formatters.formatDuration(state.duration.inSeconds.toDouble()),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
         ),
         const SizedBox(height: 12),
         // 播放控制
