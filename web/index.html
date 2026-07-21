@@ -64,6 +64,55 @@
   <script src="hls.min.js"></script>
   <script src="hls_bridge.js"></script>
   <script src="deploy-mode.js"></script>
+  <!-- ── #278 抖动诊断探针（临时）──
+       埋点显示插件 iframe 并未重载，但首页/曲库/插件页在 1920×1080 下仍整页抖动。
+       此探针每帧采样 flutter-view / flt-glass-pane / flt-platform-view / iframe 的
+       几何，一旦发现某元素在两个尺寸/位置间来回翻转（每帧振荡）就打一行 [sl-shake]，
+       用于定位到底是哪一层在每帧改尺寸（引擎视图 resize 回路？平台视图槽？iframe 内部？）。
+       默认开启；静音执行 localStorage.setItem('sl_shake_probe','off')。根因定位后移除。 -->
+  <script>
+  (function () {
+    try { if (localStorage.getItem('sl_shake_probe') === 'off') return; } catch (_) {}
+    var last = {}, flip = {};
+    function rectOf(el) {
+      var r = el.getBoundingClientRect();
+      return Math.round(r.width) + 'x' + Math.round(r.height) +
+             '@' + Math.round(r.left) + ',' + Math.round(r.top);
+    }
+    function collect() {
+      var t = [];
+      var fv = document.querySelector('flutter-view'); if (fv) t.push(['flutter-view', fv]);
+      var gp = document.querySelector('flt-glass-pane'); if (gp) t.push(['glass-pane', gp]);
+      var pvs = document.querySelectorAll('flt-platform-view');
+      for (var i = 0; i < pvs.length; i++) t.push(['platform-view#' + i, pvs[i]]);
+      var ifr = document.querySelectorAll('iframe');
+      for (var j = 0; j < ifr.length; j++) t.push(['iframe#' + j, ifr[j]]);
+      return t;
+    }
+    function sample() {
+      var now = performance.now();
+      collect().forEach(function (e) {
+        var key = e[0], r;
+        try { r = rectOf(e[1]); } catch (_) { return; }
+        var prev = last[key];
+        if (prev !== undefined && prev !== r) {
+          var f = flip[key] || (flip[key] = { vals: {}, count: 0, start: now, lastLog: 0 });
+          f.vals[r] = (f.vals[r] || 0) + 1; f.count++;
+          var ks = Object.keys(f.vals);
+          // 只在「恰好在两个值间来回翻转」且足够频繁时报告，避免正常变化刷屏
+          if (ks.length === 2 && f.count >= 6 && now - f.lastLog > 1000) {
+            f.lastLog = now;
+            console.warn('[sl-shake] ' + key + ' 每帧振荡: ' + ks[0] + '  <->  ' + ks[1] +
+                         '  (' + f.count + ' 次 / ' + Math.round(now - f.start) + 'ms)');
+          }
+        }
+        last[key] = r;
+      });
+      requestAnimationFrame(sample);
+    }
+    requestAnimationFrame(sample);
+  })();
+  </script>
   <!--
     已知问题:移动端切后台回来可能白屏。根因是引擎 bug flutter/flutter#184683
     (CanvasKit 处理 WebGL context 丢失时访问未初始化的 late 字段,抛
