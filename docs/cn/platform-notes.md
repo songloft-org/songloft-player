@@ -144,3 +144,16 @@ plugin_webview_page_native.dart → 原生平台（真实实现）
 
 - `PlaybackStateStorage`：Web 平台降级为 SharedPreferences（localStorage），原生平台用文件
 - `LyricCacheService`：Web 平台降级为纯内存缓存，原生平台用文件系统
+
+### 封面 / 网络图片必须缩略解码（CanvasKit 大纹理踩坑）
+
+> **铁律：web 上所有网络封面图必须走 `CoverImage` 或 `NetworkCoverImage`，禁止直接裸用 `CachedNetworkImage` / `Image.network`。**
+
+- **现象**：列表/网格封面在切 tab、切筛选、来回导航后偶发**变纯黑**，继续操作又变成**默认占位图标**；而常驻的播放器大图从不出问题。
+- **根因**：CanvasKit 默认 web 渲染方式 `ImageRenderMethodForWeb.HtmlImage` 把封面按**原图全分辨率**上传为 GPU 纹理（实测 ~1.5MB/张），且此路径下 `memCacheWidth` **不生效**。列表大量大封面纹理累积挤爆移动端浏览器 GPU 显存 → CanvasKit 的 WebGL context 被丢弃 → 已上传纹理失效（**黑**）、新解码 `MakeLazyImageFromTextureSourceWithInfo` 返回 null 抛 `ImageCodecException: Failed to create image from Image.decode`（**占位图标**）。常驻 widget（播放器大图）因 listener 永不释放、被钉在 `imageCache` 的 live 集合永不淘汰，故不受影响——这正是"播放器不丢、列表丢"的原因。
+- **修复**：封面组件强制 `imageRenderMethodForWeb: ImageRenderMethodForWeb.HttpGet` + `memCacheWidth`（按显示尺寸 × DPR）缩略解码，纹理从 ~1.5MB 降到数十~百 KB，大幅降低 GPU 显存压力；且 HttpGet 字节可在 context 恢复后重解码，比 `<img>` 惰性纹理更抗 context 丢失。已封装在：
+  - `shared/widgets/cover_image.dart`（`CoverImage`，定尺寸方形封面）
+  - `shared/widgets/network_cover_image.dart`（`NetworkCoverImage`，填充式 / 自定义布局封面）
+- **最易踩的坑**：新增封面渲染点时**必须**用上述两个组件之一；图省事直接写 `CachedNetworkImage(imageUrl: ...)`，web 上就会重新引入变黑。历史上正因专辑 / 歌手 / 歌单卡片漏用封装、直接裸用 `CachedNetworkImage`，导致这些列表封面单独变黑（歌曲列表因用了 `CoverImage` 反而正常），排查绕了很多弯。
+- **排查判据**：`ImageCodecException: Failed to create image from Image.decode` = GPU 纹理创建失败（context 丢失 / 显存耗尽），**不是**网络或字节问题；**纯黑** = 已解码 `ui.Image` 的纹理失效（`errorWidget` 捕获不到，因失败在 GPU 绘制层）；**占位图标** = 走到了 `errorWidget`（解码 / 加载真失败）。
+- **不要走的弯路**（均已验证无效或更差）：调大 `imageCache`（根本没触发 LRU 淘汰）、`imageCache.evict` / 换 key 重建（治标且加剧重解码）、`canvasKitForceCpuOnly`（全局软件渲染极卡且不解决）、`canvasKitMaximumSurfaces=1`（Chrome 走单 OffscreenCanvas，无效）。

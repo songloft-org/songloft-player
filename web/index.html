@@ -35,23 +35,6 @@
 
 </head>
 <body>
-  <!-- 临时诊断：捕获 WebGL context 丢失/恢复事件。封面反复进出列表变黑/占位图标的
-       推断根因是 CanvasKit 单一 WebGL context 因 platform view(插件 iframe/视频)+
-       GPU 显存压力被浏览器丢弃。这里全局(capture)监听,把"是否真的发生 context 丢失"
-       从推断升为直证——复现变黑时刻若打印 [GL] lost 即坐实。定位后移除。 -->
-  <script>
-  (function () {
-    try {
-      window.addEventListener('webglcontextlost', function (e) {
-        try { console.error('[GL] webglcontextlost', (e.target && (e.target.id || e.target.className)) || e.target, e); } catch (_) {}
-      }, true);
-      window.addEventListener('webglcontextrestored', function (e) {
-        try { console.warn('[GL] webglcontextrestored', (e.target && (e.target.id || e.target.className)) || e.target, e); } catch (_) {}
-      }, true);
-    } catch (_) {}
-  })();
-  </script>
-
   <!-- NextConsole 调试面板：在设置页面启用后，刷新页面自动加载。
        读取 localStorage 中 flutter.web_debug_console 的值决定是否激活。 -->
   <script>

@@ -144,3 +144,16 @@ Stub file pairs in the project:
 
 - `PlaybackStateStorage`: Web falls back to SharedPreferences (localStorage); native platforms use files
 - `LyricCacheService`: Web falls back to in-memory cache; native platforms use the file system
+
+### Cover / network images must decode downsampled (CanvasKit large-texture pitfall)
+
+> **Hard rule: on web, every network cover image must go through `CoverImage` or `NetworkCoverImage`. Never use a bare `CachedNetworkImage` / `Image.network` directly.**
+
+- **Symptom**: list/grid covers intermittently turn **solid black** after switching tabs, changing filters, or navigating back and forth; continuing to interact then turns them into the **default placeholder icon**. The persistent player artwork never breaks.
+- **Root cause**: CanvasKit's default web render method `ImageRenderMethodForWeb.HtmlImage` uploads covers as **full-resolution** GPU textures (~1.5 MB each in practice), and `memCacheWidth` **has no effect** on that path. Many large cover textures accumulate and exhaust the mobile browser's GPU memory budget → CanvasKit's WebGL context is dropped → already-uploaded textures die (**black**), and fresh decodes hit `MakeLazyImageFromTextureSourceWithInfo` returning null, throwing `ImageCodecException: Failed to create image from Image.decode` (**placeholder icon**). Persistent widgets (player artwork) keep their listener attached forever, so they are pinned in the `imageCache` live set and never evicted — which is exactly why "the player never loses it but the list does".
+- **Fix**: force `imageRenderMethodForWeb: ImageRenderMethodForWeb.HttpGet` + `memCacheWidth` (display size × DPR) so covers decode downsampled, shrinking textures from ~1.5 MB to tens/hundreds of KB and drastically lowering GPU memory pressure; HttpGet bytes can also be re-decoded after a context restore, making them more resilient to context loss than `<img>` lazy textures. Encapsulated in:
+  - `shared/widgets/cover_image.dart` (`CoverImage`, fixed-size square covers)
+  - `shared/widgets/network_cover_image.dart` (`NetworkCoverImage`, fill / custom-layout covers)
+- **Easiest mistake**: when adding a new cover render site you **must** use one of the two widgets above; writing a plain `CachedNetworkImage(imageUrl: ...)` for convenience reintroduces the black covers on web. Historically the album/artist/playlist cards used bare `CachedNetworkImage` and skipped the wrapper, so those lists went black on their own (the song list stayed fine because it used `CoverImage`), which cost a long debugging detour.
+- **Diagnosis criteria**: `ImageCodecException: Failed to create image from Image.decode` = GPU texture creation failure (context loss / VRAM exhaustion), **not** a network/byte problem; **solid black** = the decoded `ui.Image`'s texture died (uncatchable by `errorWidget` because the failure is in the GPU paint layer); **placeholder icon** = `errorWidget` fired (decode/load genuinely failed).
+- **Dead ends** (all verified ineffective or worse): enlarging `imageCache` (LRU eviction was never triggered), `imageCache.evict` / key-swap rebuild (treats a symptom and worsens re-decode storms), `canvasKitForceCpuOnly` (global software rendering, extremely laggy and doesn't fix it), `canvasKitMaximumSurfaces=1` (Chrome uses a single OffscreenCanvas, no effect).
