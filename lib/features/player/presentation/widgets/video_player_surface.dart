@@ -309,6 +309,8 @@ class _VideoPlayerSurfaceState extends ConsumerState<VideoPlayerSurface> {
               switch (value) {
                 case 'equalizer':
                   showEqualizerSheet(context);
+                case 'audio_track':
+                  showAudioTrackSheet(context, ref);
                 case 'sleep_timer':
                   SleepTimerSheet.show(
                     context,
@@ -333,6 +335,17 @@ class _VideoPlayerSurfaceState extends ConsumerState<VideoPlayerSurface> {
                     child: ListTile(
                       leading: const Icon(Icons.equalizer_rounded),
                       title: Text(l10n.playerEqualizer),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                // 音轨切换：多音轨时才显示（与均衡器同为次要功能，统一收进菜单）
+                if (ref.read(audioTrackProvider).hasMultiple)
+                  PopupMenuItem(
+                    value: 'audio_track',
+                    child: ListTile(
+                      leading: const Icon(Icons.multitrack_audio_rounded),
+                      title: Text(l10n.playerAudioTrack),
                       dense: true,
                       contentPadding: EdgeInsets.zero,
                     ),
@@ -437,11 +450,6 @@ class _VideoPlayerSurfaceState extends ConsumerState<VideoPlayerSurface> {
             children: [
               if (!kIsWeb) const CastButton(iconSize: 20),
               const SizedBox(width: 8),
-              // 多音频轨（如 K 歌 MV：原唱/伴奏）时显示音轨切换入口，单轨自动隐藏。
-              if (ref.watch(audioTrackProvider).hasMultiple) ...[
-                const AudioTrackControl(),
-                const SizedBox(width: 8),
-              ],
               PopupVolumeControl(
                 volume: state.volume,
                 onVolumeChanged: notifier.setVolume,

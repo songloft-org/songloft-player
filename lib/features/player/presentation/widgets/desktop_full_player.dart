@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -15,6 +16,7 @@ import '../queue_page.dart';
 import 'lyrics_view.dart';
 import '../providers/audio_track_provider.dart';
 import 'audio_track_control.dart';
+import 'equalizer_panel.dart';
 import 'play_controls.dart';
 import 'popup_controls.dart';
 import 'progress_bar.dart';
@@ -238,7 +240,7 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
               child: Column(
                 children: [
                   // 顶部栏
-                  _buildTopBar(context, notifier),
+                  _buildTopBar(context, state, notifier),
                   const SizedBox(height: 16),
                   // 左右分栏主体
                   Expanded(
@@ -358,8 +360,12 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
     );
   }
 
-  /// 顶部栏：返回按钮 + "正在播放" + 右侧占位
-  Widget _buildTopBar(BuildContext context, PlayerNotifier notifier) {
+  /// 顶部栏：返回按钮 + "正在播放" + 更多操作菜单（均衡器 / 音轨 / 睡眠定时 / 删除）
+  Widget _buildTopBar(
+    BuildContext context,
+    PlayerState state,
+    PlayerNotifier notifier,
+  ) {
     const topBarColor = Colors.white;
 
     return Row(
@@ -384,17 +390,76 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
             fontSize: 14,
           ),
         ),
-        // 更多操作
+        // 更多操作（均衡器 / 音轨 / 睡眠定时 / 删除，与 mobile/video 全屏播放器一致）
         PopupMenuButton<String>(
-          icon: const Icon(Icons.more_horiz_rounded, color: Colors.white),
+          icon: Icon(
+            Icons.more_horiz_rounded,
+            color: state.sleepTimer != null
+                ? Theme.of(context).colorScheme.primary
+                : Colors.white,
+          ),
           onSelected: (value) {
-            if (value == 'delete') {
-              deleteCurrentSongFromPlayer(context, ref);
+            switch (value) {
+              case 'equalizer':
+                showEqualizerSheet(context);
+              case 'audio_track':
+                showAudioTrackSheet(context, ref);
+              case 'sleep_timer':
+                SleepTimerSheet.show(
+                  context,
+                  status: state.sleepTimer,
+                  isLive: state.currentSong?.isLive ?? false,
+                  onSetDuration: notifier.setSleepTimerByDuration,
+                  onSetAfterSongs: notifier.setSleepTimerAfterSongs,
+                  onCancel: notifier.cancelSleepTimer,
+                );
+              case 'delete':
+                deleteCurrentSongFromPlayer(context, ref);
             }
           },
           itemBuilder: (context) {
             final colorScheme = Theme.of(context).colorScheme;
+            final hasTimer = state.sleepTimer != null;
             return [
+              // 均衡器依赖 libmpv，Web 无 libmpv 不生效，故 Web 隐藏
+              if (!kIsWeb)
+                PopupMenuItem(
+                  value: 'equalizer',
+                  child: ListTile(
+                    leading: const Icon(Icons.equalizer_rounded),
+                    title: Text(AppLocalizations.of(context).playerEqualizer),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              // 音轨切换：多音轨时才显示（与均衡器同为次要功能，统一收进菜单）
+              if (ref.read(audioTrackProvider).hasMultiple)
+                PopupMenuItem(
+                  value: 'audio_track',
+                  child: ListTile(
+                    leading: const Icon(Icons.multitrack_audio_rounded),
+                    title: Text(AppLocalizations.of(context).playerAudioTrack),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              PopupMenuItem(
+                value: 'sleep_timer',
+                child: ListTile(
+                  leading: Icon(
+                    Icons.bedtime_outlined,
+                    color: hasTimer ? colorScheme.primary : null,
+                  ),
+                  title: Text(
+                    hasTimer
+                        ? AppLocalizations.of(context).playerSleepTimerOn
+                        : AppLocalizations.of(context).playerSleepTimer,
+                  ),
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              const PopupMenuDivider(),
               PopupMenuItem(
                 value: 'delete',
                 child: ListTile(
@@ -485,12 +550,14 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
             onPlayModeChanged: notifier.setPlayMode,
           ),
         ),
-        // 投屏
-        const SizedBox(
-          width: 48,
-          height: 48,
-          child: CastButton(iconSize: 24),
-        ),
+        // 投屏（Web 无 DLNA，CastButton 返回空占位；显式 kIsWeb 门控，
+        // 避免固定 48×48 盒在 spaceAround 下留出空槽导致按钮分布不均）
+        if (!kIsWeb)
+          const SizedBox(
+            width: 48,
+            height: 48,
+            child: CastButton(iconSize: 24),
+          ),
         // 音量
         SizedBox(
           width: 48,
@@ -498,26 +565,6 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
           child: PopupVolumeControl(
             volume: state.volume,
             onVolumeChanged: notifier.setVolume,
-          ),
-        ),
-        // 音轨切换（多音频轨时显示，单轨自动隐藏）；用 hasMultiple 门控避免
-        // spaceAround 下留出空位。包 48×48 盒与本行兄弟按钮同规格，保证均分对齐。
-        if (ref.watch(audioTrackProvider).hasMultiple)
-          const SizedBox(
-            width: 48,
-            height: 48,
-            child: Center(child: AudioTrackControl(iconSize: 24)),
-          ),
-        // 睡眠定时
-        SizedBox(
-          width: 48,
-          height: 48,
-          child: PopupSleepTimerControl(
-            status: state.sleepTimer,
-            isLive: state.currentSong?.isLive ?? false,
-            onSetDuration: notifier.setSleepTimerByDuration,
-            onSetAfterSongs: notifier.setSleepTimerAfterSongs,
-            onCancel: notifier.cancelSleepTimer,
           ),
         ),
         // 播放队列

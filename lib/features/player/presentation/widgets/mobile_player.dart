@@ -427,6 +427,8 @@ class _MobilePlayerState extends ConsumerState<MobilePlayer>
               switch (value) {
                 case 'equalizer':
                   showEqualizerSheet(context);
+                case 'audio_track':
+                  showAudioTrackSheet(context, ref);
                 case 'sleep_timer':
                   SleepTimerSheet.show(
                     context,
@@ -451,6 +453,17 @@ class _MobilePlayerState extends ConsumerState<MobilePlayer>
                     child: ListTile(
                       leading: const Icon(Icons.equalizer_rounded),
                       title: Text(AppLocalizations.of(context).playerEqualizer),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                // 音轨切换：多音轨时才显示（与均衡器同为次要功能，统一收进菜单）
+                if (ref.read(audioTrackProvider).hasMultiple)
+                  PopupMenuItem(
+                    value: 'audio_track',
+                    child: ListTile(
+                      leading: const Icon(Icons.multitrack_audio_rounded),
+                      title: Text(AppLocalizations.of(context).playerAudioTrack),
                       dense: true,
                       contentPadding: EdgeInsets.zero,
                     ),
@@ -603,10 +616,6 @@ class _MobilePlayerState extends ConsumerState<MobilePlayer>
         children: [
           if (!kIsWeb)
             const CastButton(iconSize: 20),
-          // 多音轨（如双音轨 mka：原唱/伴奏）时显示音轨切换入口，单轨自动隐藏。
-          // 用 hasMultiple 门控避免 spaceEvenly 下留出空位。
-          if (ref.watch(audioTrackProvider).hasMultiple)
-            const AudioTrackControl(),
           PopupVolumeControl(
             volume: state.volume,
             onVolumeChanged: notifier.setVolume,
