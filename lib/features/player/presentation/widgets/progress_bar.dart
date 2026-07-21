@@ -234,7 +234,13 @@ class _ClickableProgressBarState extends State<ClickableProgressBar> {
     final activeColor = widget.activeColor ?? theme.colorScheme.primary;
     final inactiveColor =
         widget.inactiveColor ?? theme.colorScheme.surfaceContainerHighest;
-    final barHeight = _isHovering ? widget.height + 2 : widget.height;
+    // 悬停/拖动时轨道加粗，滑块放大，增强可拖动的视觉提示
+    final active = _isHovering || _isDragging;
+    final barHeight = active ? widget.height + 2 : widget.height;
+    // 拖动滑块（thumb）始终可见，明确告知用户此进度条可拖动
+    final thumbDiameter = active ? 14.0 : 10.0;
+    // 预留足够垂直空间容纳滑块，轨道与滑块整体垂直居中
+    const totalHeight = 16.0;
 
     return Semantics(
       slider: true,
@@ -269,20 +275,59 @@ class _ClickableProgressBarState extends State<ClickableProgressBar> {
             });
           },
           child: SizedBox(
-            height: barHeight,
+            height: totalHeight,
             child: LayoutBuilder(
               builder: (context, constraints) {
+                final thumbLeft = (constraints.maxWidth * _displayProgress -
+                        thumbDiameter / 2)
+                    .clamp(0.0, constraints.maxWidth - thumbDiameter);
                 return Stack(
+                  alignment: Alignment.center,
                   children: [
-                    Positioned.fill(
-                      child: ColoredBox(color: inactiveColor),
+                    // 轨道（垂直居中的细条）
+                    Center(
+                      child: SizedBox(
+                        height: barHeight,
+                        child: Stack(
+                          children: [
+                            Positioned.fill(
+                              child: ColoredBox(color: inactiveColor),
+                            ),
+                            Positioned(
+                              left: 0,
+                              top: 0,
+                              bottom: 0,
+                              width: constraints.maxWidth * _displayProgress,
+                              child: ColoredBox(color: activeColor),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
+                    // 拖动滑块
                     Positioned(
-                      left: 0,
+                      left: thumbLeft,
                       top: 0,
                       bottom: 0,
-                      width: constraints.maxWidth * _displayProgress,
-                      child: ColoredBox(color: activeColor),
+                      child: Center(
+                        child: Container(
+                          width: thumbDiameter,
+                          height: thumbDiameter,
+                          decoration: BoxDecoration(
+                            color: activeColor,
+                            shape: BoxShape.circle,
+                            boxShadow: active
+                                ? [
+                                    BoxShadow(
+                                      color: activeColor.withValues(alpha: 0.3),
+                                      blurRadius: 4,
+                                      spreadRadius: 1,
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 );
