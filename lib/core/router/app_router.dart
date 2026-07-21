@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -23,7 +25,12 @@ import '../../features/jsplugin/presentation/widgets/plugin_registry.dart';
 import '../../features/settings/presentation/duplicate_check_page.dart';
 import '../../features/settings/presentation/shortcut_settings_page.dart';
 import '../../features/settings/presentation/client_download_page.dart';
+import '../../features/settings/presentation/widgets/settings_category_content.dart';
+import '../../features/player/presentation/widgets/mobile_player.dart';
+import '../../features/player/presentation/widgets/desktop_full_player.dart';
+import '../../features/player/presentation/widgets/tv_player.dart';
 import '../../shared/layouts/shell_layout.dart';
+import '../theme/responsive.dart';
 import '../../l10n/app_localizations.dart';
 
 /// 路由路径常量
@@ -40,8 +47,10 @@ class AppRoutes {
   static const String shortcuts = '/settings/shortcuts';
   static const String clientDownload = '/settings/download';
   static const String pluginRegistry = '/settings/plugin-registry';
+  static const String settingsCategory = '/settings/category/:index';
   static const String plugin = '/plugin';
   static const String pluginTab = '/plugin-tab/:entryPath';
+  static const String player = '/player';
 }
 
 /// 将 Riverpod 认证状态变化桥接为 GoRouter 的 refreshListenable，
@@ -111,6 +120,52 @@ final routerProvider = Provider<GoRouter>((ref) {
           final url = state.uri.queryParameters['url'] ?? '';
           final name = state.uri.queryParameters['name'] ?? '';
           return PluginWebViewPage(pluginUrl: url, pluginName: name);
+        },
+      ),
+
+      // 全屏播放器（独立顶层路由，全屏无导航栏，与 /login、/plugin 同级）。
+      // 做成真实路由而非命令式 Navigator.push，让浏览器/系统返回键在 Web 上
+      // 也能关闭播放器。按屏幕类型分派 Mobile/Tv/Desktop 三种全屏播放器，
+      // 分派规则与 shell_layout 的 _openFullPlayerForScreen 一致。
+      GoRoute(
+        path: AppRoutes.player,
+        pageBuilder: (context, state) {
+          final page =
+              int.tryParse(state.uri.queryParameters['page'] ?? '') ?? 0;
+          final screenType = context.screenType;
+          final bool isTv =
+              screenType == ScreenType.tv &&
+              defaultTargetPlatform == TargetPlatform.android;
+          final Widget child;
+          if (screenType == ScreenType.mobile) {
+            child = MobilePlayer(initialPage: page);
+          } else if (isTv) {
+            child = const TvPlayer();
+          } else {
+            child = const DesktopFullPlayer();
+          }
+          return CustomTransitionPage(
+            key: state.pageKey,
+            opaque: true,
+            transitionDuration: const Duration(milliseconds: 300),
+            reverseTransitionDuration: const Duration(milliseconds: 300),
+            transitionsBuilder: (context, animation, secondaryAnimation, c) {
+              // TV 保持淡入（复刻 TvPlayer 原行为），其余下往上滑入。
+              if (isTv) {
+                return FadeTransition(opacity: animation, child: c);
+              }
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 1),
+                  end: Offset.zero,
+                ).animate(
+                  CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+                ),
+                child: c,
+              );
+            },
+            child: child,
+          );
         },
       ),
 
@@ -231,6 +286,32 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.pluginRegistry,
             builder: (context, state) => const PluginRegistryPage(),
+          ),
+
+          // 设置分类详情（移动端二级页）。做成真实路由让浏览器/系统返回键回到
+          // 设置一级列表；宽屏 master-detail 仍在 SettingsPage 内同页切换。
+          GoRoute(
+            path: AppRoutes.settingsCategory,
+            redirect: (context, state) {
+              // 越界防御（不在 redirect 里依赖 l10n，用固定分类数常量）。
+              final index = int.tryParse(state.pathParameters['index'] ?? '');
+              if (index == null ||
+                  index < 0 ||
+                  index >= settingsCategoryCount) {
+                return AppRoutes.settings;
+              }
+              return null;
+            },
+            builder: (context, state) {
+              final index = int.parse(state.pathParameters['index']!);
+              final categories = buildSettingsCategories(
+                AppLocalizations.of(context),
+              );
+              return Scaffold(
+                appBar: AppBar(title: Text(categories[index].title)),
+                body: SettingsCategoryContent(index: index),
+              );
+            },
           ),
 
           // 插件 Tab 页面（实际渲染由 ShellLayout 管理，此处仅作路由占位）

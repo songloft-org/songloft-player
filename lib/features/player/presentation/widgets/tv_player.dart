@@ -13,6 +13,7 @@ import '../../../../shared/widgets/tv_focusable.dart';
 import '../../domain/player_state.dart';
 import '../providers/audio_track_provider.dart';
 import '../providers/player_provider.dart';
+import '../utils/full_player_route.dart';
 import 'audio_track_control.dart';
 import 'lyrics_view.dart';
 import 'video_stage.dart';
@@ -29,20 +30,6 @@ import 'video_subtitle_overlay.dart';
 /// - 渐变背景
 class TvPlayer extends ConsumerStatefulWidget {
   const TvPlayer({super.key});
-
-  /// 显示 TV 全屏播放器（歌词界面）。返回按钮内部已处理 closeFullPlayer + maybePop。
-  static Future<void> show(BuildContext context) {
-    return Navigator.of(context).push(
-      PageRouteBuilder(
-        opaque: true,
-        pageBuilder:
-            (context, animation, secondaryAnimation) => const TvPlayer(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(opacity: animation, child: child);
-        },
-      ),
-    );
-  }
 
   @override
   ConsumerState<TvPlayer> createState() => _TvPlayerState();
@@ -165,10 +152,7 @@ class _TvPlayerState extends ConsumerState<TvPlayer> {
           _TvPlayerControlButton(
             icon: Icons.arrow_back_rounded,
             label: AppLocalizations.of(context).playerBack,
-            onPressed: () {
-              notifier.closeFullPlayer();
-              Navigator.of(context).maybePop();
-            },
+            onPressed: () => dismissFullPlayer(context, ref),
             size: 56,
             iconSize: 28,
           ),

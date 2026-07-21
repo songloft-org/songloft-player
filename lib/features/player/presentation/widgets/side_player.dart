@@ -7,8 +7,8 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/favorite_button.dart';
 import '../../domain/player_state.dart';
 import '../providers/player_provider.dart';
+import '../utils/full_player_route.dart';
 import 'audio_track_control.dart';
-import 'desktop_full_player.dart';
 import 'play_controls.dart';
 import 'progress_bar.dart';
 import 'video_stage.dart';
@@ -92,7 +92,7 @@ class AutoSidePlayer extends ConsumerWidget {
           button: true,
           label: AppLocalizations.of(context).playerOpenFullPlayer,
           child: GestureDetector(
-            onTap: () => DesktopFullPlayer.show(context),
+            onTap: () => openFullPlayer(context),
             behavior: HitTestBehavior.opaque,
             child: AspectRatio(
               // 视频用 16:9,音频用方形封面

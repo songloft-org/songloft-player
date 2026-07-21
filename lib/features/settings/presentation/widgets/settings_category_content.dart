@@ -40,6 +40,10 @@ import 'frontend_upgrade_dialog.dart';
 import 'upgrade_dialog.dart';
 import '../providers/settings_provider.dart';
 
+/// 设置分类数量（与 [buildSettingsCategories] 返回长度一致）。
+/// 供 `/settings/category/:index` 路由做越界防御，避免在 redirect 里依赖 l10n。
+const int settingsCategoryCount = 9;
+
 /// 设置分类列表（外观/播放/音乐库/扩展/缓存/网络/数据/关于/账户）。
 ///
 /// 桌面/移动 [SettingsPage] 与 TV `TvSettingsPage` 共用同一来源，避免分类漂移。

@@ -20,6 +20,7 @@ import 'equalizer_panel.dart';
 import 'play_controls.dart';
 import 'popup_controls.dart';
 import 'progress_bar.dart';
+import '../utils/full_player_route.dart';
 import '../utils/player_song_actions.dart';
 import 'vinyl_ring.dart';
 import 'video_player_surface.dart';
@@ -31,36 +32,12 @@ import 'volume_control.dart';
 class DesktopFullPlayer extends ConsumerStatefulWidget {
   const DesktopFullPlayer({super.key});
 
-  /// 显示全屏播放器
-  static Future<void> show(BuildContext context) {
-    return Navigator.of(context).push(
-      PageRouteBuilder(
-        opaque: true,
-        pageBuilder:
-            (context, animation, secondaryAnimation) =>
-                const DesktopFullPlayer(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          // 从下往上滑入动画
-          return SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(0, 1),
-              end: Offset.zero,
-            ).animate(
-              CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
-            ),
-            child: child,
-          );
-        },
-      ),
-    );
-  }
-
   @override
   ConsumerState<DesktopFullPlayer> createState() => _DesktopFullPlayerState();
 }
 
 class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, FullPlayerAutoExit {
   /// 唱片环旋转动画控制器
   late final AnimationController _rotationController;
 
@@ -71,6 +48,8 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
       vsync: this,
       duration: const Duration(seconds: 28),
     );
+    // Web 冷加载 /player 但无队列可恢复时，短暂等待异步恢复；仍无歌曲则退出。
+    scheduleFullPlayerAutoExit();
   }
 
   @override
@@ -92,10 +71,10 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
         debugPrint(
           '[Player] DesktopFullPlayer: playlist cleared, closing player',
         );
-        if (context.mounted) {
-          Navigator.of(context).pop();
-        }
+        dismissFullPlayer(context, ref);
       }
+      // 异步恢复出歌曲后，取消冷加载兜底退出
+      if (next.hasSong) cancelFullPlayerAutoExit();
       // 控制唱片环旋转动画
       if (next.isPlaying && !_rotationController.isAnimating) {
         _rotationController.repeat();
@@ -373,10 +352,7 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
       children: [
         // 返回按钮
         IconButton(
-          onPressed: () {
-            notifier.closeFullPlayer();
-            Navigator.of(context).pop();
-          },
+          onPressed: () => dismissFullPlayer(context, ref),
           icon: const Icon(Icons.keyboard_arrow_down_rounded),
           iconSize: 32,
           color: topBarColor,

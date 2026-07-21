@@ -7,7 +7,7 @@ import '../../../../l10n/app_localizations.dart';
 
 import '../providers/player_provider.dart';
 import '../../../dlna/presentation/providers/dlna_provider.dart';
-import 'mobile_player.dart';
+import '../utils/full_player_route.dart';
 import 'play_controls.dart';
 import 'progress_bar.dart';
 
@@ -59,9 +59,9 @@ class MiniPlayer extends ConsumerWidget {
                   onTap ??
                   () {
                     debugPrint(
-                      '[Player] MiniPlayer tapped, showing MobilePlayer',
+                      '[Player] MiniPlayer tapped, opening full player',
                     );
-                    MobilePlayer.show(context);
+                    openFullPlayer(context);
                   },
               child: SizedBox(
                 height: 64,

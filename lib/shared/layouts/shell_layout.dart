@@ -11,13 +11,12 @@ import '../../features/jsplugin/presentation/providers/jsplugin_provider.dart';
 import '../../features/library/presentation/providers/favorite_provider.dart';
 import '../../features/player/domain/player_state.dart';
 import '../../features/player/presentation/providers/player_provider.dart';
-import '../../features/player/presentation/widgets/desktop_full_player.dart';
 import '../../features/player/presentation/widgets/desktop_player.dart';
 import '../../features/player/presentation/widgets/mini_player.dart';
-import '../../features/player/presentation/widgets/mobile_player.dart';
 import '../../features/player/presentation/widgets/playlist_drawer.dart';
 import '../../features/player/presentation/widgets/side_player.dart';
 import '../../features/player/presentation/widgets/tv_player.dart';
+import '../../features/player/presentation/utils/full_player_route.dart';
 import '../../features/settings/data/settings_api.dart';
 import '../../features/settings/presentation/providers/settings_provider.dart';
 import '../../l10n/app_localizations.dart';
@@ -101,22 +100,12 @@ class _ShellLayoutState extends ConsumerState<ShellLayout> {
     } catch (_) {}
   }
 
-  /// 按当前屏幕分辨率打开对应的全屏歌词界面，分派规则与 [_buildBottomPlayer] 一致：
-  /// 移动端 MobilePlayer（直接落在歌词页）、平板/桌面/车机 DesktopFullPlayer、
-  /// Android TV TvPlayer、其余大屏回退 DesktopFullPlayer。
+  /// 打开全屏播放器（顶层路由 /player）。屏幕类型的分派由路由构建器负责；
+  /// 移动端落在歌词页（page=1），其余屏幕类型忽略该参数。
   void _openFullPlayerForScreen() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final screenType = context.screenType;
-      if (screenType == ScreenType.mobile) {
-        MobilePlayer.show(context, initialPage: 1);
-      } else if (screenType == ScreenType.tv &&
-          defaultTargetPlatform == TargetPlatform.android) {
-        TvPlayer.show(context);
-      } else {
-        // tablet / desktop / auto_ / 非 Android TV 大屏
-        DesktopFullPlayer.show(context);
-      }
+      openFullPlayer(context, initialPage: 1);
     });
   }
 

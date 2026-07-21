@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/responsive.dart';
 import 'widgets/settings_category_content.dart';
@@ -15,7 +16,6 @@ class SettingsPage extends ConsumerStatefulWidget {
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
   int _selectedCategory = 0;
-  int? _mobileDetailIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -25,39 +25,20 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     // 移动端列表却不响应点击的「按钮失效」(songloft-org/songloft#268)。
     final isMobile = !context.useWideLayout;
 
-    if (isMobile && _mobileDetailIndex != null) {
-      final category = categories[_mobileDetailIndex!];
-      return PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (didPop, _) {
-          if (!didPop) {
-            setState(() => _mobileDetailIndex = null);
-          }
-        },
-        child: Scaffold(
-          appBar: AppBar(
-            leading: BackButton(
-              onPressed: () => setState(() => _mobileDetailIndex = null),
-            ),
-            title: Text(category.title),
-          ),
-          body: SettingsCategoryContent(index: _mobileDetailIndex!),
-        ),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(title: Text(l10n.navSettings)),
       body: SettingsMasterDetail(
         categories: categories,
         selectedIndex: _selectedCategory,
         onCategorySelected: (i) {
-          setState(() {
-            _selectedCategory = i;
-            if (isMobile) {
-              _mobileDetailIndex = i;
-            }
-          });
+          // 移动端二级页是真实路由（/settings/category/:index），让浏览器/系统
+          // 返回键能回到设置一级列表（Web 上非路由的 setState 详情无历史条目）。
+          // 宽屏 master-detail 仍在本页内同页切换。
+          if (isMobile) {
+            context.push('/settings/category/$i');
+          } else {
+            setState(() => _selectedCategory = i);
+          }
         },
         contentBuilder: (_, index) => SettingsCategoryContent(index: index),
         header: const SettingsServerInfoCard(),

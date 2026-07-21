@@ -8,7 +8,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/favorite_button.dart';
 import '../../domain/player_state.dart';
 import '../providers/player_provider.dart';
-import 'desktop_full_player.dart';
+import '../utils/full_player_route.dart';
 import 'play_controls.dart';
 import 'progress_bar.dart';
 import 'audio_track_control.dart';
@@ -112,7 +112,7 @@ class DesktopPlayer extends ConsumerWidget {
             button: true,
             label: AppLocalizations.of(context).playerOpenFullPlayer,
             child: GestureDetector(
-              onTap: () => DesktopFullPlayer.show(context),
+              onTap: () => openFullPlayer(context),
               behavior: HitTestBehavior.opaque,
               child: Row(
                 children: [
@@ -350,7 +350,7 @@ class DesktopPlayer extends ConsumerWidget {
     final hasLyrics = hasSong && state.currentSong?.lyricUrl != null;
 
     return IconButton(
-      onPressed: hasSong ? () => DesktopFullPlayer.show(context) : null,
+      onPressed: hasSong ? () => openFullPlayer(context) : null,
       icon: Icon(
         Icons.lyrics_rounded,
         size: 20,
