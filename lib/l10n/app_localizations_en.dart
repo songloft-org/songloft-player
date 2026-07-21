@@ -1524,6 +1524,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerAdjustLyrics => 'Adjust lyrics';
 
   @override
+  String get playerLyricsRefetch => 'Re-fetch lyrics';
+
+  @override
   String get playerEqNotSupported =>
       'Equalizer is not supported on this platform';
 

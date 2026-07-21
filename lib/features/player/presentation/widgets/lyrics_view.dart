@@ -8,6 +8,7 @@ import '../../../../shared/models/song.dart';
 import '../../domain/lyric_parser.dart';
 import '../lyric_adjust_page.dart';
 import '../providers/lyric_provider.dart';
+import '../providers/player_provider.dart';
 import 'karaoke_line.dart';
 
 /// 歌词显示组件
@@ -137,6 +138,44 @@ class _LyricsViewState extends ConsumerState<LyricsView> {
     }
   }
 
+  /// 手动重新抓取当前歌曲歌词（清缓存 + 绕过浏览器缓存重跑歌词搜索）。
+  void _refetchLyrics() {
+    ref.read(lyricStateProvider.notifier).refetch();
+  }
+
+  /// 当前歌曲是否具备可请求的歌词端点（无端点时不展示重新抓取入口）。
+  bool get _canRefetch {
+    final url = ref.watch(
+      playerStateProvider.select((s) => s.currentSong?.lyricUrl),
+    );
+    return url != null && url.isNotEmpty;
+  }
+
+  /// 加载失败 / 暂无歌词时的占位：提示文案 + 可选「重新抓取歌词」按钮。
+  Widget _buildStatusPlaceholder(ThemeData theme, String message) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            message,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+            ),
+          ),
+          if (_canRefetch) ...[
+            const SizedBox(height: 16),
+            FilledButton.tonalIcon(
+              onPressed: _refetchLyrics,
+              icon: const Icon(Icons.refresh, size: 18),
+              label: Text(AppLocalizations.of(context).playerLyricsRefetch),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   /// 构建单行：主歌词（当前行有逐字数据时用 [KaraokeLine] 逐字高亮，否则行级高亮）
   /// + 可选翻译 / 罗马音子行。
   Widget _buildLine(ThemeData theme, LyricLine lyric, bool isCurrent) {
@@ -237,24 +276,16 @@ class _LyricsViewState extends ConsumerState<LyricsView> {
     }
 
     if (lyricState.loadFailed) {
-      return Center(
-        child: Text(
-          AppLocalizations.of(context).playerLyricsLoadFailed,
-          style: theme.textTheme.bodyLarge?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-          ),
-        ),
+      return _buildStatusPlaceholder(
+        theme,
+        AppLocalizations.of(context).playerLyricsLoadFailed,
       );
     }
 
     if (!lyricState.hasLyrics) {
-      return Center(
-        child: Text(
-          AppLocalizations.of(context).playerLyricsEmpty,
-          style: theme.textTheme.bodyLarge?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-          ),
-        ),
+      return _buildStatusPlaceholder(
+        theme,
+        AppLocalizations.of(context).playerLyricsEmpty,
       );
     }
 
@@ -327,7 +358,9 @@ class _LyricsViewState extends ConsumerState<LyricsView> {
       },
     );
 
-    if (!_shouldShowEditButton) return body;
+    final showEdit = _shouldShowEditButton;
+    final showRefetch = _canRefetch;
+    if (!showEdit && !showRefetch) return body;
 
     return Stack(
       children: [
@@ -337,11 +370,24 @@ class _LyricsViewState extends ConsumerState<LyricsView> {
           right: 4,
           child: Material(
             color: Colors.transparent,
-            child: IconButton(
-              icon: const Icon(Icons.tune, size: 22),
-              tooltip: AppLocalizations.of(context).playerAdjustLyrics,
-              color: theme.colorScheme.primary,
-              onPressed: _openAdjustPage,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (showRefetch)
+                  IconButton(
+                    icon: const Icon(Icons.refresh, size: 22),
+                    tooltip: AppLocalizations.of(context).playerLyricsRefetch,
+                    color: theme.colorScheme.primary,
+                    onPressed: _refetchLyrics,
+                  ),
+                if (showEdit)
+                  IconButton(
+                    icon: const Icon(Icons.tune, size: 22),
+                    tooltip: AppLocalizations.of(context).playerAdjustLyrics,
+                    color: theme.colorScheme.primary,
+                    onPressed: _openAdjustPage,
+                  ),
+              ],
             ),
           ),
         ),

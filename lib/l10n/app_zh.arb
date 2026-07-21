@@ -961,6 +961,7 @@
   "playerLyricsEmpty": "暂无歌词",
   "playerLyricsSeekTo": "跳转到此歌词位置",
   "playerAdjustLyrics": "调整歌词",
+  "playerLyricsRefetch": "重新抓取歌词",
   "playerEqNotSupported": "当前平台暂不支持均衡器",
   "playerEqPresetFlat": "平坦",
   "playerEqPresetRock": "摇滚",

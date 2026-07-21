@@ -123,14 +123,14 @@ class LyricNotifier extends Notifier<LyricState> {
     }
   }
 
-  Future<void> _loadLyrics(String? lyricUrl) async {
+  Future<void> _loadLyrics(String? lyricUrl, {bool forceRefresh = false}) async {
     if (lyricUrl == null || lyricUrl.isEmpty) {
       _lastLoadedUrl = null;
       state = const LyricState();
       return;
     }
 
-    if (_lastLoadedUrl == lyricUrl && state.hasLyrics) return;
+    if (!forceRefresh && _lastLoadedUrl == lyricUrl && state.hasLyrics) return;
 
     state = state.copyWith(
       isLoading: true,
@@ -139,14 +139,23 @@ class LyricNotifier extends Notifier<LyricState> {
       currentIndex: -1,
     );
 
-    final cached = await LyricCacheService().get(lyricUrl);
-    if (cached != null) {
-      _applyPayload(lyricUrl, _decodeCached(cached));
-      return;
+    // 强制刷新时跳过本地缓存，直连后端重抓（后端会重跑歌词搜索插件）
+    if (!forceRefresh) {
+      final cached = await LyricCacheService().get(lyricUrl);
+      if (cached != null) {
+        _applyPayload(lyricUrl, _decodeCached(cached));
+        return;
+      }
     }
 
     try {
-      final fullUrl = UrlHelper.buildLyricUrl(lyricUrl);
+      var fullUrl = UrlHelper.buildLyricUrl(lyricUrl);
+      if (forceRefresh) {
+        // 附加变化的 refresh 参数：既给后端强制重抓信号，又让 URL 唯一以
+        // 绕过浏览器 HTTP 缓存（成功歌词响应默认被缓存一年）。
+        final sep = fullUrl.contains('?') ? '&' : '?';
+        fullUrl += '${sep}refresh=${DateTime.now().millisecondsSinceEpoch}';
+      }
       final response = await Dio().get<Map<String, dynamic>>(fullUrl);
 
       final body = response.data is Map<String, dynamic>
@@ -244,6 +253,19 @@ class LyricNotifier extends Notifier<LyricState> {
     _lastLoadedUrl = null;
     final lyricUrl = ref.read(playerStateProvider).currentSong?.lyricUrl;
     _loadLyrics(lyricUrl);
+  }
+
+  /// 用户手动触发的强制重新抓取当前歌曲歌词。
+  ///
+  /// 与 [invalidate] 不同：会先清除本地歌词缓存（内存 + 文件），再带 refresh
+  /// 参数直连后端重抓（后端会重跑歌词搜索插件并禁用缓存）。用于当前歌曲歌词
+  /// 缺失/失败/不理想时，无需切歌或重载 App 即可重新触发抓取（songloft-org/songloft#303）。
+  Future<void> refetch() async {
+    final lyricUrl = ref.read(playerStateProvider).currentSong?.lyricUrl;
+    if (lyricUrl == null || lyricUrl.isEmpty) return;
+    await LyricCacheService().remove(lyricUrl);
+    _lastLoadedUrl = null;
+    await _loadLyrics(lyricUrl, forceRefresh: true);
   }
 }
 

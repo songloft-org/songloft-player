@@ -856,6 +856,7 @@
   "playerLyricsEmpty": "No lyrics",
   "playerLyricsSeekTo": "Seek to this lyric",
   "playerAdjustLyrics": "Adjust lyrics",
+  "playerLyricsRefetch": "Re-fetch lyrics",
   "playerEqNotSupported": "Equalizer is not supported on this platform",
   "playerEqPresetFlat": "Flat",
   "playerEqPresetRock": "Rock",

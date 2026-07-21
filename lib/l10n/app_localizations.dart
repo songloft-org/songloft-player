@@ -2792,6 +2792,12 @@ abstract class AppLocalizations {
   /// **'调整歌词'**
   String get playerAdjustLyrics;
 
+  /// No description provided for @playerLyricsRefetch.
+  ///
+  /// In zh, this message translates to:
+  /// **'重新抓取歌词'**
+  String get playerLyricsRefetch;
+
   /// No description provided for @playerEqNotSupported.
   ///
   /// In zh, this message translates to:

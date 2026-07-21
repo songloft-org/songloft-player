@@ -1492,6 +1492,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get playerAdjustLyrics => '调整歌词';
 
   @override
+  String get playerLyricsRefetch => '重新抓取歌词';
+
+  @override
   String get playerEqNotSupported => '当前平台暂不支持均衡器';
 
   @override
