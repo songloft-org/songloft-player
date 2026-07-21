@@ -12,6 +12,7 @@ import '../../player/domain/player_state.dart';
 import '../../player/presentation/providers/player_provider.dart';
 import '../../settings/presentation/providers/settings_provider.dart';
 import 'plugin_host_dispatch.dart';
+import 'plugin_iframe_diagnostics.dart';
 import 'plugin_theme_utils.dart';
 
 /// JS `Object.is` —— 用于精确比较两个 JS 对象引用（判断消息是否来自本 iframe）。
@@ -90,6 +91,8 @@ class _PluginTabPageState extends ConsumerState<PluginTabPage> {
           ..style.width = '100%'
           ..style.height = '100%';
         state._iframe = iframe;
+        // #278 抖动诊断（仅 flutter.web_debug_console=true 时生效，生产零副作用）
+        attachPluginIframeDiagnostics(iframe, 'tab:$entryPath', viewId);
         return iframe;
       });
     }
