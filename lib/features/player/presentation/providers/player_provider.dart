@@ -957,6 +957,51 @@ class PlayerNotifier extends Notifier<PlayerState> {
     }
   }
 
+  /// 从歌单某首歌开始播放（已加载分页 + 后台补齐整个队列）。
+  ///
+  /// 用户点击歌单内某首歌时的入口。[loadedSongs] 是列表当前已分页加载的歌曲，
+  /// 立即以 [startIndex] 为起点开始播放；若歌单还有未加载的歌曲（[total] >
+  /// 已加载数），则后台按相同的 [sort]/[order]/[keyword] 继续补齐，使播放队列
+  /// 覆盖整个歌单而非被截断到已加载页（修复 songloft-org/songloft#299）。
+  Future<void> playPlaylistFromLoaded({
+    required List<Song> loadedSongs,
+    required int startIndex,
+    required int playlistId,
+    required int total,
+    String sort = 'position',
+    String order = 'asc',
+    String keyword = '',
+  }) async {
+    if (loadedSongs.isEmpty) return;
+    final playlistApi = ref.read(playlistApiProvider);
+    // playPlaylist 内部会递增 _loadGeneration，取消之前的后台加载
+    await playPlaylist(
+      loadedSongs,
+      startIndex: startIndex,
+      sourcePlaylistId: playlistId,
+    );
+
+    if (total > loadedSongs.length) {
+      final generation = _loadGeneration;
+      debugPrint(
+        '[Player] playPlaylistFromLoaded: starting background load, '
+        'generation=$generation, offset=${loadedSongs.length}, total=$total',
+      );
+      _loadRemainingSongsById(
+        playlistId,
+        playlistApi,
+        loadedSongs.length,
+        total,
+        generation,
+        sort: sort,
+        order: order,
+        keyword: keyword,
+      );
+    } else {
+      ref.read(playlistNotifierProvider.notifier).touchPlaylist(playlistId);
+    }
+  }
+
   /// 合并播放多个歌单
   /// 第一个歌单立即播放，后续歌单后台加载追加到播放队列
   Future<int> playMultiplePlaylistsById(List<int> playlistIds) async {
@@ -1098,8 +1143,11 @@ class PlayerNotifier extends Notifier<PlayerState> {
     PlaylistApi playlistApi,
     int startOffset,
     int total,
-    int generation,
-  ) async {
+    int generation, {
+    String sort = 'position',
+    String order = 'asc',
+    String keyword = '',
+  }) async {
     const batchLimit = 100;
     const maxRetries = 3; // 单批次最大重试次数
     int offset = startOffset;
@@ -1126,6 +1174,9 @@ class PlayerNotifier extends Notifier<PlayerState> {
               playlistId,
               limit: batchLimit,
               offset: offset,
+              sort: sort,
+              order: order,
+              keyword: keyword,
             );
             break; // 成功则跳出重试循环
           } catch (e) {

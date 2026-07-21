@@ -1524,9 +1524,18 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
   /// 播放单曲
   void _playSong(Song song, List<Song> songs, int index) {
     debugPrint('[Player] Play song: ${song.title} at index $index');
-    ref
-        .read(playerStateProvider.notifier)
-        .playPlaylist(songs, startIndex: index, sourcePlaylistId: _playlistIdInt);
+    // 从已加载分页开始播放并后台补齐整个歌单队列，避免队列被截断到已加载页
+    // （songloft-org/songloft#299）。
+    final state = ref.read(playlistSongsProvider(_playlistIdInt)).value;
+    ref.read(playerStateProvider.notifier).playPlaylistFromLoaded(
+          loadedSongs: songs,
+          startIndex: index,
+          playlistId: _playlistIdInt,
+          total: state?.total ?? songs.length,
+          sort: state?.sort ?? 'position',
+          order: state?.order ?? 'asc',
+          keyword: state?.keyword ?? '',
+        );
     ResponsiveSnackBar.show(
       context,
       message: AppLocalizations.of(context).playlistPlayingSong(song.title),
