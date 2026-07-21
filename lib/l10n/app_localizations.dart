@@ -2684,6 +2684,24 @@ abstract class AppLocalizations {
   /// **'均衡器'**
   String get playerEqualizer;
 
+  /// No description provided for @playerAudioTrack.
+  ///
+  /// In zh, this message translates to:
+  /// **'音轨'**
+  String get playerAudioTrack;
+
+  /// No description provided for @playerSelectAudioTrack.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择音轨'**
+  String get playerSelectAudioTrack;
+
+  /// No description provided for @playerAudioTrackNumbered.
+  ///
+  /// In zh, this message translates to:
+  /// **'音轨 {index}'**
+  String playerAudioTrackNumbered(int index);
+
   /// No description provided for @playerLyrics.
   ///
   /// In zh, this message translates to:

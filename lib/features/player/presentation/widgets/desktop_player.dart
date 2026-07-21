@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,6 +11,7 @@ import '../providers/player_provider.dart';
 import 'desktop_full_player.dart';
 import 'play_controls.dart';
 import 'progress_bar.dart';
+import 'audio_track_control.dart';
 import 'equalizer_panel.dart';
 import 'popup_controls.dart';
 import 'volume_control.dart';
@@ -246,15 +248,18 @@ class DesktopPlayer extends ConsumerWidget {
 
     // 音量之后的次要操作按钮
     final actions = <Widget>[
-      // 均衡器
-      IconButton(
-        onPressed: () => showEqualizerSheet(context),
-        icon: const Icon(Icons.equalizer_rounded, size: 20),
-        tooltip: AppLocalizations.of(context).playerEqualizer,
-        visualDensity: VisualDensity.compact,
-      ),
+      // 均衡器（依赖 libmpv，Web 无 libmpv 不生效，故 Web 隐藏）
+      if (!kIsWeb)
+        IconButton(
+          onPressed: () => showEqualizerSheet(context),
+          icon: const Icon(Icons.equalizer_rounded, size: 20),
+          tooltip: AppLocalizations.of(context).playerEqualizer,
+          visualDensity: VisualDensity.compact,
+        ),
       // 投屏
       const CastButton(iconSize: 20, visualDensity: VisualDensity.compact),
+      // 音轨切换（多音频轨时显示，单轨自动隐藏）；本行兄弟均为 compact，故显式对齐
+      const AudioTrackControl(visualDensity: VisualDensity.compact),
       // 睡眠定时
       _buildSleepTimerButton(context, state, notifier, theme),
       // 歌词按钮

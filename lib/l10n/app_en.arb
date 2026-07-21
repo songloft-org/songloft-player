@@ -831,6 +831,16 @@
   "playerCloseVolumePanel": "Close volume panel",
   "playerOpenFullPlayer": "Open full-screen player",
   "playerEqualizer": "Equalizer",
+  "playerAudioTrack": "Audio track",
+  "playerSelectAudioTrack": "Select audio track",
+  "playerAudioTrackNumbered": "Track {index}",
+  "@playerAudioTrackNumbered": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "playerLyrics": "Lyrics",
   "playerCollapse": "Collapse",
   "playerSubtitleOn": "Show subtitles",

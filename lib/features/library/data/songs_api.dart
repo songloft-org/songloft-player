@@ -186,6 +186,20 @@ class SongsApi {
     return Song.fromJson(response.data!);
   }
 
+  /// 获取歌曲音频流列表（原伴唱双音轨切换用，songloft-org/songloft#298）。
+  ///
+  /// 后端用 ffprobe 探测，返回每条音频流的 audio-relative index、title、language、codec、
+  /// default。音频流 < 2 条（或无可探测文件）时返回空/单元素列表，调用方据此决定是否显示切轨。
+  Future<List<AudioTrackInfo>> getAudioTracks(int id) async {
+    final response = await dio.get<Map<String, dynamic>>(
+      '${AppConfig.apiPrefix}/songs/$id/audio-tracks',
+    );
+    final raw = response.data?['tracks'] as List<dynamic>? ?? const [];
+    return raw
+        .map((e) => AudioTrackInfo.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
   /// 批量创建网络歌曲
   ///
   /// 返回 `{songs: List<Song>, count: int}`
@@ -394,5 +408,35 @@ class SongsApi {
       '${AppConfig.apiPrefix}/songs/clean',
     );
     return response.data?['cleaned'] as int? ?? 0;
+  }
+}
+
+/// 单条音频流元信息（songloft-org/songloft#298）。
+///
+/// [index] 为 audio-relative 0-based 序号，对应后端 /songs/{id}/play?track=N 的抽轨参数
+/// 与 ffmpeg -map 0:a:N。
+class AudioTrackInfo {
+  final int index;
+  final String title;
+  final String language;
+  final String codec;
+  final bool isDefault;
+
+  const AudioTrackInfo({
+    required this.index,
+    required this.title,
+    required this.language,
+    required this.codec,
+    required this.isDefault,
+  });
+
+  factory AudioTrackInfo.fromJson(Map<String, dynamic> json) {
+    return AudioTrackInfo(
+      index: json['index'] as int? ?? 0,
+      title: json['title'] as String? ?? '',
+      language: json['language'] as String? ?? '',
+      codec: json['codec'] as String? ?? '',
+      isDefault: json['default'] as bool? ?? false,
+    );
   }
 }

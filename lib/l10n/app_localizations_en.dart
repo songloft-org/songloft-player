@@ -1468,6 +1468,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerEqualizer => 'Equalizer';
 
   @override
+  String get playerAudioTrack => 'Audio track';
+
+  @override
+  String get playerSelectAudioTrack => 'Select audio track';
+
+  @override
+  String playerAudioTrackNumbered(int index) {
+    return 'Track $index';
+  }
+
+  @override
   String get playerLyrics => 'Lyrics';
 
   @override

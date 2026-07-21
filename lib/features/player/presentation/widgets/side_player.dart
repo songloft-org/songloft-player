@@ -7,6 +7,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/favorite_button.dart';
 import '../../domain/player_state.dart';
 import '../providers/player_provider.dart';
+import 'audio_track_control.dart';
 import 'desktop_full_player.dart';
 import 'play_controls.dart';
 import 'progress_bar.dart';
@@ -223,6 +224,8 @@ class AutoSidePlayer extends ConsumerWidget {
           onVolumeChanged: notifier.setVolume,
           sliderWidth: 160,
         ),
+        // 音轨切换（多音频轨时显示，单轨自动隐藏）
+        const AudioTrackControl(),
       ],
     );
   }

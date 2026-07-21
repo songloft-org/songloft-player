@@ -1436,6 +1436,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get playerEqualizer => '均衡器';
 
   @override
+  String get playerAudioTrack => '音轨';
+
+  @override
+  String get playerSelectAudioTrack => '选择音轨';
+
+  @override
+  String playerAudioTrackNumbered(int index) {
+    return '音轨 $index';
+  }
+
+  @override
   String get playerLyrics => '歌词';
 
   @override

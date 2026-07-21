@@ -12,7 +12,9 @@ import '../../../dlna/presentation/widgets/cast_button.dart';
 import '../../domain/player_state.dart';
 import '../providers/player_provider.dart';
 import '../queue_page.dart';
+import '../providers/audio_track_provider.dart';
 import '../utils/player_song_actions.dart';
+import 'audio_track_control.dart';
 import 'equalizer_panel.dart';
 import 'play_controls.dart';
 import 'popup_controls.dart';
@@ -324,15 +326,17 @@ class _VideoPlayerSurfaceState extends ConsumerState<VideoPlayerSurface> {
               final colorScheme = Theme.of(context).colorScheme;
               final hasTimer = state.sleepTimer != null;
               return [
-                PopupMenuItem(
-                  value: 'equalizer',
-                  child: ListTile(
-                    leading: const Icon(Icons.equalizer_rounded),
-                    title: Text(l10n.playerEqualizer),
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
+                // 均衡器依赖 libmpv，Web 无 libmpv 不生效，故 Web 隐藏
+                if (!kIsWeb)
+                  PopupMenuItem(
+                    value: 'equalizer',
+                    child: ListTile(
+                      leading: const Icon(Icons.equalizer_rounded),
+                      title: Text(l10n.playerEqualizer),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
                   ),
-                ),
                 PopupMenuItem(
                   value: 'sleep_timer',
                   child: ListTile(
@@ -433,6 +437,11 @@ class _VideoPlayerSurfaceState extends ConsumerState<VideoPlayerSurface> {
             children: [
               if (!kIsWeb) const CastButton(iconSize: 20),
               const SizedBox(width: 8),
+              // 多音频轨（如 K 歌 MV：原唱/伴奏）时显示音轨切换入口，单轨自动隐藏。
+              if (ref.watch(audioTrackProvider).hasMultiple) ...[
+                const AudioTrackControl(),
+                const SizedBox(width: 8),
+              ],
               PopupVolumeControl(
                 volume: state.volume,
                 onVolumeChanged: notifier.setVolume,

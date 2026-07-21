@@ -936,6 +936,16 @@
   "playerCloseVolumePanel": "关闭音量面板",
   "playerOpenFullPlayer": "打开全屏播放器",
   "playerEqualizer": "均衡器",
+  "playerAudioTrack": "音轨",
+  "playerSelectAudioTrack": "选择音轨",
+  "playerAudioTrackNumbered": "音轨 {index}",
+  "@playerAudioTrackNumbered": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "playerLyrics": "歌词",
   "playerCollapse": "收起",
   "playerSubtitleOn": "显示字幕",

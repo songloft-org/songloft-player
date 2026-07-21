@@ -13,6 +13,7 @@ import '../../config/app_config.dart';
 import '../../features/playlist/domain/playlist.dart';
 import '../network/insecure_media_proxy.dart';
 import '../../shared/models/song.dart';
+import '../utils/audio_format_helper.dart';
 import '../utils/url_helper.dart';
 import 'media_browse_data_source.dart';
 
@@ -372,7 +373,11 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
   /// 自动把 url 填成 /api/v1/songs/{id}/play,按 type 分发到 ServeFile / Orchestrator /
   /// 直链下载 / 电台 302,客户端无需关心 type。
   /// URL 拼接（baseUrl + access_token）统一走 UrlHelper。
-  Future<void> playSong(Song song, {String? quality}) async {
+  /// [audioTrack] 仅 Web 使用：抽取指定音频流播放（audio-relative index，
+  /// songloft-org/songloft#298）。缺省时对 Web 多音轨容器（mka）自动取首轨(0)，
+  /// 使默认播放与切换统一走 `?track=` 机制（AAC 无损 remux 成 m4a）。原生端忽略此参数
+  /// （由 libmpv 直接切轨）。
+  Future<void> playSong(Song song, {String? quality, int? audioTrack}) async {
     // 确保 stream listeners 已建立
     await _initFuture;
 
@@ -398,6 +403,16 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
               defaultTargetPlatform == TargetPlatform.linux ||
               defaultTargetPlatform == TargetPlatform.macOS);
 
+      // Web 多音轨容器（mka）：默认播放与切换统一走后端 ?track= 抽轨（首轨=0），
+      // 抽出的 AAC 无损 remux 成 m4a、Web 原生可播；避免「默认走 mp3、切换走 m4a」的格式割裂。
+      // 原生端 audioTrack 恒为 null（由 libmpv 直接切轨），effectiveTrack 保持 null。
+      final effectiveTrack = kIsWeb && !song.isVideo
+          ? (audioTrack ??
+              (AudioFormatHelper.isWebMultiTrackContainer(song.format)
+                  ? 0
+                  : null))
+          : null;
+
       // 原生平台无法携带 Authorization Header,UrlHelper 会自动拼接 baseUrl + access_token。
       // 视频歌曲用 buildVideoUrl（media=video）：后端直出原容器，保留画面供 media_kit 渲染，
       // 不做平台音频转码（转码 -vn 会丢画面）。
@@ -408,6 +423,7 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
               songFormat: song.format,
               quality: quality,
               hlsDirect: isDesktopLive,
+              audioTrack: effectiveTrack,
             );
 
       debugPrint('[Player] SongloftAudioHandler: song url: $songUrl');
@@ -505,6 +521,38 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
     } catch (e) {
       debugPrint('[Player] SongloftAudioHandler.playSong error: $e');
       rethrow;
+    }
+  }
+
+  /// Web 端切换音轨（原唱/伴奏，songloft-org/songloft#298）。
+  ///
+  /// 浏览器无多音轨枚举/切换 API，故通过重建播放 URL（`?track=N`）+ [ja.AudioPlayer.setAudioSource]
+  /// 的 `initialPosition` 无缝重载：抽出的音轨（AAC 无损 remux 成 m4a）在切换前的进度处继续，
+  /// 并恢复切换前的播放/暂停状态（短暂缓冲可接受）。仅 Web 调用；歌曲元数据不变，无需刷新通知栏。
+  Future<void> switchWebAudioTrack(
+    Song song, {
+    required int trackIndex,
+    required Duration position,
+    required bool resumePlaying,
+    String? quality,
+  }) async {
+    await _initFuture;
+    if (song.url == null || song.url!.isEmpty) return;
+    final url = UrlHelper.buildSongUrl(
+      song.url!,
+      songFormat: song.format,
+      quality: quality,
+      audioTrack: trackIndex,
+    );
+    debugPrint('[Player] switchWebAudioTrack: track=$trackIndex url=$url');
+    final source = ja.AudioSource.uri(Uri.parse(url));
+    await _player.setAudioSource(source, initialPosition: position);
+    if (resumePlaying) {
+      unawaited(
+        _player.play().catchError((e) {
+          debugPrint('[Player] switchWebAudioTrack: play() failed: $e');
+        }),
+      );
     }
   }
 

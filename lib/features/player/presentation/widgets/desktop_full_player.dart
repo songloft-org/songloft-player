@@ -13,6 +13,8 @@ import '../../domain/player_state.dart';
 import '../providers/player_provider.dart';
 import '../queue_page.dart';
 import 'lyrics_view.dart';
+import '../providers/audio_track_provider.dart';
+import 'audio_track_control.dart';
 import 'play_controls.dart';
 import 'popup_controls.dart';
 import 'progress_bar.dart';
@@ -498,6 +500,14 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
             onVolumeChanged: notifier.setVolume,
           ),
         ),
+        // 音轨切换（多音频轨时显示，单轨自动隐藏）；用 hasMultiple 门控避免
+        // spaceAround 下留出空位。包 48×48 盒与本行兄弟按钮同规格，保证均分对齐。
+        if (ref.watch(audioTrackProvider).hasMultiple)
+          const SizedBox(
+            width: 48,
+            height: 48,
+            child: Center(child: AudioTrackControl(iconSize: 24)),
+          ),
         // 睡眠定时
         SizedBox(
           width: 48,

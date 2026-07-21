@@ -12,6 +12,8 @@ import '../../../../shared/widgets/favorite_button.dart';
 import '../../domain/player_state.dart';
 import '../providers/player_provider.dart';
 import '../queue_page.dart';
+import '../providers/audio_track_provider.dart';
+import 'audio_track_control.dart';
 import 'lyrics_view.dart';
 import 'play_controls.dart';
 import 'popup_controls.dart';
@@ -442,15 +444,17 @@ class _MobilePlayerState extends ConsumerState<MobilePlayer>
               final colorScheme = Theme.of(context).colorScheme;
               final hasTimer = state.sleepTimer != null;
               return [
-                PopupMenuItem(
-                  value: 'equalizer',
-                  child: ListTile(
-                    leading: const Icon(Icons.equalizer_rounded),
-                    title: Text(AppLocalizations.of(context).playerEqualizer),
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
+                // 均衡器依赖 libmpv，Web 无 libmpv 不生效，故 Web 隐藏
+                if (!kIsWeb)
+                  PopupMenuItem(
+                    value: 'equalizer',
+                    child: ListTile(
+                      leading: const Icon(Icons.equalizer_rounded),
+                      title: Text(AppLocalizations.of(context).playerEqualizer),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
                   ),
-                ),
                 PopupMenuItem(
                   value: 'sleep_timer',
                   child: ListTile(
@@ -599,6 +603,10 @@ class _MobilePlayerState extends ConsumerState<MobilePlayer>
         children: [
           if (!kIsWeb)
             const CastButton(iconSize: 20),
+          // 多音轨（如双音轨 mka：原唱/伴奏）时显示音轨切换入口，单轨自动隐藏。
+          // 用 hasMultiple 门控避免 spaceEvenly 下留出空位。
+          if (ref.watch(audioTrackProvider).hasMultiple)
+            const AudioTrackControl(),
           PopupVolumeControl(
             volume: state.volume,
             onVolumeChanged: notifier.setVolume,

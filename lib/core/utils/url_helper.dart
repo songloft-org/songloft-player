@@ -47,17 +47,25 @@ class UrlHelper {
   /// 绕过本机 HLS 反代（即使反代开关已开）。原生 player 自带 HLS 解析且无 CORS 限制，
   /// 直连可避免直播切片经反代往返后过期导致 404（songloft-org/songloft#249）；
   /// 后端对非 HLS 电台忽略此参数，故传入无害。浏览器不应传（需反代解决 CORS）。
+  /// [audioTrack] 非空且 >= 0 时追加 `track=N`（audio-relative index），让后端抽取该音轨
+  /// 播放（Web 双音轨切换，songloft-org/songloft#298）；此时**不再附加 format**——容器由后端
+  /// 据音轨编码决定（AAC → m4a 无损 remux，否则 → mp3），避免与抽轨容器判定冲突。
   static String buildSongUrl(
     String url, {
     String? songFormat,
     String? quality,
     bool hlsDirect = false,
+    int? audioTrack,
   }) {
     var result = buildResourceUrl(url);
     if (result.isEmpty) return '';
-    final transcode = AudioFormatHelper.getTranscodeFormat(songFormat);
-    if (transcode != null) {
-      result += '${result.contains('?') ? '&' : '?'}format=$transcode';
+    if (audioTrack != null && audioTrack >= 0) {
+      result += '${result.contains('?') ? '&' : '?'}track=$audioTrack';
+    } else {
+      final transcode = AudioFormatHelper.getTranscodeFormat(songFormat);
+      if (transcode != null) {
+        result += '${result.contains('?') ? '&' : '?'}format=$transcode';
+      }
     }
     if (quality != null && quality.isNotEmpty && quality != 'original') {
       result += '${result.contains('?') ? '&' : '?'}quality=$quality';

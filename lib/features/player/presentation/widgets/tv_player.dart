@@ -11,7 +11,9 @@ import '../../../../l10n/l10n_holder.dart';
 import '../../../../shared/models/song.dart';
 import '../../../../shared/widgets/tv_focusable.dart';
 import '../../domain/player_state.dart';
+import '../providers/audio_track_provider.dart';
 import '../providers/player_provider.dart';
+import 'audio_track_control.dart';
 import 'lyrics_view.dart';
 import 'video_stage.dart';
 import 'video_subtitle_overlay.dart';
@@ -442,6 +444,18 @@ class _TvPlayerState extends ConsumerState<TvPlayer> {
             iconColor:
                 state.showPlaylistDrawer ? theme.colorScheme.primary : null,
           ),
+          // 音轨切换（多音频轨时显示，如原唱/伴奏；单轨自动隐藏）
+          if (ref.watch(audioTrackProvider).hasMultiple) ...[
+            const SizedBox(width: TvTheme.spacingLarge),
+            _TvPlayerControlButton(
+              icon: Icons.multitrack_audio_rounded,
+              label: AppLocalizations.of(context).playerAudioTrack,
+              onPressed: () => showAudioTrackSheet(context, ref),
+              size: 64,
+              iconSize: 28,
+              iconColor: theme.colorScheme.primary,
+            ),
+          ],
         ],
       ),
     );
