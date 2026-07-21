@@ -187,4 +187,26 @@ void main() {
       expect(shifted.single.text, 'hello');
     });
   });
+
+  group('parse plain-text lyrics (no timestamps)', () {
+    const plain = '岩烧店的烟味弥漫\n隔壁是国术馆\n\n店里面的妈妈桑';
+
+    test('parse() drops every timestamp-less line', () {
+      // 触发降级的前置条件：纯文本经 parse 后为空列表。
+      expect(LyricParser.parse(plain), isEmpty);
+    });
+
+    test('parsePlain() keeps non-empty lines as zero-time static lines', () {
+      final lines = LyricParser.parsePlain(plain);
+      expect(lines.map((l) => l.text).toList(),
+          ['岩烧店的烟味弥漫', '隔壁是国术馆', '店里面的妈妈桑']);
+      // 全部 time=0，无逐字数据（静态展示，不参与逐行高亮）。
+      expect(lines.every((l) => l.time == Duration.zero), isTrue);
+      expect(lines.every((l) => !l.hasWords), isTrue);
+    });
+
+    test('parsePlain() returns empty for blank content', () {
+      expect(LyricParser.parsePlain('   \n\n  '), isEmpty);
+    });
+  });
 }

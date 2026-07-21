@@ -20,12 +20,17 @@ class LyricState {
   final bool loadFailed;
   final String? rawLyricText;
 
+  /// 歌词是否带时间轴。false 表示纯文本歌词（无 [mm:ss] 时间戳），
+  /// 静态展示、不做逐行高亮 / 自动滚动 / 通知栏逐行推送。
+  final bool synced;
+
   const LyricState({
     this.lyrics = const [],
     this.currentIndex = -1,
     this.isLoading = false,
     this.loadFailed = false,
     this.rawLyricText,
+    this.synced = true,
   });
 
   /// 当前应高亮的歌词行对象（含逐字 words / 翻译 / 罗马音），无则为 null。
@@ -54,6 +59,7 @@ class LyricState {
     bool? loadFailed,
     String? rawLyricText,
     bool clearRawLyricText = false,
+    bool? synced,
   }) {
     return LyricState(
       lyrics: lyrics ?? this.lyrics,
@@ -62,6 +68,7 @@ class LyricState {
       loadFailed: loadFailed ?? this.loadFailed,
       rawLyricText:
           clearRawLyricText ? null : (rawLyricText ?? this.rawLyricText),
+      synced: synced ?? this.synced,
     );
   }
 }
@@ -108,7 +115,7 @@ class LyricNotifier extends Notifier<LyricState> {
   }
 
   void _updateCurrentLine(Duration position) {
-    if (state.lyrics.isEmpty) return;
+    if (state.lyrics.isEmpty || !state.synced) return;
     final newIndex = LyricParser.findCurrentLine(state.lyrics, position);
     if (newIndex != state.currentIndex) {
       state = state.copyWith(currentIndex: newIndex);
@@ -200,18 +207,34 @@ class LyricNotifier extends Notifier<LyricState> {
     var lyrics = wbwSource.isNotEmpty
         ? LyricParser.parseWordByWord(wbwSource)
         : LyricParser.parse(main);
-    lyrics = LyricParser.mergeTranslations(
-      lyrics,
-      tlyric: _nullableStringField(body, 'tlyric'),
-      rlyric: _nullableStringField(body, 'rlyric'),
-    );
+
+    // 逐字解析失败但主歌词是带时间轴的普通 LRC → 退回普通 LRC 解析，
+    // 避免把含 [mm:ss] 的正常歌词误判为纯文本（否则会把方括号当正文显示）。
+    if (lyrics.isEmpty && wbwSource.isNotEmpty && main.isNotEmpty) {
+      lyrics = LyricParser.parse(main);
+    }
+
+    // 无任何时间戳但主歌词非空 → 纯文本歌词（如 lrclib 仅有 plainLyrics），
+    // 降级为静态展示：按行拆行、不做逐行高亮 / 自动滚动 / 翻译对齐。
+    var synced = true;
+    if (lyrics.isEmpty && main.trim().isNotEmpty) {
+      lyrics = LyricParser.parsePlain(main);
+      synced = false;
+    } else {
+      lyrics = LyricParser.mergeTranslations(
+        lyrics,
+        tlyric: _nullableStringField(body, 'tlyric'),
+        rlyric: _nullableStringField(body, 'rlyric'),
+      );
+    }
 
     _lastLoadedUrl = lyricUrl;
     final position = ref.read(playerStateProvider).currentTime;
-    final index = LyricParser.findCurrentLine(lyrics, position);
+    final index = synced ? LyricParser.findCurrentLine(lyrics, position) : -1;
     state = LyricState(
       lyrics: lyrics,
       currentIndex: index,
+      synced: synced,
       rawLyricText: main.isEmpty ? null : main,
     );
     LiveActivityService().updateLyric(

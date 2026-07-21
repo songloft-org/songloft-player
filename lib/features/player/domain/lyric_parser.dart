@@ -119,6 +119,21 @@ class LyricParser {
     return lyrics;
   }
 
+  /// 将无时间戳的纯文本歌词按行拆成静态 [LyricLine]（time 均为 0，无逐字数据）。
+  ///
+  /// 供 [parse] 解析不到任何时间标签、但内容非空时降级：例如 lrclib 只有
+  /// plainLyrics 无 syncedLyrics 时，插件会回退纯文本歌词。此时按行静态展示，
+  /// 不做逐行高亮/自动滚动（由 Provider 侧置 synced=false 控制）。
+  static List<LyricLine> parsePlain(String content) {
+    final lines = <LyricLine>[];
+    for (final raw in content.split('\n')) {
+      final t = raw.trim();
+      if (t.isEmpty) continue;
+      lines.add(LyricLine(time: Duration.zero, text: t));
+    }
+    return lines;
+  }
+
   /// 行首（单括号）时间标签，锚定行首，天然不会误匹配逐字用的 `[[...]]`。
   static final RegExp _lineTimeRegex =
       RegExp(r'^\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\]');

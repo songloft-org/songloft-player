@@ -115,7 +115,11 @@ class _LyricsViewState extends ConsumerState<LyricsView> {
     final s = widget.song;
     if (s == null || s.type != 'local') return false;
     final lyricState = ref.read(lyricStateProvider);
-    return lyricState.hasLyrics && !lyricState.isLoading && !lyricState.loadFailed;
+    // 纯文本歌词（无时间轴）无法调整时间戳，不展示「调整」入口。
+    return lyricState.hasLyrics &&
+        lyricState.synced &&
+        !lyricState.isLoading &&
+        !lyricState.loadFailed;
   }
 
   Future<void> _openAdjustPage() async {
@@ -178,9 +182,12 @@ class _LyricsViewState extends ConsumerState<LyricsView> {
 
   /// 构建单行：主歌词（当前行有逐字数据时用 [KaraokeLine] 逐字高亮，否则行级高亮）
   /// + 可选翻译 / 罗马音子行。
-  Widget _buildLine(ThemeData theme, LyricLine lyric, bool isCurrent) {
+  Widget _buildLine(ThemeData theme, LyricLine lyric, bool isCurrent,
+      {bool plain = false}) {
     final primary = theme.colorScheme.primary;
     final dim = theme.colorScheme.onSurface.withValues(alpha: 0.5);
+    // 纯文本歌词无「当前行」概念，整体用较高可读性的中性色静态展示。
+    final plainColor = theme.colorScheme.onSurface.withValues(alpha: 0.85);
 
     Widget main;
     if (isCurrent && lyric.hasWords) {
@@ -195,9 +202,9 @@ class _LyricsViewState extends ConsumerState<LyricsView> {
       main = Text(
         text.isEmpty ? '...' : text,
         style: TextStyle(
-          fontSize: isCurrent ? 18 : 15,
+          fontSize: plain ? 16 : (isCurrent ? 18 : 15),
           fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
-          color: isCurrent ? primary : dim,
+          color: plain ? plainColor : (isCurrent ? primary : dim),
         ),
         textAlign: TextAlign.center,
         maxLines: 2,
@@ -301,6 +308,7 @@ class _LyricsViewState extends ConsumerState<LyricsView> {
     }
 
     final lyrics = lyricState.lyrics;
+    final isPlain = !lyricState.synced;
 
     // 统一行高：轨道含翻译/罗马音时为所有行预留对应行高，保持等距，滚动定位精确。
     final hasTranslations = lyrics.any((l) => l.translation != null);
@@ -348,7 +356,7 @@ class _LyricsViewState extends ConsumerState<LyricsView> {
                   child: Container(
                     height: _lineHeight,
                     alignment: Alignment.center,
-                    child: _buildLine(theme, lyric, isCurrent),
+                    child: _buildLine(theme, lyric, isCurrent, plain: isPlain),
                   ),
                 ),
               );
