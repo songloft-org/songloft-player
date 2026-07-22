@@ -10,6 +10,7 @@ import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/responsive.dart';
 import '../../../core/utils/color_extraction.dart';
 import '../../../core/utils/url_helper.dart';
+import '../../../core/utils/web_image_tuning.dart';
 import '../../../shared/models/song.dart';
 import '../../../shared/utils/responsive_snackbar.dart';
 import '../../../shared/widgets/delete_song_dialog.dart';
@@ -418,6 +419,8 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
 
     return CustomScrollView(
       controller: _scrollController,
+      // Web 端收紧离屏预解码范围，降低超大歌单封面 GPU 纹理累积（原生端为 null 保持默认）。
+      scrollCacheExtent: webListCacheExtent,
       slivers: [
         // 顶栏：使用主题色，不受封面影响
         SliverAppBar(
@@ -694,6 +697,9 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
         constraints: const BoxConstraints(maxWidth: 1200),
         child: CustomScrollView(
           controller: _scrollController,
+          // Web 端收紧离屏预解码范围，降低超大歌单封面 GPU 纹理累积
+          // （原生端为 null 保持默认）。
+          scrollCacheExtent: webListCacheExtent,
           slivers: [
             // 搜索栏
             if (_isSearchMode)

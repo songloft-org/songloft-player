@@ -43,9 +43,11 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # 全平台(含 web)统一 stable 3.44.6。注:web 端切后台 WebGL context 丢失白屏
-  # (flutter/flutter#184683)的引擎修复 #185116 尚未进 3.44.6(仅 beta 3.47+),
-  # 此问题按现状接受;待 3.47 进 stable 后升级即可根治。
+  # 原生 bundle(桌面/移动)统一 stable 3.44.6(下方各 bundle job 复用此变量)。
+  # web(build-web job)单独用 beta 3.47:含引擎修复 #185116
+  # (flutter/flutter#184683,切后台 WebGL context 丢失致 LateInitializationError
+  # 崩溃/白屏),该修复尚未进 stable;与父仓库 songloft/release.yml 的 build-frontend
+  # 保持一致。待进 stable 后回退与 bundle 统一。
   FLUTTER_VERSION: '3.44.6'
 
 permissions:
@@ -64,10 +66,11 @@ jobs:
         mode: [standalone, embedded]
     steps:
       - uses: actions/checkout@v4
+      # web 走 beta 3.47(含引擎修复 #185116),不复用 FLUTTER_VERSION(那是 bundle 用的 stable)
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
+          flutter-version: 3.47.0-0.1.pre
+          channel: beta
           cache: true
       - run: flutter pub get
       - name: Extract version from pubspec.yaml

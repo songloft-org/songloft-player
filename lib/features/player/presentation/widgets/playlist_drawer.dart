@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/url_helper.dart';
+import '../../../../core/utils/web_image_tuning.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/models/song.dart';
 import '../../../../shared/utils/responsive_snackbar.dart';
@@ -142,6 +143,8 @@ class PlaylistDrawer extends ConsumerWidget {
     PlayerNotifier notifier,
   ) {
     return ReorderableListView.builder(
+      // Web 端收紧离屏预解码范围，降低队列封面 GPU 纹理累积（原生端为 null 保持默认）。
+      scrollCacheExtent: webListCacheExtent,
       padding: const EdgeInsets.only(bottom: 16),
       itemCount: state.playlist.length,
       onReorderItem: notifier.moveInPlaylist,
@@ -288,6 +291,12 @@ class _DrawerSongItem extends StatelessWidget {
                             fit: BoxFit.cover,
                             width: 36,
                             height: 36,
+                            // 36px 封面无需按默认 400px 解码：Web 端收紧到显示尺寸，
+                            // 大幅降低整队列的 GPU 纹理体积（原生端保持 400 不变）。
+                            decodeWidth: smallCoverDecodeWidth(
+                              36,
+                              MediaQuery.of(context).devicePixelRatio,
+                            ),
                             placeholder:
                                 (_, _) => _buildCoverPlaceholder(colorScheme),
                             errorWidget:

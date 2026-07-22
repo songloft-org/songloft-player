@@ -7,6 +7,7 @@ import '../../../config/constants.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/responsive.dart';
+import '../../../core/utils/web_image_tuning.dart';
 import '../../../shared/models/song.dart';
 import '../../../shared/utils/responsive_snackbar.dart';
 import '../../../shared/widgets/add_to_playlist_modal.dart';
@@ -1079,6 +1080,8 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
 
     return ListView.builder(
       controller: _scrollController,
+      // Web 端收紧离屏预解码范围，降低超大歌单封面 GPU 纹理累积（原生端为 null 保持默认）。
+      scrollCacheExtent: webListCacheExtent,
       padding: const EdgeInsets.only(bottom: 80),
       itemCount: state.songs.length + (state.isLoadingMore ? 1 : 0),
       itemBuilder: (context, index) {
@@ -1216,6 +1219,9 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
                 Expanded(
                   child: ListView.builder(
                     controller: _scrollController,
+                    // Web 端收紧离屏预解码范围，降低超大歌单封面 GPU 纹理累积
+                    // （原生端为 null 保持默认）。
+                    scrollCacheExtent: webListCacheExtent,
                     padding: const EdgeInsets.only(bottom: 80),
                     itemCount:
                         state.songs.length + (state.isLoadingMore ? 1 : 0),
