@@ -131,10 +131,12 @@ class FrontendVersionApi {
       }
 
       // 判断是否有更新
+      // dev 版本仅使用 version.json 的精确 build_time，不回退到 published_at
+      // （published_at 是 release 发布时间，总是远晚于实际构建时间，会导致误判）
       final hasUpdate = _isNewerVersion(
         currentVersion,
         latestVersion,
-        latestBuildTime: remoteBuildTime ?? publishedAt,
+        latestBuildTime: remoteBuildTime,
         remoteGitCommit: remoteGitCommit,
       );
 
@@ -230,6 +232,10 @@ class FrontendVersionApi {
       if (latestBuildTime == null) return false;
       final currentBuildTime = _parseBuildTime(AppConfig.frontendBuildTime);
       if (currentBuildTime == null) return false;
+      // 同一次 CI 的 build_time 可能因不同 job 产生数分钟偏差，
+      // 真正的新版本至少相隔数十分钟；10 分钟内视为同一次构建。
+      final diff = latestBuildTime.difference(currentBuildTime);
+      if (diff.inMinutes.abs() < 10) return false;
       return latestBuildTime.isAfter(currentBuildTime);
     }
     if (latest == 'dev') return false;
