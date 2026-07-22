@@ -68,6 +68,10 @@ class FrontendVersionApi {
   static const String _devReleaseApiUrl =
       'https://api.github.com/repos/${AppConfig.frontendRepo}/releases/tags/dev';
 
+  /// 主仓库 dev 版本信息（包含 git_commit 和 build_time）
+  static const String _devVersionJsonUrl =
+      'https://github.com/songloft-org/songloft/releases/download/dev/version.json';
+
   FrontendVersionApi({Dio? dio})
     : _dio =
           dio ??
@@ -112,11 +116,26 @@ class FrontendVersionApi {
       // 解析资源列表
       final assets = _parseAssets(data['assets']);
 
+      // dev 版本：从主仓库 version.json 获取 git_commit 和 build_time 进行精确比较
+      String? remoteGitCommit;
+      DateTime? remoteBuildTime;
+      if (isDev) {
+        final versionInfo = await _fetchDevVersionInfo(githubProxy);
+        if (versionInfo != null) {
+          remoteGitCommit = versionInfo['git_commit'] as String?;
+          final bt = versionInfo['build_time'] as String?;
+          if (bt != null) {
+            remoteBuildTime = _parseBuildTime(bt);
+          }
+        }
+      }
+
       // 判断是否有更新
       final hasUpdate = _isNewerVersion(
         currentVersion,
         latestVersion,
-        latestBuildTime: publishedAt,
+        latestBuildTime: remoteBuildTime ?? publishedAt,
+        remoteGitCommit: remoteGitCommit,
       );
 
       return FrontendVersionCheck(
@@ -145,6 +164,20 @@ class FrontendVersionApi {
   /// 对外暴露的代理拼接方法，供 UI 层使用
   static String applyProxy(String rawUrl, String? proxyPrefix) {
     return _applyProxy(rawUrl, proxyPrefix);
+  }
+
+  /// 获取主仓库 dev release 的 version.json，用于 git_commit / build_time 精确比较。
+  /// 失败时返回 null，调用方回退到 published_at 比较。
+  Future<Map<String, dynamic>?> _fetchDevVersionInfo(String? githubProxy) async {
+    try {
+      final url = _applyProxy(_devVersionJsonUrl, githubProxy);
+      final response = await _dio.get(url);
+      final data = response.data;
+      if (data is Map<String, dynamic>) return data;
+    } catch (_) {
+      // version.json 不可达时静默回退
+    }
+    return null;
   }
 
   /// 解析 GitHub Release 的 assets 列表
@@ -177,17 +210,26 @@ class FrontendVersionApi {
   }
 
   /// 判断远程版本是否比当前版本更新。
-  /// dev 客户端只比较 dev prerelease 的发布时间，正式版只比较正式版版本号。
+  /// dev 客户端优先比较 git commit，其次比较构建时间；正式版只比较版本号。
   static bool _isNewerVersion(
     String current,
     String latest, {
     DateTime? latestBuildTime,
+    String? remoteGitCommit,
   }) {
     if (latest.isEmpty) return false;
     if (current == 'dev') {
-      if (latest != 'dev' || latestBuildTime == null) return false;
+      if (latest != 'dev') return false;
+      // 优先比较 git commit
+      if (remoteGitCommit != null &&
+          remoteGitCommit.isNotEmpty &&
+          AppConfig.frontendGitCommit != 'unknown') {
+        return remoteGitCommit != AppConfig.frontendGitCommit;
+      }
+      // 回退到构建时间比较
+      if (latestBuildTime == null) return false;
       final currentBuildTime = _parseBuildTime(AppConfig.frontendBuildTime);
-      if (currentBuildTime == null) return true;
+      if (currentBuildTime == null) return false;
       return latestBuildTime.isAfter(currentBuildTime);
     }
     if (latest == 'dev') return false;

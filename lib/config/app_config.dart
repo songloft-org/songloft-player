@@ -67,6 +67,12 @@ class AppConfig {
     defaultValue: 'unknown',
   );
 
+  /// 前端 Git Commit，通过 --dart-define=FRONTEND_GIT_COMMIT=xxxxxxx 注入
+  static const String frontendGitCommit = String.fromEnvironment(
+    'FRONTEND_GIT_COMMIT',
+    defaultValue: 'unknown',
+  );
+
   /// Tracely 监控配置（编译时通过 --dart-define 注入，未配置则不启用）
   static const String tracelyAppId = String.fromEnvironment(
     'TRACELY_APP_ID',
