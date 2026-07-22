@@ -1,10 +1,12 @@
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../config/app_config.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../storage/secure_storage.dart';
 import 'base_url_provider.dart';
 import 'server_entry.dart';
+import 'server_redirect_resolver.dart';
 
 enum ProbeStatus { unknown, probing, ok, fail }
 
@@ -115,6 +117,14 @@ Future<void> applyServerSelection(WidgetRef ref, ServerEntry entry) async {
   await storage.saveWallet(SecureStorageService.walletKey(currentUrl));
   // 2. 切换 baseUrl（触发 dioProvider 重建）
   ref.read(baseUrlProvider.notifier).set(entry.url);
+  // 2.5 解析入口域名 302 重定向到真实地址（songloft-org/songloft-player#22）。
+  // 失败/Web 降级用入口域名；即使这里没 resolve 成功，后续请求失败也会由
+  // RedirectResolveInterceptor 兜底重解析。
+  final resolved = await ServerRedirectResolver.resolve(
+    entry.url,
+    insecureTls: AppConfig.insecureTls,
+  );
+  ref.read(resolvedBaseUrlProvider.notifier).set(resolved);
   // 3. 恢复目标 session
   final restored = await storage.restoreWallet(SecureStorageService.walletKey(entry.url));
   if (restored && !await storage.isAccessTokenExpired()) {

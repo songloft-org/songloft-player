@@ -9,7 +9,9 @@ import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_exceptions.dart';
 import '../../../../core/network/dio_insecure.dart';
 import '../../../../core/network/base_url_provider.dart';
+import '../../../../core/network/redirect_resolve_interceptor.dart';
 import '../../../../core/network/server_entry.dart';
+import '../../../../core/network/server_redirect_resolver.dart';
 import '../../../../core/network/servers_provider.dart';
 import '../../../../core/storage/app_preferences.dart';
 import '../../../../core/storage/preference_sync_service.dart';
@@ -86,19 +88,28 @@ class AuthNotifier extends Notifier<AuthState> {
     state = state.loading();
 
     try {
-      // 如果提供了自定义 API 地址，规范化并写入 baseUrl + 同步到服务器列表
+      // 如果提供了自定义 API 地址，规范化并写入 baseUrl + 同步到服务器列表。
+      // normalized 是**身份 URL**（入口域名），用于 walletKey / 服务器列表定位。
       if (apiBaseUrl != null && apiBaseUrl.isNotEmpty) {
         final normalized = ServerEntry.normalizeUrl(apiBaseUrl);
         ref.read(baseUrlProvider.notifier).set(normalized);
         await _syncServerList(normalized);
       }
 
+      // 解析入口域名的 302 重定向，拿到真实地址供本次登录及后续请求使用
+      // （songloft-org/songloft-player#22）。失败/Web 时降级返回入口域名，行为同旧版。
+      final resolved = await ServerRedirectResolver.resolve(
+        ref.read(baseUrlProvider),
+        insecureTls: AppConfig.insecureTls,
+      );
+      ref.read(resolvedBaseUrlProvider.notifier).set(resolved);
+
       // 创建临时 Dio 进行登录（不带认证拦截器）
       // connectTimeout 单独缩短到 10s：登录是用户首次反馈点，30s 会让用户以为 APP 卡死；
       // 业务 API 维持全局 30s，弱网下封面/音频流仍需更长容忍度
       final dio = Dio(
         BaseOptions(
-          baseUrl: AppConfig.baseUrl,
+          baseUrl: AppConfig.resolvedBaseUrl,
           connectTimeout: const Duration(seconds: 10),
           receiveTimeout: AppConfig.receiveTimeout,
           headers: {
@@ -111,6 +122,14 @@ class AuthNotifier extends Notifier<AuthState> {
       if (AppConfig.insecureTls) {
         applyInsecureTls(dio);
       }
+      // 兜底：若 resolve 与 POST 之间端口又变了，登录请求 302/连接失败时自动重解析重试
+      dio.interceptors.add(
+        RedirectResolveInterceptor(
+          onResolved: (url) =>
+              ref.read(resolvedBaseUrlProvider.notifier).set(url),
+          insecureTls: AppConfig.insecureTls,
+        ),
+      );
 
       final authApi = AuthApi(dio: dio);
       final tokens = await authApi.login(

@@ -10,6 +10,7 @@ import '../../../core/backend/run_mode_provider.dart';
 import '../../../core/network/base_url_provider.dart';
 import '../../../core/network/server_entry.dart';
 import '../../../core/network/server_probe.dart';
+import '../../../core/network/server_redirect_resolver.dart';
 import '../../../core/network/servers_provider.dart';
 import '../../../core/storage/secure_storage.dart';
 import '../../../l10n/app_localizations.dart';
@@ -193,6 +194,7 @@ class _StartupGateState extends ConsumerState<StartupGate>
     } else if (servers.length == 1) {
       final url = servers.first.url;
       ref.read(baseUrlProvider.notifier).set(url);
+      await _resolveRedirect(url);
       // 恢复该服务器的 wallet
       final storage = SecureStorageService();
       await storage.restoreWallet(SecureStorageService.walletKey(url));
@@ -206,6 +208,7 @@ class _StartupGateState extends ConsumerState<StartupGate>
       final picked = await ServerProbe.pickFirstReachable(servers);
       final chosen = picked ?? servers.first;
       ref.read(baseUrlProvider.notifier).set(chosen.url);
+      await _resolveRedirect(chosen.url);
       // 恢复选中服务器的 wallet
       final storage = SecureStorageService();
       await storage.restoreWallet(SecureStorageService.walletKey(chosen.url));
@@ -215,6 +218,19 @@ class _StartupGateState extends ConsumerState<StartupGate>
             picked == null ? ProbeOutcome.fallbackUsed : ProbeOutcome.success,
           );
     }
+  }
+
+  /// 解析入口域名的 302 重定向，把真实地址写入 resolvedBaseUrlProvider
+  /// （songloft-org/songloft-player#22）。每次启动都重新 resolve，覆盖 STUN 端口的
+  /// 跨会话变化。walletKey 仍用身份 URL（[identityUrl]），不受影响。
+  /// 失败/Web 时降级用入口域名，后续首个请求失败会由拦截器再次重解析兜底。
+  Future<void> _resolveRedirect(String identityUrl) async {
+    final resolved = await ServerRedirectResolver.resolve(
+      identityUrl,
+      insecureTls: AppConfig.insecureTls,
+    );
+    if (!mounted) return;
+    ref.read(resolvedBaseUrlProvider.notifier).set(resolved);
   }
 
   String _describe(ServerEntry e) {

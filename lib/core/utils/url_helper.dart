@@ -24,11 +24,16 @@ class UrlHelper {
       return url;
     }
 
-    // 相对路径：拼接 baseUrl + basePath + access_token
+    // 相对路径：拼接 resolvedBaseUrl + basePath + access_token
+    // 用 resolvedBaseUrl（入口域名 302 解析后的真实地址）而非 baseUrl（身份 URL）：
+    // 播放/封面流由播放器内核/Image 直接请求，走不了 Dio 的重定向重解析拦截器，且带
+    // access_token 查询参数，跨 host 的 302 不保证保留 query，故必须直连真实地址
+    // （songloft-org/songloft-player#22）。取舍：若播放中途 STUN 端口突变会断当前流，
+    // 此时 API 拦截器已在后台刷新 resolvedBaseUrl，切歌/重播即用新端口恢复。
     final token = SecureStorageService.cachedAccessToken ?? '';
     final separator = url.contains('?') ? '&' : '?';
     final fullUrl =
-        '${AppConfig.baseUrl}${AppConfig.basePath}$url${separator}access_token=$token';
+        '${AppConfig.resolvedBaseUrl}${AppConfig.basePath}$url${separator}access_token=$token';
 
     // 该日志在每次构建资源 URL（封面/播放/歌词）时触发，且含 access_token；
     // 仅 debug 构建输出，避免 release 端日志刷屏与凭证明文落盘。

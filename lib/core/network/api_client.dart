@@ -10,6 +10,7 @@ import 'auth_interceptor.dart';
 import 'base_url_provider.dart';
 import 'dio_insecure.dart';
 import 'insecure_tls_provider.dart';
+import 'redirect_resolve_interceptor.dart';
 
 /// 创建并配置 Dio 实例
 Dio createDio({
@@ -126,11 +127,18 @@ final publicDioProvider = Provider.family<Dio, String?>((ref, customBaseUrl) {
 });
 
 /// 认证 Dio Provider
+///
+/// watch 身份 URL（[baseUrlProvider]）：仅身份切换（换服务器）时重建 Dio。resolved
+/// 真实地址的刷新不重建 Dio，而是由 [RedirectResolveInterceptor] 在 onRequest 每请求
+/// 动态读取 [AppConfig.resolvedBaseUrl]，避免 dioProvider 及其下游连锁 recompute。
+/// walletKey 用 [baseUrlProvider]（身份 URL），保证换端口不影响凭证隔离。拦截器在连接
+/// 失败/3xx 时重新 resolve 并重试，适配 STUN 端口变化（songloft-org/songloft-player#22）。
 final dioProvider = Provider<Dio>((ref) {
+  // customBaseUrl 传身份作初值，实际每请求由拦截器 onRequest 覆盖为 resolved 真实地址
   final baseUrl = ref.watch(baseUrlProvider);
   final secureStorage = ref.watch(secureStorageProvider);
   final insecureTls = ref.watch(insecureTlsProvider);
-  return createDio(
+  final dio = createDio(
     customBaseUrl: baseUrl,
     secureStorage: secureStorage,
     insecureTls: insecureTls,
@@ -145,6 +153,13 @@ final dioProvider = Provider<Dio>((ref) {
       return SecureStorageService.walletKey(ref.read(baseUrlProvider));
     },
   );
+  dio.interceptors.add(
+    RedirectResolveInterceptor(
+      onResolved: (url) => ref.read(resolvedBaseUrlProvider.notifier).set(url),
+      insecureTls: insecureTls,
+    ),
+  );
+  return dio;
 });
 
 /// API 客户端 Provider

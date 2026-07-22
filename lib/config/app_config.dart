@@ -11,6 +11,21 @@ const String _kDeployMode = String.fromEnvironment(
 
 class AppConfig {
   static String baseUrl = 'http://localhost:58091';
+
+  /// 实际发起网络请求（Dio baseUrl / 播放·封面·歌词 URL 拼接）使用的真实服务地址。
+  ///
+  /// 与 [baseUrl] 的区别：[baseUrl] 是**身份 URL**（用户填的入口域名，稳定，用于
+  /// walletKey 派生 / 多服务器定位 / 持久化）；[resolvedBaseUrl] 是入口域名经 302
+  /// 重定向解析出的**真实地址**，可能随 STUN 端口变化而动态刷新（见
+  /// [ServerRedirectResolver]）。运行期 single source of truth 是 [resolvedBaseUrlProvider]
+  /// 并 mirror 到此处，供非 Riverpod 上下文（[UrlHelper]）同步读取。
+  ///
+  /// **未 resolve 时回退到 [baseUrl]**：覆盖 embedded（同域，Uri.base.origin）、本地
+  /// 模式（127.0.0.1）等无需重定向解析的路径，无需在这些初始化点额外赋值。
+  static String? _resolvedBaseUrlOverride;
+  static String get resolvedBaseUrl => _resolvedBaseUrlOverride ?? baseUrl;
+  static set resolvedBaseUrl(String value) => _resolvedBaseUrlOverride = value;
+
   static String apiPrefix = '/api/v1';
   static String basePath = '';
 
