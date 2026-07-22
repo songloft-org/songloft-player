@@ -114,30 +114,40 @@ Workflow file: [`.github/workflows/build-and-release.yml`](.github/workflows/bui
 lib/
 ├── config/          # App config (API URL, constants)
 ├── core/            # Core layer
+│   ├── a11y/        # Accessibility
 │   ├── audio/       # Audio playback service
 │   ├── backend/     # Bundle local mode (embedded backend abstraction)
+│   ├── env/         # Environment info
 │   ├── network/     # HTTP client, auth interceptor
+│   ├── platform/    # Platform detection
 │   ├── router/      # GoRouter configuration
 │   ├── storage/     # Local storage, secure storage
 │   ├── theme/       # Theme, responsive breakpoints
+│   ├── tracely/     # Frontend monitoring
 │   └── utils/       # Utility functions
 ├── features/        # Feature modules
 │   ├── auth/        # Authentication (login/logout/token management/local mode entry)
+│   ├── dlna/        # DLNA casting
 │   ├── home/        # Home page
+│   ├── jsplugin/    # JS plugin management
 │   ├── startup/     # Startup flow (local/remote mode auto-bootstrap)
 │   ├── library/     # Song library
 │   ├── player/      # Player (desktop/mobile/TV/mini)
 │   ├── playlist/    # Playlist management
 │   └── settings/    # Settings (theme/scan/plugins/upgrade)
 ├── shared/          # Shared layer
+│   ├── constants/   # Constants
 │   ├── layouts/     # Adaptive layouts (AdaptiveScaffold, ShellLayout)
-│   ├── models/      # Data models (Song, Playlist)
+│   ├── mixins/      # Common mixins
+│   ├── models/      # Data models (Song, ApiResponse, Pagination)
+│   ├── utils/       # Shared utilities
 │   └── widgets/     # Common widgets
 ├── main.dart        # App entry point
 scripts/
 ├── build-frontend.sh         # Multi-platform build script
-├── release-frontend.sh       # Release script (semantic versioning)
-└── docker-build-frontend.sh  # Docker build helper
+├── bump-version.sh           # Release script (semantic versioning)
+├── docker-build-frontend.sh  # Docker build helper
+└── download-fonts.sh         # Font download script
 ```
 
 ## Documentation
@@ -148,7 +158,7 @@ scripts/
 | [docs/en/development.md](docs/en/development.md) | Development guide |
 | [docs/en/architecture.md](docs/en/architecture.md) | Architecture notes |
 | [docs/en/platform-notes.md](docs/en/platform-notes.md) | Platform-specific notes |
-| [scripts/README.en.md](scripts/README.en.md) | Release script guide |
+| [scripts/README.en.md](scripts/README.en.md) | Build and release script guide |
 
 ## Tech Stack
 
@@ -158,7 +168,7 @@ scripts/
 | Routing | GoRouter |
 | HTTP | Dio + JWT interceptor |
 | Audio | just_audio + audio_service |
-| Local Storage | SharedPreferences + FlutterSecureStorage |
+| Local Storage | SharedPreferences |
 | Image Cache | CachedNetworkImage |
 
 ## Deploy Modes
@@ -185,17 +195,17 @@ Pre-built bundle packages are available from [songloft main repo Releases](https
 
 ## Release
 
-Use `release-frontend.sh` for versioning (follows semantic versioning):
+Use `bump-version.sh` for versioning (follows semantic versioning):
 
 ```bash
 # Patch version bump (1.0.0 -> 1.0.1)
-./scripts/release-frontend.sh patch
+./scripts/bump-version.sh patch
 
 # Minor version bump (1.0.0 -> 1.1.0)
-./scripts/release-frontend.sh minor
+./scripts/bump-version.sh minor
 
 # Major version bump (1.0.0 -> 2.0.0)
-./scripts/release-frontend.sh major
+./scripts/bump-version.sh major
 ```
 
 The script will automatically:

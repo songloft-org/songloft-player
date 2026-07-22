@@ -114,30 +114,40 @@ flutter build windows                                                          #
 lib/
 ├── config/          # 应用配置（API 地址、常量）
 ├── core/            # 核心层
+│   ├── a11y/        # 无障碍辅助
 │   ├── audio/       # 音频播放服务
 │   ├── backend/     # Bundle 本地模式（嵌入后端抽象层）
+│   ├── env/         # 环境信息
 │   ├── network/     # HTTP 客户端、认证拦截器
+│   ├── platform/    # 平台检测
 │   ├── router/      # GoRouter 路由配置
 │   ├── storage/     # 本地存储、安全存储
 │   ├── theme/       # 主题、响应式断点
+│   ├── tracely/     # 前端监控
 │   └── utils/       # 工具函数
 ├── features/        # 功能模块
 │   ├── auth/        # 认证（登录/登出/Token 管理/本地模式入口）
+│   ├── dlna/        # DLNA 投屏
 │   ├── home/        # 首页
+│   ├── jsplugin/    # JS 插件管理
 │   ├── startup/     # 启动流程（本地/远程模式自动引导）
 │   ├── library/     # 歌曲库
 │   ├── player/      # 播放器（桌面/移动/TV/迷你）
 │   ├── playlist/    # 歌单管理
 │   └── settings/    # 设置（主题/扫描/插件/升级）
 ├── shared/          # 共享层
+│   ├── constants/   # 常量定义
 │   ├── layouts/     # 自适应布局（AdaptiveScaffold、ShellLayout）
-│   ├── models/      # 数据模型（Song、Playlist）
+│   ├── mixins/      # 通用 Mixin
+│   ├── models/      # 数据模型（Song、ApiResponse、Pagination）
+│   ├── utils/       # 共享工具函数
 │   └── widgets/     # 通用组件
 ├── main.dart        # 应用入口
 scripts/
 ├── build-frontend.sh         # 多平台构建脚本
-├── release-frontend.sh       # 版本发布脚本（语义化版本控制）
-└── docker-build-frontend.sh  # Docker 构建便捷脚本
+├── bump-version.sh           # 版本发布脚本（语义化版本控制）
+├── docker-build-frontend.sh  # Docker 构建便捷脚本
+└── download-fonts.sh         # 字体下载脚本
 ```
 
 ## 文档
@@ -148,7 +158,7 @@ scripts/
 | [docs/cn/development.md](docs/cn/development.md) | 开发指南 |
 | [docs/cn/architecture.md](docs/cn/architecture.md) | 架构补充说明 |
 | [docs/cn/platform-notes.md](docs/cn/platform-notes.md) | 平台特定注意事项 |
-| [scripts/README.md](scripts/README.md) | 版本发布脚本指南 |
+| [scripts/README.md](scripts/README.md) | 构建与发布脚本指南 |
 
 ## 技术栈
 
@@ -158,7 +168,7 @@ scripts/
 | 路由 | GoRouter |
 | HTTP | Dio + JWT 拦截器 |
 | 音频 | just_audio + audio_service |
-| 本地存储 | SharedPreferences + FlutterSecureStorage |
+| 本地存储 | SharedPreferences |
 | 图片缓存 | CachedNetworkImage |
 
 ## 部署模式
@@ -195,17 +205,17 @@ Bundle 版预编译安装包在 [songloft 主仓库 Releases](https://github.com
 
 ## 版本发布
 
-使用 `release-frontend.sh` 脚本进行版本发布（遵循语义化版本控制）：
+使用 `bump-version.sh` 脚本进行版本发布（遵循语义化版本控制）：
 
 ```bash
 # 补丁版本升级（1.0.0 -> 1.0.1）
-./scripts/release-frontend.sh patch
+./scripts/bump-version.sh patch
 
 # 次版本号升级（1.0.0 -> 1.1.0）
-./scripts/release-frontend.sh minor
+./scripts/bump-version.sh minor
 
 # 主版本号升级（1.0.0 -> 2.0.0）
-./scripts/release-frontend.sh major
+./scripts/bump-version.sh major
 ```
 
 脚本会自动：
