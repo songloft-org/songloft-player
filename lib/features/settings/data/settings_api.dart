@@ -523,6 +523,19 @@ class SettingsApi {
     }
   }
 
+  /// 下载已脱敏的后端日志（GET /logs/export），返回原始字节供打包导出。
+  Future<List<int>> downloadBackendLogs() async {
+    try {
+      final response = await dio.get<List<int>>(
+        '${AppConfig.apiPrefix}/logs/export',
+        options: Options(responseType: ResponseType.bytes),
+      );
+      return response.data ?? <int>[];
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
   // ---------- 插件订阅源 ----------
 
   Future<List<PluginRegistryConfig>> getPluginRegistries() async {

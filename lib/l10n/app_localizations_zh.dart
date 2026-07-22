@@ -3346,6 +3346,26 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get settingsExportLogsTitle => '导出日志';
+
+  @override
+  String get settingsExportLogsSubtitle => '打包前后端日志（已脱敏）用于提交问题反馈';
+
+  @override
+  String get settingsExportLogsShareSubject => 'Songloft 日志';
+
+  @override
+  String get settingsExportLogsSuccess => '日志已打包，请选择分享或保存方式';
+
+  @override
+  String get settingsExportLogsSuccessNoBackend => '已导出前端日志（未获取到后端日志）';
+
+  @override
+  String settingsExportLogsFailed(String error) {
+    return '导出日志失败: $error';
+  }
+
+  @override
   String get settingsAccountUrlNotConfigured => '未配置 · 点击添加';
 
   @override

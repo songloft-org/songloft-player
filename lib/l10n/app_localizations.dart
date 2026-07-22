@@ -6055,6 +6055,42 @@ abstract class AppLocalizations {
   /// **'日志等级已切换为 {level}'**
   String settingsLogLevelSwitched(String level);
 
+  /// No description provided for @settingsExportLogsTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'导出日志'**
+  String get settingsExportLogsTitle;
+
+  /// No description provided for @settingsExportLogsSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'打包前后端日志（已脱敏）用于提交问题反馈'**
+  String get settingsExportLogsSubtitle;
+
+  /// No description provided for @settingsExportLogsShareSubject.
+  ///
+  /// In zh, this message translates to:
+  /// **'Songloft 日志'**
+  String get settingsExportLogsShareSubject;
+
+  /// No description provided for @settingsExportLogsSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'日志已打包，请选择分享或保存方式'**
+  String get settingsExportLogsSuccess;
+
+  /// No description provided for @settingsExportLogsSuccessNoBackend.
+  ///
+  /// In zh, this message translates to:
+  /// **'已导出前端日志（未获取到后端日志）'**
+  String get settingsExportLogsSuccessNoBackend;
+
+  /// No description provided for @settingsExportLogsFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'导出日志失败: {error}'**
+  String settingsExportLogsFailed(String error);
+
   /// No description provided for @settingsAccountUrlNotConfigured.
   ///
   /// In zh, this message translates to:

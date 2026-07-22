@@ -96,6 +96,22 @@ class FileLogger {
 
   static String? get logDir => _currentDir;
 
+  /// 返回当前日志文件内容（UTF-8 字节），供导出打包。先 flush 确保缓冲落盘。
+  /// 文件不存在或读取失败时返回 null。
+  static Future<List<int>?> readLogBytes() async {
+    final path = _currentPath;
+    if (path == null) return null;
+    try {
+      await _sink?.flush();
+      final file = File(path);
+      if (!file.existsSync()) return null;
+      return await file.readAsBytes();
+    } catch (e) {
+      debugPrint('[FileLogger] 读取日志文件失败: $e');
+      return null;
+    }
+  }
+
   static void _cleanOldLogs(Directory logsDir, DateTime now) {
     try {
       final cutoff = now.subtract(const Duration(days: _maxAgeDays));

@@ -3491,6 +3491,29 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get settingsExportLogsTitle => 'Export logs';
+
+  @override
+  String get settingsExportLogsSubtitle =>
+      'Bundle redacted frontend & backend logs for issue reports';
+
+  @override
+  String get settingsExportLogsShareSubject => 'Songloft logs';
+
+  @override
+  String get settingsExportLogsSuccess =>
+      'Logs bundled, choose how to share or save';
+
+  @override
+  String get settingsExportLogsSuccessNoBackend =>
+      'Exported frontend logs (backend logs unavailable)';
+
+  @override
+  String settingsExportLogsFailed(String error) {
+    return 'Failed to export logs: $error';
+  }
+
+  @override
   String get settingsAccountUrlNotConfigured => 'Not configured · Tap to add';
 
   @override

@@ -2227,6 +2227,19 @@
       }
     }
   },
+  "settingsExportLogsTitle": "导出日志",
+  "settingsExportLogsSubtitle": "打包前后端日志（已脱敏）用于提交问题反馈",
+  "settingsExportLogsShareSubject": "Songloft 日志",
+  "settingsExportLogsSuccess": "日志已打包，请选择分享或保存方式",
+  "settingsExportLogsSuccessNoBackend": "已导出前端日志（未获取到后端日志）",
+  "settingsExportLogsFailed": "导出日志失败: {error}",
+  "@settingsExportLogsFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "settingsAccountUrlNotConfigured": "未配置 · 点击添加",
   "settingsAccountUrlSummary": "{count} 个地址 · 当前: {label}",
   "@settingsAccountUrlSummary": {

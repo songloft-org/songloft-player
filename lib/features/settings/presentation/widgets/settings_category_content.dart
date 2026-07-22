@@ -26,6 +26,7 @@ import '../../../jsplugin/presentation/providers/jsplugin_provider.dart';
 import '../../../jsplugin/presentation/widgets/jsplugin_manager.dart';
 import '../../../jsplugin/presentation/widgets/plugin_icon.dart';
 import '../../../../core/backend/run_mode_provider.dart';
+import '../../data/log_export_service.dart';
 import '../../data/settings_api.dart';
 import '../../data/upgrade_api.dart';
 import 'cache_manager.dart';
@@ -204,6 +205,8 @@ class _SettingsCategoryContentState
     extends ConsumerState<SettingsCategoryContent> {
   static const int _maxTabs = 12;
   static const int _fixedTabs = 2;
+
+  bool _exportingLogs = false;
 
   @override
   Widget build(BuildContext context) {
@@ -660,6 +663,8 @@ class _SettingsCategoryContentState
           ],
           const Divider(height: 1),
           _buildLogLevelTile(),
+          const Divider(height: 1),
+          _buildExportLogsTile(),
           if (kIsWeb) ...[
             const Divider(height: 1),
             _buildWebDebugConsoleTile(),
@@ -1250,6 +1255,50 @@ class _SettingsCategoryContentState
             context,
             message: l10n.settingsSwitchFailed(e.toString()),
           );
+        }
+      },
+    );
+  }
+
+  // 导出前后端日志（脱敏后打包 zip 分享），供用户提交 issue 时附上。
+  Widget _buildExportLogsTile() {
+    final l10n = AppLocalizations.of(context);
+    return ListTile(
+      leading: const Icon(Icons.description_outlined),
+      title: Text(l10n.settingsExportLogsTitle),
+      subtitle: Text(l10n.settingsExportLogsSubtitle),
+      trailing:
+          _exportingLogs
+              ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+              : const Icon(Icons.chevron_right),
+      enabled: !_exportingLogs,
+      onTap: () async {
+        if (_exportingLogs) return;
+        setState(() => _exportingLogs = true);
+        try {
+          final result = await ref
+              .read(logExportServiceProvider)
+              .exportAndShare(shareSubject: l10n.settingsExportLogsShareSubject);
+          if (!mounted) return;
+          ResponsiveSnackBar.show(
+            context,
+            message:
+                result.hasBackend
+                    ? l10n.settingsExportLogsSuccess
+                    : l10n.settingsExportLogsSuccessNoBackend,
+          );
+        } catch (e) {
+          if (!mounted) return;
+          ResponsiveSnackBar.showError(
+            context,
+            message: l10n.settingsExportLogsFailed(e.toString()),
+          );
+        } finally {
+          if (mounted) setState(() => _exportingLogs = false);
         }
       },
     );

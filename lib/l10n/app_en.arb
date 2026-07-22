@@ -2122,6 +2122,19 @@
       }
     }
   },
+  "settingsExportLogsTitle": "Export logs",
+  "settingsExportLogsSubtitle": "Bundle redacted frontend & backend logs for issue reports",
+  "settingsExportLogsShareSubject": "Songloft logs",
+  "settingsExportLogsSuccess": "Logs bundled, choose how to share or save",
+  "settingsExportLogsSuccessNoBackend": "Exported frontend logs (backend logs unavailable)",
+  "settingsExportLogsFailed": "Failed to export logs: {error}",
+  "@settingsExportLogsFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "settingsAccountUrlNotConfigured": "Not configured · Tap to add",
   "settingsAccountUrlSummary": "{count} addresses · Current: {label}",
   "@settingsAccountUrlSummary": {
