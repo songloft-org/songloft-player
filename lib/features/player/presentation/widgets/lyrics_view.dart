@@ -147,11 +147,15 @@ class _LyricsViewState extends ConsumerState<LyricsView> {
     ref.read(lyricStateProvider.notifier).refetch();
   }
 
-  /// 当前歌曲是否具备可请求的歌词端点（无端点时不展示重新抓取入口）。
+  /// 当前歌曲是否允许（重新）抓取歌词。
+  /// 本地歌曲即使后端未返回 lyricUrl 也允许——客户端可由歌曲 ID 拼接端点触发搜索。
   bool get _canRefetch {
-    final url = ref.watch(
-      playerStateProvider.select((s) => s.currentSong?.lyricUrl),
+    final song = ref.watch(
+      playerStateProvider.select((s) => s.currentSong),
     );
+    if (song == null) return false;
+    if (song.type == 'local') return true;
+    final url = song.lyricUrl;
     return url != null && url.isNotEmpty;
   }
 

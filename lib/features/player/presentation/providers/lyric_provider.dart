@@ -284,7 +284,12 @@ class LyricNotifier extends Notifier<LyricState> {
   /// 参数直连后端重抓（后端会重跑歌词搜索插件并禁用缓存）。用于当前歌曲歌词
   /// 缺失/失败/不理想时，无需切歌或重载 App 即可重新触发抓取（songloft-org/songloft#303）。
   Future<void> refetch() async {
-    final lyricUrl = ref.read(playerStateProvider).currentSong?.lyricUrl;
+    final song = ref.read(playerStateProvider).currentSong;
+    if (song == null) return;
+    var lyricUrl = song.lyricUrl;
+    if ((lyricUrl == null || lyricUrl.isEmpty) && song.type == 'local') {
+      lyricUrl = '/api/v1/songs/${song.id}/lyric';
+    }
     if (lyricUrl == null || lyricUrl.isEmpty) return;
     await LyricCacheService().remove(lyricUrl);
     _lastLoadedUrl = null;
