@@ -1366,6 +1366,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get playerBuffering => '缓冲中';
 
   @override
+  String get playerCaching => '正在缓存，请稍候…';
+
+  @override
   String get playerPause => '暂停';
 
   @override

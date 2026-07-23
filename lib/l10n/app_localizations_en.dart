@@ -1398,6 +1398,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerBuffering => 'Buffering';
 
   @override
+  String get playerCaching => 'Caching, please wait…';
+
+  @override
   String get playerPause => 'Pause';
 
   @override

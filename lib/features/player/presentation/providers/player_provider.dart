@@ -62,6 +62,13 @@ class PlayerNotifier extends Notifier<PlayerState> {
   static const int _maxConsecutiveSkips = 3;
   static const int _retryDelayMs = 1000;
 
+  // 网络歌曲重试配置：首播失败时服务端会后台全量下载并缓存（deduped），
+  // 客户端更"坚持"地带递增退避重试，让某次重试落在缓存就绪之后 → 从本地缓存秒开
+  // （复刻 web 端"等缓存完成后播放"体验，见 songloft-org/songloft#286）。
+  static const int _maxNetworkRetryPerSong = 7;
+  static const int _networkRetryBaseDelayMs = 2000;
+  static const int _networkRetryMaxDelayMs = 10000;
+
   int _consecutiveFailures = 0;
   Song? _lastPlayedSong;
 
@@ -1590,17 +1597,32 @@ class PlayerNotifier extends Notifier<PlayerState> {
       '[Player] _playCurrent: filePath: ${song.filePath}, url: ${song.url}',
     );
 
-    for (int retry = 0; retry <= _maxRetryPerSong; retry++) {
+    // 网络歌曲（远程 / 电台）：首播 libmpv 常在慢音源首字节到达前放弃，服务端此时
+    // 已在后台全量下载缓存，故用更多次数 + 递增退避重试，等缓存就绪后重试即秒开。
+    // 本地歌曲维持原有快速少量重试。
+    final isNetworkSong =
+        song.type != 'local' && (song.url?.isNotEmpty ?? false);
+    final maxRetry = isNetworkSong ? _maxNetworkRetryPerSong : _maxRetryPerSong;
+
+    for (int retry = 0; retry <= maxRetry; retry++) {
       if (_isSuperseded(gen, 'retry-loop-top')) return;
       try {
         if (retry > 0) {
           debugPrint(
-            '[Player] Retry $retry/$_maxRetryPerSong for: ${song.title}',
+            '[Player] Retry $retry/$maxRetry for: ${song.title}',
           );
           state = state.copyWith(isRetrying: true);
-          await Future<void>.delayed(
-            const Duration(milliseconds: _retryDelayMs),
-          );
+          // 网络歌曲：首次重试时提示"正在缓存"，让用户知道在等后台缓存而非卡死。
+          if (isNetworkSong && retry == 1) {
+            state = state.copyWith(infoMessage: l10n.playerCaching);
+          }
+          final delayMs = isNetworkSong
+              ? (_networkRetryBaseDelayMs * retry).clamp(
+                  _networkRetryBaseDelayMs,
+                  _networkRetryMaxDelayMs,
+                )
+              : _retryDelayMs;
+          await Future<void>.delayed(Duration(milliseconds: delayMs));
           if (_isSuperseded(gen, 'retry-delay')) return;
         }
 
@@ -1625,7 +1647,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
 
         // 播放成功 - 重置连续失败计数
         _consecutiveFailures = 0;
-        state = state.copyWith(isRetrying: false);
+        state = state.copyWith(isRetrying: false, clearInfoMessage: true);
         _notifyPlayEvent(song.id, 'play');
 
         // 恢复上次保存的播放进度
@@ -1645,7 +1667,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
         return; // 成功退出
       } catch (e) {
         debugPrint(
-          '[Player] _playCurrent: play failed (retry $retry/$_maxRetryPerSong): $e',
+          '[Player] _playCurrent: play failed (retry $retry/$maxRetry): $e',
         );
         if (_isSuperseded(gen, 'after-catch')) return;
       }
@@ -1656,7 +1678,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
     debugPrint(
       '[Player] _playCurrent: all retries exhausted for: ${song.title}',
     );
-    state = state.copyWith(isRetrying: false);
+    state = state.copyWith(isRetrying: false, clearInfoMessage: true);
     _handlePlayFailure(gen);
   }
 

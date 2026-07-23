@@ -900,6 +900,7 @@
   "playerNext": "下一首",
   "playerPlaylist": "播放列表",
   "playerBuffering": "缓冲中",
+  "playerCaching": "正在缓存，请稍候…",
   "playerPause": "暂停",
   "playerPlay": "播放",
   "playerSeekHint": "← → 快进/快退",

@@ -2552,6 +2552,12 @@ abstract class AppLocalizations {
   /// **'缓冲中'**
   String get playerBuffering;
 
+  /// No description provided for @playerCaching.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在缓存，请稍候…'**
+  String get playerCaching;
+
   /// No description provided for @playerPause.
   ///
   /// In zh, this message translates to:

@@ -318,7 +318,7 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
                     isPlaying: state.isPlaying,
                     hasPrev: state.hasPrev,
                     hasNext: state.hasNext,
-                    isBuffering: state.isBuffering,
+                    isBuffering: state.showBufferingIndicator,
                     onPlay: notifier.togglePlay,
                     onPause: notifier.togglePlay,
                     onPrev: notifier.playPrev,

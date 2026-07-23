@@ -165,6 +165,14 @@ class _ShellLayoutState extends ConsumerState<ShellLayout> {
       }
     });
 
+    // 监听播放器信息提示（如"正在缓存"），普通样式，与错误提示区分
+    ref.listen<PlayerState>(playerStateProvider, (prev, next) {
+      if (next.infoMessage != null &&
+          next.infoMessage != prev?.infoMessage) {
+        ResponsiveSnackBar.show(context, message: next.infoMessage!);
+      }
+    });
+
     // 监听播放队列侧边栏状态（仅桌面/平板端有效）
     final showPlaylistDrawer = ref.watch(
       playerStateProvider.select((s) => s.showPlaylistDrawer),

@@ -102,6 +102,7 @@ class PlayerState {
   final SleepTimerStatus? sleepTimer; // 当前已设定的睡眠定时（互斥单选）
   final double? previousVolume; // 静音前的音量（用于恢复）
   final String? errorMessage; // 当前错误消息，UI 层监听后显示 SnackBar
+  final String? infoMessage; // 当前信息提示（如"正在缓存"），UI 层监听后显示普通 SnackBar
   final bool isRetrying; // 是否正在重试中
   final int? sourcePlaylistId; // 当前播放队列的来源歌单 ID
 
@@ -120,6 +121,7 @@ class PlayerState {
     this.sleepTimer,
     this.previousVolume,
     this.errorMessage,
+    this.infoMessage,
     this.isRetrying = false,
     this.sourcePlaylistId,
   });
@@ -173,6 +175,11 @@ class PlayerState {
   /// 是否静音
   bool get isMuted => volume == 0;
 
+  /// 播放按钮是否显示"加载中"转圈：正在缓冲，或正在重试等待后台缓存完成。
+  /// isRetrying 不能并入 isBuffering——后者由 playerStateStream 每次事件覆盖，
+  /// 重试等待期会被 idle 事件重置为 false；故用独立标志合并出该派生值。
+  bool get showBufferingIndicator => isBuffering || isRetrying;
+
   /// 复制并修改
   PlayerState copyWith({
     Song? currentSong,
@@ -189,12 +196,14 @@ class PlayerState {
     SleepTimerStatus? sleepTimer,
     double? previousVolume,
     String? errorMessage,
+    String? infoMessage,
     bool? isRetrying,
     int? sourcePlaylistId,
     bool clearCurrentSong = false,
     bool clearSleepTimer = false,
     bool clearPreviousVolume = false,
     bool clearErrorMessage = false,
+    bool clearInfoMessage = false,
     bool clearSourcePlaylistId = false,
   }) {
     return PlayerState(
@@ -214,6 +223,8 @@ class PlayerState {
           clearPreviousVolume ? null : (previousVolume ?? this.previousVolume),
       errorMessage:
           clearErrorMessage ? null : (errorMessage ?? this.errorMessage),
+      infoMessage:
+          clearInfoMessage ? null : (infoMessage ?? this.infoMessage),
       isRetrying: isRetrying ?? this.isRetrying,
       sourcePlaylistId: clearSourcePlaylistId
           ? null

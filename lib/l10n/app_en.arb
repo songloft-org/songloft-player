@@ -795,6 +795,7 @@
   "playerNext": "Next",
   "playerPlaylist": "Playlist",
   "playerBuffering": "Buffering",
+  "playerCaching": "Caching, please wait…",
   "playerPause": "Pause",
   "playerPlay": "Play",
   "playerSeekHint": "← → Seek",

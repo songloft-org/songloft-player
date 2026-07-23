@@ -119,7 +119,7 @@ class MiniPlayer extends ConsumerWidget {
                       // 播放/暂停按钮
                       CompactPlayButton(
                         isPlaying: state.isPlaying,
-                        isBuffering: state.isBuffering,
+                        isBuffering: state.showBufferingIndicator,
                         onPlay: notifier.togglePlay,
                         onPause: notifier.togglePlay,
                         size: 44,
