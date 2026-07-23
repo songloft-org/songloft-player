@@ -57,6 +57,7 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
   late final StreamSubscription<PlaybackState> _playbackEventSub;
   late final StreamSubscription<PlaybackState> _playbackLogSub;
   late final StreamSubscription<ja.ProcessingState> _processingStateSub;
+  late final StreamSubscription<bool> _playingStateSub;
   StreamSubscription<AudioInterruptionEvent>? _interruptionSub;
   bool _disposed = false;
 
@@ -67,6 +68,17 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
     _playbackEventSub = _player.playbackEventStream
         .map(_transformEvent)
         .listen(playbackState.add);
+
+    // media_kit(libmpv) 后端在 Android 上不像 ExoPlayer 那样对每次播放态切换都发
+    // 平台 PlaybackEvent，靠 position tick 才顺带刷新——暂停后 tick 停止，playbackState
+    // 里的 playing/position 可能停滞，导致系统媒体控件（通知栏/灵动岛）显示与实际不同步、
+    // 控制按钮看似失效。额外订阅 playingStream，播放态一变就主动重播一次 playbackState，
+    // 保证 audio_service 侧的 MediaSession 始终拿到最新状态（songloft-org/songloft-player#23）。
+    _playingStateSub = _player.playingStream.distinct().listen((playing) {
+      if (_disposed) return;
+      debugPrint('[AudioService] 🎚️ playingStream 变化: playing=$playing');
+      playbackState.add(_buildPlaybackState());
+    });
     debugPrint('[AudioService] ✓ playbackEventStream 已绑定');
 
     // 监听 playbackState 变化，用于排查通知栏问题
@@ -147,17 +159,41 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
   // ★ 核心：将 just_audio PlaybackEvent 转换为 audio_service PlaybackState
   // 官方示例：每个 event 都会触发 playbackState 更新，Android 端据此构建 MediaStyle 通知
   PlaybackState _transformEvent(ja.PlaybackEvent event) {
-    final state = PlaybackState(
+    final state = _buildPlaybackState();
+    // 每个 PlaybackEvent 都会触发，高频；仅 debug 构建输出。
+    if (kDebugMode) {
+      debugPrint(
+        '[AudioService] 🔄 _transformEvent: playing=${state.playing}, '
+        'processingState=${state.processingState}, '
+        'position=${state.updatePosition.inSeconds}s, '
+        'controls=${state.controls.length}个',
+      );
+    }
+    return state;
+  }
+
+  /// 依据 `_player` 当前快照构建一份 audio_service [PlaybackState]。
+  /// 抽出成独立方法，供 playbackEventStream 转换与 play/pause 等动作后的主动重播共用。
+  PlaybackState _buildPlaybackState() {
+    return PlaybackState(
       controls: [
         MediaControl.skipToPrevious,
         if (_player.playing) MediaControl.pause else MediaControl.play,
         MediaControl.skipToNext,
       ],
+      // 显式声明 play/pause/skip 系统动作：Android 13+ 通知与灵动岛/锁屏的媒体控件由系统
+      // 依据 MediaSession 的 action 位渲染，除 controls 带入的动作外再补一层，确保上一首/
+      // 下一首/播放暂停在系统媒体面板上恒为可用（songloft-org/songloft-player#23）。
       systemActions: const {
         MediaAction.seek,
         MediaAction.seekForward,
         MediaAction.seekBackward,
         MediaAction.stop,
+        MediaAction.play,
+        MediaAction.pause,
+        MediaAction.playPause,
+        MediaAction.skipToNext,
+        MediaAction.skipToPrevious,
       },
       androidCompactActionIndices: const [0, 1, 2],
       processingState:
@@ -174,31 +210,47 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
       speed: _player.speed,
       queueIndex: 0,
     );
-    // 每个 PlaybackEvent 都会触发，高频；仅 debug 构建输出。
-    if (kDebugMode) {
-      debugPrint(
-        '[AudioService] 🔄 _transformEvent: playing=${state.playing}, '
-        'processingState=${state.processingState}, '
-        'position=${state.updatePosition.inSeconds}s, '
-        'controls=${state.controls.length}个',
-      );
-    }
-    return state;
+  }
+
+  /// 立即用当前播放器快照刷新一次 playbackState（供通知栏动作后强制同步系统媒体控件）。
+  void _broadcastState() {
+    if (_disposed) return;
+    playbackState.add(_buildPlaybackState());
   }
 
   // ====================== audio_service 必需的覆写方法 ======================
   // 官方示例：audio_service Android 端通过调用这些覆写方法来响应通知栏按钮点击
 
   @override
-  Future<void> play() {
-    debugPrint('[AudioService] ▶️ play() 被调用');
-    return _player.play();
+  Future<void> play() async {
+    debugPrint(
+      '[AudioService] ▶️ play() 被调用 (before: playing=${_player.playing}, '
+      'ps=${_player.processingState})',
+    );
+    // 不要 return/await just_audio 的 play()：其 Future 仅在播放停止时才完成，
+    // 若交给 audio_service 的方法通道回调 await，会一直挂起。改为 fire-and-forget，
+    // 并立即重播一次 playbackState，让系统媒体控件即时反映播放态
+    // （songloft-org/songloft-player#23）。
+    unawaited(
+      _player.play().catchError((e) {
+        debugPrint('[AudioService] play() 失败: $e');
+      }),
+    );
+    _broadcastState();
   }
 
   @override
-  Future<void> pause() {
-    debugPrint('[AudioService] ⏸️ pause() 被调用');
-    return _player.pause();
+  Future<void> pause() async {
+    debugPrint(
+      '[AudioService] ⏸️ pause() 被调用 (before: playing=${_player.playing}, '
+      'ps=${_player.processingState})',
+    );
+    try {
+      await _player.pause();
+    } catch (e) {
+      debugPrint('[AudioService] pause() 失败: $e');
+    }
+    _broadcastState();
   }
 
   @override
@@ -217,13 +269,20 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
 
   @override
   Future<void> skipToNext() async {
-    debugPrint('[AudioService] ⏭️ skipToNext() 被调用');
+    // 记录回调是否已注入：后台被系统唤醒但 PlayerNotifier 未重建时 onSkipToNext 可能为 null，
+    // 此日志可在真机 logcat 里一刀切分「按钮没到 Dart」还是「到了但无回调」
+    // （songloft-org/songloft-player#23）。
+    debugPrint(
+      '[AudioService] ⏭️ skipToNext() 被调用 (callback=${onSkipToNext != null})',
+    );
     onSkipToNext?.call();
   }
 
   @override
   Future<void> skipToPrevious() async {
-    debugPrint('[AudioService] ⏮️ skipToPrevious() 被调用');
+    debugPrint(
+      '[AudioService] ⏮️ skipToPrevious() 被调用 (callback=${onSkipToPrevious != null})',
+    );
     onSkipToPrevious?.call();
   }
 
@@ -746,6 +805,8 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
     debugPrint('[AudioService] interruption subscription canceled');
     await _processingStateSub.cancel();
     debugPrint('[AudioService] processingState subscription canceled');
+    await _playingStateSub.cancel();
+    debugPrint('[AudioService] playing state subscription canceled');
     await _playbackLogSub.cancel();
     debugPrint('[AudioService] playback log subscription canceled');
     await _playbackEventSub.cancel();
