@@ -1,8 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cached_network_image_platform_interface/cached_network_image_platform_interface.dart'
-    show ImageRenderMethodForWeb;
 import 'package:flutter/material.dart';
 
+import '../../core/utils/cover_diagnostics.dart';
 import '../../core/utils/url_helper.dart';
 
 /// 统一封面图组件
@@ -38,16 +37,17 @@ class CoverImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 使用 UrlHelper 处理封面 URL（自动拼接 baseUrl + access_token）
-    final displayUrl =
-        coverUrl != null && coverUrl!.isNotEmpty
-            ? UrlHelper.buildCoverUrl(coverUrl!)
-            : null;
-
     // 按显示尺寸的物理像素解码（而非原图全分辨率），大幅降低单张解码内存与 GPU 纹理。
-    // 封面为方形，仅限宽即可等比缩放。详见下方 imageRenderMethodForWeb 注释。
+    // 封面为方形，仅限宽即可等比缩放。
     final dpr = MediaQuery.of(context).devicePixelRatio;
     final decodeWidth = (size * dpr).clamp(64.0, 1024.0).round();
+
+    // 使用 UrlHelper 处理封面 URL（自动拼接 baseUrl + access_token）。
+    // Web 端追加 ?w=decodeWidth 让服务端缩略（见下方 imageRenderMethodForWeb 注释）。
+    final displayUrl =
+        coverUrl != null && coverUrl!.isNotEmpty
+            ? UrlHelper.buildCoverUrl(coverUrl!, width: decodeWidth)
+            : null;
 
     final imageWidget = ClipRRect(
       borderRadius: BorderRadius.circular(borderRadius),
@@ -59,20 +59,20 @@ class CoverImage extends StatelessWidget {
                 ? CachedNetworkImage(
                   imageUrl: displayUrl,
                   fit: fit,
-                  // web 走字节解码路径（HttpGet），而非默认的 <img> 惰性纹理
-                  // （HtmlImage）。默认路径下 memCacheWidth 不生效，封面按原图全分辨率
-                  // 上传为 GPU 纹理（~1.5MB/张），大量封面纹理累积挤爆移动端 GPU 显存
-                  // → CanvasKit 的 WebGL context 被丢弃 → 已上传纹理失效（封面变黑）、
-                  // 新解码抛 ImageCodecException（封面变占位图标）。HttpGet 路径下
-                  // memCacheWidth 生效，封面缩到显示尺寸解码（数十 KB），大幅降压；
-                  // 且字节可在 context 恢复后重解码，比 <img> 惰性纹理更抗 context 丢失。
-                  // 直接用 CachedNetworkImage 渲染封面的其它组件见 [NetworkCoverImage]。
-                  imageRenderMethodForWeb: ImageRenderMethodForWeb.HttpGet,
+                  // Web 端走默认的浏览器原生 <img>（HtmlImage）路径，不再用 HttpGet。
+                  // 此前 HttpGet 是为让 memCacheWidth 生效、缩小 GPU 纹理防显存顶爆变黑；
+                  // 但 HttpGet 走 flutter_cache_manager 的 web 内存管线，滚回/队列重建时
+                  // 会静默 stall、封面画成空白（songloft-org/songloft#309）。改回 <img>
+                  // 拿回浏览器缓存的稳健重显示，纹理体积改由服务端 ?w= 缩略控制（URL 已带）。
+                  // memCacheWidth / maxWidthDiskCache 在 web <img> 路径不生效，仅对原生
+                  // 平台的解码降采样有意义，保留不影响 web。
                   memCacheWidth: decodeWidth,
                   maxWidthDiskCache: decodeWidth,
                   placeholder: (context, url) => _buildPlaceholder(context),
-                  errorWidget:
-                      (context, url, error) => _buildPlaceholder(context),
+                  errorWidget: (context, url, error) {
+                    CoverDiagnostics.logError(url, error);
+                    return _buildPlaceholder(context);
+                  },
                 )
                 : _buildPlaceholder(context),
       ),

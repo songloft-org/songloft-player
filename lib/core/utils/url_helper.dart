@@ -93,8 +93,40 @@ class UrlHelper {
   }
 
   /// 构建封面图片 URL（兼容旧接口，内部调用 buildResourceUrl）
-  static String buildCoverUrl(String coverUrl) {
-    return buildResourceUrl(coverUrl);
+  ///
+  /// [width] 非空时（且仅 Web 生效），给「本机后端封面端点」追加 `?w=<物理像素>` 服务端
+  /// 缩略参数：Web 端封面改走浏览器原生 `<img>`（HtmlImage）路径以规避 HttpGet +
+  /// flutter_cache_manager web 内存管线的「滚回/队列重建时静默 stall」重显示 bug；而
+  /// `<img>` 会按图片**固有尺寸**上传 GPU 纹理、`memCacheWidth` 在该路径不生效，故改由
+  /// 服务端把封面缩到显示尺寸，既拿回浏览器缓存的稳健重显示，又保住移动端小纹理（不再
+  /// 顶爆 WebGL 显存变黑）。外部封面 URL（CDN）不追加。见 songloft-org/songloft#309。
+  static String buildCoverUrl(String coverUrl, {int? width}) {
+    final url = buildResourceUrl(coverUrl);
+    if (width != null) return appendCoverWidth(url, width);
+    return url;
+  }
+
+  /// 给**已构建**的本机后端封面 URL 追加 `?w=` 缩略参数（仅 Web、仅本机后端 URL 生效）。
+  ///
+  /// 供直接持有成品 URL 的场景复用（如 [NetworkCoverImage] 的调用方已 `buildCoverUrl`
+  /// 过）。外部封面（http/https CDN）与非 Web 平台原样返回，避免破坏其缓存键/签名或改变
+  /// 原生画质。已带 `w=` 的不重复追加。
+  static String appendCoverWidth(String url, int width) {
+    if (!kIsWeb || url.isEmpty || width <= 0) return url;
+    if (!_isLocalBackendUrl(url)) return url;
+    if (RegExp(r'[?&]w=').hasMatch(url)) return url;
+    final separator = url.contains('?') ? '&' : '?';
+    return '$url${separator}w=$width';
+  }
+
+  /// 判断 URL 是否指向本机后端（相对路径，或以已解析的 resolvedBaseUrl 打头的绝对 URL）。
+  static bool _isLocalBackendUrl(String url) {
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      final base = AppConfig.resolvedBaseUrl;
+      return base.isNotEmpty && url.startsWith(base);
+    }
+    // 相对路径（同源嵌入部署）视为本机后端。
+    return url.startsWith('/');
   }
 
   /// 构建歌词 URL（兼容旧接口，内部调用 buildResourceUrl）
