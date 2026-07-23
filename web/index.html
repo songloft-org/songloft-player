@@ -114,18 +114,23 @@
   })();
   </script>
   <!--
-    已知问题:移动端切后台回来可能白屏。根因是引擎 bug flutter/flutter#184683
-    (CanvasKit 处理 WebGL context 丢失时访问未初始化的 late 字段,抛
-    LateInitializationError,渲染帧崩溃)。官方修复 #185116 尚未进 stable 3.44.6
-    (仅 beta 3.47+),当前按现状接受;待 3.47 进 stable 后升级即可根治。页面侧的
-    渲染器强制/恢复绕法已移除(在含 bug 的版本上要么无效、要么反而触发崩溃)。
+    WebGL context 丢失相关:GPU 显存压力 / 切后台时 CanvasKit 可能丢失 WebGL context。
+    引擎 bug flutter/flutter#184683(丢失时访问未初始化 late 字段抛 LateInitializationError
+    → 渲染帧崩溃 / 白屏)已由官方修复 #185116 解决,web 构建已切到含该修复的 beta 3.47
+    (见 .github/workflows/build-and-release.yml)。离屏封面残留的死纹理则由应用侧
+    installWebGLContextRecovery(context 丢失/恢复时清空 imageCache)兜底,见
+    songloft-org/songloft#309。页面侧的渲染器强制/恢复绕法已移除。
   -->
   <script>
     {{flutter_js}}
     {{flutter_build_config}}
 
     var config = {
-      canvasKitVariant: "full",
+      // 不强制变体,由引擎按浏览器自动选择(canvasKitVariant 默认 auto):
+      // Chromium 内核用体积更小的 chromium 变体,Firefox / Safari 用 full 变体。
+      // 与 CPU/GPU 渲染模式无关,两种变体都走 WebGL。embedded 自托管构建会保留
+      // canvaskit/chromium 子目录(见 scripts/build-frontend.sh),确保离线也能加载。
+      canvasKitVariant: "auto",
     };
 
     if (typeof _deployMode !== 'undefined' && _deployMode === 'embedded') {

@@ -32,6 +32,7 @@ import 'core/router/app_router.dart';
 import 'core/utils/file_logger.dart';
 import 'core/utils/force_terminate.dart';
 import 'core/utils/platform_utils.dart';
+import 'core/utils/webgl_context_recovery.dart';
 import 'core/utils/webview_environment.dart';
 import 'core/utils/window_tray_manager.dart';
 import 'features/player/presentation/widgets/player_shortcut_scope.dart';
@@ -102,6 +103,9 @@ void main(List<String> args) async {
   // 引擎残留 bug 让语义节点遮挡插件 iframe（songloft-org/songloft#295）。
   if (kIsWeb) {
     WebSemanticsController.instance.enableByDefault();
+    // WebGL context 丢失/恢复时清空 imageCache，避免离屏封面持有的死纹理在回滚时
+    // 命中缓存却画成空白（songloft-org/songloft#309）。原生平台为 no-op。
+    installWebGLContextRecovery();
   }
 
   // Web 上 dart:io 的 Platform 不可用，调用任意 getter 会抛 UnsupportedError，

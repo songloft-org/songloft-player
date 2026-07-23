@@ -71,9 +71,12 @@ class _StartupGateState extends ConsumerState<StartupGate>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (!kIsWeb || state != AppLifecycleState.resumed) return;
-    // Web 回前台轻量补几帧。切后台 WebGL context 丢失/纹理失效导致的黑屏/封面黑，
-    // 已由 web 构建强制 CanvasKit CPU 渲染（canvasKitForceCpuOnly，见 web/index.html）
-    // 从根上消除（无 WebGL context 即无纹理丢失），这里无需再做缓存驱逐/重建等干预。
+    // Web 回前台轻量补几帧，促使引擎重绘。web 仍走 CanvasKit + WebGL（web/index.html
+    // 里 canvasKitVariant: "auto"，由引擎按浏览器选 chromium/full 变体，都走 WebGL；
+    // CPU-only 强制绕法早已移除），切后台 / GPU 显存压力下 WebGL context 仍可能丢失：
+    // 崩溃已由 beta 3.47 引擎修复（flutter/flutter#185116）兜住，离屏封面的死纹理则由
+    // installWebGLContextRecovery（main.dart）在 context 丢失/恢复时清空 imageCache
+    // 收尾（songloft-org/songloft#309），故这里只需补帧。
     for (var i = 0; i < 3; i++) {
       Future.delayed(Duration(milliseconds: i * 200), () {
         if (mounted) WidgetsBinding.instance.scheduleFrame();

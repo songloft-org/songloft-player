@@ -15,9 +15,14 @@ import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 ///
 /// `ListView` / `CustomScrollView` / `ReorderableListView` 默认 `cacheExtent`
 /// 为 250——会在可视区外预构建、预解码更多封面并让其 GPU 纹理常驻。Web 端收紧到
-/// 100，减少屏幕外常驻纹理约一半（仍保留少量缓冲避免快速滚动时白块）；离屏项被更早
-/// dispose、其 GPU 纹理引用更早释放，而解码字节仍留在 imageCache（`main.dart` 调到
-/// 2000 项 / 200 MiB），回滚时命中缓存不触发 CPU 重解码风暴——正好只降 GPU 纹理驻留。
+/// 100，减少屏幕外同时驻留的 GPU 纹理数量约一半（仍保留少量缓冲避免快速滚动时白块），
+/// 降低顶破显存、丢 WebGL context 的概率。
+///
+/// 注意：这里降低的是**同时驻留的纹理数**，并非“靠 imageCache 保住字节”。Flutter 的
+/// `imageCache`（`main.dart` 调到 2000 项 / 200 MiB）缓存的是**解码后的 ui.Image /
+/// GPU 纹理句柄**而非编码字节；一旦 WebGL context 丢失，这些缓存条目会变成**死纹理**，
+/// 回滚命中缓存反而画成空白——该场景由 `installWebGLContextRecovery`（context 丢失/
+/// 恢复时清空 imageCache 强制重新解码）兜底，二者配合，见 songloft-org/songloft#309。
 ///
 /// 原生端返回 `null`，让框架使用默认 250，行为保持不变。
 ScrollCacheExtent? get webListCacheExtent =>

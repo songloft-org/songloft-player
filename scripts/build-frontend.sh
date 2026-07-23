@@ -204,12 +204,16 @@ build_web() {
         "$FRONTEND_VERSION_VALUE" "$FRONTEND_BUILD_TIME_VALUE" > "$output/version.json"
     echo -e "${GREEN}✓ [Web]${NC} 已生成版本标记 version.json (${FRONTEND_VERSION_VALUE} / ${FRONTEND_BUILD_TIME_VALUE})"
 
-    # canvaskit 清理：仅在 embedded 模式下清理未使用的渲染器变体（skwasm、wimp、symbols），仅保留 canvaskit 本体
+    # canvaskit 清理：仅在 embedded 模式下清理运行时用不到的产物（skwasm、wimp 两个未用
+    # 渲染器 + 各处 .symbols 调试符号）。**保留 canvaskit/chromium 变体**：index.html 用
+    # canvasKitVariant: "auto"，由引擎按浏览器选变体——Chromium 内核加载 chromium 变体，
+    # Firefox/Safari 加载 full；自托管离线部署下 chromium 目录必须在本地，否则 Chrome 会
+    # 404 白屏。symbols 只用于崩溃栈反混淆，运行时不加载，chromium 子目录内的也一并清掉。
     # standalone 模式不生成本地 canvaskit，无需清理
     if [ "$mode" = "embedded" ] && [ -d "$output/canvaskit" ]; then
         rm -f "$output/canvaskit"/skwasm* "$output/canvaskit"/wimp* "$output/canvaskit"/*.symbols
-        rm -rf "$output/canvaskit/chromium"
-        echo -e "${GREEN}✓ [Web]${NC} 已清理未使用的渲染器变体"
+        rm -f "$output/canvaskit/chromium"/*.symbols
+        echo -e "${GREEN}✓ [Web]${NC} 已清理未使用的渲染器变体与调试符号（保留 chromium 变体供 auto 选择）"
     fi
 
     # 字体瘦身：移除 pubspec.yaml 声明的 NotoSansSC OTF（8 MB eager loading），
