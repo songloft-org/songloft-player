@@ -27,9 +27,9 @@ class ShorebirdUpdateService {
     }
   }
 
-  /// 是否已有下载完成、等待下次冷启动生效的补丁。
+  /// 是否已有下载完成、等待下次冷启动生效的补丁（上次会话下载好、尚未重启）。
   ///
-  /// 用于「补丁已就绪，提示用户重启」的轻提示。不可用 / 出错时返回 false。
+  /// 用于进入 App 时直接提示「重启生效」。不可用 / 出错时返回 false。
   Future<bool> isPatchReadyToInstall() async {
     if (!isAvailable) return false;
     try {
@@ -37,6 +37,37 @@ class ShorebirdUpdateService {
       return status == UpdateStatus.restartRequired;
     } catch (e) {
       debugPrint('[Shorebird] checkForUpdate 失败: $e');
+      return false;
+    }
+  }
+
+  /// 服务端是否有「可下载但尚未下载」的新补丁（`auto_update: false` 下由客户端主动下载）。
+  ///
+  /// 不可用 / 出错时返回 false。
+  Future<bool> isUpdateAvailable() async {
+    if (!isAvailable) return false;
+    try {
+      final status = await _updater.checkForUpdate();
+      return status == UpdateStatus.outdated;
+    } catch (e) {
+      debugPrint('[Shorebird] checkForUpdate 失败: $e');
+      return false;
+    }
+  }
+
+  /// 主动下载当前可用补丁（阻塞到下载完成）。成功返回 true，下载完成后需重启生效。
+  ///
+  /// 不可用 / 下载失败时返回 false（已吞异常，不抛给调用方）。
+  Future<bool> downloadUpdate() async {
+    if (!isAvailable) return false;
+    try {
+      await _updater.update();
+      return true;
+    } on UpdateException catch (e) {
+      debugPrint('[Shorebird] update 失败: ${e.message}');
+      return false;
+    } catch (e) {
+      debugPrint('[Shorebird] update 失败: $e');
       return false;
     }
   }

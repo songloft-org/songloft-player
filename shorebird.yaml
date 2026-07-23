@@ -10,5 +10,6 @@
 # 无副作用。首次接入时用 `shorebird init` 生成真实 app_id 后，填入 GitHub 变量即可。
 app_id: 00000000-0000-0000-0000-000000000000
 
-# 启动时自动后台检查 + 下载适配补丁，下次冷启动生效（推荐保留 true）。
-auto_update: true
+# false：updater 不自动后台下载。由客户端代码（ShorebirdUpdateService + 首页流程）
+# 主动检查 → 弹「发现新版本」→ 下载进度 → 「重启生效」提示。改成主动式更新 UX。
+auto_update: false

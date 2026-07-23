@@ -9,8 +9,34 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get patchReadyRestartHint =>
-      'A new update has been downloaded. Restart the app to apply it';
+  String get updateAvailableTitle => 'Update available';
+
+  @override
+  String get updateAvailableBody =>
+      'A new app update is available. Download it now?';
+
+  @override
+  String get updateActionDownloadNow => 'Download';
+
+  @override
+  String get updateActionLater => 'Later';
+
+  @override
+  String get updateDownloading => 'Downloading update…';
+
+  @override
+  String get updateDownloadFailed =>
+      'Update download failed, please try again later';
+
+  @override
+  String get updateReadyTitle => 'Update ready';
+
+  @override
+  String get updateReadyBody =>
+      'The update has been downloaded. Restart the app to apply it.';
+
+  @override
+  String get updateActionRestartNow => 'Restart now';
 
   @override
   String get language => 'Language';

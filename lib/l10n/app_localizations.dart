@@ -98,11 +98,59 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
-  /// Shorebird 补丁下载完成、等待重启生效时的轻提示
+  /// Shorebird 检测到可用更新的对话框标题
   ///
   /// In zh, this message translates to:
-  /// **'已下载新版本更新，重启应用后生效'**
-  String get patchReadyRestartHint;
+  /// **'发现新版本'**
+  String get updateAvailableTitle;
+
+  /// 发现更新对话框正文
+  ///
+  /// In zh, this message translates to:
+  /// **'检测到可用的应用更新，是否立即下载？'**
+  String get updateAvailableBody;
+
+  /// No description provided for @updateActionDownloadNow.
+  ///
+  /// In zh, this message translates to:
+  /// **'立即下载'**
+  String get updateActionDownloadNow;
+
+  /// No description provided for @updateActionLater.
+  ///
+  /// In zh, this message translates to:
+  /// **'稍后'**
+  String get updateActionLater;
+
+  /// 下载进度对话框文案
+  ///
+  /// In zh, this message translates to:
+  /// **'正在下载更新…'**
+  String get updateDownloading;
+
+  /// No description provided for @updateDownloadFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'更新下载失败，请稍后重试'**
+  String get updateDownloadFailed;
+
+  /// No description provided for @updateReadyTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'更新已就绪'**
+  String get updateReadyTitle;
+
+  /// 补丁下载完成、提示重启生效
+  ///
+  /// In zh, this message translates to:
+  /// **'更新已下载完成，重启应用后生效。'**
+  String get updateReadyBody;
+
+  /// No description provided for @updateActionRestartNow.
+  ///
+  /// In zh, this message translates to:
+  /// **'立即重启'**
+  String get updateActionRestartNow;
 
   /// 设置页-语言分区标题
   ///

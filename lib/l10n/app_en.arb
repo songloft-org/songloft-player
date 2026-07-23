@@ -1,9 +1,18 @@
 {
   "@@locale": "en",
-  "patchReadyRestartHint": "A new update has been downloaded. Restart the app to apply it",
-  "@patchReadyRestartHint": {
-    "description": "Light hint shown when a Shorebird patch is downloaded and waiting for restart"
-  },
+  "updateAvailableTitle": "Update available",
+  "@updateAvailableTitle": { "description": "Title of the Shorebird update-available dialog" },
+  "updateAvailableBody": "A new app update is available. Download it now?",
+  "@updateAvailableBody": { "description": "Body of the update-available dialog" },
+  "updateActionDownloadNow": "Download",
+  "updateActionLater": "Later",
+  "updateDownloading": "Downloading update…",
+  "@updateDownloading": { "description": "Text shown in the download progress dialog" },
+  "updateDownloadFailed": "Update download failed, please try again later",
+  "updateReadyTitle": "Update ready",
+  "updateReadyBody": "The update has been downloaded. Restart the app to apply it.",
+  "@updateReadyBody": { "description": "Shown when a patch is downloaded and waiting for restart" },
+  "updateActionRestartNow": "Restart now",
   "language": "Language",
   "languageSimplifiedChinese": "简体中文",
   "languageEnglish": "English",

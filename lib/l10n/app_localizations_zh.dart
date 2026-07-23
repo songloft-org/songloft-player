@@ -9,7 +9,31 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
-  String get patchReadyRestartHint => '已下载新版本更新，重启应用后生效';
+  String get updateAvailableTitle => '发现新版本';
+
+  @override
+  String get updateAvailableBody => '检测到可用的应用更新，是否立即下载？';
+
+  @override
+  String get updateActionDownloadNow => '立即下载';
+
+  @override
+  String get updateActionLater => '稍后';
+
+  @override
+  String get updateDownloading => '正在下载更新…';
+
+  @override
+  String get updateDownloadFailed => '更新下载失败，请稍后重试';
+
+  @override
+  String get updateReadyTitle => '更新已就绪';
+
+  @override
+  String get updateReadyBody => '更新已下载完成，重启应用后生效。';
+
+  @override
+  String get updateActionRestartNow => '立即重启';
 
   @override
   String get language => '语言';

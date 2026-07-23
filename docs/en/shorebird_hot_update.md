@@ -4,7 +4,7 @@ This document describes the full implementation plan for integrating [Shorebird]
 
 > Background and the trade-off comparison live in the team discussion; this doc only covers "how to land it once we've decided to adopt Shorebird".
 
-> **Landing status in this repo (2026-07)**: the Android main path is landed — the CI (`build-and-release.yml`) runs `shorebird release android --artifact apk` on tag pushes, and a new manual patch workflow `shorebird-patch.yml` was added; the client integrates the §6.2 patch-restart light hint (once per session on the home page). **The `app_id` is NOT hardcoded in `shorebird.yaml`**: the repo only holds a placeholder, the real `app_id` lives in the GitHub repository variable `SHOREBIRD_APP_ID`, and CI overwrites it before release / patch (see §3.2, §4.3). iOS remains an **independent follow-up task** per §4.2 and is not wired up yet.
+> **Landing status in this repo (2026-07)**: the Android main path is landed — the CI (`build-and-release.yml`) runs `shorebird release android --artifact apk` on tag pushes, and a new manual patch workflow `shorebird-patch.yml` was added; the client uses an **active update flow** (`shorebird.yaml` sets `auto_update: false`; the home page checks once per session: detect update → "download?" dialog → progress → "restart to apply" dialog, see `lib/core/updater/`) rather than silent background updates. **The `app_id` is NOT hardcoded in `shorebird.yaml`**: the repo only holds a placeholder, the real `app_id` lives in the GitHub repository variable `SHOREBIRD_APP_ID`, and CI overwrites it before release / patch (see §3.2, §4.3). iOS remains an **independent follow-up task** per §4.2 and is not wired up yet.
 
 ---
 

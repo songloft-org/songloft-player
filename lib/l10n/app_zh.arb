@@ -1,9 +1,18 @@
 {
   "@@locale": "zh",
-  "patchReadyRestartHint": "已下载新版本更新，重启应用后生效",
-  "@patchReadyRestartHint": {
-    "description": "Shorebird 补丁下载完成、等待重启生效时的轻提示"
-  },
+  "updateAvailableTitle": "发现新版本",
+  "@updateAvailableTitle": { "description": "Shorebird 检测到可用更新的对话框标题" },
+  "updateAvailableBody": "检测到可用的应用更新，是否立即下载？",
+  "@updateAvailableBody": { "description": "发现更新对话框正文" },
+  "updateActionDownloadNow": "立即下载",
+  "updateActionLater": "稍后",
+  "updateDownloading": "正在下载更新…",
+  "@updateDownloading": { "description": "下载进度对话框文案" },
+  "updateDownloadFailed": "更新下载失败，请稍后重试",
+  "updateReadyTitle": "更新已就绪",
+  "updateReadyBody": "更新已下载完成，重启应用后生效。",
+  "@updateReadyBody": { "description": "补丁下载完成、提示重启生效" },
+  "updateActionRestartNow": "立即重启",
   "language": "语言",
   "@language": {
     "description": "设置页-语言分区标题"

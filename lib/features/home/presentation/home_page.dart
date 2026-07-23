@@ -7,9 +7,8 @@ import '../../../core/router/app_router.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/responsive.dart';
-import '../../../core/updater/shorebird_update_service.dart';
+import '../../../core/updater/shorebird_update_prompt.dart';
 import '../../../core/utils/url_helper.dart';
-import '../../../shared/utils/responsive_snackbar.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../playlist/domain/playlist.dart';
 import '../../player/presentation/providers/player_provider.dart';
@@ -35,20 +34,19 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   void initState() {
     super.initState();
-    _maybeNotifyPatchReady();
+    // 首帧渲染后再触发，确保 Navigator/context 就绪可弹对话框。
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _maybeCheckUpdate();
+    });
   }
 
-  /// Shorebird 补丁已下好、待重启生效时轻提示用户。非 Shorebird 构建（dev/web/desktop）
-  /// 下 [ShorebirdUpdateService] 直接返回 false，此处静默跳过。
-  Future<void> _maybeNotifyPatchReady() async {
+  /// Shorebird 主动式更新流程：发现新版本 → 下载 → 提示重启。每会话检查一次。
+  /// 非 Shorebird 构建（dev/web/desktop）下静默跳过。
+  Future<void> _maybeCheckUpdate() async {
     if (_patchChecked) return;
     _patchChecked = true;
-    final ready = await ShorebirdUpdateService().isPatchReadyToInstall();
-    if (!ready || !mounted) return;
-    ResponsiveSnackBar.show(
-      context,
-      message: AppLocalizations.of(context).patchReadyRestartHint,
-    );
+    if (!mounted) return;
+    await maybePromptShorebirdUpdate(context);
   }
 
   @override

@@ -6,7 +6,9 @@
 
 > **本仓库落地现状（2026-07）**：Android 主路径已落地——CI（`build-and-release.yml`）
 > tag 触发走 `shorebird release android --artifact apk`，新增手动补丁 workflow
-> `shorebird-patch.yml`；客户端已接入 §6.2 的补丁重启轻提示（首页每会话一次）。
+> `shorebird-patch.yml`；客户端采用**主动式更新流程**（`shorebird.yaml` 设
+> `auto_update: false`，首页每会话检查一次：发现新版本→弹「是否下载」对话框→下载进度→
+> 「重启生效」提示，见 `lib/core/updater/`），而非静默后台更新。
 > **app_id 不硬编码在 `shorebird.yaml`**：仓库内只放占位值，真实 app_id 存在 GitHub
 > 仓库变量 `SHOREBIRD_APP_ID`，CI 在 release / patch 前覆写（见 §3.2、§4.3）。
 > iOS 仍按 §4.2 建议**作为独立后续任务**，暂未接入。
