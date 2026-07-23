@@ -3,8 +3,11 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'package:dio/dio.dart';
+
 import '../../config/app_config.dart';
 import '../network/base_url_provider.dart';
+import '../updater/backend_patch_service.dart';
 import 'embedded_backend_service.dart';
 import 'run_mode_provider.dart';
 
@@ -56,7 +59,15 @@ class BackendLifecycle with WidgetsBindingObserver {
         dataDir: dataDir,
         musicDir: musicDir,
       );
-      ref.read(baseUrlProvider.notifier).set('http://127.0.0.1:$port');
+      final baseUrl = 'http://127.0.0.1:$port';
+      ref.read(baseUrlProvider.notifier).set(baseUrl);
+
+      // 若本次是后端热更冷启，确认补丁健康（崩溃回滚状态机的 confirm 时机）。
+      try {
+        final versionDio = Dio(BaseOptions(baseUrl: baseUrl));
+        await BackendPatchService(appDio: versionDio).confirmIfHealthy();
+        versionDio.close();
+      } catch (_) {}
     } catch (e) {
       debugPrint('[BackendLifecycle] 后端重启失败: $e');
     }

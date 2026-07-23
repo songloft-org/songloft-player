@@ -17,6 +17,22 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get updateComponentsHeader => '检测到以下更新，是否下载并更新？';
+
+  @override
+  String updateComponentFrontend(String version) {
+    return '前端补丁 $version';
+  }
+
+  @override
+  String updateComponentBackend(String version) {
+    return '后端补丁 $version';
+  }
+
+  @override
+  String get updateRestartInterrupt => '应用将重启，可能中断当前播放。';
+
+  @override
   String get updateProxyLabel => 'GitHub 代理';
 
   @override

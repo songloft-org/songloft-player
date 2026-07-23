@@ -23,6 +23,8 @@ class AppPreferences {
   // 热更新「忽略此版本」：分别记忆被忽略的补丁版本、被忽略的整包客户端版本
   static const _ignoredPatchVersionKey = 'ignored_patch_version';
   static const _ignoredClientVersionKey = 'ignored_client_version';
+  // Bundle 版 Android 后端热更（换 libgojni.so）被忽略的补丁版本
+  static const _ignoredBackendPatchVersionKey = 'ignored_backend_patch_version';
 
   final SharedPreferences _prefs;
 
@@ -213,6 +215,14 @@ class AppPreferences {
   /// 记住忽略某个整包客户端版本
   Future<bool> setIgnoredClientVersion(String version) =>
       _prefs.setString(_ignoredClientVersionKey, version);
+
+  /// 被忽略的后端补丁版本（Bundle 版 Android 后端热更「忽略此版本」）；无则 null
+  String? getIgnoredBackendPatchVersion() =>
+      _prefs.getString(_ignoredBackendPatchVersionKey);
+
+  /// 记住忽略某个后端补丁版本
+  Future<bool> setIgnoredBackendPatchVersion(String version) =>
+      _prefs.setString(_ignoredBackendPatchVersionKey, version);
 
   /// 获取上次登录的用户名
   String? getLastUsername() {

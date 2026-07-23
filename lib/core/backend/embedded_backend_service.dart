@@ -163,4 +163,91 @@ class EmbeddedBackendService {
       return 0;
     }
   }
+
+  // ==========================================================================
+  // 后端热更（Bundle 版 Android，替换 libgojni.so）—— 仅 Android 有原生实现，
+  // 其余平台全部安全 no-op（见 docs/cn/backend_hotupdate.md）。
+  // ==========================================================================
+
+  static bool get _isAndroid => !kIsWeb && Platform.isAndroid;
+
+  /// 落地一个已下载并 md5 校验过的后端补丁 .so 为「待生效补丁」（原生做原子搬移 +
+  /// 写状态指针）。返回是否成功。冷重启后由自定义 Application 预加载。
+  static Future<bool> stageBackendPatch({
+    required String soPath,
+    required String patchLabel,
+    required String version,
+    required String gitCommit,
+    required String md5,
+  }) async {
+    if (!_isAndroid) return false;
+    try {
+      final ok = await _channel.invokeMethod<bool>('stageBackendPatch', {
+        'soPath': soPath,
+        'patchLabel': patchLabel,
+        'version': version,
+        'gitCommit': gitCommit,
+        'md5': md5,
+      });
+      return ok ?? false;
+    } on MissingPluginException {
+      return false;
+    } on PlatformException catch (e) {
+      debugPrint('[Backend] stageBackendPatch 失败: ${e.message}');
+      return false;
+    }
+  }
+
+  /// 读取当前「待生效 / 已生效」的后端补丁信息（patchLabel / gitCommit / state），
+  /// 无则返回 null。
+  static Future<Map<String, dynamic>?> getActiveBackendPatch() async {
+    if (!_isAndroid) return null;
+    try {
+      final result = await _channel.invokeMapMethod<String, dynamic>(
+        'getActiveBackendPatch',
+      );
+      if (result == null || result.isEmpty) return null;
+      return result;
+    } on MissingPluginException {
+      return null;
+    } on PlatformException {
+      return null;
+    }
+  }
+
+  /// 确认当前补丁启动健康（标 confirmed，清零 bootAttempts）。
+  static Future<void> confirmBackendPatch() async {
+    if (!_isAndroid) return;
+    try {
+      await _channel.invokeMethod('confirmBackendPatch');
+    } on MissingPluginException {
+      // not bundled
+    } on PlatformException {
+      // ignore
+    }
+  }
+
+  /// 清除当前待生效补丁（回滚到随包版）。
+  static Future<void> clearBackendPatch() async {
+    if (!_isAndroid) return;
+    try {
+      await _channel.invokeMethod('clearBackendPatch');
+    } on MissingPluginException {
+      // not bundled
+    } on PlatformException {
+      // ignore
+    }
+  }
+
+  /// 冷重启整个进程（杀进程 + 系统拉起），让补丁在新进程早期被预加载生效。
+  static Future<void> restartProcess() async {
+    if (!_isAndroid) return;
+    try {
+      await _channel.invokeMethod('restartProcess');
+    } on MissingPluginException {
+      // not bundled
+    } on PlatformException {
+      // ignore
+    }
+  }
 }

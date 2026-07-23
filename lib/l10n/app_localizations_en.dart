@@ -17,6 +17,24 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get updateComponentsHeader =>
+      'The following updates are available. Download and update now?';
+
+  @override
+  String updateComponentFrontend(String version) {
+    return 'Frontend patch $version';
+  }
+
+  @override
+  String updateComponentBackend(String version) {
+    return 'Backend patch $version';
+  }
+
+  @override
+  String get updateRestartInterrupt =>
+      'The app will restart, which may interrupt playback.';
+
+  @override
   String get updateProxyLabel => 'GitHub proxy';
 
   @override

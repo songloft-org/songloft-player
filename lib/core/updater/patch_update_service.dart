@@ -44,12 +44,13 @@ class PatchUpdateService {
   }
 
   /// 当前构建渠道对应的 Release tag:dev → `dev`;stable → `v<version>`。
-  static String _releaseTag(String version) =>
+  /// 前端补丁与后端补丁共用同一渠道 tag（[BackendPatchService] 复用）。
+  static String releaseTag(String version) =>
       version == 'dev' ? 'dev' : 'v$version';
 
   /// `manifest-<abi>.json` 的原始（未套代理）URL。
   static String manifestUrl(String version, String abi) {
-    final tag = _releaseTag(version);
+    final tag = releaseTag(version);
     return 'https://github.com/${AppConfig.frontendUpdateRepo}'
         '/releases/download/$tag/manifest-$abi.json';
   }
@@ -79,6 +80,13 @@ class PatchUpdateService {
       final result = PatchCheckResult.fromJson(map);
       final patch = result.patch;
       if (!result.hasUpdate || patch == null) return null;
+
+      // 已应用过同一补丁（currentVersion == patchLabel）→ 不再重复提示，避免
+      // 冷启生效后又弹同一版本。
+      final current = await FlutterPatcher.currentVersion;
+      if (current != null && current.isNotEmpty && current == patch.version) {
+        return null;
+      }
 
       // 原样返回（patchUrl 为绝对 GitHub 地址,未套代理,由调用方下载前再套）。
       return patch;

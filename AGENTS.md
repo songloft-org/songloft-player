@@ -176,6 +176,14 @@ Bundle 版通过 `--dart-define=HAS_BACKEND=true` 注入（`AppConfig.hasEmbedde
 - **不要**在更新流程里硬编码 `songloft-org/songloft-player`：bundle 版注入的 `FRONTEND_VERSION` 是父仓库 tag，若仍查 player 仓库，版本比较口径错配、且用户会下载到丢失内嵌后端的标准版覆盖安装。
 - `frontendRepo` / `frontendReleasesUrl` 保留原义，仅供 Web 端 `client_download_page.dart` 的「标准版下载」区使用（该页 web-only）。
 
+### 热更新（前端 libapp.so + Bundle 版 Android 后端 libgojni.so）
+
+- **前端热更**（flutter_patcher 换 `libapp.so`，仅 Android）：见 [docs/flutter_patcher_hotupdate.md](docs/flutter_patcher_hotupdate.md)。
+- **后端热更**（Bundle 版换 gomobile 的 `libgojni.so`，仅 Android + `hasEmbeddedBackend` + local 模式）：见 [docs/backend_hotupdate.md](docs/backend_hotupdate.md)。
+- 两者**合并为一次体验**：`PatchUpdateDialog.maybeShow`（`lib/core/updater/`）每会话并行检查两类补丁，一个对话框列出、一起下载、**只重启一次**（`EmbeddedBackendService.restartProcess` 真进程冷启 —— libapp.so 冷启生效 + `SongloftApplication` 预加载 libgojni.so）。
+- 版本比较分渠道：**dev 比 git commit hash、stable 比版本号**（`lib/core/updater/version_compare.dart`）；不跨渠道。补丁均托管在 `frontendUpdateRepo`（bundle=父仓库）同一 tag。
+- 后端补丁铁律：`mobile.go` 导出面（Start/Stop/IsRunning/GetPort）冻结，`mobile/export_surface.txt` + CI 守卫 + `targetVersionCode` 绑定三道门禁；崩溃回滚由原生 `BackendPatchManager` 的 pending→confirmed 状态机 + 黑名单负责。
+
 ---
 
 ## Git 提交约定

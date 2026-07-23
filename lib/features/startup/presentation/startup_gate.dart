@@ -13,6 +13,7 @@ import '../../../core/network/server_probe.dart';
 import '../../../core/network/server_redirect_resolver.dart';
 import '../../../core/network/servers_provider.dart';
 import '../../../core/storage/secure_storage.dart';
+import '../../../core/updater/backend_patch_service.dart';
 import '../../../l10n/app_localizations.dart';
 
 /// 启动时显示一个简单 Splash，期间完成：
@@ -148,6 +149,14 @@ class _StartupGateState extends ConsumerState<StartupGate>
       }
     }
     dio.close();
+
+    // 后端已就绪：若本次是后端热更后的冷启，确认补丁健康（崩溃回滚状态机的 confirm
+    // 时机）。非 Android / 非 bundle / 无待生效补丁时安全 no-op。
+    try {
+      final versionDio = Dio(BaseOptions(baseUrl: baseUrl));
+      await BackendPatchService(appDio: versionDio).confirmIfHealthy();
+      versionDio.close();
+    } catch (_) {}
 
     // 尝试恢复本地 session，有效则跳过 auto-login
     final storage = SecureStorageService();

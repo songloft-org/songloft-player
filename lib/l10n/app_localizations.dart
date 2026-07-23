@@ -110,6 +110,30 @@ abstract class AppLocalizations {
   /// **'检测到新版本 {version}，是否下载并更新？'**
   String updateFoundBody(String version);
 
+  /// No description provided for @updateComponentsHeader.
+  ///
+  /// In zh, this message translates to:
+  /// **'检测到以下更新，是否下载并更新？'**
+  String get updateComponentsHeader;
+
+  /// No description provided for @updateComponentFrontend.
+  ///
+  /// In zh, this message translates to:
+  /// **'前端补丁 {version}'**
+  String updateComponentFrontend(String version);
+
+  /// No description provided for @updateComponentBackend.
+  ///
+  /// In zh, this message translates to:
+  /// **'后端补丁 {version}'**
+  String updateComponentBackend(String version);
+
+  /// No description provided for @updateRestartInterrupt.
+  ///
+  /// In zh, this message translates to:
+  /// **'应用将重启，可能中断当前播放。'**
+  String get updateRestartInterrupt;
+
   /// No description provided for @updateProxyLabel.
   ///
   /// In zh, this message translates to:
