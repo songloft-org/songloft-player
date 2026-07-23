@@ -161,6 +161,21 @@ flutter test                                           # 运行测试
 
 `AppConfig.isEmbedded` 是编译时常量，tree-shaking 会移除未使用分支。嵌入模式下 `Uri.base.path` 自动检测子路径部署。
 
+### Bundle 本地模式（HAS_BACKEND）与更新仓库口径（踩坑）
+
+Bundle 版通过 `--dart-define=HAS_BACKEND=true` 注入（`AppConfig.hasEmbeddedBackend`），在设备上内嵌 Go 后端运行，**与 embedded（`DEPLOY_MODE`）正交**：bundle 版并不设 `DEPLOY_MODE=embedded`，故 `isEmbedded=false`，设置页的「检查客户端更新」tile 照常显示。
+
+**关键：两类客户端发布在不同仓库，更新检查必须区分。**
+
+| 版本 | 发布仓库 | 产物名 | 由谁构建 |
+|------|---------|--------|---------|
+| 标准版 | `songloft-org/songloft-player` | `songloft-*.apk` 等 | 本仓库 `build-and-release.yml` |
+| Bundle 版 | 父仓库 `songloft-org/songloft` | `songloft-bundled-*` | 父仓库 `release.yml` |
+
+- `FrontendVersionApi` 的更新检查仓库由 `AppConfig.frontendUpdateRepo`（`hasEmbeddedBackend ? frontendBundleRepo : frontendRepo`，编译期固定）决定；`frontendUpdateReleasesUrl` 同理。
+- **不要**在更新流程里硬编码 `songloft-org/songloft-player`：bundle 版注入的 `FRONTEND_VERSION` 是父仓库 tag，若仍查 player 仓库，版本比较口径错配、且用户会下载到丢失内嵌后端的标准版覆盖安装。
+- `frontendRepo` / `frontendReleasesUrl` 保留原义，仅供 Web 端 `client_download_page.dart` 的「标准版下载」区使用（该页 web-only）。
+
 ---
 
 ## Git 提交约定

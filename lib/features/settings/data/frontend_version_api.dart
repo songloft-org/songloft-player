@@ -62,15 +62,15 @@ class ReleaseAsset {
 class FrontendVersionApi {
   final Dio _dio;
 
-  /// GitHub API 地址
+  /// GitHub API 地址（bundle 版指向父仓库，标准版指向 player 仓库）
   static const String _latestReleaseApiUrl =
-      'https://api.github.com/repos/${AppConfig.frontendRepo}/releases/latest';
+      'https://api.github.com/repos/${AppConfig.frontendUpdateRepo}/releases/latest';
   static const String _devReleaseApiUrl =
-      'https://api.github.com/repos/${AppConfig.frontendRepo}/releases/tags/dev';
+      'https://api.github.com/repos/${AppConfig.frontendUpdateRepo}/releases/tags/dev';
 
-  /// 主仓库 dev 版本信息（包含 git_commit 和 build_time）
+  /// dev 版本信息（含 git_commit / build_time），随更新仓库切换
   static const String _devVersionJsonUrl =
-      'https://github.com/songloft-org/songloft/releases/download/dev/version.json';
+      'https://github.com/${AppConfig.frontendUpdateRepo}/releases/download/dev/version.json';
 
   FrontendVersionApi({Dio? dio})
     : _dio =
@@ -111,12 +111,12 @@ class FrontendVersionApi {
 
       // 发布页面 URL
       final releaseUrl =
-          data['html_url'] as String? ?? AppConfig.frontendReleasesUrl;
+          data['html_url'] as String? ?? AppConfig.frontendUpdateReleasesUrl;
 
       // 解析资源列表
       final assets = _parseAssets(data['assets']);
 
-      // dev 版本：从主仓库 version.json 获取 git_commit 和 build_time 进行精确比较
+      // dev 版本：从更新仓库的 version.json 获取 git_commit 和 build_time 进行精确比较
       String? remoteGitCommit;
       DateTime? remoteBuildTime;
       if (isDev) {

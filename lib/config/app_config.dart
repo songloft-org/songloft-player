@@ -91,12 +91,25 @@ class AppConfig {
       tracelyAppSecret.isNotEmpty &&
       tracelyHost.isNotEmpty;
 
-  /// 前端 GitHub 仓库
+  /// 标准版前端 GitHub 仓库（连接独立部署的服务器，产物名 songloft-*）
   static const String frontendRepo = 'songloft-org/songloft-player';
 
-  /// 前端最新发布地址
+  /// 标准版前端最新发布地址
   static const String frontendReleasesUrl =
       'https://github.com/songloft-org/songloft-player/releases/latest';
+
+  /// Bundle 版（内嵌后端）发布在父仓库 songloft-org/songloft，产物名 songloft-bundled-*，
+  /// 与标准版仓库/版本号相互独立。
+  static const String frontendBundleRepo = 'songloft-org/songloft';
+
+  /// 「客户端更新」流程实际使用的检查仓库：bundle 版查父仓库，标准版查 player 仓库。
+  /// hasEmbeddedBackend 为编译时常量，tree-shaking 会固定此值。
+  static const String frontendUpdateRepo =
+      hasEmbeddedBackend ? frontendBundleRepo : frontendRepo;
+
+  /// 「客户端更新」流程使用的最新发布页地址（跟随 frontendUpdateRepo）
+  static const String frontendUpdateReleasesUrl =
+      'https://github.com/$frontendUpdateRepo/releases/latest';
 
   /// 格式化前端版本号用于显示
   /// 'dev' -> '开发版本', '1.0.14' -> 'v1.0.14'

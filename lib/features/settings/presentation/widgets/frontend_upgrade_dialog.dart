@@ -373,7 +373,7 @@ class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
     final rawUrl =
         _checkResult!.releaseUrl.isNotEmpty
             ? _checkResult!.releaseUrl
-            : AppConfig.frontendReleasesUrl;
+            : AppConfig.frontendUpdateReleasesUrl;
     final url = Uri.parse(FrontendVersionApi.applyProxy(rawUrl, proxy));
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
