@@ -252,10 +252,13 @@ class CategorySongsNotifier extends AsyncNotifier<PaginatedSongsState> {
   /// 加载该分类下的全部歌曲（用于「播放全部」「全选」，需要整个分类在内存中）。
   /// 已全部加载则直接返回。
   Future<void> loadAll() async {
-    var current = state.value;
-    if (current == null) return;
+    // provider 可能尚未完成首屏 build——如从分类列表页「播放全部」直接触发时，
+    // 该 provider 从未被 watch 过，state.value 为 null。此处 await future 触发并
+    // 等待首屏加载，否则会直接返回空列表被误判为「没有歌曲」（详情页因先 watch
+    // 过首屏才恰好正常）。
+    var current = state.value ?? await future;
     final api = ref.read(songsApiProvider);
-    while (current != null && current.hasMore) {
+    while (current.hasMore) {
       final response = await _fetch(api, offset: current.items.length);
       if (response.songs.isEmpty) {
         state = AsyncValue.data(current.copyWith(hasMore: false));
