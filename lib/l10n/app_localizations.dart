@@ -98,6 +98,90 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
+  /// No description provided for @updateFoundTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'发现新版本'**
+  String get updateFoundTitle;
+
+  /// No description provided for @updateFoundBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'检测到新版本 {version}，是否下载并更新？'**
+  String updateFoundBody(String version);
+
+  /// No description provided for @updateProxyLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'GitHub 代理'**
+  String get updateProxyLabel;
+
+  /// No description provided for @updateActionDownload.
+  ///
+  /// In zh, this message translates to:
+  /// **'下载并更新'**
+  String get updateActionDownload;
+
+  /// No description provided for @updateActionLater.
+  ///
+  /// In zh, this message translates to:
+  /// **'稍后'**
+  String get updateActionLater;
+
+  /// No description provided for @updateActionIgnore.
+  ///
+  /// In zh, this message translates to:
+  /// **'忽略此版本'**
+  String get updateActionIgnore;
+
+  /// No description provided for @updateDownloading.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在下载更新…'**
+  String get updateDownloading;
+
+  /// No description provided for @updateReadyTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'更新完成'**
+  String get updateReadyTitle;
+
+  /// No description provided for @updateReadyBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'更新已下载，重启应用后生效。'**
+  String get updateReadyBody;
+
+  /// No description provided for @updateActionRestartNow.
+  ///
+  /// In zh, this message translates to:
+  /// **'立即重启'**
+  String get updateActionRestartNow;
+
+  /// No description provided for @updateFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'更新失败，请重试'**
+  String get updateFailed;
+
+  /// No description provided for @updateIncompatibleTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'需要下载新版本'**
+  String get updateIncompatibleTitle;
+
+  /// No description provided for @updateIncompatibleBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'新版本 {version} 包含无法热更新的改动，请前往设置页下载最新安装包。'**
+  String updateIncompatibleBody(String version);
+
+  /// No description provided for @updateActionGoDownload.
+  ///
+  /// In zh, this message translates to:
+  /// **'前往下载'**
+  String get updateActionGoDownload;
+
   /// 设置页-语言分区标题
   ///
   /// In zh, this message translates to:

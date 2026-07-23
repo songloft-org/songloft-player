@@ -1,5 +1,21 @@
 {
   "@@locale": "zh",
+  "updateFoundTitle": "发现新版本",
+  "updateFoundBody": "检测到新版本 {version}，是否下载并更新？",
+  "@updateFoundBody": { "placeholders": { "version": { "type": "String" } } },
+  "updateProxyLabel": "GitHub 代理",
+  "updateActionDownload": "下载并更新",
+  "updateActionLater": "稍后",
+  "updateActionIgnore": "忽略此版本",
+  "updateDownloading": "正在下载更新…",
+  "updateReadyTitle": "更新完成",
+  "updateReadyBody": "更新已下载，重启应用后生效。",
+  "updateActionRestartNow": "立即重启",
+  "updateFailed": "更新失败，请重试",
+  "updateIncompatibleTitle": "需要下载新版本",
+  "updateIncompatibleBody": "新版本 {version} 包含无法热更新的改动，请前往设置页下载最新安装包。",
+  "@updateIncompatibleBody": { "placeholders": { "version": { "type": "String" } } },
+  "updateActionGoDownload": "前往下载",
   "language": "语言",
   "@language": {
     "description": "设置页-语言分区标题"

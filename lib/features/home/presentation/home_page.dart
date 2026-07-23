@@ -7,6 +7,7 @@ import '../../../core/router/app_router.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/responsive.dart';
+import '../../../core/updater/patch_update_dialog.dart';
 import '../../../core/utils/url_helper.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../playlist/domain/playlist.dart';
@@ -19,11 +20,31 @@ import '../../../features/jsplugin/presentation/widgets/jsplugin_grid.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 
 /// 首页
-class HomePage extends ConsumerWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends ConsumerState<HomePage> {
+  /// 每个 App 会话只做一次热更新检查（发现新版本 → 弹窗）。
+  static bool _updateChecked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!_updateChecked) {
+      _updateChecked = true;
+      // 首帧后触发,确保 Navigator/context 就绪可弹对话框。
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) PatchUpdateDialog.maybeShow(context, ref);
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final playlistsAsync = ref.watch(playlistListProvider(null));
     final normalPlaylistsAsync = ref.watch(playlistListProvider('normal'));
     final radioPlaylistsAsync = ref.watch(playlistListProvider('radio'));

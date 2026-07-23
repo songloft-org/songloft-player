@@ -6,6 +6,7 @@ import 'package:audio_service_mpris/audio_service_mpris.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_patcher/flutter_patcher.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:windows_single_instance/windows_single_instance.dart';
@@ -384,6 +385,15 @@ void main(List<String> args) async {
       debugPrint('[Main] 清理完成，强制终止进程');
       forceTerminateProcess(0);
     };
+  }
+
+  // 初始化 Android 自托管热更新（冷启动替换 libapp.so）。仅 Android 生效，其余平台
+  // no-op。strictSignature=false：本项目补丁只做 MD5 校验，不带 Ed25519 签名。
+  // 崩溃回滚 + 坏补丁黑名单由插件内部处理。详见 docs/cn/flutter_patcher_hotupdate.md
+  try {
+    await FlutterPatcher.init(strictSignature: false);
+  } catch (e) {
+    debugPrint('[Main] FlutterPatcher.init 失败（忽略，不影响启动）: $e');
   }
 
   runApp(

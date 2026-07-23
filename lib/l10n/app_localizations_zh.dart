@@ -9,6 +9,52 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
+  String get updateFoundTitle => '发现新版本';
+
+  @override
+  String updateFoundBody(String version) {
+    return '检测到新版本 $version，是否下载并更新？';
+  }
+
+  @override
+  String get updateProxyLabel => 'GitHub 代理';
+
+  @override
+  String get updateActionDownload => '下载并更新';
+
+  @override
+  String get updateActionLater => '稍后';
+
+  @override
+  String get updateActionIgnore => '忽略此版本';
+
+  @override
+  String get updateDownloading => '正在下载更新…';
+
+  @override
+  String get updateReadyTitle => '更新完成';
+
+  @override
+  String get updateReadyBody => '更新已下载，重启应用后生效。';
+
+  @override
+  String get updateActionRestartNow => '立即重启';
+
+  @override
+  String get updateFailed => '更新失败，请重试';
+
+  @override
+  String get updateIncompatibleTitle => '需要下载新版本';
+
+  @override
+  String updateIncompatibleBody(String version) {
+    return '新版本 $version 包含无法热更新的改动，请前往设置页下载最新安装包。';
+  }
+
+  @override
+  String get updateActionGoDownload => '前往下载';
+
+  @override
   String get language => '语言';
 
   @override

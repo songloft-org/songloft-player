@@ -73,6 +73,8 @@ dependencies:
   crypto: ^3.0.6
   # DLNA 投屏
   dlna_dart: ^0.1.1
+  # Android 自托管热更新（冷启动整包替换 libapp.so，仅 Android，其余平台 no-op）
+  flutter_patcher: ^0.1.3
 
 dependency_overrides:
   # smtc_windows 1.1.0 的 Rust codegen 使用 flutter_rust_bridge 2.11.1 编译，

@@ -20,6 +20,9 @@ class AppPreferences {
   static const _currentIndexKey = 'player_current_index';
   static const _positionMsKey = 'player_position_ms';
   static const _sourcePlaylistIdKey = 'player_source_playlist_id';
+  // 热更新「忽略此版本」：分别记忆被忽略的补丁版本、被忽略的整包客户端版本
+  static const _ignoredPatchVersionKey = 'ignored_patch_version';
+  static const _ignoredClientVersionKey = 'ignored_client_version';
 
   final SharedPreferences _prefs;
 
@@ -195,6 +198,21 @@ class AppPreferences {
   Future<bool> setPlaylistViewMode(String mode) {
     return _prefs.setString(_playlistViewModeKey, mode);
   }
+
+  /// 被忽略的补丁版本（热更新「忽略此版本」）；无则 null
+  String? getIgnoredPatchVersion() => _prefs.getString(_ignoredPatchVersionKey);
+
+  /// 记住忽略某个补丁版本
+  Future<bool> setIgnoredPatchVersion(String version) =>
+      _prefs.setString(_ignoredPatchVersionKey, version);
+
+  /// 被忽略的整包客户端版本（「不兼容」提示的忽略）；无则 null
+  String? getIgnoredClientVersion() =>
+      _prefs.getString(_ignoredClientVersionKey);
+
+  /// 记住忽略某个整包客户端版本
+  Future<bool> setIgnoredClientVersion(String version) =>
+      _prefs.setString(_ignoredClientVersionKey, version);
 
   /// 获取上次登录的用户名
   String? getLastUsername() {

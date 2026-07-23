@@ -9,6 +9,53 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get updateFoundTitle => 'Update available';
+
+  @override
+  String updateFoundBody(String version) {
+    return 'A new version $version is available. Download and update now?';
+  }
+
+  @override
+  String get updateProxyLabel => 'GitHub proxy';
+
+  @override
+  String get updateActionDownload => 'Download & update';
+
+  @override
+  String get updateActionLater => 'Later';
+
+  @override
+  String get updateActionIgnore => 'Ignore this version';
+
+  @override
+  String get updateDownloading => 'Downloading update…';
+
+  @override
+  String get updateReadyTitle => 'Update complete';
+
+  @override
+  String get updateReadyBody =>
+      'The update has been downloaded. Restart the app to apply it.';
+
+  @override
+  String get updateActionRestartNow => 'Restart now';
+
+  @override
+  String get updateFailed => 'Update failed, please try again';
+
+  @override
+  String get updateIncompatibleTitle => 'New version required';
+
+  @override
+  String updateIncompatibleBody(String version) {
+    return 'Version $version includes changes that can\'t be hot-updated. Please download the latest installer from Settings.';
+  }
+
+  @override
+  String get updateActionGoDownload => 'Go to download';
+
+  @override
   String get language => 'Language';
 
   @override
