@@ -89,17 +89,23 @@ class PatchUpdateService {
           ? rawVc.toInt()
           : (rawVc is String && rawVc.isNotEmpty ? int.tryParse(rawVc) : null);
 
-      // 引擎兼容闸（无基线的兼容键）：两端都给出 flutterBinding 且不同 → 不兼容(交整包
-      // 分支)。两端都给出且相同 → 引擎已验证,可跨 versionCode 热更。
+      // versionCode 兼容闸:libapp.so 与宿主 APK 的 versionCode 必须一致(flutter_patcher
+      // 冷启会丢弃不匹配的补丁)。本项目 versionCode 恒定(pubspec +N 不随构建 bump),故此
+      // 闸通常恒真,任意非最新 → 最新都能过;仅当有意 bump 了 versionCode 时才拦(→整包)。
+      // versionCode 取自各自构建,非手工挑基线。
+      final deviceVc = await FlutterPatcher.appVersionCode;
+      if (manifestVc != null && deviceVc != null && manifestVc != deviceVc) {
+        return null;
+      }
+
+      // 引擎兼容闸:两端都给出 flutterBinding 且不同 → 不兼容(防同 versionCode 但 Flutter
+      // 引擎不同导致加载崩溃)→ 交整包分支引导下 APK。
       const appBinding = AppConfig.flutterBinding;
       if (appBinding.isNotEmpty &&
           manifestBinding.isNotEmpty &&
           appBinding != manifestBinding) {
         return null;
       }
-      final engineVerified = appBinding.isNotEmpty &&
-          manifestBinding.isNotEmpty &&
-          appBinding == manifestBinding;
 
       // 分渠道比较是否更新（仅当 manifest 带比较数据时;老式 manifest 无这些字段则
       // 退回「hasUpdate + 已应用守卫」旧行为,不做版本比较,兼容标准版旧发布）。
@@ -123,13 +129,13 @@ class PatchUpdateService {
         return null;
       }
 
-      // 引擎已验证 → targetVersionCode=null（绑定当前设备,可跨 versionCode）;否则保留
-      // manifest 的 targetVersionCode（老式标准版按 versionCode 绑定的行为不变）。
+      // 保留 manifest 的 targetVersionCode（= 构建时的 versionCode），flutter_patcher 按其
+      // 绑定;上面已确保它与当前设备一致。
       return PatchInfo(
         version: patchLabel,
         patchUrl: patchUrl,
         md5: md5,
-        targetVersionCode: engineVerified ? null : manifestVc,
+        targetVersionCode: manifestVc,
       );
     } catch (e) {
       debugPrint('[Patcher] checkPatch 失败: $e');

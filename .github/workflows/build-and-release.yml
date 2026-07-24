@@ -323,17 +323,66 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: flutter build apk --release --split-per-abi --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }} --dart-define=FRONTEND_BUILD_TIME=${{ steps.version.outputs.build_time }} --dart-define=TRACELY_APP_ID=${{ secrets.TRACELY_APP_ID }} --dart-define=TRACELY_APP_SECRET=${{ secrets.TRACELY_APP_SECRET }} --dart-define=TRACELY_HOST=${{ secrets.TRACELY_HOST }}
+        run: |
+          GIT_COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo unknown)
+          echo "GIT_COMMIT=$GIT_COMMIT" >> "$GITHUB_ENV"
+          flutter build apk --release --split-per-abi \
+            --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }} \
+            --dart-define=FRONTEND_BUILD_TIME=${{ steps.version.outputs.build_time }} \
+            --dart-define=FRONTEND_GIT_COMMIT=$GIT_COMMIT \
+            --dart-define=FLUTTER_BINDING=${{ env.FLUTTER_VERSION }} \
+            --dart-define=TRACELY_APP_ID=${{ secrets.TRACELY_APP_ID }} \
+            --dart-define=TRACELY_APP_SECRET=${{ secrets.TRACELY_APP_SECRET }} \
+            --dart-define=TRACELY_HOST=${{ secrets.TRACELY_HOST }}
       - name: Collect APKs
         run: |
           mkdir -p apk-output
           cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk apk-output/songloft-arm64-v8a.apk
           cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk apk-output/songloft-armeabi-v7a.apk
           cp build/app/outputs/flutter-apk/app-x86_64-release.apk apk-output/songloft-x86_64.apk
+      # 无基线前端热更:每次发版自动产出本渠道最新的 libapp.so 补丁,随 release 上传;
+      # 客户端查本渠道最新即更新(仅 arm64-v8a/armeabi-v7a)。标准版无内嵌后端,故只有前端补丁。
+      - name: Produce frontend hot-update patch assets
+        env:
+          SEMVER: ${{ steps.version.outputs.version }}
+          BUILD_TIME: ${{ steps.version.outputs.build_time }}
+          FLUTTER_BINDING: ${{ env.FLUTTER_VERSION }}
+        run: |
+          set -e
+          VERSION_CODE=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f2)
+          TAG=$([[ "$GITHUB_REF" == refs/tags/v* ]] && echo "${GITHUB_REF#refs/tags/}" || echo "dev")
+          for abi in arm64-v8a armeabi-v7a; do
+            apk="build/app/outputs/flutter-apk/app-${abi}-release.apk"
+            [ -f "$apk" ] || { echo "跳过 $abi(无 APK)"; continue; }
+            LABEL="${SEMVER}-${GIT_COMMIT}"
+            rm -rf dist
+            dart run flutter_patcher:pack --apk "$apk" --version "$LABEL" \
+              --target-version-code "$VERSION_CODE" --abi "$abi"
+            cp dist/patch.zip "apk-output/patch-${abi}.zip"
+            ZIP_MD5=$(md5sum "apk-output/patch-${abi}.zip" | cut -d' ' -f1)
+            cat > "apk-output/manifest-${abi}.json" <<EOF
+          {
+            "hasUpdate": true,
+            "patch": {
+              "version": "${LABEL}",
+              "semanticVersion": "${SEMVER}",
+              "gitCommit": "${GIT_COMMIT}",
+              "flutterBinding": "${FLUTTER_BINDING}",
+              "targetVersionCode": ${VERSION_CODE},
+              "patchUrl": "https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/patch-${abi}.zip",
+              "md5": "${ZIP_MD5}"
+            }
+          }
+          EOF
+            echo "前端补丁 $abi: zip_md5=$ZIP_MD5 label=$LABEL"
+          done
       - uses: actions/upload-artifact@v4
         with:
           name: songloft-android-apk
-          path: apk-output/*.apk
+          path: |
+            apk-output/*.apk
+            apk-output/patch-*.zip
+            apk-output/manifest-*.json
 
   build-ios:
     name: iOS (No Codesign)
@@ -460,7 +509,7 @@ jobs:
         run: |
           mkdir -p final-assets
           if [ -d release-assets ]; then
-            find release-assets -type f \( -name '*.tar.gz' -o -name '*.zip' -o -name '*.apk' -o -name '*.ipa' -o -name '*.deb' -o -name '*.rpm' -o -name '*.AppImage' -o -name '*.dmg' -o -name '*.msix' \) -exec cp {} final-assets/ \;
+            find release-assets -type f \( -name '*.tar.gz' -o -name '*.zip' -o -name '*.apk' -o -name '*.ipa' -o -name '*.deb' -o -name '*.rpm' -o -name '*.AppImage' -o -name '*.dmg' -o -name '*.msix' -o -name 'manifest-*.json' \) -exec cp {} final-assets/ \;
           fi
           echo "=== Release Assets ==="
           ls -lh final-assets/ || echo "(no assets)"

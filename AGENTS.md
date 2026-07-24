@@ -184,7 +184,7 @@ Bundle 版通过 `--dart-define=HAS_BACKEND=true` 注入（`AppConfig.hasEmbedde
 - **合并为一次体验**:`PatchUpdateDialog.maybeShow`（`lib/core/updater/`）每会话并行检查两类补丁,一个对话框列出、一起下载、**只重启一次**（`EmbeddedBackendService.restartProcess` 真进程冷启 —— libapp.so 生效 + `SongloftApplication` 预加载 libgojni.so）。
 - **兼容键取代 versionCode**（自动、非手改）:前端用 **Flutter 引擎版本**（`AppConfig.flutterBinding` = CI `FLUTTER_VERSION`,manifest 带 `flutterBinding`;相同即兼容并 `targetVersionCode=null` 跨 versionCode 放行,不同→整包）;后端用**导出面冻结**（`mobile/export_surface.txt` + `release.yml` 守卫）,无 versionCode。
 - 比较分渠道:**dev 比 git commit hash、stable 比版本号**（`version_compare.dart`）;崩溃回滚由原生 `BackendPatchManager`（pending→confirmed + 黑名单）负责。
-- 标准版（非 bundle）前端热更仍走本仓库 `patch-release.yml`（手动）；客户端对老式 manifest 向后兼容（无 `flutterBinding` 时退回 versionCode 绑定的旧行为）。
+- 标准版（非 bundle）也无基线:本仓库 `build-and-release.yml` 的 `build-android` 每次发版自动产出前端 `patch-<abi>.zip`+`manifest`（无后端）；手动 `patch-release.yml` 已删。前端跨版本靠**恒定 versionCode**（pubspec `+N` 不 bump）+ 引擎键(`flutterBinding`)兜底,非手挑基线。客户端对老式 manifest 向后兼容。
 
 ---
 
