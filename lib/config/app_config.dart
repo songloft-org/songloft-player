@@ -73,6 +73,17 @@ class AppConfig {
     defaultValue: 'unknown',
   );
 
+  /// 前端热更（flutter_patcher 换 libapp.so）的**引擎兼容键**，通过
+  /// `--dart-define=FLUTTER_BINDING=<Flutter 版本>` 注入（CI = FLUTTER_VERSION）。
+  ///
+  /// libapp.so（Dart AOT 快照）必须匹配 APK 里的 Flutter 引擎;此键是「引擎版本」的
+  /// 自动代理（取代按 versionCode 手工绑定）。客户端与补丁 manifest 的该键相同 → 视为
+  /// 引擎兼容,可跨 versionCode 热更;不同 → 不热更,引导整包。空表示未知（本地开发）。
+  static const String flutterBinding = String.fromEnvironment(
+    'FLUTTER_BINDING',
+    defaultValue: '',
+  );
+
   /// Tracely 监控配置（编译时通过 --dart-define 注入，未配置则不启用）
   static const String tracelyAppId = String.fromEnvironment(
     'TRACELY_APP_ID',

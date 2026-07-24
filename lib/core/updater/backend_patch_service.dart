@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import '../../config/app_config.dart';
 import '../backend/embedded_backend_service.dart';
 import '../utils/platform_utils.dart';
+import 'channel_release_resolver.dart';
 import 'patch_update_service.dart' show PatchUpdateService;
 import 'version_compare.dart';
 
@@ -29,9 +30,6 @@ class BackendPatchInfo {
   /// 补丁 .so 的构建时间（dev 回退比较）。
   final String buildTime;
 
-  /// 绑定的宿主 APK versionCode（锁死导出面/classes.jar 与安装包一致）。
-  final int? targetVersionCode;
-
   /// 目标 ABI（arm64-v8a / armeabi-v7a）。
   final String abi;
 
@@ -49,7 +47,6 @@ class BackendPatchInfo {
     required this.version,
     required this.gitCommit,
     required this.buildTime,
-    required this.targetVersionCode,
     required this.abi,
     required this.soUrl,
     required this.md5,
@@ -62,17 +59,18 @@ class BackendPatchInfo {
     final m = Map<String, dynamic>.from(b);
     final soUrl = (m['soUrl'] ?? m['so_url'] ?? '') as String;
     if (soUrl.isEmpty) return null;
-    final rawVc = m['targetVersionCode'] ?? m['target_version_code'];
-    final int? vc = rawVc is num
-        ? rawVc.toInt()
-        : (rawVc is String && rawVc.isNotEmpty ? int.tryParse(rawVc) : null);
+    final gitCommit = (m['gitCommit'] ?? m['git_commit'] ?? '') as String;
     return BackendPatchInfo(
-      patchLabel: (m['patchLabel'] ?? m['patch_label'] ?? '') as String,
+      // 无独立 patchLabel 时用 version/gitCommit 兜底作展示 + 忽略键。
+      patchLabel: (m['patchLabel'] ??
+          m['patch_label'] ??
+          m['version'] ??
+          gitCommit ??
+          '') as String,
       version: (m['version'] ?? m['baseVersion'] ?? m['base_version'] ?? '')
           as String,
-      gitCommit: (m['gitCommit'] ?? m['git_commit'] ?? '') as String,
+      gitCommit: gitCommit,
       buildTime: (m['buildTime'] ?? m['build_time'] ?? '') as String,
-      targetVersionCode: vc,
       abi: (m['abi'] ?? '') as String,
       soUrl: soUrl,
       md5: (m['md5'] ?? '') as String,
@@ -101,16 +99,20 @@ class _RunningBackendVersion {
 /// - 下载 .so → md5 校验 → 交原生 `stageBackendPatch` 落地 → 冷重启进程后由自定义
 ///   Application 预加载。校验/回滚/黑名单由原生 `BackendPatchManager` 负责。
 class BackendPatchService {
-  BackendPatchService({required Dio appDio, Dio? githubDio})
-    : _appDio = appDio,
-      _githubDio =
-          githubDio ??
-          Dio(
-            BaseOptions(
-              connectTimeout: const Duration(seconds: 10),
-              receiveTimeout: const Duration(seconds: 30),
-            ),
-          );
+  BackendPatchService({
+    required Dio appDio,
+    Dio? githubDio,
+    ChannelReleaseResolver? resolver,
+  }) : _appDio = appDio,
+       _githubDio =
+           githubDio ??
+           Dio(
+             BaseOptions(
+               connectTimeout: const Duration(seconds: 10),
+               receiveTimeout: const Duration(seconds: 30),
+             ),
+           ),
+       _resolver = resolver ?? ChannelReleaseResolver();
 
   /// 用于访问本地后端 `/api/v1/version` 的 client（本地模式下 baseUrl 指向 127.0.0.1）。
   final Dio _appDio;
@@ -118,22 +120,18 @@ class BackendPatchService {
   /// 用于抓 manifest / 下载 .so 的 client。
   final Dio _githubDio;
 
+  /// 本渠道最新 Release 解析（dev→dev tag；stable→/releases/latest）。
+  final ChannelReleaseResolver _resolver;
+
   /// 仅 Android + 内嵌后端构建时支持。
   bool get isSupported =>
       PlatformUtils.isAndroid && AppConfig.hasEmbeddedBackend;
 
-  /// `backend-manifest-<abi>.json` 的原始（未套代理）URL（父仓库 Release，按渠道 tag）。
-  static String manifestUrl(String abi) {
-    final tag = PatchUpdateService.releaseTag(AppConfig.frontendVersion);
-    return 'https://github.com/${AppConfig.frontendUpdateRepo}'
-        '/releases/download/$tag/backend-manifest-$abi.json';
-  }
-
-  /// 检查是否有匹配当前后端 / versionCode / ABI 的后端补丁。
+  /// 检查本渠道最新是否有匹配当前 ABI 的后端补丁（无 versionCode 绑定）。
   ///
   /// [githubProxy] 抓 manifest 的代理前缀（可空）。返回的 [BackendPatchInfo] 的
   /// `soUrl` 为原始地址，下载前由调用方按用户当时所选代理套上。无更新 / 不支持 /
-  /// 出错 → null。
+  /// 出错 → null。兼容性由「导出面冻结（CI 守卫）+ 崩溃回滚」保证,不再按 versionCode 判定。
   Future<BackendPatchInfo?> checkPatch({String? githubProxy}) async {
     if (!isSupported) return null;
     try {
@@ -143,10 +141,15 @@ class BackendPatchService {
 
       final abi = await FlutterPatcher.deviceAbi;
       if (abi.isEmpty) return null;
-      final versionCode = await FlutterPatcher.appVersionCode;
 
-      final url = PatchUpdateService.applyProxy(manifestUrl(abi), githubProxy);
-      final resp = await _githubDio.get<dynamic>(url);
+      final rawUrl = await _resolver.assetUrl(
+        'backend-manifest-$abi.json',
+        githubProxy: githubProxy,
+      );
+      if (rawUrl == null) return null;
+      final resp = await _githubDio.get<dynamic>(
+        PatchUpdateService.applyProxy(rawUrl, githubProxy),
+      );
       final map = _asMap(resp.data);
       if (map == null) return null;
       if (map['hasUpdate'] != true && map['has_update'] != true) return null;
@@ -154,13 +157,8 @@ class BackendPatchService {
       final info = BackendPatchInfo.fromManifest(map);
       if (info == null) return null;
 
-      // 硬前置：ABI + versionCode 绑定（锁死导出面与安装包一致）。
+      // ABI 匹配（唯一硬前置；不再绑定 versionCode）。
       if (info.abi.isNotEmpty && info.abi != abi) return null;
-      if (versionCode != null &&
-          info.targetVersionCode != null &&
-          info.targetVersionCode != versionCode) {
-        return null;
-      }
 
       // 分渠道比较是否更新。
       const isDev = AppConfig.frontendVersion == 'dev';

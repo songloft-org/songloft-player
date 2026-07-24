@@ -15,6 +15,7 @@ import '../backend/embedded_backend_service.dart';
 import '../network/api_client.dart' show dioProvider;
 import '../router/app_router.dart';
 import 'backend_patch_service.dart';
+import 'channel_release_resolver.dart';
 import 'patch_update_service.dart';
 
 /// 统一的启动更新检查 + 手动更新对话框（Android）。
@@ -47,8 +48,13 @@ class PatchUpdateDialog extends ConsumerStatefulWidget {
     final proxyOrNull = proxy.isNotEmpty ? proxy : null;
 
     // —— 并行检查前端补丁（libapp.so）与后端补丁（libgojni.so）——
-    final frontendService = PatchUpdateService();
-    final backendService = BackendPatchService(appDio: ref.read(dioProvider));
+    // 共用一个 resolver:stable 渠道只查一次 /releases/latest。
+    final resolver = ChannelReleaseResolver();
+    final frontendService = PatchUpdateService(resolver: resolver);
+    final backendService = BackendPatchService(
+      appDio: ref.read(dioProvider),
+      resolver: resolver,
+    );
 
     final results = await Future.wait<Object?>([
       frontendService.isSupported

@@ -178,11 +178,13 @@ Bundle 版通过 `--dart-define=HAS_BACKEND=true` 注入（`AppConfig.hasEmbedde
 
 ### 热更新（前端 libapp.so + Bundle 版 Android 后端 libgojni.so）
 
-- **前端热更**（flutter_patcher 换 `libapp.so`，仅 Android）：见 [docs/flutter_patcher_hotupdate.md](docs/flutter_patcher_hotupdate.md)。
-- **后端热更**（Bundle 版换 gomobile 的 `libgojni.so`，仅 Android + `hasEmbeddedBackend` + local 模式）：见 [docs/backend_hotupdate.md](docs/backend_hotupdate.md)。
-- 两者**合并为一次体验**：`PatchUpdateDialog.maybeShow`（`lib/core/updater/`）每会话并行检查两类补丁，一个对话框列出、一起下载、**只重启一次**（`EmbeddedBackendService.restartProcess` 真进程冷启 —— libapp.so 冷启生效 + `SongloftApplication` 预加载 libgojni.so）。
-- 版本比较分渠道：**dev 比 git commit hash、stable 比版本号**（`lib/core/updater/version_compare.dart`）；不跨渠道。补丁均托管在 `frontendUpdateRepo`（bundle=父仓库）同一 tag。
-- 后端补丁铁律：`mobile.go` 导出面（Start/Stop/IsRunning/GetPort）冻结，`mobile/export_surface.txt` + CI 守卫 + `targetVersionCode` 绑定三道门禁；崩溃回滚由原生 `BackendPatchManager` 的 pending→confirmed 状态机 + 黑名单负责。
+详见 [docs/backend_hotupdate.md](docs/backend_hotupdate.md)（Bundle 统一模型,权威）。要点:
+
+- **无基线 + 自动发布**:客户端查**本渠道最新**（dev→`dev` tag;stable→`/releases/latest`,`channel_release_resolver.dart`）；`release.yml` 的 `build-bundled-android` 每次发版**自动**产出并上传前端 `patch-<abi>.zip`+`manifest`、后端 `libgojni-<abi>.so`+`backend-manifest`（无手动 workflow）。
+- **合并为一次体验**:`PatchUpdateDialog.maybeShow`（`lib/core/updater/`）每会话并行检查两类补丁,一个对话框列出、一起下载、**只重启一次**（`EmbeddedBackendService.restartProcess` 真进程冷启 —— libapp.so 生效 + `SongloftApplication` 预加载 libgojni.so）。
+- **兼容键取代 versionCode**（自动、非手改）:前端用 **Flutter 引擎版本**（`AppConfig.flutterBinding` = CI `FLUTTER_VERSION`,manifest 带 `flutterBinding`;相同即兼容并 `targetVersionCode=null` 跨 versionCode 放行,不同→整包）;后端用**导出面冻结**（`mobile/export_surface.txt` + `release.yml` 守卫）,无 versionCode。
+- 比较分渠道:**dev 比 git commit hash、stable 比版本号**（`version_compare.dart`）;崩溃回滚由原生 `BackendPatchManager`（pending→confirmed + 黑名单）负责。
+- 标准版（非 bundle）前端热更仍走本仓库 `patch-release.yml`（手动）；客户端对老式 manifest 向后兼容（无 `flutterBinding` 时退回 versionCode 绑定的旧行为）。
 
 ---
 
