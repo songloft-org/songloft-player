@@ -3978,4 +3978,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get playlistCacheCleared => '已清除歌单缓存';
+
+  @override
+  String get scrollToTop => '回到顶部';
 }

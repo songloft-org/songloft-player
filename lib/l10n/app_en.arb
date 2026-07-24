@@ -2510,5 +2510,6 @@
       "failed": { "type": "int" }
     }
   },
-  "playlistCacheCleared": "Playlist cache cleared"
+  "playlistCacheCleared": "Playlist cache cleared",
+  "scrollToTop": "Scroll to top"
 }

@@ -7170,6 +7170,12 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'已清除歌单缓存'**
   String get playlistCacheCleared;
+
+  /// No description provided for @scrollToTop.
+  ///
+  /// In zh, this message translates to:
+  /// **'回到顶部'**
+  String get scrollToTop;
 }
 
 class _AppLocalizationsDelegate

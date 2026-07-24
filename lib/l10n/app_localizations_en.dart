@@ -4143,4 +4143,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get playlistCacheCleared => 'Playlist cache cleared';
+
+  @override
+  String get scrollToTop => 'Scroll to top';
 }

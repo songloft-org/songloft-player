@@ -17,6 +17,8 @@ import '../../../shared/widgets/delete_song_dialog.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/error_view.dart';
 import '../../../shared/mixins/song_list_actions.dart';
+import '../../../shared/widgets/draggable_scrollbar_overlay.dart';
+import '../../../shared/widgets/scroll_to_top_fab.dart';
 import '../../../shared/widgets/song_picker_modal.dart';
 import '../../library/presentation/providers/songs_provider.dart';
 import '../../library/presentation/song_edit_page.dart';
@@ -441,6 +443,36 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
     return _buildNarrowContent(context, playlist, songsAsync);
   }
 
+  Widget _wrapWithScrollOverlays({
+    required Widget scrollContent,
+    required AsyncValue<PaginatedSongsState> songsAsync,
+    required double headerExtent,
+  }) {
+    final total = songsAsync.value?.total ?? 0;
+    final hide = _isSortMode || _isSelectMode || context.isTv;
+
+    return Stack(
+      children: [
+        DraggableScrollbarOverlay(
+          scrollController: _scrollController,
+          totalItemCount: total,
+          estimatedItemHeight: 72.0,
+          headerExtent: headerExtent,
+          enabled: !hide && total > 20,
+          labelBuilder: (index, t) => '$index / $t',
+          onDragToUnloaded: () =>
+              ref.read(playlistSongsProvider(_playlistIdInt).notifier).loadAll(),
+          child: scrollContent,
+        ),
+        if (!hide)
+          ScrollToTopFab(
+            scrollController: _scrollController,
+            bottomPadding: MediaQuery.of(context).padding.bottom + 96,
+          ),
+      ],
+    );
+  }
+
   /// 窄屏布局（Mobile / Tablet / Auto）：单列 CustomScrollView
   Widget _buildNarrowContent(
     BuildContext context,
@@ -449,7 +481,7 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
   ) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return CustomScrollView(
+    final scrollView = CustomScrollView(
       controller: _scrollController,
       // Web 端收紧离屏预解码范围，降低超大歌单封面 GPU 纹理累积（原生端为 null 保持默认）。
       scrollCacheExtent: webListCacheExtent,
@@ -525,6 +557,12 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
           child: SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
         ),
       ],
+    );
+
+    return _wrapWithScrollOverlays(
+      scrollContent: scrollView,
+      songsAsync: songsAsync,
+      headerExtent: 300.0,
     );
   }
 
@@ -727,43 +765,39 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1200),
-        child: CustomScrollView(
-          controller: _scrollController,
-          // Web 端收紧离屏预解码范围，降低超大歌单封面 GPU 纹理累积
-          // （原生端为 null 保持默认）。
-          scrollCacheExtent: webListCacheExtent,
-          slivers: [
-            // 搜索栏
-            if (_isSearchMode)
-              SliverToBoxAdapter(child: _buildSearchBar(context)),
-
-            // 歌曲列表
-            songsAsync.when(
-              data: (state) => _buildSongList(context, playlist, state.items),
-              loading: () => SliverToBoxAdapter(
-                child: Column(
-                  children: [
-                    for (int i = 0; i < 5; i++) SkeletonLoader.listTile(),
-                  ],
+        child: _wrapWithScrollOverlays(
+          scrollContent: CustomScrollView(
+            controller: _scrollController,
+            scrollCacheExtent: webListCacheExtent,
+            slivers: [
+              if (_isSearchMode)
+                SliverToBoxAdapter(child: _buildSearchBar(context)),
+              songsAsync.when(
+                data: (state) =>
+                    _buildSongList(context, playlist, state.items),
+                loading: () => SliverToBoxAdapter(
+                  child: Column(
+                    children: [
+                      for (int i = 0; i < 5; i++) SkeletonLoader.listTile(),
+                    ],
+                  ),
+                ),
+                error: (error, stack) =>
+                    SliverToBoxAdapter(child: _buildError(error.toString())),
+              ),
+              if (songsAsync.value != null)
+                SliverToBoxAdapter(
+                  child: _buildSongsLoadMoreIndicator(songsAsync.value!),
+                ),
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: MediaQuery.of(context).padding.bottom + 80,
                 ),
               ),
-              error: (error, stack) =>
-                  SliverToBoxAdapter(child: _buildError(error.toString())),
-            ),
-
-            // 加载更多指示器
-            if (songsAsync.value != null)
-              SliverToBoxAdapter(
-                child: _buildSongsLoadMoreIndicator(songsAsync.value!),
-              ),
-
-            // 底部安全区域
-            SliverToBoxAdapter(
-              child: SizedBox(
-                height: MediaQuery.of(context).padding.bottom + 80,
-              ),
-            ),
-          ],
+            ],
+          ),
+          songsAsync: songsAsync,
+          headerExtent: 0.0,
         ),
       ),
     );

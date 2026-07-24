@@ -2615,5 +2615,6 @@
       "failed": { "type": "int" }
     }
   },
-  "playlistCacheCleared": "已清除歌单缓存"
+  "playlistCacheCleared": "已清除歌单缓存",
+  "scrollToTop": "回到顶部"
 }
