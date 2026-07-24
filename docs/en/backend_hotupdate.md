@@ -27,7 +27,7 @@ This doc describes songloft-player's **self-hosted Android hot update** in Bundl
 ## Feasibility basis (native mechanism)
 
 - `libgojni.so` is lazily loaded by gomobile's `go.Seq` static block `System.loadLibrary("gojni")` on the first touch of any `mobile.*` class.
-- `SongloftApplication.onCreate()` (before any `mobile.*`) `System.load("<filesDir>/backend_patch/active/libgojni.so")` preloads the patched build; bionic dedups by ELF `DT_SONAME`, so the later `loadLibrary("gojni")` reuses it. Precondition: `DT_SONAME == libgojni.so` (asserted in release.yml via `readelf -d`).
+- `SongloftApplication.onCreate()` (before any `mobile.*`) `System.load("<filesDir>/backend_patch/active/libgojni.so")` preloads the patched build; bionic dedups by soname, so the later `loadLibrary("gojni")` reuses it. **gomobile output has no DT_SONAME** (normal); bionic (minSdk 24 ≥ API 23) falls back to the **file basename** as the soname, and the client stages the file as `libgojni.so`, so dedup still holds. release.yml only checks "soname is empty or exactly libgojni.so" (fails only on a non-empty, different soname).
 - W^X: on targetSdk 29+, `System.load()` of a downloaded `.so` from app-private storage is allowed (the restriction targets `execve` and text-relocation `.so`).
 - Must cold-restart the process (Go runtime inits once per process); `SystemNavigator.pop()` only finishes the Activity → use `ProcessRestarter` (AlarmManager + killProcess).
 

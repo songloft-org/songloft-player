@@ -27,7 +27,7 @@
 ## 可行性根基(原生机制)
 
 - `libgojni.so` 由 gomobile 的 `go.Seq` 静态块 `System.loadLibrary("gojni")` 在首次触碰任意 `mobile.*` 类时懒加载。
-- `SongloftApplication.onCreate()`(早于任何 `mobile.*`)`System.load("<filesDir>/backend_patch/active/libgojni.so")` 预加载补丁版;bionic 按 ELF `DT_SONAME` 去重,后续 `loadLibrary("gojni")` 复用补丁版。前置:`DT_SONAME == libgojni.so`(release.yml `readelf -d` 断言)。
+- `SongloftApplication.onCreate()`(早于任何 `mobile.*`)`System.load("<filesDir>/backend_patch/active/libgojni.so")` 预加载补丁版;bionic 按 soname 去重,后续 `loadLibrary("gojni")` 复用补丁版。**gomobile 产物无 DT_SONAME**(正常),bionic(minSdk 24 ≥ API 23)回退用**文件 basename** 作 soname;客户端落地文件名固定为 `libgojni.so`,故去重仍生效。release.yml 只校验「soname 为空或恰为 libgojni.so」(非空且不同才失败)。
 - W^X:targetSdk 29+ 从私有目录 `System.load()` 下载的 .so **允许**(限制的是 execve 与含 text-reloc 的 .so)。
 - 必须冷重启进程生效(Go runtime 单进程只初始化一次);`SystemNavigator.pop()` 只关 Activity,不够 → 用 `ProcessRestarter`(AlarmManager + killProcess)真重启。
 
