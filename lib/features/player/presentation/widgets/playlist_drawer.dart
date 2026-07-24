@@ -9,18 +9,55 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/models/song.dart';
 import '../../../../shared/utils/responsive_snackbar.dart';
 import '../providers/player_provider.dart';
+import 'queue_auto_scroll.dart';
 
 /// 桌面端播放队列侧边栏
 /// 作为布局的一部分常驻显示在主内容区右侧
-class PlaylistDrawer extends ConsumerWidget {
+class PlaylistDrawer extends ConsumerStatefulWidget {
   const PlaylistDrawer({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PlaylistDrawer> createState() => _PlaylistDrawerState();
+}
+
+class _PlaylistDrawerState extends ConsumerState<PlaylistDrawer>
+    with QueueAutoScrollMixin {
+  /// 队列项固定高度：封面 36 + 上下 padding 各 6 = 48。
+  @override
+  double get queueItemExtent => 48;
+
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    // 侧栏被插入布局（打开）时定位到当前播放项
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      jumpQueueToCurrent(
+        _scrollController,
+        ref.read(playerStateProvider).currentIndex,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(playerStateProvider);
     final notifier = ref.read(playerStateProvider.notifier);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+
+    // 方案 B：自动切歌时，仅当当前项滚出可视区才平滑跟随
+    ref.listen(playerStateProvider.select((s) => s.currentIndex), (_, next) {
+      followQueueIfOffscreen(_scrollController, next);
+    });
 
     return Container(
       width: 320,
@@ -143,6 +180,7 @@ class PlaylistDrawer extends ConsumerWidget {
     PlayerNotifier notifier,
   ) {
     return ReorderableListView.builder(
+      scrollController: _scrollController,
       // Web 端收紧离屏预解码范围，降低队列封面 GPU 纹理累积（原生端为 null 保持默认）。
       scrollCacheExtent: webListCacheExtent,
       padding: const EdgeInsets.only(bottom: 16),

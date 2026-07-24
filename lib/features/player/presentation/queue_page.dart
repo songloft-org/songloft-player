@@ -10,10 +10,11 @@ import '../../../shared/models/song.dart';
 import '../../../shared/utils/responsive_snackbar.dart';
 import '../domain/player_state.dart';
 import 'providers/player_provider.dart';
+import 'widgets/queue_auto_scroll.dart';
 
 /// 播放队列底部弹窗
 /// 以浮层形式展示当前播放队列中的所有歌曲
-class QueueBottomSheet extends ConsumerWidget {
+class QueueBottomSheet extends ConsumerStatefulWidget {
   const QueueBottomSheet({super.key});
 
   /// 显示播放队列底部弹窗
@@ -28,7 +29,23 @@ class QueueBottomSheet extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<QueueBottomSheet> createState() => _QueueBottomSheetState();
+}
+
+class _QueueBottomSheetState extends ConsumerState<QueueBottomSheet>
+    with QueueAutoScrollMixin {
+  /// 队列项固定高度：封面 48 + 上下 padding 各 8 = 64。
+  @override
+  double get queueItemExtent => 64;
+
+  /// DraggableScrollableSheet 提供的滚动控制器（切歌跟随时复用）。
+  ScrollController? _sheetController;
+
+  /// 打开弹窗后是否已完成初次定位（仅定位一次）。
+  bool _didInitialJump = false;
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(playerStateProvider);
     final notifier = ref.read(playerStateProvider.notifier);
     final theme = Theme.of(context);
@@ -45,11 +62,29 @@ class QueueBottomSheet extends ConsumerWidget {
       }
     });
 
+    // 方案 B：自动切歌时，仅当当前项滚出可视区才平滑跟随
+    ref.listen(playerStateProvider.select((s) => s.currentIndex), (_, next) {
+      final controller = _sheetController;
+      if (controller != null) followQueueIfOffscreen(controller, next);
+    });
+
     return DraggableScrollableSheet(
       initialChildSize: 0.7,
       minChildSize: 0.4,
       maxChildSize: 0.95,
       builder: (context, scrollController) {
+        _sheetController = scrollController;
+        // 首次构建后定位到当前播放项（仅一次）
+        if (!_didInitialJump) {
+          _didInitialJump = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            jumpQueueToCurrent(
+              scrollController,
+              ref.read(playerStateProvider).currentIndex,
+            );
+          });
+        }
         return Container(
           decoration: BoxDecoration(
             color: colorScheme.surface,
