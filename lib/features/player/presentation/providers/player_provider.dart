@@ -1647,7 +1647,12 @@ class PlayerNotifier extends Notifier<PlayerState> {
 
         // 播放成功 - 重置连续失败计数
         _consecutiveFailures = 0;
-        state = state.copyWith(isRetrying: false, clearInfoMessage: true);
+        state = state.copyWith(
+          isRetrying: false,
+          clearInfoMessage: true,
+          // 回填播放来源（本地缓存 / 远端流串），供播放页「歌曲信息」展示。
+          playbackSource: _audioHandler.lastPlaybackSource,
+        );
         _notifyPlayEvent(song.id, 'play');
 
         // 恢复上次保存的播放进度

@@ -3822,4 +3822,135 @@ class AppLocalizationsZh extends AppLocalizations {
   String categoryNoMatch(String label) {
     return '未找到匹配的$label';
   }
+
+  @override
+  String get songCacheCacheSong => '缓存到本机';
+
+  @override
+  String get songCacheRemove => '从缓存删除';
+
+  @override
+  String get songCacheInfo => '歌曲信息';
+
+  @override
+  String get songCacheConfirm => '缓存';
+
+  @override
+  String get songCacheCancel => '取消';
+
+  @override
+  String songCacheStarted(String title) {
+    return '开始缓存「$title」';
+  }
+
+  @override
+  String get songCacheDone => '已缓存到本机';
+
+  @override
+  String get songCacheRemoved => '已从缓存删除';
+
+  @override
+  String get songCacheFailed => '缓存失败';
+
+  @override
+  String get songCacheLimitExceeded => '本地缓存已达上限，请先在设置中清理';
+
+  @override
+  String get songCacheVideoWarnTitle => '缓存视频文件';
+
+  @override
+  String get songCacheVideoWarnContent => '视频文件体积较大，确定缓存到本机吗？';
+
+  @override
+  String get songInfoTitle => '歌曲信息';
+
+  @override
+  String get songInfoArtist => '艺术家';
+
+  @override
+  String get songInfoAlbum => '专辑';
+
+  @override
+  String get songInfoFormat => '格式';
+
+  @override
+  String get songInfoBitRate => '码率';
+
+  @override
+  String get songInfoSampleRate => '采样率';
+
+  @override
+  String get songInfoFileSize => '文件大小';
+
+  @override
+  String get songInfoType => '类型';
+
+  @override
+  String get songInfoPlaybackSource => '播放来源';
+
+  @override
+  String get songInfoSourceLocal => '本地缓存';
+
+  @override
+  String get songInfoSourceRemote => '在线播放';
+
+  @override
+  String get songInfoSourceUnknown => '未播放';
+
+  @override
+  String get songInfoCachePath => '缓存位置';
+
+  @override
+  String get songInfoQualityNote => '缓存音质取决于缓存时的播放音质设置；之后修改设置不影响已缓存文件。';
+
+  @override
+  String get songTypeLocalLabel => '本地';
+
+  @override
+  String get songTypeRemoteLabel => '网络';
+
+  @override
+  String get songTypeRadioLabel => '电台';
+
+  @override
+  String get localSongCacheTitle => '本机歌曲缓存';
+
+  @override
+  String localSongCacheSummary(int count, String size) {
+    return '$count 首 · $size';
+  }
+
+  @override
+  String get localSongCacheEmpty => '暂无手动缓存的歌曲';
+
+  @override
+  String get localSongCacheSingles => '已缓存单曲';
+
+  @override
+  String get localSongCachePlaylists => '已缓存歌单';
+
+  @override
+  String get localSongCacheClearAll => '清空本机歌曲缓存';
+
+  @override
+  String get localSongCacheClearAllConfirm => '确定清空全部本机歌曲缓存吗？';
+
+  @override
+  String get playlistCacheAll => '缓存歌单';
+
+  @override
+  String get playlistCacheClear => '清除歌单缓存';
+
+  @override
+  String playlistCacheProgress(int done, int total) {
+    return '正在缓存歌单 $done/$total';
+  }
+
+  @override
+  String playlistCacheDone(int ok, int failed) {
+    return '歌单缓存完成（$ok 成功，$failed 失败）';
+  }
+
+  @override
+  String get playlistCacheCleared => '已清除歌单缓存';
 }

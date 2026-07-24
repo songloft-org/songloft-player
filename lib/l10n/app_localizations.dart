@@ -6882,6 +6882,252 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'未找到匹配的{label}'**
   String categoryNoMatch(String label);
+
+  /// No description provided for @songCacheCacheSong.
+  ///
+  /// In zh, this message translates to:
+  /// **'缓存到本机'**
+  String get songCacheCacheSong;
+
+  /// No description provided for @songCacheRemove.
+  ///
+  /// In zh, this message translates to:
+  /// **'从缓存删除'**
+  String get songCacheRemove;
+
+  /// No description provided for @songCacheInfo.
+  ///
+  /// In zh, this message translates to:
+  /// **'歌曲信息'**
+  String get songCacheInfo;
+
+  /// No description provided for @songCacheConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'缓存'**
+  String get songCacheConfirm;
+
+  /// No description provided for @songCacheCancel.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消'**
+  String get songCacheCancel;
+
+  /// No description provided for @songCacheStarted.
+  ///
+  /// In zh, this message translates to:
+  /// **'开始缓存「{title}」'**
+  String songCacheStarted(String title);
+
+  /// No description provided for @songCacheDone.
+  ///
+  /// In zh, this message translates to:
+  /// **'已缓存到本机'**
+  String get songCacheDone;
+
+  /// No description provided for @songCacheRemoved.
+  ///
+  /// In zh, this message translates to:
+  /// **'已从缓存删除'**
+  String get songCacheRemoved;
+
+  /// No description provided for @songCacheFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'缓存失败'**
+  String get songCacheFailed;
+
+  /// No description provided for @songCacheLimitExceeded.
+  ///
+  /// In zh, this message translates to:
+  /// **'本地缓存已达上限，请先在设置中清理'**
+  String get songCacheLimitExceeded;
+
+  /// No description provided for @songCacheVideoWarnTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'缓存视频文件'**
+  String get songCacheVideoWarnTitle;
+
+  /// No description provided for @songCacheVideoWarnContent.
+  ///
+  /// In zh, this message translates to:
+  /// **'视频文件体积较大，确定缓存到本机吗？'**
+  String get songCacheVideoWarnContent;
+
+  /// No description provided for @songInfoTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'歌曲信息'**
+  String get songInfoTitle;
+
+  /// No description provided for @songInfoArtist.
+  ///
+  /// In zh, this message translates to:
+  /// **'艺术家'**
+  String get songInfoArtist;
+
+  /// No description provided for @songInfoAlbum.
+  ///
+  /// In zh, this message translates to:
+  /// **'专辑'**
+  String get songInfoAlbum;
+
+  /// No description provided for @songInfoFormat.
+  ///
+  /// In zh, this message translates to:
+  /// **'格式'**
+  String get songInfoFormat;
+
+  /// No description provided for @songInfoBitRate.
+  ///
+  /// In zh, this message translates to:
+  /// **'码率'**
+  String get songInfoBitRate;
+
+  /// No description provided for @songInfoSampleRate.
+  ///
+  /// In zh, this message translates to:
+  /// **'采样率'**
+  String get songInfoSampleRate;
+
+  /// No description provided for @songInfoFileSize.
+  ///
+  /// In zh, this message translates to:
+  /// **'文件大小'**
+  String get songInfoFileSize;
+
+  /// No description provided for @songInfoType.
+  ///
+  /// In zh, this message translates to:
+  /// **'类型'**
+  String get songInfoType;
+
+  /// No description provided for @songInfoPlaybackSource.
+  ///
+  /// In zh, this message translates to:
+  /// **'播放来源'**
+  String get songInfoPlaybackSource;
+
+  /// No description provided for @songInfoSourceLocal.
+  ///
+  /// In zh, this message translates to:
+  /// **'本地缓存'**
+  String get songInfoSourceLocal;
+
+  /// No description provided for @songInfoSourceRemote.
+  ///
+  /// In zh, this message translates to:
+  /// **'在线播放'**
+  String get songInfoSourceRemote;
+
+  /// No description provided for @songInfoSourceUnknown.
+  ///
+  /// In zh, this message translates to:
+  /// **'未播放'**
+  String get songInfoSourceUnknown;
+
+  /// No description provided for @songInfoCachePath.
+  ///
+  /// In zh, this message translates to:
+  /// **'缓存位置'**
+  String get songInfoCachePath;
+
+  /// No description provided for @songInfoQualityNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'缓存音质取决于缓存时的播放音质设置；之后修改设置不影响已缓存文件。'**
+  String get songInfoQualityNote;
+
+  /// No description provided for @songTypeLocalLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'本地'**
+  String get songTypeLocalLabel;
+
+  /// No description provided for @songTypeRemoteLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'网络'**
+  String get songTypeRemoteLabel;
+
+  /// No description provided for @songTypeRadioLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'电台'**
+  String get songTypeRadioLabel;
+
+  /// No description provided for @localSongCacheTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'本机歌曲缓存'**
+  String get localSongCacheTitle;
+
+  /// No description provided for @localSongCacheSummary.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 首 · {size}'**
+  String localSongCacheSummary(int count, String size);
+
+  /// No description provided for @localSongCacheEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无手动缓存的歌曲'**
+  String get localSongCacheEmpty;
+
+  /// No description provided for @localSongCacheSingles.
+  ///
+  /// In zh, this message translates to:
+  /// **'已缓存单曲'**
+  String get localSongCacheSingles;
+
+  /// No description provided for @localSongCachePlaylists.
+  ///
+  /// In zh, this message translates to:
+  /// **'已缓存歌单'**
+  String get localSongCachePlaylists;
+
+  /// No description provided for @localSongCacheClearAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'清空本机歌曲缓存'**
+  String get localSongCacheClearAll;
+
+  /// No description provided for @localSongCacheClearAllConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定清空全部本机歌曲缓存吗？'**
+  String get localSongCacheClearAllConfirm;
+
+  /// No description provided for @playlistCacheAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'缓存歌单'**
+  String get playlistCacheAll;
+
+  /// No description provided for @playlistCacheClear.
+  ///
+  /// In zh, this message translates to:
+  /// **'清除歌单缓存'**
+  String get playlistCacheClear;
+
+  /// No description provided for @playlistCacheProgress.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在缓存歌单 {done}/{total}'**
+  String playlistCacheProgress(int done, int total);
+
+  /// No description provided for @playlistCacheDone.
+  ///
+  /// In zh, this message translates to:
+  /// **'歌单缓存完成（{ok} 成功，{failed} 失败）'**
+  String playlistCacheDone(int ok, int failed);
+
+  /// No description provided for @playlistCacheCleared.
+  ///
+  /// In zh, this message translates to:
+  /// **'已清除歌单缓存'**
+  String get playlistCacheCleared;
 }
 
 class _AppLocalizationsDelegate

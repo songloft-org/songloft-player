@@ -2434,5 +2434,67 @@
   "categoryNoMatch": "No matching {label} found",
   "@categoryNoMatch": {
     "placeholders": { "label": { "type": "String" } }
-  }
+  },
+  "songCacheCacheSong": "Cache on device",
+  "songCacheRemove": "Remove from cache",
+  "songCacheInfo": "Song info",
+  "songCacheConfirm": "Cache",
+  "songCacheCancel": "Cancel",
+  "songCacheStarted": "Caching \"{title}\"",
+  "@songCacheStarted": {
+    "placeholders": { "title": { "type": "String" } }
+  },
+  "songCacheDone": "Cached on device",
+  "songCacheRemoved": "Removed from cache",
+  "songCacheFailed": "Caching failed",
+  "songCacheLimitExceeded": "Local cache limit reached; clear some in Settings first",
+  "songCacheVideoWarnTitle": "Cache video file",
+  "songCacheVideoWarnContent": "Video files are large. Cache on device anyway?",
+  "songInfoTitle": "Song info",
+  "songInfoArtist": "Artist",
+  "songInfoAlbum": "Album",
+  "songInfoFormat": "Format",
+  "songInfoBitRate": "Bit rate",
+  "songInfoSampleRate": "Sample rate",
+  "songInfoFileSize": "File size",
+  "songInfoType": "Type",
+  "songInfoPlaybackSource": "Playback source",
+  "songInfoSourceLocal": "Local cache",
+  "songInfoSourceRemote": "Streaming",
+  "songInfoSourceUnknown": "Not playing",
+  "songInfoCachePath": "Cache location",
+  "songInfoQualityNote": "Cache quality follows the playback quality set at cache time; changing the setting later does not affect already-cached files.",
+  "songTypeLocalLabel": "Local",
+  "songTypeRemoteLabel": "Remote",
+  "songTypeRadioLabel": "Radio",
+  "localSongCacheTitle": "Device song cache",
+  "localSongCacheSummary": "{count} songs · {size}",
+  "@localSongCacheSummary": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "size": { "type": "String" }
+    }
+  },
+  "localSongCacheEmpty": "No manually cached songs",
+  "localSongCacheSingles": "Cached songs",
+  "localSongCachePlaylists": "Cached playlists",
+  "localSongCacheClearAll": "Clear device song cache",
+  "localSongCacheClearAllConfirm": "Clear all device song cache?",
+  "playlistCacheAll": "Cache playlist",
+  "playlistCacheClear": "Clear playlist cache",
+  "playlistCacheProgress": "Caching playlist {done}/{total}",
+  "@playlistCacheProgress": {
+    "placeholders": {
+      "done": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "playlistCacheDone": "Playlist cached ({ok} ok, {failed} failed)",
+  "@playlistCacheDone": {
+    "placeholders": {
+      "ok": { "type": "int" },
+      "failed": { "type": "int" }
+    }
+  },
+  "playlistCacheCleared": "Playlist cache cleared"
 }

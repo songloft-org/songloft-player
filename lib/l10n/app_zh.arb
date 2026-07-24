@@ -2539,5 +2539,67 @@
   "categoryNoMatch": "未找到匹配的{label}",
   "@categoryNoMatch": {
     "placeholders": { "label": { "type": "String" } }
-  }
+  },
+  "songCacheCacheSong": "缓存到本机",
+  "songCacheRemove": "从缓存删除",
+  "songCacheInfo": "歌曲信息",
+  "songCacheConfirm": "缓存",
+  "songCacheCancel": "取消",
+  "songCacheStarted": "开始缓存「{title}」",
+  "@songCacheStarted": {
+    "placeholders": { "title": { "type": "String" } }
+  },
+  "songCacheDone": "已缓存到本机",
+  "songCacheRemoved": "已从缓存删除",
+  "songCacheFailed": "缓存失败",
+  "songCacheLimitExceeded": "本地缓存已达上限，请先在设置中清理",
+  "songCacheVideoWarnTitle": "缓存视频文件",
+  "songCacheVideoWarnContent": "视频文件体积较大，确定缓存到本机吗？",
+  "songInfoTitle": "歌曲信息",
+  "songInfoArtist": "艺术家",
+  "songInfoAlbum": "专辑",
+  "songInfoFormat": "格式",
+  "songInfoBitRate": "码率",
+  "songInfoSampleRate": "采样率",
+  "songInfoFileSize": "文件大小",
+  "songInfoType": "类型",
+  "songInfoPlaybackSource": "播放来源",
+  "songInfoSourceLocal": "本地缓存",
+  "songInfoSourceRemote": "在线播放",
+  "songInfoSourceUnknown": "未播放",
+  "songInfoCachePath": "缓存位置",
+  "songInfoQualityNote": "缓存音质取决于缓存时的播放音质设置；之后修改设置不影响已缓存文件。",
+  "songTypeLocalLabel": "本地",
+  "songTypeRemoteLabel": "网络",
+  "songTypeRadioLabel": "电台",
+  "localSongCacheTitle": "本机歌曲缓存",
+  "localSongCacheSummary": "{count} 首 · {size}",
+  "@localSongCacheSummary": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "size": { "type": "String" }
+    }
+  },
+  "localSongCacheEmpty": "暂无手动缓存的歌曲",
+  "localSongCacheSingles": "已缓存单曲",
+  "localSongCachePlaylists": "已缓存歌单",
+  "localSongCacheClearAll": "清空本机歌曲缓存",
+  "localSongCacheClearAllConfirm": "确定清空全部本机歌曲缓存吗？",
+  "playlistCacheAll": "缓存歌单",
+  "playlistCacheClear": "清除歌单缓存",
+  "playlistCacheProgress": "正在缓存歌单 {done}/{total}",
+  "@playlistCacheProgress": {
+    "placeholders": {
+      "done": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "playlistCacheDone": "歌单缓存完成（{ok} 成功，{failed} 失败）",
+  "@playlistCacheDone": {
+    "placeholders": {
+      "ok": { "type": "int" },
+      "failed": { "type": "int" }
+    }
+  },
+  "playlistCacheCleared": "已清除歌单缓存"
 }

@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import '../../../shared/widgets/network_cover_image.dart';
-import 'package:flutter/foundation.dart' show listEquals;
+import 'package:flutter/foundation.dart' show kIsWeb, listEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -21,6 +21,8 @@ import '../../../shared/widgets/song_picker_modal.dart';
 import '../../library/presentation/providers/songs_provider.dart';
 import '../../library/presentation/song_edit_page.dart';
 import '../../player/presentation/providers/player_provider.dart';
+import '../../settings/presentation/providers/cache_download_provider.dart';
+import '../../settings/presentation/providers/song_cache_provider.dart';
 import '../domain/playlist.dart';
 import 'providers/playlist_provider.dart';
 import 'widgets/playlist_edit_dialog.dart';
@@ -388,6 +390,27 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
   Widget build(BuildContext context) {
     final playlistAsync = ref.watch(playlistDetailProvider(_playlistIdInt));
     final songsAsync = ref.watch(playlistSongsProvider(_playlistIdInt));
+
+    // 歌单批量缓存完成/中止时给出结果提示（仅本歌单的任务）。
+    ref.listen(cacheDownloadProvider, (prev, next) {
+      if (next.playlistId != _playlistIdInt) return;
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context);
+      final wasRunning = prev?.running ?? false;
+      if (wasRunning && !next.running) {
+        if (next.limitHit) {
+          ResponsiveSnackBar.showError(
+            context,
+            message: l10n.songCacheLimitExceeded,
+          );
+        } else {
+          ResponsiveSnackBar.showSuccess(
+            context,
+            message: l10n.playlistCacheDone(next.done, next.failed),
+          );
+        }
+      }
+    });
 
     return Scaffold(
       body: RefreshIndicator(
@@ -1133,6 +1156,12 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
             case 'add_songs':
               _addSongs();
               break;
+            case 'cache_playlist':
+              _cachePlaylistToDevice();
+              break;
+            case 'clear_playlist_cache':
+              _clearPlaylistCache();
+              break;
             case 'edit':
               _showEditDialog(playlist);
               break;
@@ -1152,6 +1181,31 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
+              // 缓存歌单到本机（仅非 Web，songloft-org/songloft#312）
+              if (!kIsWeb && songs.isNotEmpty)
+                PopupMenuItem(
+                  value: 'cache_playlist',
+                  child: ListTile(
+                    leading: const Icon(Icons.download_for_offline_outlined),
+                    title: Text(l10n.playlistCacheAll),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              if (!kIsWeb &&
+                  ref
+                      .read(songCacheProvider.notifier)
+                      .playlistGroups()
+                      .containsKey(_playlistIdInt))
+                PopupMenuItem(
+                  value: 'clear_playlist_cache',
+                  child: ListTile(
+                    leading: const Icon(Icons.cleaning_services_outlined),
+                    title: Text(l10n.playlistCacheClear),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
               PopupMenuItem(
                 value: 'edit',
                 child: ListTile(
@@ -1469,6 +1523,33 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
         ? l10n.playlistAddedWithSkipped(result.added, result.skipped)
         : l10n.playlistAddedCount(result.added);
     ResponsiveSnackBar.showSuccess(context, message: msg);
+  }
+
+  /// 缓存整个歌单到本机（songloft-org/songloft#312）。
+  Future<void> _cachePlaylistToDevice() async {
+    if (ref.read(cacheDownloadProvider).running) return;
+    // 先加载全部歌曲，保证缓存的是完整歌单而非当前分页。
+    await ref.read(playlistSongsProvider(_playlistIdInt).notifier).loadAll();
+    if (!mounted) return;
+    final songs =
+        ref.read(playlistSongsProvider(_playlistIdInt)).value?.items ?? [];
+    if (songs.isEmpty) return;
+    final l10n = AppLocalizations.of(context);
+    ResponsiveSnackBar.show(
+      context,
+      message: l10n.playlistCacheProgress(0, songs.length),
+    );
+    await ref
+        .read(cacheDownloadProvider.notifier)
+        .cachePlaylist(songs, _playlistIdInt);
+  }
+
+  /// 清除本歌单的本机缓存（按标签，多来源共享的歌不误删）。
+  Future<void> _clearPlaylistCache() async {
+    await ref.read(songCacheProvider.notifier).removePlaylist(_playlistIdInt);
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context);
+    ResponsiveSnackBar.showSuccess(context, message: l10n.playlistCacheCleared);
   }
 
   /// 确认删除歌单

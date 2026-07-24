@@ -2,13 +2,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/backend/run_mode_provider.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/url_helper.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/favorite_button.dart';
+import '../../../settings/presentation/providers/song_cache_provider.dart';
 import '../../domain/player_state.dart';
 import '../providers/player_provider.dart';
 import '../utils/full_player_route.dart';
+import '../utils/player_song_actions.dart';
 import 'play_controls.dart';
 import 'progress_bar.dart';
 import 'audio_track_control.dart';
@@ -274,6 +277,68 @@ class DesktopPlayer extends ConsumerWidget {
         ),
         tooltip: AppLocalizations.of(context).playerPlaylist,
         visualDensity: VisualDensity.compact,
+      ),
+      // 缓存 / 歌曲信息（收进溢出菜单，避免图标行过挤）。Consumer 局部取 ref，
+      // 不改 _buildToolbar 签名。
+      Consumer(
+        builder: (context, ref, _) {
+          final song = state.currentSong;
+          if (song == null) return const SizedBox.shrink();
+          ref.watch(songCacheProvider);
+          final runMode = ref.watch(runModeProvider);
+          final canCache = canCacheLocally(song, runMode: runMode);
+          final isCached =
+              ref.read(songCacheProvider.notifier).isCached(song.id);
+          final l10n = AppLocalizations.of(context);
+          return PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert_rounded, size: 20),
+            tooltip: l10n.songCacheInfo,
+            onSelected: (value) {
+              switch (value) {
+                case 'cache_song':
+                  if (isCached) {
+                    removeSongFromDevice(context, ref, song);
+                  } else {
+                    cacheSongToDevice(context, ref, song);
+                  }
+                case 'song_info':
+                  showSongInfoDialog(
+                    context,
+                    ref,
+                    song,
+                    playbackSource: state.playbackSource,
+                  );
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'song_info',
+                child: ListTile(
+                  leading: const Icon(Icons.info_outline_rounded),
+                  title: Text(l10n.songCacheInfo),
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              if (canCache)
+                PopupMenuItem(
+                  value: 'cache_song',
+                  child: ListTile(
+                    leading: Icon(
+                      isCached
+                          ? Icons.download_done_rounded
+                          : Icons.download_for_offline_outlined,
+                    ),
+                    title: Text(
+                      isCached ? l10n.songCacheRemove : l10n.songCacheCacheSong,
+                    ),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+            ],
+          );
+        },
       ),
     ];
 

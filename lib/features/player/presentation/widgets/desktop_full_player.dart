@@ -4,10 +4,12 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/backend/run_mode_provider.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/responsive.dart';
 import '../../../../core/utils/color_extraction.dart';
 import '../../../../core/utils/url_helper.dart';
+import '../../../settings/presentation/providers/song_cache_provider.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/favorite_button.dart';
 import '../../domain/player_state.dart';
@@ -389,6 +391,24 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
                   onSetAfterSongs: notifier.setSleepTimerAfterSongs,
                   onCancel: notifier.cancelSleepTimer,
                 );
+              case 'cache_song':
+                final song = state.currentSong;
+                if (song == null) break;
+                if (ref.read(songCacheProvider.notifier).isCached(song.id)) {
+                  removeSongFromDevice(context, ref, song);
+                } else {
+                  cacheSongToDevice(context, ref, song);
+                }
+              case 'song_info':
+                final song = state.currentSong;
+                if (song != null) {
+                  showSongInfoDialog(
+                    context,
+                    ref,
+                    song,
+                    playbackSource: state.playbackSource,
+                  );
+                }
               case 'delete':
                 deleteCurrentSongFromPlayer(context, ref);
             }
@@ -396,6 +416,13 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
           itemBuilder: (context) {
             final colorScheme = Theme.of(context).colorScheme;
             final hasTimer = state.sleepTimer != null;
+            final song = state.currentSong;
+            ref.watch(songCacheProvider);
+            final runMode = ref.watch(runModeProvider);
+            final canCache =
+                song != null && canCacheLocally(song, runMode: runMode);
+            final isCached = song != null &&
+                ref.read(songCacheProvider.notifier).isCached(song.id);
             return [
               // 均衡器依赖 libmpv，Web 无 libmpv 不生效，故 Web 隐藏
               if (!kIsWeb)
@@ -435,6 +462,34 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
+              if (song != null)
+                PopupMenuItem(
+                  value: 'song_info',
+                  child: ListTile(
+                    leading: const Icon(Icons.info_outline_rounded),
+                    title: Text(AppLocalizations.of(context).songCacheInfo),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              if (canCache)
+                PopupMenuItem(
+                  value: 'cache_song',
+                  child: ListTile(
+                    leading: Icon(
+                      isCached
+                          ? Icons.download_done_rounded
+                          : Icons.download_for_offline_outlined,
+                    ),
+                    title: Text(
+                      isCached
+                          ? AppLocalizations.of(context).songCacheRemove
+                          : AppLocalizations.of(context).songCacheCacheSong,
+                    ),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
               const PopupMenuDivider(),
               PopupMenuItem(
                 value: 'delete',

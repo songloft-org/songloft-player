@@ -1,3 +1,4 @@
+import '../../../core/storage/song_cache_service.dart' show PlaybackSource;
 import '../../../shared/models/song.dart';
 
 /// 播放模式
@@ -105,6 +106,7 @@ class PlayerState {
   final String? infoMessage; // 当前信息提示（如"正在缓存"），UI 层监听后显示普通 SnackBar
   final bool isRetrying; // 是否正在重试中
   final int? sourcePlaylistId; // 当前播放队列的来源歌单 ID
+  final PlaybackSource playbackSource; // 当前歌曲播放来源（本地缓存 / 远端流串）
 
   const PlayerState({
     this.currentSong,
@@ -124,6 +126,7 @@ class PlayerState {
     this.infoMessage,
     this.isRetrying = false,
     this.sourcePlaylistId,
+    this.playbackSource = PlaybackSource.unknown,
   });
 
   /// 初始状态
@@ -199,6 +202,7 @@ class PlayerState {
     String? infoMessage,
     bool? isRetrying,
     int? sourcePlaylistId,
+    PlaybackSource? playbackSource,
     bool clearCurrentSong = false,
     bool clearSleepTimer = false,
     bool clearPreviousVolume = false,
@@ -229,6 +233,7 @@ class PlayerState {
       sourcePlaylistId: clearSourcePlaylistId
           ? null
           : (sourcePlaylistId ?? this.sourcePlaylistId),
+      playbackSource: playbackSource ?? this.playbackSource,
     );
   }
 

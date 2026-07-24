@@ -13,6 +13,7 @@ import '../../config/app_config.dart';
 import '../../features/playlist/domain/playlist.dart';
 import '../network/insecure_media_proxy.dart';
 import '../../shared/models/song.dart';
+import '../storage/song_cache_service.dart';
 import '../utils/audio_format_helper.dart';
 import '../utils/url_helper.dart';
 import 'media_browse_data_source.dart';
@@ -31,6 +32,10 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
 
   String? _originalTitle;
   String? _originalArtist;
+
+  /// 最近一次 [playSong] 的播放来源（本地缓存 / 远端流串），供 PlayerNotifier 回填
+  /// 到 PlayerState，播放页「歌曲信息」据此展示。
+  PlaybackSource lastPlaybackSource = PlaybackSource.unknown;
 
   /// 通知栏回调（由 PlayerNotifier 设置）
   VoidCallback? onSkipToNext;
@@ -488,6 +493,15 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
       debugPrint('[Player] SongloftAudioHandler: song url: $songUrl');
       final liveHeaders = _buildLiveStreamHeaders(song);
 
+      // 客户端本地缓存优先（songloft-org/songloft#312）：用户手动缓存过的歌直接播
+      // 本机文件，离线可播、零流量。直播/Web 不缓存（resolvePlayablePath 内部 kIsWeb
+      // 返回 null）。命中即用 file:// 源，绕过下方远端流串/边播边缓存分支。
+      await SongCacheService().load();
+      final cachedPath = await SongCacheService().resolvePlayablePath(song.id);
+      lastPlaybackSource = cachedPath != null
+          ? PlaybackSource.localCache
+          : PlaybackSource.remoteStream;
+
       // Web 平台 / 电台直播流使用 AudioSource.uri（直播流无法缓存）。
       // Windows 也走 AudioSource.uri：LockCachingAudioSource 会把远端音频缓存到
       // %TEMP%\just_audio_cache 再 renameSync，而 Windows 下打开的文件句柄会阻止
@@ -500,7 +514,12 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
       // 视频文件通常较大，同样走 AudioSource.uri：libmpv/原生后端直接支持网络流 seek，
       // 后端已有透明缓存；避免 LockCachingAudioSource 代理大文件 seek 的性能/句柄问题。
       final useLiveSource = kIsWeb || song.isLive || isWindows || song.isVideo;
-      if (useLiveSource) {
+      if (cachedPath != null) {
+        debugPrint(
+          '[Player] SongloftAudioHandler: play from local cache: $cachedPath',
+        );
+        source = ja.AudioSource.uri(Uri.file(cachedPath));
+      } else if (useLiveSource) {
         final isMobile =
             !kIsWeb &&
             (defaultTargetPlatform == TargetPlatform.android ||
@@ -556,10 +575,13 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
 
       // 主动通知后端：本会话已切到 song.id，让其他 songID 的 prefetch/transcode/reassign 退场。
       // 必须在 setAudioSource 之前发起，让后端 plugin worker 尽早释放给本次播放使用。
-      try {
-        notifySongActivated?.call(song.id);
-      } catch (e) {
-        debugPrint('[Player] notifySongActivated error (ignored): $e');
+      // 本地缓存播放（可能离线、且不占用后端流串 worker）无需通知，跳过。
+      if (lastPlaybackSource != PlaybackSource.localCache) {
+        try {
+          notifySongActivated?.call(song.id);
+        } catch (e) {
+          debugPrint('[Player] notifySongActivated error (ignored): $e');
+        }
       }
 
       debugPrint('[Player] SongloftAudioHandler: setting audio source');

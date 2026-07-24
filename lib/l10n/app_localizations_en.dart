@@ -3982,4 +3982,138 @@ class AppLocalizationsEn extends AppLocalizations {
   String categoryNoMatch(String label) {
     return 'No matching $label found';
   }
+
+  @override
+  String get songCacheCacheSong => 'Cache on device';
+
+  @override
+  String get songCacheRemove => 'Remove from cache';
+
+  @override
+  String get songCacheInfo => 'Song info';
+
+  @override
+  String get songCacheConfirm => 'Cache';
+
+  @override
+  String get songCacheCancel => 'Cancel';
+
+  @override
+  String songCacheStarted(String title) {
+    return 'Caching \"$title\"';
+  }
+
+  @override
+  String get songCacheDone => 'Cached on device';
+
+  @override
+  String get songCacheRemoved => 'Removed from cache';
+
+  @override
+  String get songCacheFailed => 'Caching failed';
+
+  @override
+  String get songCacheLimitExceeded =>
+      'Local cache limit reached; clear some in Settings first';
+
+  @override
+  String get songCacheVideoWarnTitle => 'Cache video file';
+
+  @override
+  String get songCacheVideoWarnContent =>
+      'Video files are large. Cache on device anyway?';
+
+  @override
+  String get songInfoTitle => 'Song info';
+
+  @override
+  String get songInfoArtist => 'Artist';
+
+  @override
+  String get songInfoAlbum => 'Album';
+
+  @override
+  String get songInfoFormat => 'Format';
+
+  @override
+  String get songInfoBitRate => 'Bit rate';
+
+  @override
+  String get songInfoSampleRate => 'Sample rate';
+
+  @override
+  String get songInfoFileSize => 'File size';
+
+  @override
+  String get songInfoType => 'Type';
+
+  @override
+  String get songInfoPlaybackSource => 'Playback source';
+
+  @override
+  String get songInfoSourceLocal => 'Local cache';
+
+  @override
+  String get songInfoSourceRemote => 'Streaming';
+
+  @override
+  String get songInfoSourceUnknown => 'Not playing';
+
+  @override
+  String get songInfoCachePath => 'Cache location';
+
+  @override
+  String get songInfoQualityNote =>
+      'Cache quality follows the playback quality set at cache time; changing the setting later does not affect already-cached files.';
+
+  @override
+  String get songTypeLocalLabel => 'Local';
+
+  @override
+  String get songTypeRemoteLabel => 'Remote';
+
+  @override
+  String get songTypeRadioLabel => 'Radio';
+
+  @override
+  String get localSongCacheTitle => 'Device song cache';
+
+  @override
+  String localSongCacheSummary(int count, String size) {
+    return '$count songs · $size';
+  }
+
+  @override
+  String get localSongCacheEmpty => 'No manually cached songs';
+
+  @override
+  String get localSongCacheSingles => 'Cached songs';
+
+  @override
+  String get localSongCachePlaylists => 'Cached playlists';
+
+  @override
+  String get localSongCacheClearAll => 'Clear device song cache';
+
+  @override
+  String get localSongCacheClearAllConfirm => 'Clear all device song cache?';
+
+  @override
+  String get playlistCacheAll => 'Cache playlist';
+
+  @override
+  String get playlistCacheClear => 'Clear playlist cache';
+
+  @override
+  String playlistCacheProgress(int done, int total) {
+    return 'Caching playlist $done/$total';
+  }
+
+  @override
+  String playlistCacheDone(int ok, int failed) {
+    return 'Playlist cached ($ok ok, $failed failed)';
+  }
+
+  @override
+  String get playlistCacheCleared => 'Playlist cache cleared';
 }

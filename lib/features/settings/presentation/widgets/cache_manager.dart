@@ -11,9 +11,12 @@ import '../../../../core/storage/lyric_cache_service.dart';
 import '../../../../core/storage/preference_sync_service.dart';
 import '../../../../core/utils/web_cache_clearer.dart' as web_cache;
 import '../../../../shared/utils/responsive_snackbar.dart';
+import '../../../../shared/widgets/confirm_dialog.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../playlist/presentation/providers/playlist_provider.dart';
 import '../../data/cache_api.dart';
 import '../providers/settings_provider.dart';
+import '../providers/song_cache_provider.dart';
 
 String _formatSize(int bytes) {
   if (bytes <= 0) return '0 B';
@@ -475,7 +478,144 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
             const SizedBox(height: 16),
             _buildLocalCacheSection(theme, colorScheme),
           ],
+
+          // 本机歌曲缓存（用户手动缓存的单曲，仅非 Web，songloft-org/songloft#312）
+          if (!kIsWeb) ...[
+            const SizedBox(height: 24),
+            const Divider(),
+            const SizedBox(height: 16),
+            _buildDeviceSongCacheSection(theme, colorScheme),
+          ],
         ],
+      ),
+    );
+  }
+
+  /// 本机歌曲缓存：展示用户手动缓存的单曲列表，可单删或整体清空。
+  Widget _buildDeviceSongCacheSection(ThemeData theme, ColorScheme colorScheme) {
+    final l10n = AppLocalizations.of(context);
+    // watch 修订号，缓存增删后刷新列表。
+    ref.watch(songCacheProvider);
+    final notifier = ref.read(songCacheProvider.notifier);
+    final singles = notifier.manualEntries
+      ..sort((a, b) => b.cachedAt.compareTo(a.cachedAt));
+    final groups = notifier.playlistGroups();
+    final totalSize = notifier.totalSize();
+    final isEmpty = singles.isEmpty && groups.isEmpty;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.download_done_rounded, size: 18, color: colorScheme.primary),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                l10n.localSongCacheTitle,
+                style: theme.textTheme.titleSmall
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ),
+            Text(
+              l10n.localSongCacheSummary(singles.length, _formatSize(totalSize)),
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(color: colorScheme.onSurfaceVariant),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        if (isEmpty)
+          Text(
+            l10n.localSongCacheEmpty,
+            style: theme.textTheme.bodySmall
+                ?.copyWith(color: colorScheme.onSurfaceVariant),
+          )
+        else ...[
+          // 已缓存歌单
+          if (groups.isNotEmpty) ...[
+            Text(
+              l10n.localSongCachePlaylists,
+              style: theme.textTheme.labelLarge
+                  ?.copyWith(color: colorScheme.onSurfaceVariant),
+            ),
+            for (final entry in groups.entries)
+              _buildPlaylistCacheTile(
+                theme,
+                colorScheme,
+                entry.key,
+                entry.value.length,
+                entry.value.fold<int>(0, (s, e) => s + e.size),
+                notifier,
+              ),
+            const SizedBox(height: 8),
+          ],
+          // 已缓存单曲
+          if (singles.isNotEmpty)
+            Text(
+              l10n.localSongCacheSingles,
+              style: theme.textTheme.labelLarge
+                  ?.copyWith(color: colorScheme.onSurfaceVariant),
+            ),
+          for (final e in singles)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              dense: true,
+              title: Text(e.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+              subtitle: Text(
+                '${e.artist?.isNotEmpty == true ? '${e.artist} · ' : ''}'
+                '${_formatSize(e.size)}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              trailing: IconButton(
+                icon: Icon(Icons.delete_outline, color: colorScheme.error),
+                onPressed: () => notifier.removeSong(e.songId),
+              ),
+            ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () async {
+                final ok = await ConfirmDialog.show(
+                  context,
+                  title: l10n.localSongCacheClearAll,
+                  content: l10n.localSongCacheClearAllConfirm,
+                  isDestructive: true,
+                );
+                if (ok) await notifier.clearAll();
+              },
+              icon: const Icon(Icons.delete_sweep_outlined),
+              label: Text(l10n.localSongCacheClearAll),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// 已缓存歌单条目：名称经 playlistDetailProvider 异步解析，缺失回退「#id」。
+  Widget _buildPlaylistCacheTile(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    int playlistId,
+    int count,
+    int size,
+    SongCacheNotifier notifier,
+  ) {
+    final l10n = AppLocalizations.of(context);
+    final nameAsync = ref.watch(playlistDetailProvider(playlistId));
+    final name = nameAsync.value?.name ?? '#$playlistId';
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      dense: true,
+      leading: const Icon(Icons.playlist_play_rounded),
+      title: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis),
+      subtitle: Text(l10n.localSongCacheSummary(count, _formatSize(size))),
+      trailing: IconButton(
+        icon: Icon(Icons.delete_outline, color: colorScheme.error),
+        onPressed: () => notifier.removePlaylist(playlistId),
       ),
     );
   }
