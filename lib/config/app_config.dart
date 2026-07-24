@@ -123,9 +123,14 @@ class AppConfig {
       'https://github.com/$frontendUpdateRepo/releases/latest';
 
   /// 格式化前端版本号用于显示
-  /// 'dev' -> '开发版本', '1.0.14' -> 'v1.0.14'
-  static String get frontendVersionDisplay =>
-      frontendVersion == 'dev'
-          ? (l10nOrNull?.coreVersionDev ?? '开发版本')
-          : 'v$frontendVersion';
+  /// 'dev' -> '开发版本 (abc1234)', '1.0.14' -> 'v1.0.14'
+  static String get frontendVersionDisplay {
+    if (frontendVersion == 'dev') {
+      final label = l10nOrNull?.coreVersionDev ?? '开发版本';
+      return frontendGitCommit != 'unknown' && frontendGitCommit.isNotEmpty
+          ? '$label ($frontendGitCommit)'
+          : label;
+    }
+    return 'v$frontendVersion';
+  }
 }
