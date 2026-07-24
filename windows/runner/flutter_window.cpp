@@ -3,6 +3,7 @@
 #include <optional>
 
 #include "flutter/generated_plugin_registrant.h"
+#include "desktop_multi_window/desktop_multi_window_plugin.h"
 
 FlutterWindow::FlutterWindow(const flutter::DartProject& project)
     : project_(project) {}
@@ -25,6 +26,15 @@ bool FlutterWindow::OnCreate() {
     return false;
   }
   RegisterPlugins(flutter_controller_->engine());
+  // 桌面歌词悬浮窗（songloft-org/songloft#318）：desktop_multi_window 为每个新窗口
+  // 创建独立 Flutter engine，需要在这里手动为每个新 engine 也注册一遍全部插件，
+  // 否则子窗口里 window_manager / shared_preferences 等插件不可用。
+  DesktopMultiWindowSetWindowCreatedCallback([](void* controller) {
+    auto* flutter_view_controller =
+        reinterpret_cast<flutter::FlutterViewController*>(controller);
+    auto* registry = flutter_view_controller->engine();
+    RegisterPlugins(registry);
+  });
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 
   flutter_controller_->engine()->SetNextFrameCallback([&]() {

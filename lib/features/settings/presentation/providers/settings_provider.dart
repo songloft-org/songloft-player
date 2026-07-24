@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -8,6 +10,8 @@ import '../../../../core/network/api_client.dart';
 import '../../../../l10n/l10n_holder.dart';
 import '../../../../core/storage/preference_sync_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../desktop_lyric/desktop_lyric_controller.dart';
+import '../../../desktop_lyric/desktop_lyric_font_size.dart';
 import '../../data/cache_api.dart';
 import '../../data/config_api.dart';
 import '../../data/directory_api.dart';
@@ -951,6 +955,165 @@ class NotificationLyricInTitleNotifier extends Notifier<bool> {
 final notificationLyricInTitleProvider =
     NotifierProvider<NotificationLyricInTitleNotifier, bool>(
       NotificationLyricInTitleNotifier.new,
+    );
+
+// ============================================================================
+// 桌面歌词悬浮窗 Provider（仅 Windows，纯本地设置，songloft-org/songloft#318）
+// ============================================================================
+
+bool get _desktopLyricSupported => !kIsWeb && Platform.isWindows;
+
+/// 悬浮窗已打开时，把当前锁定/字号/透明度整体推给它实时生效。
+Future<void> _pushDesktopLyricConfig(Ref ref) async {
+  if (!_desktopLyricSupported) return;
+  await ref.read(desktopLyricControllerProvider).pushConfig(
+    locked: ref.read(desktopLyricLockedProvider),
+    fontSize: ref.read(desktopLyricFontSizeProvider),
+    opacity: ref.read(desktopLyricOpacityProvider),
+  );
+}
+
+/// 桌面歌词总开关
+class DesktopLyricEnabledNotifier extends Notifier<bool> {
+  @override
+  bool build() {
+    _load();
+    return false;
+  }
+
+  Future<void> _load() async {
+    try {
+      final prefs = await ref.read(appPreferencesProvider.future);
+      final enabled = prefs.getDesktopLyricEnabled();
+      state = enabled;
+      // 上次退出前是开启状态，启动时自动恢复悬浮窗
+      if (enabled && _desktopLyricSupported) {
+        await ref.read(desktopLyricControllerProvider).open();
+      }
+    } catch (_) {
+      state = false;
+    }
+  }
+
+  Future<void> setEnabled(bool value) async {
+    state = value;
+    try {
+      final prefs = await ref.read(appPreferencesProvider.future);
+      await prefs.setDesktopLyricEnabled(value);
+      // 注意：本地设置，刻意不调用 pushPreferencesToServer
+      if (_desktopLyricSupported) {
+        final controller = ref.read(desktopLyricControllerProvider);
+        if (value) {
+          await controller.open();
+        } else {
+          await controller.close();
+        }
+      }
+    } catch (_) {}
+  }
+}
+
+final desktopLyricEnabledProvider =
+    NotifierProvider<DesktopLyricEnabledNotifier, bool>(
+      DesktopLyricEnabledNotifier.new,
+    );
+
+/// 桌面歌词锁定位置开关（锁定后点击穿透、不可拖动）
+class DesktopLyricLockedNotifier extends Notifier<bool> {
+  @override
+  bool build() {
+    _load();
+    return false;
+  }
+
+  Future<void> _load() async {
+    try {
+      final prefs = await ref.read(appPreferencesProvider.future);
+      state = prefs.getDesktopLyricLocked();
+    } catch (_) {
+      state = false;
+    }
+  }
+
+  Future<void> setLocked(bool value) async {
+    state = value;
+    try {
+      final prefs = await ref.read(appPreferencesProvider.future);
+      await prefs.setDesktopLyricLocked(value);
+      await _pushDesktopLyricConfig(ref);
+    } catch (_) {}
+  }
+}
+
+final desktopLyricLockedProvider =
+    NotifierProvider<DesktopLyricLockedNotifier, bool>(
+      DesktopLyricLockedNotifier.new,
+    );
+
+/// 桌面歌词字号档位
+class DesktopLyricFontSizeNotifier extends Notifier<DesktopLyricFontSize> {
+  @override
+  DesktopLyricFontSize build() {
+    _load();
+    return DesktopLyricFontSize.medium;
+  }
+
+  Future<void> _load() async {
+    try {
+      final prefs = await ref.read(appPreferencesProvider.future);
+      state = DesktopLyricFontSizeX.fromStorageValue(
+        prefs.getDesktopLyricFontSize(),
+      );
+    } catch (_) {
+      state = DesktopLyricFontSize.medium;
+    }
+  }
+
+  Future<void> setFontSize(DesktopLyricFontSize value) async {
+    state = value;
+    try {
+      final prefs = await ref.read(appPreferencesProvider.future);
+      await prefs.setDesktopLyricFontSize(value.storageValue);
+      await _pushDesktopLyricConfig(ref);
+    } catch (_) {}
+  }
+}
+
+final desktopLyricFontSizeProvider =
+    NotifierProvider<DesktopLyricFontSizeNotifier, DesktopLyricFontSize>(
+      DesktopLyricFontSizeNotifier.new,
+    );
+
+/// 桌面歌词背景透明度 (0.0~0.8)
+class DesktopLyricOpacityNotifier extends Notifier<double> {
+  @override
+  double build() {
+    _load();
+    return 0.4;
+  }
+
+  Future<void> _load() async {
+    try {
+      final prefs = await ref.read(appPreferencesProvider.future);
+      state = prefs.getDesktopLyricOpacity();
+    } catch (_) {
+      state = 0.4;
+    }
+  }
+
+  Future<void> setOpacity(double value) async {
+    state = value;
+    try {
+      final prefs = await ref.read(appPreferencesProvider.future);
+      await prefs.setDesktopLyricOpacity(value);
+      await _pushDesktopLyricConfig(ref);
+    } catch (_) {}
+  }
+}
+
+final desktopLyricOpacityProvider =
+    NotifierProvider<DesktopLyricOpacityNotifier, double>(
+      DesktopLyricOpacityNotifier.new,
     );
 
 // ============================================================================

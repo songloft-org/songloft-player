@@ -65,9 +65,13 @@ dependencies:
   # 系统音量控制
   volume_controller: ^2.0.7
   # 窗口和系统托盘
-  window_manager: ^0.4.3
+  window_manager: ^0.5.2
   tray_manager: ^0.2.4
   windows_single_instance: any
+  # 桌面歌词悬浮窗：同进程内起独立 Flutter engine 作为悬浮窗（songloft-org/songloft#318）
+  desktop_multi_window: ^0.3.0
+  # 获取显示器几何信息（含位置），用于桌面歌词悬浮窗位置的边界校验
+  screen_retriever: ^0.2.2
   flutter_svg: ^2.3.0
   # HMAC-SHA256 签名（Tracely 监控 SDK）
   crypto: ^3.0.6

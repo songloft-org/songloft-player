@@ -3265,6 +3265,44 @@ class AppLocalizationsEn extends AppLocalizations {
       'On: the title line shows lyrics and the song name moves to the subtitle. Off: the title line shows the song name and lyrics move to the subtitle';
 
   @override
+  String get settingsDesktopLyricTitle => 'Desktop Lyrics';
+
+  @override
+  String get settingsDesktopLyricDesc =>
+      'Show a floating lyrics window on the desktop that scrolls with playback';
+
+  @override
+  String get settingsDesktopLyricLockTitle => 'Lock Lyrics Position';
+
+  @override
+  String get settingsDesktopLyricLockDesc =>
+      'When locked, the window can\'t be dragged and mouse clicks pass through to windows below';
+
+  @override
+  String get settingsDesktopLyricFontSizeTitle => 'Lyrics Font Size';
+
+  @override
+  String get settingsDesktopLyricFontSizeSmall => 'Small';
+
+  @override
+  String get settingsDesktopLyricFontSizeMedium => 'Medium';
+
+  @override
+  String get settingsDesktopLyricFontSizeLarge => 'Large';
+
+  @override
+  String get settingsDesktopLyricOpacityTitle => 'Background Opacity';
+
+  @override
+  String get desktopLyricNoLyric => 'No lyrics available';
+
+  @override
+  String get desktopLyricContextLock => 'Lock Position';
+
+  @override
+  String get desktopLyricContextHide => 'Hide Desktop Lyrics';
+
+  @override
   String get settingsShortcutsEntryTitle => 'Keyboard shortcuts';
 
   @override

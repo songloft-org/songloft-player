@@ -3,6 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  desktop_multi_window
   media_kit_video
   screen_retriever_linux
   tray_manager

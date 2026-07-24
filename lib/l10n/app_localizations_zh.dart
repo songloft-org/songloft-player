@@ -3128,6 +3128,42 @@ class AppLocalizationsZh extends AppLocalizations {
       '开启：标题行显示歌词、歌名归副标题；关闭：标题行显示歌名、副标题显示歌词';
 
   @override
+  String get settingsDesktopLyricTitle => '桌面歌词';
+
+  @override
+  String get settingsDesktopLyricDesc => '在桌面显示一个悬浮歌词窗口，跟随播放实时滚动';
+
+  @override
+  String get settingsDesktopLyricLockTitle => '锁定歌词位置';
+
+  @override
+  String get settingsDesktopLyricLockDesc => '锁定后悬浮窗不可拖动，鼠标点击会穿透到下层窗口';
+
+  @override
+  String get settingsDesktopLyricFontSizeTitle => '歌词字号';
+
+  @override
+  String get settingsDesktopLyricFontSizeSmall => '小';
+
+  @override
+  String get settingsDesktopLyricFontSizeMedium => '中';
+
+  @override
+  String get settingsDesktopLyricFontSizeLarge => '大';
+
+  @override
+  String get settingsDesktopLyricOpacityTitle => '背景透明度';
+
+  @override
+  String get desktopLyricNoLyric => '暂无歌词';
+
+  @override
+  String get desktopLyricContextLock => '锁定位置';
+
+  @override
+  String get desktopLyricContextHide => '隐藏桌面歌词';
+
+  @override
   String get settingsShortcutsEntryTitle => '键盘快捷键';
 
   @override

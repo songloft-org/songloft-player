@@ -20,6 +20,7 @@ import '../../../../core/utils/platform_utils.dart';
 import '../../../../core/utils/web_cache_clearer.dart' as web_cache;
 import '../../../../shared/utils/responsive_snackbar.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../desktop_lyric/desktop_lyric_font_size.dart';
 import '../../../playlist/presentation/providers/playlist_provider.dart';
 import '../../../jsplugin/data/jsplugin_api.dart';
 import '../../../jsplugin/presentation/providers/jsplugin_provider.dart';
@@ -418,6 +419,15 @@ class _SettingsCategoryContentState
     final autoPlayOnLaunch = ref.watch(autoPlayOnLaunchProvider);
     final autoEnterLyrics = ref.watch(autoEnterLyricsOnLaunchProvider);
     final lyricInTitle = ref.watch(notificationLyricInTitleProvider);
+    final desktopLyricEnabled = ref.watch(desktopLyricEnabledProvider);
+    final desktopLyricLocked = ref.watch(desktopLyricLockedProvider);
+    final desktopLyricFontSize = ref.watch(desktopLyricFontSizeProvider);
+    final desktopLyricOpacity = ref.watch(desktopLyricOpacityProvider);
+    final fontSizeLabels = {
+      DesktopLyricFontSize.small: l10n.settingsDesktopLyricFontSizeSmall,
+      DesktopLyricFontSize.medium: l10n.settingsDesktopLyricFontSizeMedium,
+      DesktopLyricFontSize.large: l10n.settingsDesktopLyricFontSizeLarge,
+    };
     final labels = {
       'original': l10n.settingsQualityOriginal,
       '128': l10n.settingsQualityLow,
@@ -532,6 +542,68 @@ class _SettingsCategoryContentState
               trailing: const Icon(Icons.chevron_right),
               onTap: () => context.push(AppRoutes.shortcuts),
             ),
+          ],
+          // 桌面歌词悬浮窗（v1 仅 Windows，songloft-org/songloft#318）
+          if (PlatformUtils.isWindows) ...[
+            const Divider(height: 1),
+            SwitchListTile(
+              secondary: const Icon(Icons.lyrics_outlined),
+              title: Text(l10n.settingsDesktopLyricTitle),
+              subtitle: Text(l10n.settingsDesktopLyricDesc),
+              value: desktopLyricEnabled,
+              onChanged: (v) {
+                ref.read(desktopLyricEnabledProvider.notifier).setEnabled(v);
+              },
+            ),
+            if (desktopLyricEnabled) ...[
+              const Divider(height: 1),
+              SwitchListTile(
+                secondary: const Icon(Icons.lock_outline),
+                title: Text(l10n.settingsDesktopLyricLockTitle),
+                subtitle: Text(l10n.settingsDesktopLyricLockDesc),
+                value: desktopLyricLocked,
+                onChanged: (v) {
+                  ref.read(desktopLyricLockedProvider.notifier).setLocked(v);
+                },
+              ),
+              const Divider(height: 1),
+              ListTile(
+                leading: const Icon(Icons.format_size),
+                title: Text(l10n.settingsDesktopLyricFontSizeTitle),
+                trailing: SegmentedButton<DesktopLyricFontSize>(
+                  segments:
+                      DesktopLyricFontSize.values
+                          .map(
+                            (size) => ButtonSegment(
+                              value: size,
+                              label: Text(fontSizeLabels[size] ?? ''),
+                            ),
+                          )
+                          .toList(),
+                  selected: {desktopLyricFontSize},
+                  onSelectionChanged: (selection) {
+                    ref
+                        .read(desktopLyricFontSizeProvider.notifier)
+                        .setFontSize(selection.first);
+                  },
+                ),
+              ),
+              const Divider(height: 1),
+              ListTile(
+                leading: const Icon(Icons.opacity),
+                title: Text(l10n.settingsDesktopLyricOpacityTitle),
+                subtitle: Slider(
+                  min: 0.0,
+                  max: 0.8,
+                  divisions: 8,
+                  value: desktopLyricOpacity,
+                  label: '${(desktopLyricOpacity * 100).round()}%',
+                  onChanged: (v) {
+                    ref.read(desktopLyricOpacityProvider.notifier).setOpacity(v);
+                  },
+                ),
+              ),
+            ],
           ],
         ],
       ),

@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_service_mpris/audio_service_mpris.dart';
+import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -36,6 +37,8 @@ import 'core/utils/platform_utils.dart';
 import 'core/utils/webgl_context_recovery.dart';
 import 'core/utils/webview_environment.dart';
 import 'core/utils/window_tray_manager.dart';
+import 'features/desktop_lyric/desktop_lyric_ipc.dart';
+import 'features/desktop_lyric/desktop_lyric_main.dart';
 import 'features/player/presentation/widgets/player_shortcut_scope.dart';
 import 'features/settings/presentation/providers/settings_provider.dart';
 import 'features/startup/presentation/startup_gate.dart';
@@ -56,6 +59,17 @@ const _audioStartupTimeout = Duration(seconds: 5);
 
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 桌面歌词悬浮窗（songloft-org/songloft#318）：desktop_multi_window 为悬浮窗创建了
+  // 独立的 Flutter engine，也会从这个 main() 入口重新跑一遍。这里尽早分流，跳过下面
+  // 一切主窗口专属的初始化（AudioService/SMTC/Tracely/托盘/单实例检测等）。
+  if (!kIsWeb && Platform.isWindows) {
+    final windowController = await WindowController.fromCurrentEngine();
+    if (windowController.arguments == kDesktopLyricWindowArguments) {
+      await runDesktopLyricWindow();
+      return;
+    }
+  }
 
   // 调大图片解码缓存：Flutter 默认仅 1000 张 / 100 MiB LRU。列表/网格封面在切 tab、
   // 切筛选、页面重建时随 widget dispose 失去 live 引用、被 LRU 淘汰，返回时整批重新

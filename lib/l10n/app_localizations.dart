@@ -5660,6 +5660,78 @@ abstract class AppLocalizations {
   /// **'开启：标题行显示歌词、歌名归副标题；关闭：标题行显示歌名、副标题显示歌词'**
   String get settingsNotificationLyricInTitleDesc;
 
+  /// No description provided for @settingsDesktopLyricTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'桌面歌词'**
+  String get settingsDesktopLyricTitle;
+
+  /// No description provided for @settingsDesktopLyricDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'在桌面显示一个悬浮歌词窗口，跟随播放实时滚动'**
+  String get settingsDesktopLyricDesc;
+
+  /// No description provided for @settingsDesktopLyricLockTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'锁定歌词位置'**
+  String get settingsDesktopLyricLockTitle;
+
+  /// No description provided for @settingsDesktopLyricLockDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'锁定后悬浮窗不可拖动，鼠标点击会穿透到下层窗口'**
+  String get settingsDesktopLyricLockDesc;
+
+  /// No description provided for @settingsDesktopLyricFontSizeTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'歌词字号'**
+  String get settingsDesktopLyricFontSizeTitle;
+
+  /// No description provided for @settingsDesktopLyricFontSizeSmall.
+  ///
+  /// In zh, this message translates to:
+  /// **'小'**
+  String get settingsDesktopLyricFontSizeSmall;
+
+  /// No description provided for @settingsDesktopLyricFontSizeMedium.
+  ///
+  /// In zh, this message translates to:
+  /// **'中'**
+  String get settingsDesktopLyricFontSizeMedium;
+
+  /// No description provided for @settingsDesktopLyricFontSizeLarge.
+  ///
+  /// In zh, this message translates to:
+  /// **'大'**
+  String get settingsDesktopLyricFontSizeLarge;
+
+  /// No description provided for @settingsDesktopLyricOpacityTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'背景透明度'**
+  String get settingsDesktopLyricOpacityTitle;
+
+  /// No description provided for @desktopLyricNoLyric.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无歌词'**
+  String get desktopLyricNoLyric;
+
+  /// No description provided for @desktopLyricContextLock.
+  ///
+  /// In zh, this message translates to:
+  /// **'锁定位置'**
+  String get desktopLyricContextLock;
+
+  /// No description provided for @desktopLyricContextHide.
+  ///
+  /// In zh, this message translates to:
+  /// **'隐藏桌面歌词'**
+  String get desktopLyricContextHide;
+
   /// No description provided for @settingsShortcutsEntryTitle.
   ///
   /// In zh, this message translates to:

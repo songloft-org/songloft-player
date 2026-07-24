@@ -375,6 +375,64 @@ class AppPreferences {
     return _prefs.setBool(_webDebugConsoleKey, value);
   }
 
+  static const _desktopLyricEnabledKey = 'desktop_lyric_enabled';
+  static const _desktopLyricLockedKey = 'desktop_lyric_locked';
+  static const _desktopLyricFontSizeKey = 'desktop_lyric_font_size';
+  static const _desktopLyricOpacityKey = 'desktop_lyric_opacity';
+  static const _desktopLyricPosXKey = 'desktop_lyric_pos_x';
+  static const _desktopLyricPosYKey = 'desktop_lyric_pos_y';
+
+  /// 桌面歌词悬浮窗总开关（默认关闭，目前仅 Windows 支持，songloft-org/songloft#318）。
+  /// 纯本地设置，不参与服务器偏好同步。
+  bool getDesktopLyricEnabled() {
+    return _prefs.getBool(_desktopLyricEnabledKey) ?? false;
+  }
+
+  Future<bool> setDesktopLyricEnabled(bool value) {
+    return _prefs.setBool(_desktopLyricEnabledKey, value);
+  }
+
+  /// 桌面歌词窗口是否锁定位置（锁定后点击穿透、不可拖动，默认关闭）。
+  bool getDesktopLyricLocked() {
+    return _prefs.getBool(_desktopLyricLockedKey) ?? false;
+  }
+
+  Future<bool> setDesktopLyricLocked(bool value) {
+    return _prefs.setBool(_desktopLyricLockedKey, value);
+  }
+
+  /// 桌面歌词字号档位：'small' / 'medium'（默认） / 'large'
+  String getDesktopLyricFontSize() {
+    return _prefs.getString(_desktopLyricFontSizeKey) ?? 'medium';
+  }
+
+  Future<bool> setDesktopLyricFontSize(String value) {
+    return _prefs.setString(_desktopLyricFontSizeKey, value);
+  }
+
+  /// 桌面歌词背景透明度 (0.0~0.8)，默认 0.4
+  double getDesktopLyricOpacity() {
+    return _prefs.getDouble(_desktopLyricOpacityKey) ?? 0.4;
+  }
+
+  Future<bool> setDesktopLyricOpacity(double value) {
+    return _prefs.setDouble(_desktopLyricOpacityKey, value);
+  }
+
+  /// 桌面歌词窗口上次拖动后的位置；-1 表示从未设置过，使用默认位置
+  double getDesktopLyricPosX() {
+    return _prefs.getDouble(_desktopLyricPosXKey) ?? -1;
+  }
+
+  double getDesktopLyricPosY() {
+    return _prefs.getDouble(_desktopLyricPosYKey) ?? -1;
+  }
+
+  Future<void> setDesktopLyricPosition(double x, double y) async {
+    await _prefs.setDouble(_desktopLyricPosXKey, x);
+    await _prefs.setDouble(_desktopLyricPosYKey, y);
+  }
+
   /// 快捷键绑定表（原始 JSON 字符串，解析在 provider 层做）。null 表示从未自定义。
   String? getShortcutBindings() {
     return _prefs.getString(_shortcutBindingsKey);

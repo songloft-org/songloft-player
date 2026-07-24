@@ -33,6 +33,12 @@ class PlatformUtils {
   /// 是否是 Web 平台
   static bool get isWeb => kIsWeb;
 
+  /// 是否是 Windows 平台
+  static bool get isWindows {
+    if (kIsWeb) return false;
+    return Platform.isWindows;
+  }
+
   /// 是否可能是 Android TV
   /// 
   /// 注意：这只是一个基础判断，实际的 TV 检测需要结合屏幕尺寸。
