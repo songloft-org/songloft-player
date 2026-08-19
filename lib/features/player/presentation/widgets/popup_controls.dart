@@ -338,17 +338,39 @@ class _PopupSpeedControlState extends State<PopupSpeedControl> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return IconButton(
-      key: _buttonKey,
-      onPressed: _showSpeedPanel,
-      icon: Icon(
-        Icons.speed_rounded,
-        size: 20,
-        color: widget.speed != 1.0 ? theme.colorScheme.primary : null,
+    final isActive = widget.speed != 1.0;
+    final label = _formatSpeedLabel(widget.speed);
+
+    return Tooltip(
+      message: l10n.playerSpeedTitle,
+      child: InkWell(
+        key: _buttonKey,
+        onTap: _showSpeedPanel,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          width: 40,
+          height: 40,
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: isActive
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
       ),
-      tooltip: l10n.playerSpeedTitle,
-      visualDensity: VisualDensity.compact,
     );
+  }
+
+  String _formatSpeedLabel(double speed) {
+    if (speed == 1.0) return '1×';
+    // trim trailing zeros: 1.50 -> 1.5
+    final s = speed.toString();
+    return '${s.replaceFirst(RegExp(r"\.?0+$"), '')}×';
   }
 }
 
