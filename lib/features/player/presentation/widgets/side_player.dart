@@ -117,7 +117,7 @@ class WidescreenSidePlayer extends ConsumerWidget {
                       fallback:
                           coverUrl != null && coverUrl.isNotEmpty
                               ? Image.network(
-                                UrlHelper.buildCoverUrl(coverUrl),
+                                UrlHelper.buildCoverUrl(coverUrl, width: 512),
                                 fit: BoxFit.cover,
                                 errorBuilder:
                                     (_, _, _) => Icon(

@@ -321,7 +321,7 @@ class _SongEditPageState extends ConsumerState<SongEditPage> {
                           borderRadius: BorderRadius.circular(8),
                           child: ExcludeSemantics(
                             child: Image.network(
-                              UrlHelper.buildCoverUrl(previewUrl),
+                              UrlHelper.buildCoverUrl(previewUrl, width: 300),
                               width: 150,
                               height: 150,
                               fit: BoxFit.cover,

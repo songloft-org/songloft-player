@@ -28,6 +28,11 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
   static const String _streamUserAgent =
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36 Songloft/1.0';
 
+  /// 通知栏/锁屏/灵动岛/桌面小组件艺术图的服务端缩略宽度（物理像素）。
+  /// artUri 由系统/平台直接拉取，传 ?w= 避免每首歌拉全尺寸封面（3~4MB）加剧
+  /// NAS 拥堵，与显示控件（d3012f6）一并对齐全平台缩略（songloft-org/songloft-player#39）。
+  static const int _artUriWidth = 256;
+
   // 所有原生平台统一 media_kit(libmpv) 后端，EQ 走 mpv `af`（见 MpvEqualizerService），
   // 不再使用 just_audio 的 AndroidEqualizer / AudioPipeline androidAudioEffects——后者会让
   // just_audio 对平台 player 调 androidEqualizerGetParameters()，而 media_kit 的
@@ -542,7 +547,9 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
     Uri? artUri;
     final coverUrl = song.coverUrl;
     if (coverUrl != null && coverUrl.isNotEmpty) {
-      artUri = Uri.parse(UrlHelper.buildCoverUrl(coverUrl));
+      artUri = Uri.parse(
+        UrlHelper.buildCoverUrl(coverUrl, width: _artUriWidth),
+      );
     }
 
     return MediaItem(
@@ -564,7 +571,9 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
     Uri? artUri;
     final coverUrl = playlist.coverUrl;
     if (coverUrl != null && coverUrl.isNotEmpty) {
-      artUri = Uri.parse(UrlHelper.buildCoverUrl(coverUrl));
+      artUri = Uri.parse(
+        UrlHelper.buildCoverUrl(coverUrl, width: _artUriWidth),
+      );
     }
 
     return MediaItem(
@@ -937,11 +946,14 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
     _originalTitle = song.title;
     _originalArtist = song.artist ?? '未知艺术家';
 
-    // artUri 由 Android 系统直接拉取，必须是带 baseUrl + access_token 的完整 URL
+    // artUri 由 Android 系统直接拉取，必须是带 baseUrl + access_token 的完整 URL。
+    // 传 ?w= 缩略，避免系统每首歌拉全尺寸封面加剧 NAS 拥堵（songloft-org/songloft-player#39）。
     Uri? artUri;
     final coverUrl = song.coverUrl;
     if (coverUrl != null && coverUrl.isNotEmpty) {
-      artUri = Uri.parse(UrlHelper.buildCoverUrl(coverUrl));
+      artUri = Uri.parse(
+        UrlHelper.buildCoverUrl(coverUrl, width: _artUriWidth),
+      );
     }
 
     final item = MediaItem(

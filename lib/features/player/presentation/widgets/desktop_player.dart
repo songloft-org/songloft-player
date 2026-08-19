@@ -132,7 +132,7 @@ class DesktopPlayer extends ConsumerWidget {
                         coverUrl != null
                             ? ExcludeSemantics(
                               child: Image.network(
-                                UrlHelper.buildCoverUrl(coverUrl),
+                                UrlHelper.buildCoverUrl(coverUrl, width: 300),
                                 fit: BoxFit.cover,
                                 errorBuilder:
                                     (_, _, _) => Icon(

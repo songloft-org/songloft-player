@@ -135,7 +135,7 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
                   child: ImageFiltered(
                     imageFilter: ImageFilter.blur(sigmaX: 70, sigmaY: 70),
                     child: Image.network(
-                      UrlHelper.buildCoverUrl(coverUrl),
+                      UrlHelper.buildCoverUrl(coverUrl, width: 100),
                       fit: BoxFit.cover,
                       cacheWidth: 50,
                       errorBuilder:
@@ -575,7 +575,7 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
           coverUrl != null
               ? ExcludeSemantics(
                 child: Image.network(
-                  UrlHelper.buildCoverUrl(coverUrl),
+                  UrlHelper.buildCoverUrl(coverUrl, width: 300),
                   fit: BoxFit.cover,
                   errorBuilder: (_, _, _) => _buildPlaceholder(theme, size),
                 ),

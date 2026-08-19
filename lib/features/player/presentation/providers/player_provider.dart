@@ -445,7 +445,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
                 : null,
         artUrl:
             song.coverUrl != null
-                ? UrlHelper.buildCoverUrl(song.coverUrl!)
+                ? UrlHelper.buildCoverUrl(song.coverUrl!, width: 256)
                 : null,
       );
     });
@@ -468,7 +468,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
       artist: song.artist ?? '',
       artUrl:
           song.coverUrl != null
-              ? UrlHelper.buildCoverUrl(song.coverUrl!)
+              ? UrlHelper.buildCoverUrl(song.coverUrl!, width: 256)
               : null,
       isPlaying: state.isPlaying,
       isFavorite: isFav,

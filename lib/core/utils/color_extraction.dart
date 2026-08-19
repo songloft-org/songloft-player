@@ -89,7 +89,15 @@ final coverColorsProvider = FutureProvider.family<CoverPalette?, String?>((
 
   try {
     // 使用 UrlHelper 处理封面 URL（自动拼接 baseUrl + access_token）
-    final displayUrl = UrlHelper.buildCoverUrl(coverUrl);
+    // 显式传 width 走服务端 ?w= 缩略图：取色仅需 100×100，无需下载全尺寸封面
+    // （3~4MB）。否则 NetworkImage 全尺寸下载 + 主 isolate 解码会在弱网/NAS 拥堵
+    // 场景下阻塞主线程触发 ANR（songloft-org/songloft-player#39）。该路径是
+    // d3012f6（显示控件走 ?w=）遗漏的取色入口，故在此补齐。
+    const paletteDecodeWidth = 100;
+    final displayUrl = UrlHelper.buildCoverUrl(
+      coverUrl,
+      width: paletteDecodeWidth,
+    );
     final paletteGenerator = await PaletteGenerator.fromImageProvider(
       NetworkImage(displayUrl),
       size: const Size(100, 100), // 缩小尺寸加速提取
