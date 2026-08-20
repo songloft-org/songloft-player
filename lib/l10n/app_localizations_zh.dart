@@ -1957,6 +1957,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get playlistLabelHidden => '已隐藏';
 
   @override
+  String get playlistLabelPinned => '已置顶';
+
+  @override
   String get playlistConfirmDelete => '确认删除';
 
   @override
@@ -2112,6 +2115,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get playlistUnhidden => '歌单已取消隐藏';
+
+  @override
+  String get playlistPin => '置顶歌单';
+
+  @override
+  String get playlistUnpin => '取消置顶';
+
+  @override
+  String get playlistPinned => '歌单已置顶';
+
+  @override
+  String get playlistUnpinned => '歌单已取消置顶';
 
   @override
   String playlistPlayingMultiple(int count) {
@@ -3564,7 +3579,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsProxyAllowlistTitle => '私网代理白名单';
 
   @override
-  String get settingsProxyAllowlistEmpty => '未配置（私网地址一律拒绝）';
+  String get settingsProxyAllowlistEmpty => '未��置（私网地址一律拒绝）';
 
   @override
   String settingsProxyAllowlistCount(int count) {

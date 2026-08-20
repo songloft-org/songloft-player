@@ -89,6 +89,9 @@ abstract class IPlaylistRepository {
   /// 设置歌单可见性
   Future<Playlist> setPlaylistVisibility(int id, {required bool hidden});
 
+  /// 设置歌单置顶状态
+  Future<Playlist> setPlaylistPinned(int id, {required bool pinned});
+
   /// 批量删除歌单
   Future<int> batchDeletePlaylists(List<int> ids, {bool deleteSongs = false});
 }

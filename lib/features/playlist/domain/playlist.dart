@@ -11,6 +11,7 @@ class Playlist {
   final String sortBy; // 视图排序字段
   final String sortOrder; // 视图排序方向
   final int songCount;
+  final DateTime? pinnedAt; // 置顶时间，null 表示未置顶
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -24,6 +25,7 @@ class Playlist {
     this.sortBy = 'position',
     this.sortOrder = 'asc',
     this.songCount = 0,
+    this.pinnedAt,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -39,6 +41,7 @@ class Playlist {
       sortBy: json['sort_by'] as String? ?? 'position',
       sortOrder: json['sort_order'] as String? ?? 'asc',
       songCount: _intFromJson(json['song_count']),
+      pinnedAt: _nullableDateTimeFromJson(json['pinned_at']),
       createdAt: _dateTimeFromJson(json['created_at']),
       updatedAt: _dateTimeFromJson(json['updated_at']),
     );
@@ -55,6 +58,7 @@ class Playlist {
       'sort_by': sortBy,
       'sort_order': sortOrder,
       'song_count': songCount,
+      'pinned_at': pinnedAt?.toIso8601String(),
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
@@ -71,6 +75,7 @@ class Playlist {
     String? sortBy,
     String? sortOrder,
     int? songCount,
+    DateTime? pinnedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -84,6 +89,7 @@ class Playlist {
       sortBy: sortBy ?? this.sortBy,
       sortOrder: sortOrder ?? this.sortOrder,
       songCount: songCount ?? this.songCount,
+      pinnedAt: pinnedAt ?? this.pinnedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -107,6 +113,9 @@ class Playlist {
 
   /// 是否是隐藏歌单
   bool get isHidden => labels.contains('hidden');
+
+  /// 是否已置顶
+  bool get isPinned => pinnedAt != null;
 
   @override
   bool operator ==(Object other) {
@@ -148,6 +157,15 @@ DateTime _dateTimeFromJson(dynamic value) {
     return DateTime.tryParse(value) ?? DateTime.now();
   }
   return DateTime.now();
+}
+
+/// 与 [_dateTimeFromJson] 不同，缺失/为空时返回 null 而非兜底 `DateTime.now()`——
+/// pinned_at 语义是"未置顶"，不能被误兜底成"刚刚置顶"。
+DateTime? _nullableDateTimeFromJson(dynamic value) {
+  if (value is String && value.isNotEmpty) {
+    return DateTime.tryParse(value);
+  }
+  return null;
 }
 
 /// 歌单列表响应

@@ -3638,6 +3638,12 @@ abstract class AppLocalizations {
   /// **'已隐藏'**
   String get playlistLabelHidden;
 
+  /// No description provided for @playlistLabelPinned.
+  ///
+  /// In zh, this message translates to:
+  /// **'已置顶'**
+  String get playlistLabelPinned;
+
   /// No description provided for @playlistConfirmDelete.
   ///
   /// In zh, this message translates to:
@@ -3907,6 +3913,30 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'歌单已取消隐藏'**
   String get playlistUnhidden;
+
+  /// No description provided for @playlistPin.
+  ///
+  /// In zh, this message translates to:
+  /// **'置顶歌单'**
+  String get playlistPin;
+
+  /// No description provided for @playlistUnpin.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消置顶'**
+  String get playlistUnpin;
+
+  /// No description provided for @playlistPinned.
+  ///
+  /// In zh, this message translates to:
+  /// **'歌单已置顶'**
+  String get playlistPinned;
+
+  /// No description provided for @playlistUnpinned.
+  ///
+  /// In zh, this message translates to:
+  /// **'歌单已取消置顶'**
+  String get playlistUnpinned;
 
   /// No description provided for @playlistPlayingMultiple.
   ///
@@ -6454,7 +6484,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsProxyAllowlistEmpty.
   ///
   /// In zh, this message translates to:
-  /// **'未配置（私网地址一律拒绝）'**
+  /// **'未��置（私网地址一律拒绝）'**
   String get settingsProxyAllowlistEmpty;
 
   /// No description provided for @settingsProxyAllowlistCount.

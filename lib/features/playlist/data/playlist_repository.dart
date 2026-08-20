@@ -222,6 +222,15 @@ class PlaylistRepository implements IPlaylistRepository {
   }
 
   @override
+  Future<Playlist> setPlaylistPinned(int id, {required bool pinned}) async {
+    try {
+      return await playlistApi.setPlaylistPinned(id, pinned: pinned);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  @override
   Future<int> batchDeletePlaylists(
     List<int> ids, {
     bool deleteSongs = false,

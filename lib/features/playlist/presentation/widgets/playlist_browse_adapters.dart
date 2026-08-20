@@ -26,9 +26,32 @@ Widget? playlistTypeBadge(BuildContext context, Playlist playlist) {
   );
 }
 
-/// 歌单标签行（内置 / 自动 / 隐藏等）。
+/// 歌单标签行（置顶 / 内置 / 自动 / 隐藏等）。置顶不是 labels 数组的一员（独立的
+/// pinned_at 字段），故单独判断后拼在最前面，与其余标签同款式渲染。
 List<Widget> playlistLabelChips(BuildContext context, Playlist playlist) {
-  return playlist.labels.map((label) => _labelChip(context, label)).toList();
+  return [
+    if (playlist.isPinned) _pinnedChip(context),
+    ...playlist.labels.map((label) => _labelChip(context, label)),
+  ];
+}
+
+Widget _pinnedChip(BuildContext context) {
+  final colorScheme = Theme.of(context).colorScheme;
+  final textTheme = Theme.of(context).textTheme;
+  final l10n = AppLocalizations.of(context);
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+    decoration: BoxDecoration(
+      color: colorScheme.primaryContainer,
+      borderRadius: BorderRadius.circular(4),
+    ),
+    child: Text(
+      l10n.playlistLabelPinned,
+      style: textTheme.labelSmall?.copyWith(
+        color: colorScheme.onSurfaceVariant,
+      ),
+    ),
+  );
 }
 
 Widget _labelChip(BuildContext context, String label) {
@@ -77,10 +100,18 @@ List<BrowseCardAction> playlistMenuActions({
   required Playlist playlist,
   VoidCallback? onEdit,
   VoidCallback? onToggleVisibility,
+  VoidCallback? onTogglePin,
   VoidCallback? onDelete,
 }) {
   final l10n = AppLocalizations.of(context);
   return [
+    if (onTogglePin != null)
+      BrowseCardAction(
+        value: 'toggle_pin',
+        icon: playlist.isPinned ? Icons.push_pin : Icons.push_pin_outlined,
+        label: playlist.isPinned ? l10n.playlistUnpin : l10n.playlistPin,
+        onTap: onTogglePin,
+      ),
     if (onEdit != null)
       BrowseCardAction(
         value: 'edit',

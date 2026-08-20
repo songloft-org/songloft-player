@@ -218,6 +218,7 @@ class PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
         final VoidCallback? onDelete =
             playlist.isBuiltIn ? null : () => _confirmDelete(playlist);
         void onToggleVisibility() => _togglePlaylistVisibility(playlist);
+        void onTogglePin() => _togglePlaylistPin(playlist);
         void onPlayAll() => _playAll(playlist);
         void onLongPress() {
           setState(() {
@@ -238,6 +239,7 @@ class PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
             onEdit: onEdit,
             onDelete: onDelete,
             onToggleVisibility: onToggleVisibility,
+            onTogglePin: onTogglePin,
             onPlayAll: onPlayAll,
             onLongPress: onLongPress,
             isSelectionMode: _isSelectionMode,
@@ -253,6 +255,7 @@ class PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
           onEdit: onEdit,
           onDelete: onDelete,
           onToggleVisibility: onToggleVisibility,
+          onTogglePin: onTogglePin,
           onPlayAll: onPlayAll,
           onLongPress: onLongPress,
           isSelectionMode: _isSelectionMode,
@@ -518,6 +521,20 @@ class PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
       ResponsiveSnackBar.showSuccess(
         context,
         message: hidden ? l10n.playlistHidden : l10n.playlistUnhidden,
+      );
+    }
+  }
+
+  Future<void> _togglePlaylistPin(Playlist playlist) async {
+    final pinned = !playlist.isPinned;
+    final success = await ref
+        .read(playlistNotifierProvider.notifier)
+        .setPlaylistPinned(playlist.id, pinned: pinned);
+    if (success && mounted) {
+      final l10n = AppLocalizations.of(context);
+      ResponsiveSnackBar.showSuccess(
+        context,
+        message: pinned ? l10n.playlistPinned : l10n.playlistUnpinned,
       );
     }
   }

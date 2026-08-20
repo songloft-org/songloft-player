@@ -1123,6 +1123,7 @@
   "playlistLabelAutoCreated": "Auto-created",
   "playlistLabelAuto": "Auto",
   "playlistLabelHidden": "Hidden",
+  "playlistLabelPinned": "Pinned",
   "playlistConfirmDelete": "Confirm deletion",
   "playlistDeleteConfirm": "Delete playlist \"{name}\"? This cannot be undone.",
   "@playlistDeleteConfirm": {
@@ -1245,6 +1246,10 @@
   },
   "playlistHidden": "Playlist hidden",
   "playlistUnhidden": "Playlist unhidden",
+  "playlistPin": "Pin playlist",
+  "playlistUnpin": "Unpin",
+  "playlistPinned": "Playlist pinned",
+  "playlistUnpinned": "Playlist unpinned",
   "playlistPlayingMultiple": "{count, plural, =1{Playing 1 playlist} other{Playing {count} playlists}}",
   "@playlistPlayingMultiple": {
     "placeholders": {

@@ -674,6 +674,21 @@ class PlaylistNotifier extends Notifier<AsyncValue<void>> {
     }
   }
 
+  /// 设置歌单置顶状态
+  Future<bool> setPlaylistPinned(int id, {required bool pinned}) async {
+    state = const AsyncValue.loading();
+    try {
+      await _repository.setPlaylistPinned(id, pinned: pinned);
+      state = const AsyncValue.data(null);
+      ref.invalidate(playlistListProvider);
+      ref.invalidate(playlistDetailProvider(id));
+      return true;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return false;
+    }
+  }
+
   /// 更新歌单最后访问时间
   Future<void> touchPlaylist(int id) async {
     try {

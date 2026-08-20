@@ -1229,6 +1229,7 @@
   "playlistLabelAutoCreated": "自动创建",
   "playlistLabelAuto": "自动",
   "playlistLabelHidden": "已隐藏",
+  "playlistLabelPinned": "已置顶",
   "playlistConfirmDelete": "确认删除",
   "playlistDeleteConfirm": "确定要删除歌单「{name}」吗？此操作不可恢复。",
   "@playlistDeleteConfirm": {
@@ -1351,6 +1352,10 @@
   },
   "playlistHidden": "歌单已隐藏",
   "playlistUnhidden": "歌单已取消隐藏",
+  "playlistPin": "置顶歌单",
+  "playlistUnpin": "取消置顶",
+  "playlistPinned": "歌单已置顶",
+  "playlistUnpinned": "歌单已取消置顶",
   "playlistPlayingMultiple": "正在播放 {count} 个歌单",
   "@playlistPlayingMultiple": {
     "placeholders": {
@@ -2343,7 +2348,7 @@
     }
   },
   "settingsProxyAllowlistTitle": "私网代理白名单",
-  "settingsProxyAllowlistEmpty": "未配置（私网地址一律拒绝）",
+  "settingsProxyAllowlistEmpty": "未��置（私网地址一律拒绝）",
   "settingsProxyAllowlistCount": "已允许 {count} 个地址/网段",
   "@settingsProxyAllowlistCount": {
     "placeholders": {

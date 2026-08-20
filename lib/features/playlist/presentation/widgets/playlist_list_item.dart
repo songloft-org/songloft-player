@@ -12,6 +12,7 @@ class PlaylistListItem extends StatelessWidget {
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
   final VoidCallback? onToggleVisibility;
+  final VoidCallback? onTogglePin;
   final VoidCallback? onPlayAll;
   final VoidCallback? onLongPress;
   final bool isSelectionMode;
@@ -27,6 +28,7 @@ class PlaylistListItem extends StatelessWidget {
     this.onEdit,
     this.onDelete,
     this.onToggleVisibility,
+    this.onTogglePin,
     this.onPlayAll,
     this.onLongPress,
     this.isSelectionMode = false,
@@ -64,6 +66,7 @@ class PlaylistListItem extends StatelessWidget {
         playlist: playlist,
         onEdit: onEdit,
         onToggleVisibility: onToggleVisibility,
+        onTogglePin: onTogglePin,
         onDelete: onDelete,
       ),
     );

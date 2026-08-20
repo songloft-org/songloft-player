@@ -269,6 +269,16 @@ class PlaylistApi {
     return Playlist.fromJson(response.data as Map<String, dynamic>);
   }
 
+  /// 设置歌单置顶状态
+  /// PUT /api/v1/playlists/{id}/pin
+  Future<Playlist> setPlaylistPinned(int id, {required bool pinned}) async {
+    final response = await dio.put(
+      '${AppConfig.apiPrefix}/playlists/$id/pin',
+      data: {'pinned': pinned},
+    );
+    return Playlist.fromJson(response.data as Map<String, dynamic>);
+  }
+
   /// 批量删除歌单
   /// POST /api/v1/playlists/batch-delete
   /// [deleteSongs] 为 true 时，一并删除仅属于这些歌单的孤儿歌曲（含本地文件）。

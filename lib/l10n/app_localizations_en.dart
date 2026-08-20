@@ -2018,6 +2018,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playlistLabelHidden => 'Hidden';
 
   @override
+  String get playlistLabelPinned => 'Pinned';
+
+  @override
   String get playlistConfirmDelete => 'Confirm deletion';
 
   @override
@@ -2205,6 +2208,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get playlistUnhidden => 'Playlist unhidden';
+
+  @override
+  String get playlistPin => 'Pin playlist';
+
+  @override
+  String get playlistUnpin => 'Unpin';
+
+  @override
+  String get playlistPinned => 'Playlist pinned';
+
+  @override
+  String get playlistUnpinned => 'Playlist unpinned';
 
   @override
   String playlistPlayingMultiple(int count) {
