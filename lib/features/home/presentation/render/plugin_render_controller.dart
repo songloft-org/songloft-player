@@ -83,4 +83,21 @@ abstract class PluginRenderController {
   /// 原生 WebView 即使被 `Offstage` 隐藏，仍可能在系统层面握着键盘焦点、
   /// 抢走 Flutter 的输入法上下文，所以 Tab 切走时要主动释放。
   void clearFocus();
+
+  /// 告诉页面它现在可见 / 不可见，语义等价于 Web 的 `document.visibilityState`。
+  ///
+  /// **必须由宿主显式推，页面自己发现不了。** 移动端与 Web 的插件 Tab 靠
+  /// `shell_layout.dart` 的 `Offstage` 保活：切走时 controller 不销毁、页面 JS
+  /// 状态完整保留，而 WebF 的 viewport 取的是 FlutterView 物理尺寸，所以连
+  /// `resize` 都不会有——**从页面的角度看，「切 Tab」这件事完全不存在**。
+  ///
+  /// 而 WebF 全库只有一个 `document.visibilityChange()` 调用点，挂在
+  /// `didChangeAppLifecycleState`（`view_controller.dart`）上，只有**整个 App**
+  /// 前后台切换才派发。于是插件页里 `addEventListener('visibilitychange', …)`
+  /// 在 Tab 切换场景是死代码——miot 的封面「切走再回来就永久丢失」就是这么来的
+  /// （songloft-org/songloft-plugin-miot#86）：页面把一次瞬时的图片加载失败闩锁住，
+  /// 而唯一的复位路径永远不会触发。
+  ///
+  /// 桌面端切走即销毁渲染面（不走 Offstage），这条通知对它无害但也无用。
+  void setPageVisible(bool visible);
 }

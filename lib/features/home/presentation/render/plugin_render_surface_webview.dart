@@ -102,6 +102,24 @@ class _PluginRenderSurfaceWebViewState
   @override
   void clearFocus() => _controller?.clearFocus();
 
+  /// 与 `PluginRenderSurfaceWebF.setPageVisible` 对等：让插件页在 Tab 切回来时
+  /// 收到一次 `visibilitychange`。
+  ///
+  /// 系统 WebView 被 `Offstage` 隐藏时**不会**自己派发这个事件（它看的是 WebView
+  /// 自身的窗口可见性，而 Offstage 只是不 paint），所以这里合成派发。
+  ///
+  /// 与 WebF 那侧的差别：`document.visibilityState` 不由我们改（那是引擎内部状态，
+  /// WebView 里没有对应入口），仍然是 `'visible'`。所以插件的处理函数**不能**
+  /// 依赖「事件来了就说明状态变了」，要按「收到通知就重新检查一遍自己关心的东西」
+  /// 来写——miot 的封面重载就是这么处理的。
+  @override
+  void setPageVisible(bool visible) {
+    if (!visible || !_pageReady) return;
+    _controller?.evaluateJavascript(
+      source: "document.dispatchEvent(new Event('visibilitychange'))",
+    );
+  }
+
   // ── 渲染 ────────────────────────────────────────────────────────────
   /// token 注入是**冗余的双保险**：token 本来就通过 URL 的 `?access_token=`
   /// 传递，由后端注入的 authBridge 内联脚本（`internal/jsplugin/routes.go`）

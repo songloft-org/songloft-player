@@ -35,11 +35,15 @@ class _PluginTabPageState extends ConsumerState<PluginTabPage> {
   @override
   void didUpdateWidget(covariant PluginTabPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.isActive && !widget.isActive) {
+    if (oldWidget.isActive == widget.isActive) return;
+    if (!widget.isActive) {
       // 原生 WebView 即使被 Offstage 隐藏仍可在系统层面持有键盘焦点，
       // 释放焦点以防止抢夺 Flutter 输入法上下文。
       _renderController?.clearFocus();
     }
+    // Tab 保活走 Offstage（controller 不销毁、页面 JS 状态完整保留），页面自己
+    // 发现不了「被藏起来又被显示出来」，必须由宿主推——见 setPageVisible 的注释。
+    _renderController?.setPageVisible(widget.isActive);
   }
 
   @override

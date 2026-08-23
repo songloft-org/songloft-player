@@ -349,8 +349,9 @@ final routerProvider = Provider<GoRouter>((ref) {
                   // onPopInvokedWithResult 是 Flutter 层回调，对每次系统返回都稳定触发。
                   onPopInvokedWithResult: (didPop, result) async {
                     if (didPop) return;
-                    final consumed =
-                        await PluginTabBackRegistry.handleBack(entryPath);
+                    final consumed = await PluginTabBackRegistry.handleBack(
+                      entryPath,
+                    );
                     if (!consumed && context.mounted) {
                       context.go(AppRoutes.home);
                     }

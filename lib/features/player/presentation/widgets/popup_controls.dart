@@ -356,9 +356,10 @@ class _PopupSpeedControlState extends State<PopupSpeedControl> {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: isActive
-                  ? theme.colorScheme.primary
-                  : theme.colorScheme.onSurfaceVariant,
+              color:
+                  isActive
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.onSurfaceVariant,
             ),
           ),
         ),

@@ -345,6 +345,31 @@ class _PluginRenderSurfaceWebFState
   @override
   void clearFocus() {}
 
+  /// 直接驱动 WebF 自己的 `document.visibilityChange` —— 它会同步 `visibilityState`
+  /// / `hidden` 两个 getter **并**派发 `visibilitychange` 事件，所以插件侧用的是
+  /// 标准 Web API，不需要 Songloft 私有协议（也因此**不依赖服务端那份 common.js
+  /// 的版本**，修复不受用户升不升级服务端影响）。
+  ///
+  /// 刻意**不**顺带调 `rootController.pause()` / `resume()`：WebF 在 App 级
+  /// lifecycle 里是连着调的，但那是「整个应用进后台、可以停掉计时器与动画」的语义。
+  /// 插件 Tab 被 Offstage 只是不可见，页面里的轮询/定时任务仍应继续跑（miot 的
+  /// 播放状态轮询就靠它），停掉会让切回来时状态是过期的。
+  @override
+  void setPageVisible(bool visible) {
+    // `view` getter 是 `_view!`，页面没加载完时会抛；`_pageReady` 同时兜住了
+    // 「controller 已建但 document 还没 evaluate」这段窗口。
+    final controller = _controller;
+    if (controller == null || controller.disposed || !_pageReady) return;
+    try {
+      controller.view.document.visibilityChange(
+        visible ? VisibilityState.visible : VisibilityState.hidden,
+      );
+    } catch (e) {
+      // 可见性只是给页面的一条提示，推失败不能影响 Tab 切换本身。
+      debugPrint('[PluginWebF] setPageVisible($visible) failed: $e');
+    }
+  }
+
   // ── 桥 ──────────────────────────────────────────────────────────────
   String _platformName() {
     switch (defaultTargetPlatform) {
