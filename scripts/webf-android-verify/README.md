@@ -112,6 +112,57 @@ Outputs are written to `scripts/webf-android-verify/out/miot-test/`:
 > 踩坑三：uiautomator 只 dump 视口内的节点。编辑器表单整段在折叠线以下，
 > 刚打开时那份 dump 里没有「目标设备」**不代表它没渲染**，必须先滚到底再取证。
 
+## MIoT 歌单下拉的搜索框
+
+```bash
+./scripts/webf-android-verify/run-playlist-search.sh
+```
+
+产物落在 `out/playlist-search/`，判定由 `assert_playlist_search.py` 自动做（PASS/FAIL +
+非零退出码），不需要人工看图。需要先跑过 `run.sh`（拿 APK）并在
+`jsplugins-src/songloft-plugin-miot` 里 `npm run build`。
+参考案例：songloft-org/songloft#410。
+
+旧版原生前端的歌单弹层顶部有「搜索歌单」输入框（`static/js/search.js`），
+WebF 重写换成通用 `SlSelect` 后过滤功能整个丢了。修复给 `SlSelect` 加了可选
+`searchable`，选项数 **大于 5**（`SEARCH_MIN_OPTIONS`）时在面板顶部挂一行搜索框。
+
+**这个 harness 存在的唯一理由**：`SlInput` 在 `useNativeUI` 下渲染的是
+`flutter-cupertino-input`，而它要被放进 `position: fixed` 的下拉面板里。浏览器里
+`useNativeUI` 恒为 false、搜索框会退化成普通 `<input>`，**那条路径验不到原生元素**；
+而本仓库有过原生元素「算出布局但不绘制」的先例（#79 的 grid 容器、#81 的 slider），
+所以必须在真机上确认它渲染、能聚焦、能输入。
+
+六条判定按「越往后越难伪造」排列：
+
+| # | 判定 | 依据 |
+|---|------|------|
+| 1 | 面板内有**非零尺寸**的 `EditText`，且夹在触发器下沿与首个选项之间 | 缺失或塌成 0 = 原生输入框没渲染 |
+| 2 | 输入小写 `jazz` 只剩「Jazz Night」 | 大小写不敏感的子串过滤真的在跑 |
+| 3 | 输入 `0` 只剩「Mix 0」 | 见下 |
+| 4 | 无匹配时渲染「无匹配项」空行，而不是空面板 | dump 命中该文案 |
+| 5 | 过滤态下能选中 → 面板关闭 + 触发器 label 更新 | 过滤出来的是真选项，不是死文本 |
+| 6 | 再打开时搜索框为空、列表回到全量 | 见下 |
+
+> 判定 3 是 `SelectOption.searchText` 的锚点：种下的歌单都是 0 首歌，label 全长成
+> 「xxx (0)」。**如果过滤匹配的是渲染出来的 label 而不是纯名称，输入 `0` 会命中全部
+> 14 项**。歌单名里那个「Mix 0」就是专为这条判定准备的。
+>
+> 判定 6 针对的是「关键词残留」：`query` 挂在组件级 ref 上，而面板本身是 `v-if` 掉的，
+> 漏了复位就会出现「列表还被上次的词过滤着，可搜索框已经空了」的错位。
+>
+> 踩坑一：**`tab-config` 必须配**（宿主脚本已做）。漏了客户端底部不会出现「智能音箱」
+> tab，runner 会一路停在主程序首页 —— 而 `wait_for_text` 失败并不中断脚本，后面每步
+> 都在给主程序的界面拍照，判定全线失败却看不出原因。
+>
+> 踩坑二：**`adb shell input text` 打不进中文**。所有用来搜索的歌单名必须是 ASCII
+> （`Jazz Night` / `KPop Hits` / `Mix 0`），中文名只能用来凑够阈值项数。
+>
+> 踩坑三：WebF 不把 `aria-label` 映射到 `content-desc`，`EditText` 上没有任何可匹配的
+> 文本，只能按**类名 + 位置**认。`assert_playlist_search.py` 因此假设面板**向下**展开
+> （主页下拉在视口顶部，恒有下方空间）；将来若把这套判定用到会向上翻的下拉，
+> `panel_edits()` 要跟着改。
+
 ## MIoT 播放器控件 / 图标字体竞态
 
 ```bash
