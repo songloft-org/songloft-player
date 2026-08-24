@@ -220,14 +220,21 @@ class _DraggableScrollbarOverlayState extends State<DraggableScrollbarOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    if (!widget.enabled || widget.totalItemCount <= 0) {
-      return widget.child;
-    }
+    // 无论是否显示滚动条，都必须返回同一种树形结构。
+    // 曾经的实现在 enabled / totalItemCount 变化时直接 `return widget.child`，
+    // 与 Stack 分支的 runtimeType 不同，Element 无法复用，会把整个 child 子树
+    // （歌单页的 CustomScrollView，含搜索框 TextField）销毁重建：
+    // EditableText 随之 clearClient + setClient，Windows IME 组合中的拼音被
+    // 重复提交，表现为「第一次搜索时输入乱跳」(songloft-org/songloft#361)。
+    final showScrollbar =
+        widget.enabled &&
+        widget.totalItemCount > 0 &&
+        (context.isDesktop || _isVisible || _isDragging);
 
     return Stack(
       children: [
         widget.child,
-        if (context.isDesktop || _isVisible || _isDragging)
+        if (showScrollbar)
           Positioned(
             top: 0,
             bottom: 0,

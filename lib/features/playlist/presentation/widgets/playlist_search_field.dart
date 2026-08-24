@@ -48,10 +48,11 @@ class _PlaylistSearchFieldState extends State<PlaylistSearchField> {
       _showClearButton = widget.controller.text.isNotEmpty;
     }
     if (!oldWidget.visible && widget.visible) {
-      _ensureFocus();
-    } else if (widget.visible) {
-      // 父级 rebuild 后（如搜索触发 provider 状态变更），TextField 可能丢失焦点，
-      // 但 visible 并未变化。使用多帧重试确保输入不中断，覆盖 Windows 平台焦点延迟。
+      // 仅在「切入搜索模式」这一次请求焦点。父级 rebuild 时不再补聚焦：
+      // 焦点丢失的真正原因是滚动条 overlay 翻转导致子树被重建
+      // (songloft-org/songloft#361)，已在 DraggableScrollbarOverlay 根治。
+      // 在这里无条件抢焦点会把用户点到别处（歌曲行、菜单）的焦点强行拽回，
+      // 并让 requestFocus 每帧连发，反而打断 IME 组合。
       _ensureFocus();
     }
   }
@@ -70,8 +71,8 @@ class _PlaylistSearchFieldState extends State<PlaylistSearchField> {
   }
 
   /// 在 autofocus 之后的若干帧验证焦点是否成功，不成功则重试。
-  /// Windows 上 autofocus 可能因为 AppBar 按钮持有平台焦点而失败。
-  /// 重试间隔 1 帧，最多 10 次，覆盖首次打开与父级 rebuild 后焦点丢失。
+  /// Windows 上 autofocus 可能因为 AppBar 搜索按钮持有平台焦点而失败。
+  /// 重试间隔 1 帧，最多 10 次；一旦拿到焦点立即停止。
   void _ensureFocus() {
     _retryFocus(0);
   }
@@ -81,6 +82,9 @@ class _PlaylistSearchFieldState extends State<PlaylistSearchField> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !widget.visible) return;
       if (widget.focusNode.hasFocus) return;
+      // 组合输入进行中绝不重新请求焦点，否则会重建输入连接、打断 IME。
+      final composing = widget.controller.value.composing;
+      if (composing.isValid && !composing.isCollapsed) return;
       widget.focusNode.requestFocus();
       _retryFocus(attempt + 1);
     });
