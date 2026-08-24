@@ -79,6 +79,39 @@ Outputs are written to `scripts/webf-android-verify/out/miot-test/`:
 > \#79 就是靠它推翻了「元素没渲染」的猜测 —— `getBoundingClientRect` 返回正常的
 > 309×42，但屏幕上和 dump 里都不存在，从而定位到 WebF「算出布局但不绘制 grid 容器」。
 
+## MIoT 定时任务的全局动作（开启/关闭对话监听）
+
+```bash
+./scripts/webf-android-verify/run-schedule-monitor.sh
+```
+
+产物落在 `out/schedule-monitor/`，判定由 `assert_schedule_monitor.py` 自动做（PASS/FAIL +
+非零退出码），不需要人工看图。需要先跑过 `run.sh`（拿 APK）并在
+`jsplugins-src/songloft-plugin-miot` 里 `npm run build`。
+参考案例：songloft-org/songloft-plugin-miot#89。
+
+`enable_monitor` / `disable_monitor` 是**不绑定设备**的全局动作，编辑器要隐藏整个目标设备区，
+后端也不该再校验设备。四条判定按「越往后越难伪造」排列：
+
+| # | 判定 | 依据 |
+|---|------|------|
+| 1 | 默认动作 `play_playlist` 下**有**「目标设备 / 所有受管理设备」 | 控制项。少了它，判定 2 通过只说明 runner 没滚到位 |
+| 2 | 切到「开启对话监听」后这两项与「选择歌单」**全部消失** | `16` / `17` / `18` 三份 dump 都不得命中 |
+| 3 | toast 是「定时任务已保存」，列表副标题渲染中文 label | dump 里不得出现原始值 `enable_monitor` |
+| 4 | 任务真的落库且 `devices` 为空 | `GET /schedules`。#89 就是 handler 拒收，UI 侧证据独木难支 |
+
+> 踩坑一：`SlSelect` 在 WebF 下是**自绘面板**，不是原生 `<select>`——浏览器里能用
+> `page.select` 一步切换的地方，这里必须「tap 触发器 → 面板展开 → tap 选项」，
+> 触发器的 `content-desc` 就是当前 label（如「播放歌单」）。
+>
+> 踩坑二：任务名称框只在**切完动作、任何滚动之前**才是视口内第一个 `EditText`。
+> 一旦滚到表单底部，视口里只剩「执行时间」那个框，按固定 index 点会把任务名打进
+> 时间框，保存后只看到「请输入任务名称」的 toast —— 看着像按钮没反应，实际是填错了框。
+> WebF 的 `EditText` 不带 `content-desc`（`aria-label` 未映射），只能靠 `text` 和位置认。
+>
+> 踩坑三：uiautomator 只 dump 视口内的节点。编辑器表单整段在折叠线以下，
+> 刚打开时那份 dump 里没有「目标设备」**不代表它没渲染**，必须先滚到底再取证。
+
 ## MIoT 播放器控件 / 图标字体竞态
 
 ```bash
