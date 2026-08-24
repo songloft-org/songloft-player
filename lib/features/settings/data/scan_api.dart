@@ -200,7 +200,10 @@ class ScanApi {
   /// 获取重复歌曲组
   Future<DuplicatesResult> getDuplicates() async {
     try {
-      final response = await dio.get('${AppConfig.apiPrefix}/songs/duplicates');
+      final response = await dio.get(
+        '${AppConfig.apiPrefix}/songs/duplicates',
+        options: Options(receiveTimeout: const Duration(seconds: 60)),
+      );
       return DuplicatesResult.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       throw ApiException.fromDioException(e);
