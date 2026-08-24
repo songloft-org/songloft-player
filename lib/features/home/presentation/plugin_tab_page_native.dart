@@ -56,7 +56,7 @@ class _PluginTabPageState extends ConsumerState<PluginTabPage> {
   String _buildPluginUrl(String theme) {
     final token = SecureStorageService.cachedAccessToken ?? '';
     final uri = Uri.parse(
-      '${AppConfig.baseUrl}${AppConfig.basePath}/api/v1/jsplugin/${widget.entryPath}',
+      '${AppConfig.resolvedBaseUrl}${AppConfig.basePath}/api/v1/jsplugin/${widget.entryPath}',
     );
     final query =
         Map<String, String>.from(uri.queryParameters)

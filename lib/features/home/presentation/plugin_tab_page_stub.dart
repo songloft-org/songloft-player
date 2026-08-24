@@ -60,7 +60,7 @@ class _PluginTabPageState extends ConsumerState<PluginTabPage> {
 
   String _buildPluginUrl(String theme) {
     final baseUrl =
-        '${AppConfig.baseUrl}${AppConfig.basePath}/api/v1/jsplugin/${widget.entryPath}';
+        '${AppConfig.resolvedBaseUrl}${AppConfig.basePath}/api/v1/jsplugin/${widget.entryPath}';
     final token = SecureStorageService.cachedAccessToken ?? '';
     final params = <String>['embed', 'theme=$theme'];
     if (token.isNotEmpty) params.add('access_token=$token');

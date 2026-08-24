@@ -144,7 +144,7 @@ class _JSPluginCard extends StatelessWidget {
     }
 
     final url =
-        '${AppConfig.baseUrl}${AppConfig.basePath}/api/v1/jsplugin/${plugin.entryPath}';
+        '${AppConfig.resolvedBaseUrl}${AppConfig.basePath}/api/v1/jsplugin/${plugin.entryPath}';
 
     // Web/native 统一走应用内 WebView（传裸 url，theme/token 由 WebView 页面内部补齐）。
     context.push(
