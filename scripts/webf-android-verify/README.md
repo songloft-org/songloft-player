@@ -187,7 +187,7 @@ SHOT_TAG=before SLOW_FONT=3 ./scripts/webf-android-verify/run-player-icons.sh
 `SHOT_TAG` 区分修复前后两轮截图，方便并排比对。
 参考案例：songloft-org/songloft-plugin-miot#81。
 
-> 注意：播放条与全屏播放器需要「已选中设备」才渲染，而测试环境没有真实小米账号。
+> 注意：播放条与全屏播放器需要「已选中设备」才渲染，而测试环境没有真实设备平台账号。
 > 复现这两块时需要临时在插件前端注入假设备/假播放状态（用完删掉，不要提交）。
 
 ## Flutter 原生界面取证（播放器图标 / 布局）

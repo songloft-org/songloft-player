@@ -17,7 +17,7 @@ sdkmanager --licenses   # 首次构建前接受许可证
 ### 运行时注意
 
 - **Android 13+（API 33）**：需运行时申请通知权限 `POST_NOTIFICATIONS`，否则无法显示播放控制通知
-- **HyperOS3（小米）**：需设置 `androidStopForegroundOnPause: false`，否则暂停时前台服务被回收，后台播放中断
+- **HyperOS3**：需设置 `androidStopForegroundOnPause: false`，否则暂停时前台服务被回收，后台播放中断
 - **APK 分架构构建**：`flutter build apk --split-per-abi` 生成 arm64-v8a、armeabi-v7a、x86_64 三个 APK
 
 ### 故障排查

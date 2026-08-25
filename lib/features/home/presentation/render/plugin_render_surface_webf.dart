@@ -451,7 +451,7 @@ class _PluginRenderSurfaceWebFState
   ///    既没有 token 也不该脱离宿主。留一条 warn 让插件作者知道「WebF 下别做
   ///    多页跳转」。
   /// 3. **外部 http(s) / mailto / tel → 系统浏览器 + `cancel`**。这正是 miot
-  ///    小米账号二次验证要的行为（它的登录页是小米的站点，本来就不该在插件页里开）。
+  ///    账号二次验证要的行为（它的登录页是第三方站点，本来就不该在插件页里开）。
   ///
   /// 其余 scheme（相对路径、`javascript:`、自定义 scheme）一律 `cancel` + 日志。
   /// **一律以 cancel 收尾**是唯一安全的默认：任何 `allow` 都意味着整页被换掉。
