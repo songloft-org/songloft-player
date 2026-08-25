@@ -339,7 +339,6 @@ class _PopupSpeedControlState extends State<PopupSpeedControl> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isActive = widget.speed != 1.0;
-    final label = _formatSpeedLabel(widget.speed);
 
     return Tooltip(
       message: l10n.playerSpeedTitle,
@@ -351,17 +350,23 @@ class _PopupSpeedControlState extends State<PopupSpeedControl> {
           width: 40,
           height: 40,
           alignment: Alignment.center,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color:
-                  isActive
-                      ? theme.colorScheme.primary
-                      : theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
+          // 1× 时用图标，与工具行里的投屏 / 音量 / 队列同规格；改过倍速后换成
+          // 倍速文字并高亮，当前档位不必展开面板就能看到。
+          child:
+              isActive
+                  ? Text(
+                    _formatSpeedLabel(widget.speed),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.primary,
+                    ),
+                  )
+                  : Icon(
+                    Icons.speed_rounded,
+                    size: 20,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
         ),
       ),
     );
