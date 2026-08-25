@@ -20,6 +20,13 @@ services:
       - ../..:/workspace
       - dart-tool:/workspace/.dart_tool
       - build-dir:/workspace/build
+      # `flutter pub get` 会给桌面平台生成 `flutter/ephemeral/.plugin_symlinks`。容器以
+      # root 写下它之后，宿主再跑 `flutter analyze` 会卡在 "Flutter failed to delete a
+      # directory at .../.plugin_symlinks"（它要重建该目录却没权限），报错与当前改动毫无
+      # 关系、却挡住静态分析，只能手动用容器去删。挂成命名卷即可让容器写在卷里。
+      # 只有 windows/linux 需要：android target 不生成，ios/macos 的 ephemeral 里没这一项。
+      - windows-ephemeral:/workspace/windows/flutter/ephemeral
+      - linux-ephemeral:/workspace/linux/flutter/ephemeral
     environment:
       FRONTEND_VERSION: webf-android-test
       FLUTTER_BINDING: "3.44.6"
@@ -60,3 +67,5 @@ volumes:
   pub-cache:
   dart-tool:
   build-dir:
+  windows-ephemeral:
+  linux-ephemeral:

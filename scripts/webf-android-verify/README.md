@@ -190,10 +190,54 @@ SHOT_TAG=before SLOW_FONT=3 ./scripts/webf-android-verify/run-player-icons.sh
 > 注意：播放条与全屏播放器需要「已选中设备」才渲染，而测试环境没有真实小米账号。
 > 复现这两块时需要临时在插件前端注入假设备/假播放状态（用完删掉，不要提交）。
 
+## Flutter 原生界面取证（播放器图标 / 布局）
+
+```bash
+BUILD_APK=1 SHOT_TAG=before ./scripts/webf-android-verify/run-flutter-player.sh
+```
+
+上面几节都在驱动 miot 插件的 WebF 页面，这一节走的是 **Flutter 自己的界面**
+（登录 → 曲库 → 起播 → 展开全屏播放器 → 底部工具行），用来核对图标、间距、视重这类
+只能眼见为实的东西。宿主脚本 `run-flutter-player.sh` 会用 ffmpeg 造 3 首正弦波测试曲、
+起临时后端（`58396`）、扫描入库，再把 `runner-flutter/run-player-speed.sh` 送进容器跑。
+
+产物落在 `out/flutter-player/`：
+
+| 文件 | 说明 |
+|------|------|
+| `<TAG>-library.png` | 曲库列表 |
+| `<TAG>-mini.png` | 起播后的 mini player |
+| `<TAG>-full.png` / `-toolbar.png` | 全屏播放器整屏 / 底部两行放大 1.6× |
+| `<TAG>-speed-panel.png` | 播放速度弹出面板 |
+| `<TAG>-full-1p5.png` / `-toolbar-1p5.png` | 选 1.5 倍速后的状态 |
+| `<TAG>-*-nodes.txt` | 各步骤的语义节点清单（`runner-flutter/tapx.py --list`） |
+
+三个坑，按踩到的顺序：
+
+- **改了 Dart 就必须 `BUILD_APK=1`**。`out/` 里的 APK 不会自动跟着代码走，装上旧 APK 截出来
+  的是旧界面，而且**看起来完全正常**——只是与你刚改的代码无关。脚本会在 APK 比 `lib/` 下
+  最新 `.dart` 旧时打 warn，别忽略。
+- **重装前必须先 `adb uninstall`**。`apk-builder` 是 `--rm` 且 `/root/.android` 未持久化，
+  每次重建都生成新的 debug keystore，于是 `install -r` 报 `INSTALL_FAILED_UPDATE_INCOMPATIBLE`。
+  它把失败写进 **stdout 而非 stderr**、退出码也不一定非零，所以 runner 里额外 `grep Success`。
+- **全屏播放器和 `OverlayEntry` 面板不进 uiautomator 无障碍树**。此时 dump 回来的仍是底下那层
+  曲库页 + mini player 的节点（截图却是对的），于是「dump 里找不到 `播放速度`」根本不代表它
+  没渲染。对全屏播放器的一切操作与断言只能靠**坐标 + 截图**，坐标写死在 `wm size 1080x2400`
+  上。这跟上面 WebF 那条「dump 里明明有那段文字但点它不触发任何事件」正好是反向的同类坑。
+
+`tapx.py` 是比 `runner/ui.py` 宽松的点击工具：按**子串**匹配 `text` + `content-desc`，
+`--pick first|last|widest` 选歧义项，`--list` 打印全部可见节点。Flutter 常把邻近文字合并进
+同一个语义节点（`Library\nTab 2 of 3`、`Expand player\n演示艺术家`），`ui.py` 的全匹配正则
+`^Library$` 因此匹配不到。另外模拟器默认 locale 是 **en-US**，节点文字是英文，中文串只在改过
+设备语言时才命中——runner 里一律「英文优先、中文兜底」。
+
+参考案例：全屏播放器的播放速度控件曾是纯文字 `1×`（`887afa1` 起），夹在投屏/音量/队列三个
+20px 图标中间视重不匹配，靠这套 runner 的 before/after 对比确认并改回图标。
+
 ## Host requirements
 
 Linux with Go, npm, Docker, and `/dev/kvm`. The temporary server listens on
-port `58192` (downloader) or `58394` (miot) by default. The Android device
+port `58192` (downloader), `58394` (miot), or `58396` (Flutter native UI) by default. The Android device
 reaches it through `adb reverse`; override with `SERVER_PORT` when needed.
 
 The default emulator is the official Google API 30 x86_64 container image.
