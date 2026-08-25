@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../config/constants.dart';
 import '../../../../core/network/api_client.dart';
+import '../../../../shared/models/library_stats.dart';
 import '../../../../shared/models/song.dart';
 import '../../data/songs_api.dart';
 import '../../data/songs_repository.dart';
@@ -360,4 +361,15 @@ final songDetailProvider = FutureProvider.family<Song, int>((
 ) async {
   final repository = ref.watch(songsRepositoryProvider);
   return repository.getSong(songId);
+});
+
+/// 曲库汇总统计 Provider（首页底部统计面板）
+///
+/// 刻意**不加** autoDispose：同屏的 `playlistListProvider` 是常驻缓存的，autoDispose
+/// 会让切 tab 回首页时统计数重新取数而歌单网格不动，出现「数字变了、封面没变」的
+/// 不一致。代价是曲库变更后统计数偏旧，由下拉刷新（HomePage.retryAll 里的
+/// ref.invalidate）解决，与歌单区同一节奏。
+final libraryStatsProvider = FutureProvider<LibraryStats>((ref) async {
+  final api = ref.watch(songsApiProvider);
+  return api.getLibraryStats();
 });

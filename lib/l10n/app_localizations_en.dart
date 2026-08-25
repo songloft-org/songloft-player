@@ -1226,17 +1226,22 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String homeStatPlaylistsCount(int count) {
-    return '$count playlists';
+  String get homeStatSongs => 'songs in library';
+
+  @override
+  String homeStatDurationHm(int hours, int minutes) {
+    return '$hours h $minutes min';
   }
 
   @override
-  String homeStatRadiosCount(int count) {
-    return '$count radios';
+  String homeStatDurationM(int minutes) {
+    return '$minutes min';
   }
 
   @override
-  String get homeStatTotal => 'Total';
+  String homeStatSize(String size) {
+    return '$size on disk';
+  }
 
   @override
   String get homeTvLocalMusic => 'Local Music';

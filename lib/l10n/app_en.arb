@@ -660,23 +660,34 @@
       }
     }
   },
-  "homeStatPlaylistsCount": "{count} playlists",
-  "@homeStatPlaylistsCount": {
+  "homeStatSongs": "songs in library",
+  "homeStatDurationHm": "{hours} h {minutes} min",
+  "@homeStatDurationHm": {
     "placeholders": {
-      "count": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
         "type": "int"
       }
     }
   },
-  "homeStatRadiosCount": "{count} radios",
-  "@homeStatRadiosCount": {
+  "homeStatDurationM": "{minutes} min",
+  "@homeStatDurationM": {
     "placeholders": {
-      "count": {
+      "minutes": {
         "type": "int"
       }
     }
   },
-  "homeStatTotal": "Total",
+  "homeStatSize": "{size} on disk",
+  "@homeStatSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "homeTvLocalMusic": "Local Music",
   "homeTvPlaylist": "Playlists",
   "homeTvEmptySubtitle": "Use quick navigation to browse local music",

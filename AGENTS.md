@@ -109,6 +109,7 @@ dart format lib/ test/
 | `lyricStateProvider` | `features/player/.../lyric_provider.dart` | 歌词解析与当前行定位 |
 | `songsListProvider` | `features/library/.../songs_provider.dart` | 歌曲列表分页加载 |
 | `songDetailProvider` | 同上 | 单曲详情 |
+| `libraryStatsProvider` | 同上 | 曲库汇总统计（首页底部面板，`GET /songs/stats`） |
 | `favoriteProvider` | `features/library/.../favorite_provider.dart` | 收藏状态管理 |
 | `playlistListProvider` | `features/playlist/.../playlist_provider.dart` | 歌单列表 |
 | `playlistNotifierProvider` | 同上 | 歌单 CRUD 操作 |

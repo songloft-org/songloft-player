@@ -765,23 +765,34 @@
       }
     }
   },
-  "homeStatPlaylistsCount": "{count} 歌单",
-  "@homeStatPlaylistsCount": {
+  "homeStatSongs": "首歌曲",
+  "homeStatDurationHm": "{hours} 小时 {minutes} 分",
+  "@homeStatDurationHm": {
     "placeholders": {
-      "count": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
         "type": "int"
       }
     }
   },
-  "homeStatRadiosCount": "{count} 电台",
-  "@homeStatRadiosCount": {
+  "homeStatDurationM": "{minutes} 分",
+  "@homeStatDurationM": {
     "placeholders": {
-      "count": {
+      "minutes": {
         "type": "int"
       }
     }
   },
-  "homeStatTotal": "总计",
+  "homeStatSize": "占用 {size}",
+  "@homeStatSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "homeTvLocalMusic": "本地音乐",
   "homeTvPlaylist": "播放列表",
   "homeTvEmptySubtitle": "使用快捷导航浏览本地音乐",

@@ -2240,23 +2240,29 @@ abstract class AppLocalizations {
   /// **'{count} 首歌曲'**
   String homeSongCount(int count);
 
-  /// No description provided for @homeStatPlaylistsCount.
+  /// No description provided for @homeStatSongs.
   ///
   /// In zh, this message translates to:
-  /// **'{count} 歌单'**
-  String homeStatPlaylistsCount(int count);
+  /// **'首歌曲'**
+  String get homeStatSongs;
 
-  /// No description provided for @homeStatRadiosCount.
+  /// No description provided for @homeStatDurationHm.
   ///
   /// In zh, this message translates to:
-  /// **'{count} 电台'**
-  String homeStatRadiosCount(int count);
+  /// **'{hours} 小时 {minutes} 分'**
+  String homeStatDurationHm(int hours, int minutes);
 
-  /// No description provided for @homeStatTotal.
+  /// No description provided for @homeStatDurationM.
   ///
   /// In zh, this message translates to:
-  /// **'总计'**
-  String get homeStatTotal;
+  /// **'{minutes} 分'**
+  String homeStatDurationM(int minutes);
+
+  /// No description provided for @homeStatSize.
+  ///
+  /// In zh, this message translates to:
+  /// **'占用 {size}'**
+  String homeStatSize(String size);
 
   /// No description provided for @homeTvLocalMusic.
   ///

@@ -1196,17 +1196,22 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String homeStatPlaylistsCount(int count) {
-    return '$count 歌单';
+  String get homeStatSongs => '首歌曲';
+
+  @override
+  String homeStatDurationHm(int hours, int minutes) {
+    return '$hours 小时 $minutes 分';
   }
 
   @override
-  String homeStatRadiosCount(int count) {
-    return '$count 电台';
+  String homeStatDurationM(int minutes) {
+    return '$minutes 分';
   }
 
   @override
-  String get homeStatTotal => '总计';
+  String homeStatSize(String size) {
+    return '占用 $size';
+  }
 
   @override
   String get homeTvLocalMusic => '本地音乐';

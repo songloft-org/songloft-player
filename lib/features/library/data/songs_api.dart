@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../../../config/app_config.dart';
+import '../../../shared/models/library_stats.dart';
 import '../../../shared/models/song.dart';
 import '../../player/domain/playback_context.dart';
 
@@ -122,6 +123,18 @@ class SongsApi {
       queryParameters: queryParams,
     );
     return SongFacetResponse.fromJson(response.data!);
+  }
+
+  /// 获取曲库汇总统计（首页底部统计面板）
+  /// GET /api/v1/songs/stats
+  ///
+  /// 一次拿到：歌曲总数、按 type 拆分的数量、总时长（秒）、本地文件总占用（字节）、
+  /// 歌手/专辑/流派的去重计数。
+  Future<LibraryStats> getLibraryStats() async {
+    final response = await dio.get<Map<String, dynamic>>(
+      '${AppConfig.apiPrefix}/songs/stats',
+    );
+    return LibraryStats.fromJson(response.data ?? const {});
   }
 
   /// 获取匹配过滤条件的歌曲 ID 列表（用于「全选当前筛选」场景）

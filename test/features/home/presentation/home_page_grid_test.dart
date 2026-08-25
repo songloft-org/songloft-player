@@ -7,11 +7,13 @@ import 'package:songloft_flutter/features/home/presentation/home_page.dart';
 import 'package:songloft_flutter/features/home/presentation/providers/home_grid_config_provider.dart';
 import 'package:songloft_flutter/features/jsplugin/data/jsplugin_api.dart';
 import 'package:songloft_flutter/features/jsplugin/presentation/providers/jsplugin_provider.dart';
+import 'package:songloft_flutter/features/library/presentation/providers/songs_provider.dart';
 import 'package:songloft_flutter/features/player/presentation/providers/player_provider.dart';
 import 'package:songloft_flutter/features/playlist/domain/playlist.dart';
 import 'package:songloft_flutter/features/playlist/presentation/providers/playlist_provider.dart';
 import 'package:songloft_flutter/features/settings/presentation/providers/settings_provider.dart';
 import 'package:songloft_flutter/l10n/app_localizations.dart';
+import 'package:songloft_flutter/shared/models/library_stats.dart';
 
 /// 首页宽屏歌单网格的行列配置（songloft-org/songloft#332）。
 ///
@@ -55,6 +57,9 @@ void main() {
           ),
           homeGridConfigProvider.overrideWith(() => _FixedGridConfig(config)),
           jsPluginsProvider.overrideWith((ref) async => const <JSPlugin>[]),
+          // 底部 StatsStrip 自己 watch 这个 provider，不短路会经 dioProvider
+          // 走 secure storage 平台通道发真请求。
+          libraryStatsProvider.overrideWith((ref) async => LibraryStats.empty),
           // 首页 initState 会跑一次启动更新检查，真发 HTTP 会留下 30s 的 pending
           // timer 让测试报错。把它依赖的两个 provider 短路掉。
           githubProxyProvider.overrideWith(() => _NoProxyNotifier()),

@@ -11,6 +11,7 @@ import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/responsive.dart';
 import '../../../core/utils/url_helper.dart';
 import '../../../shared/widgets/empty_state.dart';
+import '../../library/presentation/providers/songs_provider.dart';
 import '../../playlist/domain/playlist.dart';
 import '../../player/presentation/providers/player_provider.dart';
 import '../../playlist/presentation/providers/playlist_provider.dart';
@@ -87,6 +88,9 @@ class _HomePageState extends ConsumerState<HomePage> {
       _autoLoadCursor.clear();
       ref.invalidate(playlistListProvider('normal'));
       ref.invalidate(playlistListProvider('radio'));
+      // 底部统计面板与歌单区同一次下拉刷新：它是常驻 provider（非 autoDispose），
+      // 不 invalidate 就会永远停在首次加载时的数字上。
+      ref.invalidate(libraryStatsProvider);
     }
 
     return Scaffold(
@@ -115,8 +119,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                         radioPlaylists: radioAsync.value?.items ?? const [],
                         normalFailed: normalAsync.hasError,
                         radioFailed: radioAsync.hasError,
-                        normalTotalCount: normalAsync.value?.totalCount ?? 0,
-                        radioTotalCount: radioAsync.value?.totalCount ?? 0,
                       ),
             ),
           ],
@@ -132,8 +134,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     required List<Playlist> radioPlaylists,
     required bool normalFailed,
     required bool radioFailed,
-    required int normalTotalCount,
-    required int radioTotalCount,
   }) {
     final l10n = AppLocalizations.of(context);
     final currentPlaylistId = ref.watch(sourcePlaylistIdProvider);
@@ -239,11 +239,8 @@ class _HomePageState extends ConsumerState<HomePage> {
             const JSPluginGrid(),
             const SizedBox(height: AppSpacing.lg),
 
-            // 统计信息条
-            StatsStrip(
-              normalCount: normalTotalCount,
-              radioCount: radioTotalCount,
-            ),
+            // 曲库统计面板
+            const StatsStrip(),
             const SizedBox(height: AppSpacing.lg),
 
             // 底部安全区域
