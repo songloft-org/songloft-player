@@ -550,6 +550,31 @@ class SettingsApi {
     }
   }
 
+  // ---------- 标签同步写入文件 ----------
+
+  Future<bool> getTagSyncToFile() async {
+    try {
+      final response = await dio.get(
+        '${AppConfig.apiPrefix}/settings/tag-sync-to-file',
+      );
+      final data = response.data as Map<String, dynamic>;
+      return data['enabled'] as bool? ?? false;
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  Future<void> setTagSyncToFile(bool enabled) async {
+    try {
+      await dio.put(
+        '${AppConfig.apiPrefix}/settings/tag-sync-to-file',
+        data: {'enabled': enabled},
+      );
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
   // ---------- 歌单创建方式 ----------
 
   Future<String> getScanPlaylistMode() async {

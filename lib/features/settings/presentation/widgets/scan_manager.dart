@@ -153,6 +153,10 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
         _buildAutoFingerprintTile(),
         const SizedBox(height: AppSpacing.md),
 
+        // 「标签同步写入文件」开关
+        _buildTagSyncToFileTile(),
+        const SizedBox(height: AppSpacing.md),
+
         // 排除目录设置（可展开/折叠）
         Card(
           elevation: 0,
@@ -600,6 +604,49 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
                       ResponsiveSnackBar.showError(
                         context,
                         message: l10n.settingsScanSaveFailed('$e'),
+                      );
+                    }
+                  }
+                },
+      ),
+    );
+  }
+
+  /// 「标签同步写入文件」开关
+  Widget _buildTagSyncToFileTile() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final asyncValue = ref.watch(tagSyncToFileProvider);
+
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        side: BorderSide(color: colorScheme.outlineVariant),
+      ),
+      child: SwitchListTile(
+        secondary: Icon(Icons.sync, color: colorScheme.onSurfaceVariant),
+        title: const Text('标签同步写入文件'),
+        subtitle: Text(
+          '开启后修改标签时自动写入音频文件的 SONGLOFT_TAGS 字段',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+        value: asyncValue.value ?? false,
+        onChanged:
+            asyncValue.isLoading
+                ? null
+                : (value) async {
+                  try {
+                    await ref
+                        .read(tagSyncToFileProvider.notifier)
+                        .setValue(value);
+                  } catch (e) {
+                    if (mounted) {
+                      ResponsiveSnackBar.showError(
+                        context,
+                        message: '保存失败: $e',
                       );
                     }
                   }

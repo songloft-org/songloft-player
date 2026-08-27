@@ -500,6 +500,42 @@ final scanAutoFingerprintProvider =
     );
 
 // ============================================================================
+// 标签同步写入文件 Provider
+// ============================================================================
+
+/// 「标签同步写入文件」开关 Notifier。
+/// 开启后修改标签时自动将标签写入音频文件的 SONGLOFT_TAGS 字段。
+/// 业务端点：GET/PUT /api/v1/settings/tag-sync-to-file
+class TagSyncToFileNotifier extends AsyncNotifier<bool> {
+  @override
+  Future<bool> build() async {
+    final api = ref.watch(settingsApiProvider);
+    try {
+      return await api.getTagSyncToFile();
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> setValue(bool value) async {
+    state = AsyncValue.data(value);
+    try {
+      final api = ref.read(settingsApiProvider);
+      await api.setTagSyncToFile(value);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
+  }
+}
+
+/// 「标签同步写入文件」Provider
+final tagSyncToFileProvider =
+    AsyncNotifierProvider<TagSyncToFileNotifier, bool>(
+      TagSyncToFileNotifier.new,
+    );
+
+// ============================================================================
 // 歌单创建方式 Provider
 // ============================================================================
 
