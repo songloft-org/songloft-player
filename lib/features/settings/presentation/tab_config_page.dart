@@ -31,7 +31,11 @@ class TabConfigPage extends ConsumerWidget {
             )
             .toList();
 
-    final usedCount = _fixedTabs + config.optionalCount;
+    // 计数与限额基于「实际会渲染的条目」：孤儿条目（插件已卸载）与禁用插件
+    // 不占名额，保证显示数量与首页可见 Tab 严格一致（#416）。
+    final effectiveTabs = config.activeEntries(activePlugins);
+    final usedCount =
+        _fixedTabs + (config.showLibrary ? 1 : 0) + effectiveTabs.length;
     final atLimit = usedCount >= _maxTabs;
     final l10n = AppLocalizations.of(context);
 
@@ -83,18 +87,22 @@ class TabConfigPage extends ConsumerWidget {
                       atLimit,
                     ),
           ),
-          if (config.pluginTabs.length > 1) ...[
+          if (effectiveTabs.length > 1) ...[
             const SizedBox(height: 16),
             SectionCard(
               title: l10n.settingsTabConfigPluginOrder,
               icon: Icons.reorder,
               children: [
                 _PluginTabReorderList(
-                  config: config,
+                  pluginTabs: effectiveTabs,
                   plugins: plugins,
                   onReorder:
-                      (newConfig) =>
-                          _updateConfig(context, ref, newConfig, false),
+                      (newTabs) => _updateConfig(
+                        context,
+                        ref,
+                        config.copyWith(pluginTabs: newTabs),
+                        false,
+                      ),
                 ),
               ],
             ),
@@ -125,6 +133,8 @@ class TabConfigPage extends ConsumerWidget {
     List<JSPlugin> activePlugins,
     bool atLimit,
   ) {
+    // 以「实际渲染的条目」为基准增删：保存时顺带清掉孤儿条目（#416）
+    final effectiveTabs = config.activeEntries(activePlugins);
     final widgets = <Widget>[];
     for (var i = 0; i < activePlugins.length; i++) {
       final plugin = activePlugins[i];
@@ -148,7 +158,7 @@ class TabConfigPage extends ConsumerWidget {
                   ? null
                   : (value) {
                     final newPluginTabs = List<PluginTabEntry>.from(
-                      config.pluginTabs,
+                      effectiveTabs,
                     );
                     if (value) {
                       newPluginTabs.add(
@@ -204,19 +214,18 @@ class TabConfigPage extends ConsumerWidget {
 }
 
 class _PluginTabReorderList extends StatelessWidget {
-  final TabConfig config;
+  final List<PluginTabEntry> pluginTabs;
   final List<JSPlugin> plugins;
-  final ValueChanged<TabConfig> onReorder;
+  final ValueChanged<List<PluginTabEntry>> onReorder;
 
   const _PluginTabReorderList({
-    required this.config,
+    required this.pluginTabs,
     required this.plugins,
     required this.onReorder,
   });
 
   @override
   Widget build(BuildContext context) {
-    final pluginTabs = config.pluginTabs;
     final colorScheme = Theme.of(context).colorScheme;
 
     return ReorderableListView.builder(
@@ -228,7 +237,7 @@ class _PluginTabReorderList extends StatelessWidget {
         final newList = List<PluginTabEntry>.from(pluginTabs);
         final item = newList.removeAt(oldIndex);
         newList.insert(newIndex, item);
-        onReorder(config.copyWith(pluginTabs: newList));
+        onReorder(newList);
       },
       proxyDecorator: (child, index, animation) {
         return AnimatedBuilder(

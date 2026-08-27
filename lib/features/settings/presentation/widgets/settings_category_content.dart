@@ -269,7 +269,11 @@ class _SettingsCategoryContentState
                   p.isActive && p.entryPath != null && p.entryPath!.isNotEmpty,
             )
             .toList();
-    final usedCount = _fixedTabs + config.optionalCount;
+    // 计数与限额基于「实际会渲染的条目」：孤儿条目（插件已卸载）与禁用插件
+    // 不占名额，保证显示数量与首页可见 Tab 严格一致（#416）。
+    final effectiveTabs = config.activeEntries(activePlugins);
+    final usedCount =
+        _fixedTabs + (config.showLibrary ? 1 : 0) + effectiveTabs.length;
     final atLimit = usedCount >= _maxTabs;
     final l10n = AppLocalizations.of(context);
 
@@ -384,6 +388,8 @@ class _SettingsCategoryContentState
     List<JSPlugin> activePlugins,
     bool atLimit,
   ) {
+    // 以「实际渲染的条目」为基准增删：保存时顺带清掉孤儿条目（#416）
+    final effectiveTabs = config.activeEntries(activePlugins);
     final widgets = <Widget>[];
     for (var i = 0; i < activePlugins.length; i++) {
       final plugin = activePlugins[i];
@@ -407,7 +413,7 @@ class _SettingsCategoryContentState
                   ? null
                   : (value) {
                     final newPluginTabs = List<PluginTabEntry>.from(
-                      config.pluginTabs,
+                      effectiveTabs,
                     );
                     if (value) {
                       newPluginTabs.add(

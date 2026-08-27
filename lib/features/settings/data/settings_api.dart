@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 
 import '../../../config/app_config.dart';
 import '../../../core/network/api_exceptions.dart';
+import '../../jsplugin/data/jsplugin_api.dart';
 import '../../player/domain/equalizer_setting.dart';
 
 /// 音乐路径与扫描排除配置（GET/PUT /settings/music-path）
@@ -202,9 +203,22 @@ class TabConfig {
   );
 
   // 歌单已并入曲库，不再计入底部 tab 数量（showPlaylists 字段仅为兼容旧配置保留）。
-  int get optionalCount => (showLibrary ? 1 : 0) + pluginTabs.length;
 
-  int get totalCount => 2 + optionalCount; // 首页 + 设置 + 可选项
+  /// 返回插件已安装且 active 的 Tab 条目（与导航渲染谓词一致）。
+  ///
+  /// 孤儿条目（插件已卸载）与禁用插件的条目不会出现在底部导航栏，
+  /// 也不应占用可选 tab 名额——限额统计与展示计数必须基于本列表，
+  /// 否则计数与可见 Tab 数不符、名额被永久泄漏（#416）。
+  List<PluginTabEntry> activeEntries(List<JSPlugin> plugins) {
+    final activePaths = <String>{
+      for (final p in plugins)
+        if (p.isActive && p.entryPath != null && p.entryPath!.isNotEmpty)
+          p.entryPath!,
+    };
+    return pluginTabs
+        .where((pt) => activePaths.contains(pt.entryPath))
+        .toList();
+  }
 }
 
 /// 曲库统一浏览页的单个视图条目。

@@ -863,7 +863,10 @@ class TabConfigNotifier extends AsyncNotifier<TabConfig> {
     state = AsyncValue.data(config);
     try {
       final api = ref.read(settingsApiProvider);
-      await api.updateTabConfig(config);
+      // 以服务端返回的已保存配置为准：后端保存时会清理插件已不存在的
+      // 孤儿条目（#416），本地必须同步该结果，否则计数仍会虚高。
+      final saved = await api.updateTabConfig(config);
+      state = AsyncValue.data(saved);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
       rethrow;
