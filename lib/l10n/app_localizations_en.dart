@@ -2037,6 +2037,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playlistDeleted => 'Playlist deleted';
 
   @override
+  String get playlistConvertToTag => 'Convert to tag';
+
+  @override
+  String playlistConvertToTagSuccess(String name, int count) {
+    return 'Created tag \"$name\", linked $count songs';
+  }
+
+  @override
   String get playlistDeleteWithSongs =>
       'Also delete songs from library (including local files)';
 
@@ -4558,6 +4566,38 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String licensesLoadFailed(String error) {
     return 'Failed to load license text: $error';
+  }
+
+  @override
+  String get manageTags => 'Manage Tags';
+
+  @override
+  String get createTagHint => 'Enter new tag name...';
+
+  @override
+  String get noTags => 'No tags yet';
+
+  @override
+  String get songCountUnit => 'songs';
+
+  @override
+  String get songTags => 'Tags';
+
+  @override
+  String get tagCreated => 'Tag created';
+
+  @override
+  String get tagDeleted => 'Tag deleted';
+
+  @override
+  String get tagRenamed => 'Tag renamed';
+
+  @override
+  String get renameTag => 'Rename tag';
+
+  @override
+  String deleteTagConfirm(String name) {
+    return 'Delete tag \"$name\"? Songs under this tag will not be deleted.';
   }
 
   @override

@@ -3659,7 +3659,7 @@ abstract class AppLocalizations {
   /// No description provided for @playlistDeleteConfirm.
   ///
   /// In zh, this message translates to:
-  /// **'确定要删除歌单「{name}」吗？此操作不可恢复。'**
+  /// **'确定要删除歌单「{name}」吗？此操�������不可恢复。'**
   String playlistDeleteConfirm(String name);
 
   /// No description provided for @playlistDeleted.
@@ -3667,6 +3667,18 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'歌单已删除'**
   String get playlistDeleted;
+
+  /// No description provided for @playlistConvertToTag.
+  ///
+  /// In zh, this message translates to:
+  /// **'转为标签'**
+  String get playlistConvertToTag;
+
+  /// No description provided for @playlistConvertToTagSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'已创建标签「{name}」，关联 {count} 首歌曲'**
+  String playlistConvertToTagSuccess(String name, int count);
 
   /// No description provided for @playlistDeleteWithSongs.
   ///
@@ -7882,6 +7894,66 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'许可文本加载失败：{error}'**
   String licensesLoadFailed(String error);
+
+  /// No description provided for @manageTags.
+  ///
+  /// In zh, this message translates to:
+  /// **'管理标签'**
+  String get manageTags;
+
+  /// No description provided for @createTagHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'输入新标签名...'**
+  String get createTagHint;
+
+  /// No description provided for @noTags.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无标签'**
+  String get noTags;
+
+  /// No description provided for @songCountUnit.
+  ///
+  /// In zh, this message translates to:
+  /// **'首'**
+  String get songCountUnit;
+
+  /// No description provided for @songTags.
+  ///
+  /// In zh, this message translates to:
+  /// **'标签'**
+  String get songTags;
+
+  /// No description provided for @tagCreated.
+  ///
+  /// In zh, this message translates to:
+  /// **'标签已创建'**
+  String get tagCreated;
+
+  /// No description provided for @tagDeleted.
+  ///
+  /// In zh, this message translates to:
+  /// **'标签已删除'**
+  String get tagDeleted;
+
+  /// No description provided for @tagRenamed.
+  ///
+  /// In zh, this message translates to:
+  /// **'标签已重命名'**
+  String get tagRenamed;
+
+  /// No description provided for @renameTag.
+  ///
+  /// In zh, this message translates to:
+  /// **'重命名标签'**
+  String get renameTag;
+
+  /// No description provided for @deleteTagConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定删除标签「{name}」？该标签下的歌曲不会被删除。'**
+  String deleteTagConfirm(String name);
 
   /// No description provided for @licensesCopyAll.
   ///

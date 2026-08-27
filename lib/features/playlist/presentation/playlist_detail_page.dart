@@ -20,6 +20,7 @@ import '../../../shared/mixins/song_list_actions.dart';
 import '../../../shared/widgets/draggable_scrollbar_overlay.dart';
 import '../../../shared/widgets/scroll_to_top_fab.dart';
 import '../../../shared/widgets/song_picker_modal.dart';
+import '../../library/presentation/providers/song_tag_provider.dart';
 import '../../library/presentation/providers/songs_provider.dart';
 import '../../library/presentation/song_edit_page.dart';
 import '../../player/domain/playback_context.dart';
@@ -1189,6 +1190,9 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
             case 'clear_playlist_cache':
               _clearPlaylistCache();
               break;
+            case 'convert_to_tag':
+              _convertToTag(playlist);
+              break;
             case 'edit':
               _showEditDialog(playlist);
               break;
@@ -1239,6 +1243,16 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
                   child: ListTile(
                     leading: const Icon(Icons.cleaning_services_outlined),
                     title: Text(l10n.playlistCacheClear),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              if (songs.isNotEmpty)
+                PopupMenuItem(
+                  value: 'convert_to_tag',
+                  child: ListTile(
+                    leading: const Icon(Icons.label_outline),
+                    title: Text(l10n.playlistConvertToTag),
                     dense: true,
                     contentPadding: EdgeInsets.zero,
                   ),
@@ -1468,6 +1482,25 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
         return l10n.playlistLabelAutoCreated;
       default:
         return label;
+    }
+  }
+
+  Future<void> _convertToTag(Playlist playlist) async {
+    final l10n = AppLocalizations.of(context);
+    try {
+      final api = ref.read(songTagsApiProvider);
+      final result = await api.fromPlaylist(_playlistIdInt);
+      if (!mounted) return;
+      ResponsiveSnackBar.showSuccess(
+        context,
+        message: l10n.playlistConvertToTagSuccess(
+          result.tag.name,
+          result.bound,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ResponsiveSnackBar.showError(context, message: e.toString());
     }
   }
 

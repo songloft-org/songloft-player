@@ -11,6 +11,7 @@ import '../../features/home/presentation/plugin_webview_page.dart';
 import '../../features/home/presentation/plugin_tab_back_registry.dart';
 import '../../features/library/presentation/library_page.dart';
 import '../../features/library/presentation/category_songs_page.dart';
+import '../../features/library/presentation/tag_songs_page.dart';
 import '../../features/playlist/presentation/playlist_detail_page.dart';
 import '../../features/settings/presentation/servers_page.dart';
 import '../../features/settings/presentation/settings_page.dart';
@@ -227,6 +228,22 @@ final routerProvider = Provider<GoRouter>((ref) {
               return CategorySongsPage(
                 field: field,
                 value: value,
+                coverUrl: cover,
+              );
+            },
+          ),
+
+          // 标签下的歌曲列表
+          GoRoute(
+            path: '/library/tags/:tagId',
+            builder: (context, state) {
+              final tagId =
+                  int.tryParse(state.pathParameters['tagId'] ?? '') ?? 0;
+              final name = state.uri.queryParameters['name'] ?? '';
+              final cover = state.uri.queryParameters['cover'];
+              return TagSongsPage(
+                tagId: tagId,
+                tagName: name,
                 coverUrl: cover,
               );
             },

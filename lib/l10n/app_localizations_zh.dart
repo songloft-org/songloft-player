@@ -1969,11 +1969,19 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String playlistDeleteConfirm(String name) {
-    return '确定要删除歌单「$name」吗？此操作不可恢复。';
+    return '确定要删除歌单「$name」吗？此操�������不可恢复。';
   }
 
   @override
   String get playlistDeleted => '歌单已删除';
+
+  @override
+  String get playlistConvertToTag => '转为标签';
+
+  @override
+  String playlistConvertToTagSuccess(String name, int count) {
+    return '已创建标签「$name」，关联 $count 首歌曲';
+  }
 
   @override
   String get playlistDeleteWithSongs => '同时从曲库删除歌曲（含本地文件）';
@@ -4373,6 +4381,38 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String licensesLoadFailed(String error) {
     return '许可文本加载失败：$error';
+  }
+
+  @override
+  String get manageTags => '管理标签';
+
+  @override
+  String get createTagHint => '输入新标签名...';
+
+  @override
+  String get noTags => '暂无标签';
+
+  @override
+  String get songCountUnit => '首';
+
+  @override
+  String get songTags => '标签';
+
+  @override
+  String get tagCreated => '标签已创建';
+
+  @override
+  String get tagDeleted => '标签已删除';
+
+  @override
+  String get tagRenamed => '标签已重命名';
+
+  @override
+  String get renameTag => '重命名标签';
+
+  @override
+  String deleteTagConfirm(String name) {
+    return '确定删除标签「$name」？该标签下的歌曲不会被删除。';
   }
 
   @override

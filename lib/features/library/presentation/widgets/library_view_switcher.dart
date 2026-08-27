@@ -55,6 +55,9 @@ String? playlistViewType(String key) {
   }
 }
 
+/// 判断某视图是否为标签视图。
+bool isTagLibraryView(String key) => key == 'tag';
+
 /// 视图展示名称。facet 维度复用 categoryFieldLabel，其余复用现有文案。
 String libraryViewLabel(AppLocalizations l10n, String key) {
   switch (key) {
@@ -66,6 +69,8 @@ String libraryViewLabel(AppLocalizations l10n, String key) {
       return l10n.songTypeRemote;
     case 'radio':
       return l10n.songTypeRadio;
+    case 'tag':
+      return l10n.songTags;
     case 'playlist':
       return l10n.libraryViewPlaylistAll;
     case 'playlist_normal':
@@ -102,6 +107,8 @@ IconData libraryViewIcon(String key) {
       return Icons.language_outlined;
     case 'style':
       return Icons.brush_outlined;
+    case 'tag':
+      return Icons.label_outline;
     case 'playlist':
       return Icons.queue_music;
     case 'playlist_normal':

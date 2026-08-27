@@ -252,6 +252,7 @@ class LibraryBrowseConfig {
     'decade',
     'language',
     'style',
+    'tag',
     'playlist',
     'playlist_normal',
     'playlist_radio',

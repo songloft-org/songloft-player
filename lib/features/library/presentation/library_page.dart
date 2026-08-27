@@ -21,8 +21,10 @@ import '../../playlist/presentation/providers/playlist_view_provider.dart';
 import '../../playlist/presentation/widgets/playlist_browse_view.dart';
 import 'providers/songs_provider.dart';
 import 'song_edit_page.dart';
+import '../../../shared/widgets/manage_tags_modal.dart';
 import 'widgets/facet_grid_view.dart';
 import 'widgets/library_view_switcher.dart';
+import 'widgets/tag_grid_view.dart';
 import 'widgets/song_list_tile.dart';
 
 /// 曲库统一浏览页。
@@ -392,6 +394,9 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
           if (mounted) setState(() {});
         },
       );
+    }
+    if (isTagLibraryView(selected)) {
+      return const TagGridView(key: ValueKey('tag-grid'));
     }
     // 分类聚合视图：facet 卡片网格（key 按维度隔离，切换维度重建为全新状态）。
     return FacetGridView(key: ValueKey('facet-$selected'), field: selected);
@@ -1135,6 +1140,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
           onDelete: () => _showDeleteConfirmDialog(context, song.id),
           onEdit: () => _navigateToEditSong(context, song),
           onAddToPlaylist: () => _showAddToPlaylistDialog(context, [song.id]),
+          onManageTags: () => ManageTagsModal.show(context, songIds: [song.id]),
         );
       },
     );
@@ -1285,6 +1291,8 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
                         onEdit: () => _navigateToEditSong(context, song),
                         onAddToPlaylist:
                             () => _showAddToPlaylistDialog(context, [song.id]),
+                        onManageTags:
+                            () => ManageTagsModal.show(context, songIds: [song.id]),
                       );
                     },
                   ),

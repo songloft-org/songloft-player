@@ -13,48 +13,38 @@ import '../../../shared/mixins/song_list_actions.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../player/domain/playback_context.dart';
 import '../../player/presentation/providers/player_provider.dart';
-import '../../player/presentation/widgets/play_history_sheet.dart';
 import '../../playlist/presentation/providers/playlist_provider.dart'
     show PaginatedSongsState;
-import 'providers/category_provider.dart';
+import 'providers/song_tag_provider.dart';
 import 'providers/songs_provider.dart';
 import 'song_edit_page.dart';
-import 'widgets/library_view_switcher.dart';
 import 'widgets/song_list_tile.dart';
 
-/// 某分类（歌手 / 专辑 / 流派…）下的歌曲详情页：复用通用 [EntityDetailScaffold]，
-/// 呈现封面 header + 调色板渐变 + 「播放全部」+ 歌曲列表，风格对齐歌单详情页。
-class CategorySongsPage extends ConsumerStatefulWidget {
-  final String field;
-  final String value;
+class TagSongsPage extends ConsumerStatefulWidget {
+  final int tagId;
+  final String tagName;
   final String? coverUrl;
 
-  const CategorySongsPage({
+  const TagSongsPage({
     super.key,
-    required this.field,
-    required this.value,
+    required this.tagId,
+    required this.tagName,
     this.coverUrl,
   });
 
   @override
-  ConsumerState<CategorySongsPage> createState() => _CategorySongsPageState();
+  ConsumerState<TagSongsPage> createState() => _TagSongsPageState();
 }
 
-class _CategorySongsPageState extends ConsumerState<CategorySongsPage>
+class _TagSongsPageState extends ConsumerState<TagSongsPage>
     with SongListActions {
   final _scrollController = ScrollController();
 
   bool _isSelectMode = false;
   final Set<int> _selectedIds = {};
 
-  /// 本页对应的播放上下文：分面维度 + 取值，播放历史按它归档。
   PlaybackContext get _playbackContext =>
-      PlaybackContext(widget.field, widget.value);
-
-  ({String field, String value}) get _key => (
-    field: widget.field,
-    value: widget.value,
-  );
+      PlaybackContext('tag', widget.tagId.toString());
 
   @override
   void initState() {
@@ -72,67 +62,18 @@ class _CategorySongsPageState extends ConsumerState<CategorySongsPage>
     if (_isSelectMode) return;
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      ref.read(categorySongsProvider(_key).notifier).loadMore();
+      ref.read(tagSongsProvider(widget.tagId).notifier).loadMore();
     }
   }
 
   void _onSongTap(List<Song> songs, int index) {
-    final state = ref.read(categorySongsProvider(_key)).value;
     final notifier = ref.read(playerStateProvider.notifier);
     notifier.playPlaylist(songs, startIndex: index, context: _playbackContext);
-    // 分类下歌曲超过一页时，后台补齐整个分类队列，避免队列被截断到已加载页
-    // （songloft-org/songloft#299）。
-    if (state != null && state.hasMore) {
-      final f = categorySongsFilter(_key);
-      notifier.loadRemainingSongsForCurrentPlaylist(
-        loadedCount: songs.length,
-        total: state.total,
-        genre: f.genre,
-        artist: f.artist,
-        album: f.album,
-        language: f.language,
-        style: f.style,
-        year: f.year,
-        decade: f.decade,
-      );
-    }
-  }
-
-  /// 打开本分类的播放历史面板
-  void _showPlayHistory() {
-    final l10n = AppLocalizations.of(context);
-    PlayHistorySheet.show(
-      context,
-      playbackContext: _playbackContext,
-      title: l10n.playHistoryTitle(
-        categoryValueLabel(l10n, widget.field, widget.value),
-      ),
-    );
-  }
-
-  Future<void> _playAll() async {
-    final l10n = AppLocalizations.of(context);
-    await ref.read(categorySongsProvider(_key).notifier).loadAll();
-    if (!mounted) return;
-    final songs = ref.read(categorySongsProvider(_key)).value?.items ?? [];
-    if (songs.isEmpty) {
-      ResponsiveSnackBar.show(context, message: l10n.libraryNoPlayableSongs);
-      return;
-    }
-    ref
-        .read(playerStateProvider.notifier)
-        .playPlaylist(songs, startIndex: 0, context: _playbackContext);
-    if (!mounted) return;
-    ResponsiveSnackBar.show(
-      context,
-      message: l10n.libraryPlayingAllSongs(songs.length),
-    );
   }
 
   void _enterSelectMode() {
     setState(() {
       _isSelectMode = true;
-      _selectedIds.clear();
     });
   }
 
@@ -154,9 +95,10 @@ class _CategorySongsPageState extends ConsumerState<CategorySongsPage>
   }
 
   Future<void> _toggleSelectAll() async {
-    await ref.read(categorySongsProvider(_key).notifier).loadAll();
+    await ref.read(tagSongsProvider(widget.tagId).notifier).loadAll();
     if (!mounted) return;
-    final songs = ref.read(categorySongsProvider(_key)).value?.items ?? [];
+    final songs =
+        ref.read(tagSongsProvider(widget.tagId)).value?.items ?? [];
     setState(() {
       if (_selectedIds.length >= songs.length) {
         _selectedIds.clear();
@@ -166,6 +108,26 @@ class _CategorySongsPageState extends ConsumerState<CategorySongsPage>
           ..addAll(songs.map((s) => s.id));
       }
     });
+  }
+
+  Future<void> _playAll() async {
+    final l10n = AppLocalizations.of(context);
+    await ref.read(tagSongsProvider(widget.tagId).notifier).loadAll();
+    if (!mounted) return;
+    final songs =
+        ref.read(tagSongsProvider(widget.tagId)).value?.items ?? [];
+    if (songs.isEmpty) {
+      ResponsiveSnackBar.show(context, message: l10n.libraryNoPlayableSongs);
+      return;
+    }
+    ref
+        .read(playerStateProvider.notifier)
+        .playPlaylist(songs, startIndex: 0, context: _playbackContext);
+    if (!mounted) return;
+    ResponsiveSnackBar.show(
+      context,
+      message: l10n.libraryPlayingAllSongs(songs.length),
+    );
   }
 
   Future<void> _batchDelete() async {
@@ -184,7 +146,7 @@ class _CategorySongsPageState extends ConsumerState<CategorySongsPage>
       final deleted = await ref
           .read(songsApiProvider)
           .batchDeleteSongs(ids, deleteFiles: result.deleteFiles);
-      ref.invalidate(categorySongsProvider(_key));
+      ref.invalidate(tagSongsProvider(widget.tagId));
       ref.invalidate(songsListProvider);
       removeDeletedSongsFromPlayerQueue(ids.toSet());
       _exitSelectMode();
@@ -221,7 +183,7 @@ class _CategorySongsPageState extends ConsumerState<CategorySongsPage>
       await ref
           .read(songsApiProvider)
           .deleteSong(songId, deleteFiles: result.deleteFiles);
-      ref.invalidate(categorySongsProvider(_key));
+      ref.invalidate(tagSongsProvider(widget.tagId));
       ref.invalidate(songsListProvider);
       removeDeletedSongsFromPlayerQueue({songId});
       if (mounted) {
@@ -248,7 +210,7 @@ class _CategorySongsPageState extends ConsumerState<CategorySongsPage>
       ),
     );
     if (result == true) {
-      ref.invalidate(categorySongsProvider(_key));
+      ref.invalidate(tagSongsProvider(widget.tagId));
       ref.invalidate(songsListProvider);
     }
   }
@@ -256,7 +218,7 @@ class _CategorySongsPageState extends ConsumerState<CategorySongsPage>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final songsAsync = ref.watch(categorySongsProvider(_key));
+    final songsAsync = ref.watch(tagSongsProvider(widget.tagId));
     final state = songsAsync.value;
     final songCount = state?.items.length ?? 0;
     final total = state?.total ?? songCount;
@@ -265,13 +227,13 @@ class _CategorySongsPageState extends ConsumerState<CategorySongsPage>
     return EntityDetailScaffold(
       scrollController: _scrollController,
       coverUrl: widget.coverUrl,
-      placeholderIcon: libraryViewIcon(widget.field),
+      placeholderIcon: Icons.label_outline,
       onBack: () => Navigator.of(context).maybePop(),
-      onRefresh: () async => ref.invalidate(categorySongsProvider(_key)),
+      onRefresh: () async => ref.invalidate(tagSongsProvider(widget.tagId)),
       titleWidget: Text(
         _isSelectMode
             ? l10n.librarySelectedCount(_selectedIds.length)
-            : categoryValueLabel(l10n, widget.field, widget.value),
+            : widget.tagName,
       ),
       leading:
           _isSelectMode
@@ -284,8 +246,7 @@ class _CategorySongsPageState extends ConsumerState<CategorySongsPage>
       subtitle:
           _isSelectMode
               ? null
-              : '${categoryFieldLabel(l10n, widget.field)} · '
-                  '${l10n.categorySongCount(total)}',
+              : '${l10n.songTags} · ${l10n.categorySongCount(total)}',
       appBarActions:
           _isSelectMode
               ? [
@@ -318,13 +279,6 @@ class _CategorySongsPageState extends ConsumerState<CategorySongsPage>
                 ),
               ]
               : [
-                // 播放历史：本页覆盖全部分面维度（歌手 / 专辑 / 流派 / 年份 …），
-                // 一处入口即可，无条件显示（空态由面板承担）
-                IconButton(
-                  icon: const Icon(Icons.history),
-                  tooltip: l10n.playHistory,
-                  onPressed: _showPlayHistory,
-                ),
                 IconButton(
                   icon: const Icon(Icons.checklist),
                   tooltip: l10n.librarySelectMode,
@@ -363,7 +317,7 @@ class _CategorySongsPageState extends ConsumerState<CategorySongsPage>
             SliverToBoxAdapter(
               child: EmptyState(
                 icon: Icons.music_off_outlined,
-                title: AppLocalizations.of(context).categorySongsEmpty,
+                title: AppLocalizations.of(context).noTags,
               ),
             ),
           ];

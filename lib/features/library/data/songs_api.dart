@@ -33,6 +33,7 @@ class SongsApi {
     String? style,
     int? year,
     int? decade,
+    int? tagId,
     int limit = 20,
     int offset = 0,
     String? sort,
@@ -61,6 +62,7 @@ class SongsApi {
       year: year,
       decade: decade,
     );
+    if (tagId != null && tagId > 0) queryParams['tag_id'] = tagId;
     if (sort != null && sort.isNotEmpty) {
       queryParams['sort'] = sort;
     }

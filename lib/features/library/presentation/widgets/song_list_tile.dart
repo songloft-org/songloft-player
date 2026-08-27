@@ -29,6 +29,7 @@ class SongListTile extends StatelessWidget {
   final VoidCallback? onDelete;
   final VoidCallback? onEdit;
   final VoidCallback? onAddToPlaylist;
+  final VoidCallback? onManageTags;
 
   const SongListTile({
     super.key,
@@ -44,6 +45,7 @@ class SongListTile extends StatelessWidget {
     this.onDelete,
     this.onEdit,
     this.onAddToPlaylist,
+    this.onManageTags,
   });
 
   @override
@@ -87,6 +89,13 @@ class SongListTile extends StatelessWidget {
                   icon: Icons.playlist_add,
                   label: l10n.addToPlaylist,
                   onTap: onAddToPlaylist!,
+                ),
+              if (onManageTags != null)
+                BrowseCardAction(
+                  value: 'manage_tags',
+                  icon: Icons.label_outline,
+                  label: l10n.manageTags,
+                  onTap: onManageTags!,
                 ),
               if (onDelete != null)
                 BrowseCardAction(
