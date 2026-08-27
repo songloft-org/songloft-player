@@ -1093,6 +1093,36 @@ final autoPlayOnLaunchProvider =
       AutoPlayOnLaunchNotifier.new,
     );
 
+/// 全局字体缩放（纯本地，不同步服务器，songloft-org/songloft#418）
+class FontScaleNotifier extends Notifier<double> {
+  @override
+  double build() {
+    _load();
+    return 1.0;
+  }
+
+  Future<void> _load() async {
+    try {
+      final prefs = await ref.read(appPreferencesProvider.future);
+      state = prefs.getFontScale();
+    } catch (_) {
+      state = 1.0;
+    }
+  }
+
+  Future<void> setScale(double scale) async {
+    state = scale;
+    try {
+      final prefs = await ref.read(appPreferencesProvider.future);
+      await prefs.setFontScale(scale);
+    } catch (_) {}
+  }
+}
+
+final fontScaleProvider = NotifierProvider<FontScaleNotifier, double>(
+  FontScaleNotifier.new,
+);
+
 /// 「打开客户端后自动进入全屏歌词」开关（纯本地，不同步服务器，与自动播放独立，
 /// songloft-org/songloft-player#19）
 class AutoEnterLyricsOnLaunchNotifier extends Notifier<bool> {

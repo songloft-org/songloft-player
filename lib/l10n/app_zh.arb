@@ -1242,7 +1242,7 @@
   "playlistLabelHidden": "已隐藏",
   "playlistLabelPinned": "已置顶",
   "playlistConfirmDelete": "确认删除",
-  "playlistDeleteConfirm": "确定要删除歌单「{name}」吗？此操�������不可恢复。",
+  "playlistDeleteConfirm": "确定要删除歌单「{name}」吗？此操���������不可恢复。",
   "@playlistDeleteConfirm": {
     "placeholders": {
       "name": {
@@ -2200,6 +2200,11 @@
   },
   "settingsHomeGridClampHint": "窗口宽度不足时会自动减少每行数量，避免卡片过窄",
   "settingsHomeGridNarrowHint": "当前窗口较窄，首页歌单为横向滑动列表，此设置在窗口变宽后生效",
+  "settingsFontScaleTitle": "字体大小",
+  "settingsFontScaleSmall": "小",
+  "settingsFontScaleDefault": "默认",
+  "settingsFontScaleLarge": "大",
+  "settingsFontScaleExtraLarge": "特大",
   "settingsAutoEnterLyricsOnLaunchTitle": "打开后自动进入歌词",
   "settingsAutoEnterLyricsOnLaunchDesc": "启动客户端后自动进入全屏歌词界面（按屏幕自动适配）",
   "settingsNotificationLyricInTitleTitle": "通知栏歌词占用标题行",

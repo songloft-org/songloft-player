@@ -1969,7 +1969,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String playlistDeleteConfirm(String name) {
-    return '确定要删除歌单「$name」吗？此操�������不可恢复。';
+    return '确定要删除歌单「$name」吗？此操���������不可恢复。';
   }
 
   @override
@@ -3292,6 +3292,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settingsHomeGridNarrowHint => '当前窗口较窄，首页歌单为横向滑动列表，此设置在窗口变宽后生效';
+
+  @override
+  String get settingsFontScaleTitle => '字体大小';
+
+  @override
+  String get settingsFontScaleSmall => '小';
+
+  @override
+  String get settingsFontScaleDefault => '默认';
+
+  @override
+  String get settingsFontScaleLarge => '大';
+
+  @override
+  String get settingsFontScaleExtraLarge => '特大';
 
   @override
   String get settingsAutoEnterLyricsOnLaunchTitle => '打开后自动进入歌词';

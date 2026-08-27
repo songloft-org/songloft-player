@@ -574,6 +574,18 @@ class AppPreferences {
     return _prefs.remove(_shortcutBindingsKey);
   }
 
+  static const _fontScaleKey = 'app_font_scale';
+
+  /// 全局字体缩放倍率（0.85 / 1.0 / 1.15 / 1.3），默认 1.0。
+  /// 纯本地设置，不参与服务器偏好同步。
+  double getFontScale() {
+    return _prefs.getDouble(_fontScaleKey) ?? 1.0;
+  }
+
+  Future<bool> setFontScale(double scale) {
+    return _prefs.setDouble(_fontScaleKey, scale);
+  }
+
   static const _miniPlayerControlsKey = 'player_mini_controls';
 
   /// 迷你播放条显示哪些按钮：'playOnly' / 'prevNext'（默认） / 'prevNextMode'。

@@ -492,6 +492,17 @@ class SongloftApp extends ConsumerWidget {
       builder: (context, child) {
         // 刷新无 BuildContext 场景使用的全局 AppLocalizations 引用
         updateGlobalL10n(AppLocalizations.of(context));
+        // 全局字体缩放（songloft-org/songloft#418）
+        final fontScale = ref.watch(fontScaleProvider);
+        final scaledChild =
+            fontScale == 1.0
+                ? child!
+                : MediaQuery(
+                  data: MediaQuery.of(
+                    context,
+                  ).copyWith(textScaler: TextScaler.linear(fontScale)),
+                  child: child!,
+                );
         // 在 builder 中获取 MediaQuery 来应用响应式主题
         final width = MediaQuery.sizeOf(context).width;
         final screenType = _getScreenType(width);
@@ -507,7 +518,7 @@ class SongloftApp extends ConsumerWidget {
                     screenType: screenType,
                     themePack: activeThemePack,
                   ),
-          child: child!,
+          child: scaledChild,
         );
         // 桌面端在 MaterialApp.builder（Navigator 之上、WidgetsApp 默认 Shortcuts
         // 之下）挂载全局播放快捷键监听：此处是所有路由的公共祖先，故 push 的全屏

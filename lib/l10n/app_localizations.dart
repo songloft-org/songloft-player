@@ -3659,7 +3659,7 @@ abstract class AppLocalizations {
   /// No description provided for @playlistDeleteConfirm.
   ///
   /// In zh, this message translates to:
-  /// **'确定要删除歌单「{name}」吗？此操�������不可恢复。'**
+  /// **'确定要删除歌单「{name}」吗？此操���������不可恢复。'**
   String playlistDeleteConfirm(String name);
 
   /// No description provided for @playlistDeleted.
@@ -5959,6 +5959,36 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'当前窗口较窄，首页歌单为横向滑动列表，此设置在窗口变宽后生效'**
   String get settingsHomeGridNarrowHint;
+
+  /// No description provided for @settingsFontScaleTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'字体大小'**
+  String get settingsFontScaleTitle;
+
+  /// No description provided for @settingsFontScaleSmall.
+  ///
+  /// In zh, this message translates to:
+  /// **'小'**
+  String get settingsFontScaleSmall;
+
+  /// No description provided for @settingsFontScaleDefault.
+  ///
+  /// In zh, this message translates to:
+  /// **'默认'**
+  String get settingsFontScaleDefault;
+
+  /// No description provided for @settingsFontScaleLarge.
+  ///
+  /// In zh, this message translates to:
+  /// **'大'**
+  String get settingsFontScaleLarge;
+
+  /// No description provided for @settingsFontScaleExtraLarge.
+  ///
+  /// In zh, this message translates to:
+  /// **'特大'**
+  String get settingsFontScaleExtraLarge;
 
   /// No description provided for @settingsAutoEnterLyricsOnLaunchTitle.
   ///

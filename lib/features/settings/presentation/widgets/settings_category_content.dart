@@ -320,6 +320,16 @@ class _SettingsCategoryContentState
         ],
       ),
       SectionCard(
+        title: l10n.settingsFontScaleTitle,
+        icon: Icons.format_size_outlined,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: _FontScaleSelector(),
+          ),
+        ],
+      ),
+      SectionCard(
         title: l10n.settingsHomeGridTitle,
         icon: Icons.grid_view_outlined,
         children: const [
@@ -1928,6 +1938,33 @@ class _SettingsCategoryContentState
           ),
         ),
       ],
+    );
+  }
+}
+
+class _FontScaleSelector extends ConsumerWidget {
+  static const _scales = [0.85, 1.0, 1.15, 1.3];
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final current = ref.watch(fontScaleProvider);
+    final labels = [
+      l10n.settingsFontScaleSmall,
+      l10n.settingsFontScaleDefault,
+      l10n.settingsFontScaleLarge,
+      l10n.settingsFontScaleExtraLarge,
+    ];
+
+    return SegmentedButton<double>(
+      segments: [
+        for (var i = 0; i < _scales.length; i++)
+          ButtonSegment(value: _scales[i], label: Text(labels[i])),
+      ],
+      selected: {current},
+      onSelectionChanged: (selected) {
+        ref.read(fontScaleProvider.notifier).setScale(selected.first);
+      },
     );
   }
 }

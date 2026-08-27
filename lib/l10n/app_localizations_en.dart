@@ -3438,6 +3438,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'This window is narrow, so home playlists use a horizontal carousel; the setting applies once the window is wider.';
 
   @override
+  String get settingsFontScaleTitle => 'Font size';
+
+  @override
+  String get settingsFontScaleSmall => 'Small';
+
+  @override
+  String get settingsFontScaleDefault => 'Default';
+
+  @override
+  String get settingsFontScaleLarge => 'Large';
+
+  @override
+  String get settingsFontScaleExtraLarge => 'XL';
+
+  @override
   String get settingsAutoEnterLyricsOnLaunchTitle => 'Open lyrics on launch';
 
   @override
