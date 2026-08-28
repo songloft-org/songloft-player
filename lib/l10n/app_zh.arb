@@ -1242,7 +1242,7 @@
   "playlistLabelHidden": "已隐藏",
   "playlistLabelPinned": "已置顶",
   "playlistConfirmDelete": "确认删除",
-  "playlistDeleteConfirm": "确定要删除歌单「{name}」吗？此操���������不可恢复。",
+  "playlistDeleteConfirm": "确定要删除歌单「{name}」吗？此操�����������不可恢复。",
   "@playlistDeleteConfirm": {
     "placeholders": {
       "name": {
@@ -1251,14 +1251,7 @@
     }
   },
   "playlistDeleted": "歌单已删除",
-  "playlistConvertToTag": "转为标签",
-  "playlistConvertToTagSuccess": "已创建标签「{name}」，关联 {count} 首歌曲",
-  "@playlistConvertToTagSuccess": {
-    "placeholders": {
-      "name": {"type": "String"},
-      "count": {"type": "int"}
-    }
-  },
+
   "playlistDeleteWithSongs": "同时从曲库删除歌曲（含本地文件）",
   "playlistEmpty": "歌单为空",
   "playlistPlayFailed": "播放失败",

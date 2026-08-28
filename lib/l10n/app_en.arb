@@ -1145,14 +1145,7 @@
     }
   },
   "playlistDeleted": "Playlist deleted",
-  "playlistConvertToTag": "Convert to tag",
-  "playlistConvertToTagSuccess": "Created tag \"{name}\", linked {count} songs",
-  "@playlistConvertToTagSuccess": {
-    "placeholders": {
-      "name": {"type": "String"},
-      "count": {"type": "int"}
-    }
-  },
+
   "playlistDeleteWithSongs": "Also delete songs from library (including local files)",
   "playlistEmpty": "Playlist is empty",
   "playlistPlayFailed": "Playback failed",

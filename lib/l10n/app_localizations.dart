@@ -3659,7 +3659,7 @@ abstract class AppLocalizations {
   /// No description provided for @playlistDeleteConfirm.
   ///
   /// In zh, this message translates to:
-  /// **'确定要删除歌单「{name}」吗？此操���������不可恢复。'**
+  /// **'确定要删除歌单「{name}」吗？此操�����������不可恢复。'**
   String playlistDeleteConfirm(String name);
 
   /// No description provided for @playlistDeleted.
@@ -3667,18 +3667,6 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'歌单已删除'**
   String get playlistDeleted;
-
-  /// No description provided for @playlistConvertToTag.
-  ///
-  /// In zh, this message translates to:
-  /// **'转为标签'**
-  String get playlistConvertToTag;
-
-  /// No description provided for @playlistConvertToTagSuccess.
-  ///
-  /// In zh, this message translates to:
-  /// **'已创建标签「{name}」，关联 {count} 首歌曲'**
-  String playlistConvertToTagSuccess(String name, int count);
 
   /// No description provided for @playlistDeleteWithSongs.
   ///

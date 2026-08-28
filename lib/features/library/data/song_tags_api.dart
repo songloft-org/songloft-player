@@ -106,13 +106,7 @@ class SongTagsApi {
     return response.data!['unbound'] as int;
   }
 
-  /// 歌单转标签
-  Future<FromPlaylistResult> fromPlaylist(int playlistId) async {
-    final response = await dio.post<Map<String, dynamic>>(
-      '${AppConfig.apiPrefix}/song-tags/from-playlist/$playlistId',
-    );
-    return FromPlaylistResult.fromJson(response.data!);
-  }
+
 }
 
 /// 标签模型
@@ -163,17 +157,4 @@ class SongTagListResponse {
   }
 }
 
-/// 歌单转标签结果
-class FromPlaylistResult {
-  final SongTag tag;
-  final int bound;
 
-  const FromPlaylistResult({required this.tag, required this.bound});
-
-  factory FromPlaylistResult.fromJson(Map<String, dynamic> json) {
-    return FromPlaylistResult(
-      tag: SongTag.fromJson(json['tag'] as Map<String, dynamic>),
-      bound: json['bound'] as int,
-    );
-  }
-}

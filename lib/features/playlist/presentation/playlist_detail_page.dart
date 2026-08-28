@@ -1190,9 +1190,7 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
             case 'clear_playlist_cache':
               _clearPlaylistCache();
               break;
-            case 'convert_to_tag':
-              _convertToTag(playlist);
-              break;
+
             case 'edit':
               _showEditDialog(playlist);
               break;
@@ -1247,16 +1245,7 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
-              if (songs.isNotEmpty)
-                PopupMenuItem(
-                  value: 'convert_to_tag',
-                  child: ListTile(
-                    leading: const Icon(Icons.label_outline),
-                    title: Text(l10n.playlistConvertToTag),
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
+
               PopupMenuItem(
                 value: 'edit',
                 child: ListTile(
@@ -1485,24 +1474,7 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
     }
   }
 
-  Future<void> _convertToTag(Playlist playlist) async {
-    final l10n = AppLocalizations.of(context);
-    try {
-      final api = ref.read(songTagsApiProvider);
-      final result = await api.fromPlaylist(_playlistIdInt);
-      if (!mounted) return;
-      ResponsiveSnackBar.showSuccess(
-        context,
-        message: l10n.playlistConvertToTagSuccess(
-          result.tag.name,
-          result.bound,
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ResponsiveSnackBar.showError(context, message: e.toString());
-    }
-  }
+
 
   /// 显示编辑对话框
   Future<void> _showEditDialog(Playlist playlist) async {

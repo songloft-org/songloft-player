@@ -1969,19 +1969,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String playlistDeleteConfirm(String name) {
-    return '确定要删除歌单「$name」吗？此操���������不可恢复。';
+    return '确定要删除歌单「$name」吗？此操�����������不可恢复。';
   }
 
   @override
   String get playlistDeleted => '歌单已删除';
-
-  @override
-  String get playlistConvertToTag => '转为标签';
-
-  @override
-  String playlistConvertToTagSuccess(String name, int count) {
-    return '已创建标签「$name」，关联 $count 首歌曲';
-  }
 
   @override
   String get playlistDeleteWithSongs => '同时从曲库删除歌曲（含本地文件）';

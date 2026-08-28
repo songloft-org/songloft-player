@@ -2037,14 +2037,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playlistDeleted => 'Playlist deleted';
 
   @override
-  String get playlistConvertToTag => 'Convert to tag';
-
-  @override
-  String playlistConvertToTagSuccess(String name, int count) {
-    return 'Created tag \"$name\", linked $count songs';
-  }
-
-  @override
   String get playlistDeleteWithSongs =>
       'Also delete songs from library (including local files)';
 
