@@ -121,7 +121,9 @@ class SettingsServerInfoCard extends ConsumerWidget {
       final base =
           versionInfo.version == 'dev'
               ? l10n.settingsDevVersion
-              : 'v${versionInfo.version}';
+              : versionInfo.version.startsWith('v')
+                  ? versionInfo.version
+                  : 'v${versionInfo.version}';
       final details = <String>[];
       if (versionInfo.gitCommit != null) {
         details.add(versionInfo.gitCommit!);
@@ -1888,7 +1890,9 @@ class _SettingsCategoryContentState
     // 与设置页顶部版本标签一致：开发版显示「开发版」、正式版显示 vX.Y.Z，
     // 两者都在后面附上构建时间（缺失时省略）。
     final versionBase =
-        version == 'dev' ? l10n.settingsDevVersion : 'v$version';
+        version == 'dev'
+            ? l10n.settingsDevVersion
+            : version.startsWith('v') ? version : 'v$version';
     final versionLabel =
         buildTime != null ? '$versionBase ($buildTime)' : versionBase;
     showAboutDialog(
