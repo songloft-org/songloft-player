@@ -3659,7 +3659,7 @@ abstract class AppLocalizations {
   /// No description provided for @playlistDeleteConfirm.
   ///
   /// In zh, this message translates to:
-  /// **'确定要删除歌单「{name}」吗？此操�����������不可恢复。'**
+  /// **'确定要删除歌单「{name}」吗？此操作不可恢复。'**
   String playlistDeleteConfirm(String name);
 
   /// No description provided for @playlistDeleted.
@@ -6520,7 +6520,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsProxyAllowlistEmpty.
   ///
   /// In zh, this message translates to:
-  /// **'未��置（私网地址一律拒绝）'**
+  /// **'未配置（私网地址一律拒绝）'**
   String get settingsProxyAllowlistEmpty;
 
   /// No description provided for @settingsProxyAllowlistCount.

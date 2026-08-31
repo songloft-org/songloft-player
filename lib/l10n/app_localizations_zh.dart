@@ -1969,7 +1969,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String playlistDeleteConfirm(String name) {
-    return '确定要删除歌单「$name」吗？此操�����������不可恢复。';
+    return '确定要删除歌单「$name」吗？此操作不可恢复。';
   }
 
   @override
@@ -3599,7 +3599,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsProxyAllowlistTitle => '私网代理白名单';
 
   @override
-  String get settingsProxyAllowlistEmpty => '未��置（私网地址一律拒绝）';
+  String get settingsProxyAllowlistEmpty => '未配置（私网地址一律拒绝）';
 
   @override
   String settingsProxyAllowlistCount(int count) {
