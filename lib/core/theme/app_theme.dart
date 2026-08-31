@@ -129,7 +129,7 @@ class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
-      fontFamilyFallback: const ['NotoSansSC', 'sans-serif'],
+      fontFamilyFallback: const ['NotoSansSC', 'NotoSansKR', 'sans-serif'],
       colorScheme: colorScheme,
       extensions: [extension],
       appBarTheme: const AppBarTheme(centerTitle: false, elevation: 0),

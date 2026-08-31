@@ -7,6 +7,7 @@
 #
 # 包括：
 # - NotoSansSC-Regular.otf：通过 pubspec.yaml 绑定的完整中文字体
+# - NotoSansKR-Hangul.otf：谚文子集，解决 CanvasKit 按需加载偶发漏加载问题（#425）
 # - font_fallback_data.dart 中注册的所有 Noto Sans 变体 woff2 分片
 # - Roboto：英文字体（CanvasKit fallback 机制使用）
 #
@@ -60,12 +61,12 @@ extract_roboto_url() {
 }
 
 # ========================================
-# [1/4] 下载 NotoSansSC-Regular.otf（pubspec.yaml 绑定字体）
+# [1/5] 下载 NotoSansSC-Regular.otf（pubspec.yaml 绑定字体）
 # ========================================
 
 mkdir -p "$PUBSPEC_FONTS_DIR"
 
-echo -e "${BLUE}[1/4] 下载 NotoSansSC-Regular.otf...${NC}"
+echo -e "${BLUE}[1/5] 下载 NotoSansSC-Regular.otf...${NC}"
 
 NOTO_OTF_FILE="$PUBSPEC_FONTS_DIR/NotoSansSC-Regular.otf"
 if [ -f "$NOTO_OTF_FILE" ]; then
@@ -82,10 +83,54 @@ else
 fi
 
 # ========================================
-# [2/4] 下载所有 CanvasKit fallback 字体分片
+# [2/5] 生成 NotoSansKR-Hangul.otf（韩文谚文子集）
+# ========================================
+#
+# CanvasKit 的字体 fallback 机制按需分批加载 woff2 分片，但存在调度缺陷：
+# 部分谚文分片在首次渲染时可能被跳过，导致个别韩文字符显示为方框（tofu）。
+# 解决方案：从 NotoSansKR SubsetOTF 生成一个仅含谚文的子集（~1.8 MB），
+# 通过 pubspec.yaml 绑定为 eager loading 字体，绕过不可靠的按需加载。
+
+echo -e "${BLUE}[2/5] 生成 NotoSansKR-Hangul.otf（韩文谚文子集）...${NC}"
+
+NOTO_KR_HANGUL="$PUBSPEC_FONTS_DIR/NotoSansKR-Hangul.otf"
+if [ -f "$NOTO_KR_HANGUL" ]; then
+    echo -e "  [跳过] NotoSansKR-Hangul.otf (已存在)"
+else
+    NOTO_KR_URL="https://github.com/notofonts/noto-cjk/raw/main/Sans/SubsetOTF/KR/NotoSansKR-Regular.otf"
+    NOTO_KR_FULL="$PUBSPEC_FONTS_DIR/.NotoSansKR-Regular.otf.tmp"
+    echo -e "  [下载] NotoSansKR-Regular.otf (SubsetOTF)"
+    if curl -s -f -L -o "$NOTO_KR_FULL" "$NOTO_KR_URL" 2>/dev/null; then
+        echo -e "    ${GREEN}✓${NC} 下载成功"
+        # 子集范围：谚文音节 + 谚文字母 + 兼容字母 + 扩展 A/B
+        if command -v pyftsubset &>/dev/null; then
+            echo -e "  [子集] 提取谚文字符 (U+AC00-D7FF, U+1100-11FF, U+3130-318F, U+A960-A97F)..."
+            if pyftsubset "$NOTO_KR_FULL" \
+                --unicodes="U+AC00-D7FF U+1100-11FF U+3130-318F U+A960-A97F" \
+                --output-file="$NOTO_KR_HANGUL" \
+                --layout-features='*' \
+                --no-subset-tables+=DSIG 2>/dev/null; then
+                local_size=$(du -h "$NOTO_KR_HANGUL" | cut -f1)
+                echo -e "    ${GREEN}✓${NC} 子集生成成功 (${local_size})"
+            else
+                echo -e "    ${RED}✗${NC} pyftsubset 子集生成失败"
+            fi
+        else
+            echo -e "    ${RED}✗${NC} 未安装 pyftsubset (fonttools)，无法生成子集"
+            echo -e "    安装：pip install fonttools brotli"
+        fi
+        rm -f "$NOTO_KR_FULL"
+    else
+        rm -f "$NOTO_KR_FULL"
+        echo -e "    ${RED}✗${NC} 下载失败"
+    fi
+fi
+
+# ========================================
+# [3/5] 下载所有 CanvasKit fallback 字体分片
 # ========================================
 
-echo -e "${BLUE}[2/4] 下载 CanvasKit fallback 字体分片...${NC}"
+echo -e "${BLUE}[3/5] 下载 CanvasKit fallback 字体分片...${NC}"
 
 ALL_URLS=$(extract_all_font_urls)
 if [ -z "$ALL_URLS" ]; then
@@ -142,10 +187,10 @@ if [ "$FAILED" -gt 0 ]; then
 fi
 
 # ========================================
-# [3/4] 下载 Roboto 字体
+# [4/5] 下载 Roboto 字体
 # ========================================
 
-echo -e "${BLUE}[3/4] 下载 Roboto 字体...${NC}"
+echo -e "${BLUE}[4/5] 下载 Roboto 字体...${NC}"
 
 ROBOTO_URL=$(extract_roboto_url)
 if [ -n "$ROBOTO_URL" ]; then
@@ -171,11 +216,11 @@ else
 fi
 
 # ========================================
-# [4/4] 清理不再需要的旧字体文件
+# [5/5] 清理不再需要的旧字体文件
 # ========================================
 
 echo ""
-echo -e "${BLUE}[4/4] 移除 Flutter SDK 不再需要的旧字体文件...${NC}"
+echo -e "${BLUE}[5/5] 移除 Flutter SDK 不再需要的旧字体文件...${NC}"
 
 EXPECTED_URLS=$(extract_all_font_urls)
 EXPECTED_DIRS=$(echo "$EXPECTED_URLS" | xargs -I{} dirname {} | sort -u)

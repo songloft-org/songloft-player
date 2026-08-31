@@ -173,3 +173,6 @@ flutter:
     - family: NotoSansSC
       fonts:
         - asset: fonts/NotoSansSC-Regular.otf
+    - family: NotoSansKR
+      fonts:
+        - asset: fonts/NotoSansKR-Hangul.otf
