@@ -223,9 +223,10 @@ class TabConfig {
 
 /// 曲库统一浏览页的单个视图条目。
 ///
-/// key 属于 11 个合法视图之一：
-/// all/artist/album/genre/year/decade/language/style（扁平列表 + 分类聚合）+ local/remote/radio（按 type 过滤）。
-/// 「网络」在后端即 remote。
+/// key 属于 16 个合法视图之一（与后端 libraryViewKeys 一致）：
+/// all/local/remote/radio（歌曲组，按 type 过滤的扁平列表，「网络」= remote）+
+/// folder/artist/album/genre/year/decade/language/style/tag（分类组，folder 为目录浏览、其余为 facet 聚合、tag 按自定义标签聚合）+
+/// playlist/playlist_normal/playlist_radio（歌单组）。
 class LibraryViewEntry {
   final String key;
   final bool visible;
@@ -252,7 +253,7 @@ class LibraryBrowseConfig {
 
   /// 默认顺序，按三组连续排列，全部可见。与后端 libraryViewKeys 保持一致：
   ///   - 歌曲组：全部/本地/网络/电台
-  ///   - 分类组：歌手/专辑/流派/年份/年代/语种/风格
+  ///   - 分类组：文件夹/歌手/专辑/流派/年份/年代/语种/风格/标签
   ///   - 歌单组：全部歌单/普通歌单/电台歌单
   static const List<String> defaultOrder = [
     'all',
