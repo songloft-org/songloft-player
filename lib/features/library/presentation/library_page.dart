@@ -800,6 +800,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
           'title' => ('title', 'asc'),
           'artist' => ('artist', 'asc'),
           'duration' => ('duration', 'asc'),
+          'file_size' => ('file_size', 'desc'),
           _ => ('added_at', 'desc'),
         };
         ref.read(songsListProvider.notifier).setSort(sort, order);
@@ -835,6 +836,12 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
               icon: Icons.timer,
               title: l10n.libraryColumnDuration,
               isSelected: state.sort == 'duration',
+            ),
+            _buildLibrarySortItem(
+              value: 'file_size',
+              icon: Icons.storage,
+              title: l10n.librarySortFileSize,
+              isSelected: state.sort == 'file_size',
             ),
           ],
     );
@@ -1292,7 +1299,10 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
                         onAddToPlaylist:
                             () => _showAddToPlaylistDialog(context, [song.id]),
                         onManageTags:
-                            () => ManageTagsModal.show(context, songIds: [song.id]),
+                            () => ManageTagsModal.show(
+                              context,
+                              songIds: [song.id],
+                            ),
                       );
                     },
                   ),

@@ -414,6 +414,15 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
                 color: colorScheme.onSurfaceVariant,
               ),
             ),
+            const SizedBox(height: AppSpacing.xs),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: _showFailedDetails,
+                icon: const Icon(Icons.info_outline, size: 16),
+                label: Text(l10n.settingsDuplicateViewFailed),
+              ),
+            ),
             const SizedBox(height: AppSpacing.md),
           ],
           if (!status.chromaprintAvailable) ...[
@@ -486,6 +495,66 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
         ],
       ],
     );
+  }
+
+  Future<void> _showFailedDetails() async {
+    final l10n = AppLocalizations.of(context);
+    try {
+      final api = ref.read(scanApiProvider);
+      final items = await api.getFailedFingerprints();
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder:
+            (context) => AlertDialog(
+              title: Text(l10n.settingsDuplicateFailedTitle),
+              content: SizedBox(
+                width: double.maxFinite,
+                height: 400,
+                child:
+                    items.isEmpty
+                        ? Center(child: Text(l10n.settingsDuplicateNoFailed))
+                        : ListView.separated(
+                          itemCount: items.length,
+                          separatorBuilder: (_, __) => const Divider(height: 1),
+                          itemBuilder: (context, index) {
+                            final item = items[index];
+                            final display =
+                                item.title.isNotEmpty
+                                    ? item.title
+                                    : item.filePath.split('/').last;
+                            return ListTile(
+                              dense: true,
+                              title: Text(
+                                display,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              subtitle: Text(
+                                item.error,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(l10n.commonCancel),
+                ),
+              ],
+            ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ResponsiveSnackBar.showError(context, message: e.toString());
+    }
   }
 
   Widget _statRow(String label, String value) {

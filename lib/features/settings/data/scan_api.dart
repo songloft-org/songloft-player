@@ -197,6 +197,22 @@ class ScanApi {
     }
   }
 
+  /// 获取指纹计算失败的歌曲列表
+  Future<List<FailedFingerprintItem>> getFailedFingerprints() async {
+    try {
+      final response = await dio.get(
+        '${AppConfig.apiPrefix}/scan/fingerprints/failed',
+      );
+      final data = response.data as Map<String, dynamic>;
+      final items = data['items'] as List<dynamic>? ?? [];
+      return items
+          .map((e) => FailedFingerprintItem.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
   /// 获取重复歌曲组
   Future<DuplicatesResult> getDuplicates() async {
     try {
@@ -374,6 +390,36 @@ class DuplicatesResult {
           [],
       totalGroups: json['total_groups'] as int? ?? 0,
       totalDuplicates: json['total_duplicates'] as int? ?? 0,
+    );
+  }
+}
+
+/// 指纹计算失败的歌曲
+class FailedFingerprintItem {
+  final int id;
+  final String title;
+  final String artist;
+  final String filePath;
+  final String error;
+  final int attemptedAt;
+
+  FailedFingerprintItem({
+    required this.id,
+    required this.title,
+    required this.artist,
+    required this.filePath,
+    required this.error,
+    required this.attemptedAt,
+  });
+
+  factory FailedFingerprintItem.fromJson(Map<String, dynamic> json) {
+    return FailedFingerprintItem(
+      id: json['id'] as int? ?? 0,
+      title: json['title'] as String? ?? '',
+      artist: json['artist'] as String? ?? '',
+      filePath: json['file_path'] as String? ?? '',
+      error: json['error'] as String? ?? '',
+      attemptedAt: json['attempted_at'] as int? ?? 0,
     );
   }
 }

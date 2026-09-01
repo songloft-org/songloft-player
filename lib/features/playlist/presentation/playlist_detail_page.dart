@@ -1067,6 +1067,9 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
               case 'view_duration':
                 notifier.setSort('duration', 'asc');
                 break;
+              case 'view_file_size':
+                notifier.setSort('file_size', 'desc');
+                break;
               // 永久排序
               case 'perm_name_asc':
                 _autoSort('name_asc');
@@ -1122,6 +1125,12 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
                   icon: Icons.timer,
                   title: l10n.playlistSortDuration,
                   isSelected: currentSort == 'duration',
+                ),
+                _buildSortMenuItem(
+                  value: 'view_file_size',
+                  icon: Icons.storage,
+                  title: l10n.playlistSortFileSize,
+                  isSelected: currentSort == 'file_size',
                 ),
                 const PopupMenuDivider(),
                 if (!hasKeyword) ...[
@@ -1473,8 +1482,6 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
         return label;
     }
   }
-
-
 
   /// 显示编辑对话框
   Future<void> _showEditDialog(Playlist playlist) async {

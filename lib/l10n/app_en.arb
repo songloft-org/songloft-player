@@ -489,6 +489,7 @@
   "libraryColumnAlbum": "Album",
   "libraryColumnType": "Type",
   "libraryColumnDuration": "Duration",
+  "librarySortFileSize": "File Size",
   "librarySelectMode": "Multi-select",
   "libraryMore": "More",
   "libraryAddRemoteSong": "Add remote song",
@@ -1059,6 +1060,7 @@
   "playlistSortTitle": "Title",
   "playlistSortArtist": "Artist",
   "playlistSortDuration": "Duration",
+  "playlistSortFileSize": "File Size",
   "playlistSortNameAsc": "Sort by name A→Z",
   "playlistSortNameDesc": "Sort by name Z→A",
   "playlistSortNumberPrefix": "Sort by number prefix",
@@ -1891,6 +1893,9 @@
   "settingsDuplicatePending": "Pending",
   "settingsDuplicateUncomputable": "Cannot compute",
   "settingsDuplicateUncomputableHint": "These files have no audio track, are corrupted, timed out, or the server ffmpeg does not support their format. They will not be retried automatically — use \"Retry failed only\" (e.g. after a server upgrade) or \"Recompute all fingerprints\".",
+  "settingsDuplicateViewFailed": "View failed details",
+  "settingsDuplicateFailedTitle": "Songs with failed fingerprint",
+  "settingsDuplicateNoFailed": "No failed songs",
   "settingsDuplicateSongCount": "{count}",
   "@settingsDuplicateSongCount": {
     "placeholders": {

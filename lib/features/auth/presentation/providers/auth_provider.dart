@@ -232,8 +232,9 @@ class AuthNotifier extends Notifier<AuthState> {
     state = state.unauthenticated(error);
   }
 
-  /// Token 过期处理
+  /// Token 过期处理（幂等：已处于未认证状态时不重复触发，避免并发 401 风暴产生多个 snackbar）
   void onTokenExpired() {
+    if (state.status == AuthStatus.unauthenticated) return;
     state = state.unauthenticated(l10n.authSessionExpired);
   }
 }

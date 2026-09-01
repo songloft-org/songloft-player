@@ -195,8 +195,9 @@ class AuthInterceptor extends Interceptor {
     return _dio.fetch(options);
   }
 
-  /// 处理 Token 过期
+  /// 处理 Token 过期（幂等：token 已被清空时跳过，避免并发 401 重复触发 onTokenExpired）
   Future<void> _handleTokenExpired() async {
+    if (SecureStorageService.cachedAccessToken == null) return;
     final walletKey = _readWalletKey();
     if (walletKey != null && walletKey.isNotEmpty) {
       await _secureStorage.clearWallet(walletKey);

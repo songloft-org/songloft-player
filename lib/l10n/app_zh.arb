@@ -594,6 +594,7 @@
   "libraryColumnAlbum": "专辑",
   "libraryColumnType": "类型",
   "libraryColumnDuration": "时长",
+  "librarySortFileSize": "文件大小",
   "librarySelectMode": "多选",
   "libraryMore": "更多",
   "libraryAddRemoteSong": "添加网络歌曲",
@@ -1165,6 +1166,7 @@
   "playlistSortTitle": "标题",
   "playlistSortArtist": "艺术家",
   "playlistSortDuration": "时长",
+  "playlistSortFileSize": "文件大小",
   "playlistSortNameAsc": "按名称排序 A→Z",
   "playlistSortNameDesc": "按名称排序 Z→A",
   "playlistSortNumberPrefix": "按数字前缀排序",
@@ -1997,6 +1999,9 @@
   "settingsDuplicatePending": "待计算",
   "settingsDuplicateUncomputable": "无法计算",
   "settingsDuplicateUncomputableHint": "这些文件没有音频轨、已损坏、计算超时或服务端 ffmpeg 不支持其格式，不会被自动重试。可点「仅重试失败项」重试（如服务端升级后），或「重新计算全部指纹」全量重算。",
+  "settingsDuplicateViewFailed": "查看失败详情",
+  "settingsDuplicateFailedTitle": "指纹计算失败的歌曲",
+  "settingsDuplicateNoFailed": "没有失败的歌曲",
   "settingsDuplicateSongCount": "{count} 首",
   "@settingsDuplicateSongCount": {
     "placeholders": {
