@@ -1634,6 +1634,12 @@ abstract class AppLocalizations {
   /// **'时长'**
   String get libraryColumnDuration;
 
+  /// No description provided for @librarySortFileSize.
+  ///
+  /// In zh, this message translates to:
+  /// **'文件大小'**
+  String get librarySortFileSize;
+
   /// No description provided for @librarySelectMode.
   ///
   /// In zh, this message translates to:
@@ -3463,6 +3469,12 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'时长'**
   String get playlistSortDuration;
+
+  /// No description provided for @playlistSortFileSize.
+  ///
+  /// In zh, this message translates to:
+  /// **'文件大小'**
+  String get playlistSortFileSize;
 
   /// No description provided for @playlistSortNameAsc.
   ///
@@ -5455,6 +5467,24 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'这些文件没有音频轨、已损坏、计算超时或服务端 ffmpeg 不支持其格式，不会被自动重试。可点「仅重试失败项」重试（如服务端升级后），或「重新计算全部指纹」全量重算。'**
   String get settingsDuplicateUncomputableHint;
+
+  /// No description provided for @settingsDuplicateViewFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看失败详情'**
+  String get settingsDuplicateViewFailed;
+
+  /// No description provided for @settingsDuplicateFailedTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'指纹计算失败的歌曲'**
+  String get settingsDuplicateFailedTitle;
+
+  /// No description provided for @settingsDuplicateNoFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'没有失败的歌曲'**
+  String get settingsDuplicateNoFailed;
 
   /// No description provided for @settingsDuplicateSongCount.
   ///

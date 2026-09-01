@@ -1016,6 +1016,7 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
     }
 
     final currentSort = songsAsync.value?.sort ?? 'position';
+    final currentOrder = songsAsync.value?.order ?? 'asc';
     final hasKeyword = (songsAsync.value?.keyword ?? '').isNotEmpty;
 
     // 正常模式
@@ -1047,45 +1048,44 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
             final notifier = ref.read(
               playlistSongsProvider(_playlistIdInt).notifier,
             );
-            switch (value) {
-              // 视图排序（非破坏性）
-              case 'view_position':
-                notifier.setSort('position', 'asc');
-                break;
-              case 'view_added_at':
-                notifier.setSort('added_at', 'desc');
-                break;
-              case 'view_file_modified_at':
-                notifier.setSort('file_modified_at', 'desc');
-                break;
-              case 'view_title':
-                notifier.setSort('title', 'asc');
-                break;
-              case 'view_artist':
-                notifier.setSort('artist', 'asc');
-                break;
-              case 'view_duration':
-                notifier.setSort('duration', 'asc');
-                break;
-              case 'view_file_size':
-                notifier.setSort('file_size', 'desc');
-                break;
-              // 永久排序
-              case 'perm_name_asc':
-                _autoSort('name_asc');
-                break;
-              case 'perm_name_desc':
-                _autoSort('name_desc');
-                break;
-              case 'perm_number':
-                _autoSort('number_prefix');
-                break;
-              case 'perm_shuffle':
-                _autoSort('shuffle');
-                break;
-              case 'manual':
-                _enterSortMode(songs);
-                break;
+            const defaultOrders = {
+              'position': 'asc',
+              'added_at': 'desc',
+              'file_modified_at': 'desc',
+              'title': 'asc',
+              'artist': 'asc',
+              'duration': 'asc',
+              'file_size': 'desc',
+            };
+            final viewField = switch (value) {
+              'view_position' => 'position',
+              'view_added_at' => 'added_at',
+              'view_file_modified_at' => 'file_modified_at',
+              'view_title' => 'title',
+              'view_artist' => 'artist',
+              'view_duration' => 'duration',
+              'view_file_size' => 'file_size',
+              _ => null,
+            };
+            if (viewField != null) {
+              final order =
+                  currentSort == viewField
+                      ? (currentOrder == 'asc' ? 'desc' : 'asc')
+                      : defaultOrders[viewField]!;
+              notifier.setSort(viewField, order);
+            } else {
+              switch (value) {
+                case 'perm_name_asc':
+                  _autoSort('name_asc');
+                case 'perm_name_desc':
+                  _autoSort('name_desc');
+                case 'perm_number':
+                  _autoSort('number_prefix');
+                case 'perm_shuffle':
+                  _autoSort('shuffle');
+                case 'manual':
+                  _enterSortMode(songs);
+              }
             }
           },
           itemBuilder:
@@ -1095,42 +1095,49 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
                   icon: Icons.reorder,
                   title: l10n.playlistSortCustom,
                   isSelected: currentSort == 'position',
+                  isAscending: currentOrder == 'asc',
                 ),
                 _buildSortMenuItem(
                   value: 'view_added_at',
                   icon: Icons.schedule,
                   title: l10n.playlistSortRecentlyAdded,
                   isSelected: currentSort == 'added_at',
+                  isAscending: currentOrder == 'asc',
                 ),
                 _buildSortMenuItem(
                   value: 'view_file_modified_at',
                   icon: Icons.insert_drive_file_outlined,
                   title: l10n.playlistSortFileTime,
                   isSelected: currentSort == 'file_modified_at',
+                  isAscending: currentOrder == 'asc',
                 ),
                 _buildSortMenuItem(
                   value: 'view_title',
                   icon: Icons.sort_by_alpha,
                   title: l10n.playlistSortTitle,
                   isSelected: currentSort == 'title',
+                  isAscending: currentOrder == 'asc',
                 ),
                 _buildSortMenuItem(
                   value: 'view_artist',
                   icon: Icons.person,
                   title: l10n.playlistSortArtist,
                   isSelected: currentSort == 'artist',
+                  isAscending: currentOrder == 'asc',
                 ),
                 _buildSortMenuItem(
                   value: 'view_duration',
                   icon: Icons.timer,
                   title: l10n.playlistSortDuration,
                   isSelected: currentSort == 'duration',
+                  isAscending: currentOrder == 'asc',
                 ),
                 _buildSortMenuItem(
                   value: 'view_file_size',
                   icon: Icons.storage,
                   title: l10n.playlistSortFileSize,
                   isSelected: currentSort == 'file_size',
+                  isAscending: currentOrder == 'asc',
                 ),
                 const PopupMenuDivider(),
                 if (!hasKeyword) ...[
@@ -1303,13 +1310,20 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
     required IconData icon,
     required String title,
     required bool isSelected,
+    bool isAscending = true,
   }) {
     return PopupMenuItem(
       value: value,
       child: ListTile(
         leading: Icon(icon),
         title: Text(title),
-        trailing: isSelected ? const Icon(Icons.check, size: 18) : null,
+        trailing:
+            isSelected
+                ? Icon(
+                  isAscending ? Icons.arrow_upward : Icons.arrow_downward,
+                  size: 18,
+                )
+                : null,
         dense: true,
         contentPadding: EdgeInsets.zero,
       ),

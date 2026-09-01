@@ -790,20 +790,23 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
 
   Widget _buildSortMenu(BuildContext context, SongsListState state) {
     final l10n = AppLocalizations.of(context);
+    const defaultOrders = {
+      'added_at': 'desc',
+      'file_modified_at': 'desc',
+      'title': 'asc',
+      'artist': 'asc',
+      'duration': 'asc',
+      'file_size': 'desc',
+    };
     return PopupMenuButton<String>(
       icon: const Icon(Icons.sort),
       tooltip: l10n.librarySort,
       onSelected: (value) {
-        final (sort, order) = switch (value) {
-          'added_at' => ('added_at', 'desc'),
-          'file_modified_at' => ('file_modified_at', 'desc'),
-          'title' => ('title', 'asc'),
-          'artist' => ('artist', 'asc'),
-          'duration' => ('duration', 'asc'),
-          'file_size' => ('file_size', 'desc'),
-          _ => ('added_at', 'desc'),
-        };
-        ref.read(songsListProvider.notifier).setSort(sort, order);
+        final order =
+            state.sort == value
+                ? (state.order == 'asc' ? 'desc' : 'asc')
+                : defaultOrders[value] ?? 'asc';
+        ref.read(songsListProvider.notifier).setSort(value, order);
       },
       itemBuilder:
           (context) => [
@@ -812,36 +815,42 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
               icon: Icons.schedule,
               title: l10n.librarySortAddedAt,
               isSelected: state.sort == 'added_at',
+              isAscending: state.order == 'asc',
             ),
             _buildLibrarySortItem(
               value: 'file_modified_at',
               icon: Icons.insert_drive_file_outlined,
               title: l10n.librarySortFileTime,
               isSelected: state.sort == 'file_modified_at',
+              isAscending: state.order == 'asc',
             ),
             _buildLibrarySortItem(
               value: 'title',
               icon: Icons.sort_by_alpha,
               title: l10n.libraryColumnTitle,
               isSelected: state.sort == 'title',
+              isAscending: state.order == 'asc',
             ),
             _buildLibrarySortItem(
               value: 'artist',
               icon: Icons.person,
               title: l10n.libraryColumnArtist,
               isSelected: state.sort == 'artist',
+              isAscending: state.order == 'asc',
             ),
             _buildLibrarySortItem(
               value: 'duration',
               icon: Icons.timer,
               title: l10n.libraryColumnDuration,
               isSelected: state.sort == 'duration',
+              isAscending: state.order == 'asc',
             ),
             _buildLibrarySortItem(
               value: 'file_size',
               icon: Icons.storage,
               title: l10n.librarySortFileSize,
               isSelected: state.sort == 'file_size',
+              isAscending: state.order == 'asc',
             ),
           ],
     );
@@ -1020,6 +1029,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
     required IconData icon,
     required String title,
     required bool isSelected,
+    bool isAscending = true,
   }) {
     final color = isSelected ? Theme.of(context).colorScheme.primary : null;
     return PopupMenuItem<String>(
@@ -1027,7 +1037,14 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
       child: ListTile(
         leading: Icon(icon, color: color),
         title: Text(title, style: TextStyle(color: color)),
-        trailing: isSelected ? Icon(Icons.check, color: color) : null,
+        trailing:
+            isSelected
+                ? Icon(
+                  isAscending ? Icons.arrow_upward : Icons.arrow_downward,
+                  size: 18,
+                  color: color,
+                )
+                : null,
         dense: true,
         contentPadding: EdgeInsets.zero,
       ),

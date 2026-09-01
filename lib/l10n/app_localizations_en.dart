@@ -892,6 +892,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get libraryColumnDuration => 'Duration';
 
   @override
+  String get librarySortFileSize => 'File Size';
+
+  @override
   String get librarySelectMode => 'Multi-select';
 
   @override
@@ -1901,6 +1904,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get playlistSortDuration => 'Duration';
+
+  @override
+  String get playlistSortFileSize => 'File Size';
 
   @override
   String get playlistSortNameAsc => 'Sort by name A→Z';
@@ -3138,6 +3144,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsDuplicateUncomputableHint =>
       'These files have no audio track, are corrupted, timed out, or the server ffmpeg does not support their format. They will not be retried automatically — use \"Retry failed only\" (e.g. after a server upgrade) or \"Recompute all fingerprints\".';
+
+  @override
+  String get settingsDuplicateViewFailed => 'View failed details';
+
+  @override
+  String get settingsDuplicateFailedTitle => 'Songs with failed fingerprint';
+
+  @override
+  String get settingsDuplicateNoFailed => 'No failed songs';
 
   @override
   String settingsDuplicateSongCount(int count) {

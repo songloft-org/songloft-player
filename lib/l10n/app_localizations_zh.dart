@@ -873,6 +873,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get libraryColumnDuration => '时长';
 
   @override
+  String get librarySortFileSize => '文件大小';
+
+  @override
   String get librarySelectMode => '多选';
 
   @override
@@ -1858,6 +1861,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get playlistSortDuration => '时长';
+
+  @override
+  String get playlistSortFileSize => '文件大小';
 
   @override
   String get playlistSortNameAsc => '按名称排序 A→Z';
@@ -3005,6 +3011,15 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settingsDuplicateUncomputableHint =>
       '这些文件没有音频轨、已损坏、计算超时或服务端 ffmpeg 不支持其格式，不会被自动重试。可点「仅重试失败项」重试（如服务端升级后），或「重新计算全部指纹」全量重算。';
+
+  @override
+  String get settingsDuplicateViewFailed => '查看失败详情';
+
+  @override
+  String get settingsDuplicateFailedTitle => '指纹计算失败的歌曲';
+
+  @override
+  String get settingsDuplicateNoFailed => '没有失败的歌曲';
 
   @override
   String settingsDuplicateSongCount(int count) {
