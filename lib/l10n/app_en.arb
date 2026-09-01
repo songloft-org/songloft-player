@@ -2622,6 +2622,7 @@
   "categoryFieldDecade": "Decade",
   "categoryFieldLanguage": "Language",
   "categoryFieldStyle": "Style",
+  "categoryFieldFolder": "Folders",
   "categoryValueUnknown": "Unknown",
   "categoryValueYear": "{value}",
   "@categoryValueYear": {
@@ -2637,6 +2638,8 @@
     "placeholders": { "label": { "type": "String" } }
   },
   "categoryEmptySubtitle": "No songs to categorize in this dimension",
+  "folderBrowseEmpty": "No folders found",
+  "folderBrowseNoMusicPath": "Music path not set",
   "categorySongCount": "{count} songs",
   "@categorySongCount": {
     "placeholders": { "count": { "type": "int" } }

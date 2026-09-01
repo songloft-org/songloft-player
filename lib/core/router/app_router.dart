@@ -11,6 +11,7 @@ import '../../features/home/presentation/plugin_webview_page.dart';
 import '../../features/home/presentation/plugin_tab_back_registry.dart';
 import '../../features/library/presentation/library_page.dart';
 import '../../features/library/presentation/category_songs_page.dart';
+import '../../features/library/presentation/folder_content_page.dart';
 import '../../features/library/presentation/tag_songs_page.dart';
 import '../../features/playlist/presentation/playlist_detail_page.dart';
 import '../../features/settings/presentation/servers_page.dart';
@@ -230,6 +231,15 @@ final routerProvider = Provider<GoRouter>((ref) {
                 value: value,
                 coverUrl: cover,
               );
+            },
+          ),
+
+          // 文件夹浏览下钻页
+          GoRoute(
+            path: '/library/folders',
+            builder: (context, state) {
+              final path = state.uri.queryParameters['path'] ?? '';
+              return FolderContentPage(path: path);
             },
           ),
 

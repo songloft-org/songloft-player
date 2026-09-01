@@ -4297,6 +4297,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get categoryFieldStyle => 'Style';
 
   @override
+  String get categoryFieldFolder => 'Folders';
+
+  @override
   String get categoryValueUnknown => 'Unknown';
 
   @override
@@ -4320,6 +4323,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get categoryEmptySubtitle =>
       'No songs to categorize in this dimension';
+
+  @override
+  String get folderBrowseEmpty => 'No folders found';
+
+  @override
+  String get folderBrowseNoMusicPath => 'Music path not set';
 
   @override
   String categorySongCount(int count) {

@@ -7433,6 +7433,12 @@ abstract class AppLocalizations {
   /// **'风格'**
   String get categoryFieldStyle;
 
+  /// No description provided for @categoryFieldFolder.
+  ///
+  /// In zh, this message translates to:
+  /// **'文件夹'**
+  String get categoryFieldFolder;
+
   /// No description provided for @categoryValueUnknown.
   ///
   /// In zh, this message translates to:
@@ -7468,6 +7474,18 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'该维度下还没有可归类的歌曲'**
   String get categoryEmptySubtitle;
+
+  /// No description provided for @folderBrowseEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'没有找到文件夹'**
+  String get folderBrowseEmpty;
+
+  /// No description provided for @folderBrowseNoMusicPath.
+  ///
+  /// In zh, this message translates to:
+  /// **'未设置音乐目录'**
+  String get folderBrowseNoMusicPath;
 
   /// No description provided for @categorySongCount.
   ///

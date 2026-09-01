@@ -4122,6 +4122,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get categoryFieldStyle => '风格';
 
   @override
+  String get categoryFieldFolder => '文件夹';
+
+  @override
   String get categoryValueUnknown => '未知';
 
   @override
@@ -4144,6 +4147,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get categoryEmptySubtitle => '该维度下还没有可归类的歌曲';
+
+  @override
+  String get folderBrowseEmpty => '没有找到文件夹';
+
+  @override
+  String get folderBrowseNoMusicPath => '未设置音乐目录';
 
   @override
   String categorySongCount(int count) {

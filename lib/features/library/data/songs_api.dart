@@ -5,6 +5,62 @@ import '../../../shared/models/library_stats.dart';
 import '../../../shared/models/song.dart';
 import '../../player/domain/playback_context.dart';
 
+/// 文件夹浏览的单个文件夹信息。
+class FolderInfo {
+  final String name;
+  final String path;
+  final int songCount;
+
+  FolderInfo({required this.name, required this.path, required this.songCount});
+
+  factory FolderInfo.fromJson(Map<String, dynamic> json) => FolderInfo(
+    name: json['name'] as String? ?? '',
+    path: json['path'] as String? ?? '',
+    songCount: json['song_count'] as int? ?? 0,
+  );
+}
+
+/// 文件夹浏览接口的响应模型。
+class FolderListResponse {
+  final String path;
+  final String parentPath;
+  final String musicPath;
+  final List<FolderInfo> folders;
+  final int totalFolders;
+  final List<Song> songs;
+  final int totalSongs;
+
+  FolderListResponse({
+    required this.path,
+    required this.parentPath,
+    required this.musicPath,
+    required this.folders,
+    required this.totalFolders,
+    required this.songs,
+    required this.totalSongs,
+  });
+
+  factory FolderListResponse.fromJson(Map<String, dynamic> json) {
+    return FolderListResponse(
+      path: json['path'] as String? ?? '',
+      parentPath: json['parent_path'] as String? ?? '',
+      musicPath: json['music_path'] as String? ?? '',
+      folders:
+          (json['folders'] as List<dynamic>?)
+              ?.map((e) => FolderInfo.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      totalFolders: json['total_folders'] as int? ?? 0,
+      songs:
+          (json['songs'] as List<dynamic>?)
+              ?.map((e) => Song.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      totalSongs: json['total_songs'] as int? ?? 0,
+    );
+  }
+}
+
 /// 歌曲 API 客户端
 class SongsApi {
   final Dio dio;
@@ -125,6 +181,23 @@ class SongsApi {
       queryParameters: queryParams,
     );
     return SongFacetResponse.fromJson(response.data!);
+  }
+
+  /// 获取文件夹浏览列表
+  /// [path] 相对路径（空串为根目录）
+  /// [keyword] 搜索关键词（可选）
+  Future<FolderListResponse> getFolders({
+    String path = '',
+    String keyword = '',
+  }) async {
+    final params = <String, dynamic>{};
+    if (path.isNotEmpty) params['path'] = path;
+    if (keyword.isNotEmpty) params['keyword'] = keyword;
+    final response = await dio.get<Map<String, dynamic>>(
+      '${AppConfig.apiPrefix}/songs/folders',
+      queryParameters: params,
+    );
+    return FolderListResponse.fromJson(response.data!);
   }
 
   /// 获取曲库汇总统计（首页底部统计面板）

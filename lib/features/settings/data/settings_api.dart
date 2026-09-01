@@ -259,6 +259,7 @@ class LibraryBrowseConfig {
     'local',
     'remote',
     'radio',
+    'folder',
     'artist',
     'album',
     'genre',
