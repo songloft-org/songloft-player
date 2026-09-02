@@ -272,63 +272,75 @@ class AdaptiveScaffold extends StatelessWidget {
 
   static const double _desktopSidebarWidth = 240;
 
-  /// Desktop: 宽侧边导航布局（Apple HIG Materials — 毛玻璃侧边栏）
+  /// Desktop: 宽侧边导航布局
   Widget _buildDesktopLayout(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final ext = theme.extension<SongloftThemeExtension>();
+    final useCapsule = ext?.navigationStyle == 'capsule';
 
-    return Scaffold(
-      body: Stack(
-        children: [
-          // 底层：body 内容（左侧预留侧边栏宽度）
-          Row(
+    final bodyColumn = Column(
+      children: [
+        Expanded(
+          child: Row(
             children: [
-              const SizedBox(width: _desktopSidebarWidth),
-              Expanded(
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Expanded(child: body),
-                          if (playlistDrawer != null) playlistDrawer!,
-                        ],
-                      ),
-                    ),
-                    if (bottomPlayer != null) bottomPlayer!,
-                  ],
-                ),
-              ),
+              Expanded(child: body),
+              if (playlistDrawer != null) playlistDrawer!,
             ],
           ),
-          // 玻璃侧边栏：BackdropFilter + 半透着色
-          Positioned(
-            left: 0,
-            top: 0,
-            bottom: 0,
-            width: _desktopSidebarWidth,
-            child: ClipRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: ext?.glassFill ?? colorScheme.surface,
-                    border: Border(
-                      right: BorderSide(
-                        color: ext?.glassBorder ?? colorScheme.outlineVariant,
-                        width: 0.5,
+        ),
+        if (bottomPlayer != null) bottomPlayer!,
+      ],
+    );
+
+    final sidebarContent = _buildDesktopSidebarContent(
+      context, theme, colorScheme, useCapsule ? ext : null,
+    );
+
+    if (useCapsule) {
+      // 玻璃模式：Stack + BackdropFilter 毛玻璃侧边栏
+      return Scaffold(
+        body: Stack(
+          children: [
+            Row(
+              children: [
+                const SizedBox(width: _desktopSidebarWidth),
+                Expanded(child: bodyColumn),
+              ],
+            ),
+            Positioned(
+              left: 0, top: 0, bottom: 0,
+              width: _desktopSidebarWidth,
+              child: ClipRect(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: ext!.glassFill,
+                      border: Border(
+                        right: BorderSide(color: ext.glassBorder, width: 0.5),
                       ),
                     ),
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: _buildDesktopSidebarContent(context, theme, colorScheme, ext),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: sidebarContent,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
+          ],
+        ),
+      );
+    }
+
+    // 标准模式：原始 Row 布局
+    return Scaffold(
+      body: Row(
+        children: [
+          SizedBox(width: _desktopSidebarWidth, child: sidebarContent),
+          const VerticalDivider(thickness: 1, width: 1),
+          Expanded(child: bodyColumn),
         ],
       ),
     );
@@ -342,7 +354,6 @@ class AdaptiveScaffold extends StatelessWidget {
   ) {
     return Column(
       children: [
-        // App 标题区域
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
           child: Row(
@@ -365,11 +376,7 @@ class AdaptiveScaffold extends StatelessWidget {
             ],
           ),
         ),
-        Divider(
-          height: 1,
-          color: ext?.glassBorder ?? colorScheme.outlineVariant,
-        ),
-        // 导航列表
+        const Divider(height: 1),
         Expanded(
           child: ListView.builder(
             padding: const EdgeInsets.symmetric(vertical: 8),
@@ -378,10 +385,7 @@ class AdaptiveScaffold extends StatelessWidget {
               final dest = destinations[index];
               final isSelected = index == currentIndex;
               return Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 2,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 child: ListTile(
                   leading: IconTheme(
                     data: IconThemeData(
@@ -397,13 +401,13 @@ class AdaptiveScaffold extends StatelessWidget {
                       color: isSelected
                           ? (ext?.glassGlow ?? colorScheme.primary)
                           : colorScheme.onSurface,
-                      fontWeight:
-                          isSelected ? FontWeight.w600 : FontWeight.normal,
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
                   selected: isSelected,
-                  selectedTileColor: ext?.glassGlow.withAlpha(77) ??
-                      colorScheme.primaryContainer.withValues(alpha: 0.3),
+                  selectedTileColor: ext != null
+                      ? ext.glassGlow.withAlpha(77)
+                      : colorScheme.primaryContainer.withValues(alpha: 0.3),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -420,51 +424,57 @@ class AdaptiveScaffold extends StatelessWidget {
   /// 超宽屏：左侧 Dock 导航布局（宽高比 > 2.2）
   Widget _buildWidescreenLayout(BuildContext context) {
     final ext = Theme.of(context).extension<SongloftThemeExtension>();
-    final colorScheme = Theme.of(context).colorScheme;
+    final useCapsule = ext?.navigationStyle == 'capsule';
 
-    return Scaffold(
-      body: Stack(
-        children: [
-          // 底层：body 内容
-          Row(
-            children: [
-              const SizedBox(width: _WidescreenDock._dockWidth),
-              Expanded(child: body),
-              if (playlistDrawer != null) playlistDrawer!,
-              if (bottomPlayer != null) bottomPlayer!,
-            ],
-          ),
-          // 玻璃 Dock
-          Positioned(
-            left: 0,
-            top: 0,
-            bottom: 0,
-            width: _WidescreenDock._dockWidth,
-            child: ClipRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: ext?.glassFill ?? colorScheme.surfaceContainerLow,
-                    border: Border(
-                      right: BorderSide(
-                        color: ext?.glassBorder ?? colorScheme.outlineVariant,
-                        width: 0.5,
+    final dock = _WidescreenDock(
+      destinations: destinations,
+      currentIndex: currentIndex,
+      onDestinationSelected: onDestinationSelected,
+    );
+
+    if (useCapsule) {
+      return Scaffold(
+        body: Stack(
+          children: [
+            Row(
+              children: [
+                const SizedBox(width: _WidescreenDock._dockWidth),
+                Expanded(child: body),
+                if (playlistDrawer != null) playlistDrawer!,
+                if (bottomPlayer != null) bottomPlayer!,
+              ],
+            ),
+            Positioned(
+              left: 0, top: 0, bottom: 0,
+              width: _WidescreenDock._dockWidth,
+              child: ClipRect(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: ext!.glassFill,
+                      border: Border(
+                        right: BorderSide(color: ext.glassBorder, width: 0.5),
                       ),
                     ),
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: _WidescreenDock(
-                      destinations: destinations,
-                      currentIndex: currentIndex,
-                      onDestinationSelected: onDestinationSelected,
-                    ),
+                    child: Material(color: Colors.transparent, child: dock),
                   ),
                 ),
               ),
             ),
-          ),
+          ],
+        ),
+      );
+    }
+
+    return Scaffold(
+      body: Row(
+        children: [
+          dock,
+          const VerticalDivider(thickness: 1, width: 1),
+          Expanded(child: body),
+          if (playlistDrawer != null) playlistDrawer!,
+          if (bottomPlayer != null) bottomPlayer!,
         ],
       ),
     );
@@ -496,8 +506,9 @@ class _WidescreenDock extends StatelessWidget {
 
     final ext = theme.extension<SongloftThemeExtension>();
 
-    return SizedBox(
+    return Container(
       width: _dockWidth,
+      color: colorScheme.surfaceContainerLow,
       child: Column(
         children: [
           // Logo 区域
