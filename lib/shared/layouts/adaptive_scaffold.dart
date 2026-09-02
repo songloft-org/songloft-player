@@ -320,7 +320,10 @@ class AdaptiveScaffold extends StatelessWidget {
                       ),
                     ),
                   ),
-                  child: _buildDesktopSidebarContent(context, theme, colorScheme, ext),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: _buildDesktopSidebarContent(context, theme, colorScheme, ext),
+                  ),
                 ),
               ),
             ),
@@ -449,10 +452,13 @@ class AdaptiveScaffold extends StatelessWidget {
                       ),
                     ),
                   ),
-                  child: _WidescreenDock(
-                    destinations: destinations,
-                    currentIndex: currentIndex,
-                    onDestinationSelected: onDestinationSelected,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: _WidescreenDock(
+                      destinations: destinations,
+                      currentIndex: currentIndex,
+                      onDestinationSelected: onDestinationSelected,
+                    ),
                   ),
                 ),
               ),

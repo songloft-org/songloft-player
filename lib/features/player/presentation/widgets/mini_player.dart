@@ -45,112 +45,230 @@ class MiniPlayer extends ConsumerWidget {
     final ext = theme.extension<SongloftThemeExtension>();
     final useCapsule = ext?.navigationStyle == 'capsule';
 
-    final content = Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
-          height: 2,
-          child: PlayerProgressBar(
-            position: state.currentTime,
-            duration: state.duration,
-            onSeek: notifier.seek,
-            mini: true,
+    if (useCapsule) {
+      return _buildCapsule(context, ref, theme, ext, song, state, notifier);
+    }
+
+    // Standard mode: 2px progress + 64px body = 66px
+    return SizedBox(
+      height: 66,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            height: 2,
+            child: PlayerProgressBar(
+              position: state.currentTime,
+              duration: state.duration,
+              onSeek: notifier.seek,
+              mini: true,
+            ),
           ),
-        ),
-        Material(
-          color: useCapsule ? Colors.transparent : (ext?.glassFill ?? theme.colorScheme.surface),
-          elevation: 0,
-          child: Semantics(
-            label: AppLocalizations.of(context).playerExpandPlayer,
-            button: true,
-            child: InkWell(
-              borderRadius: useCapsule ? BorderRadius.circular(16) : null,
-              onTap: onTap ?? () {
-                debugPrint('[Player] MiniPlayer tapped, opening full player');
-                openFullPlayer(context);
-              },
-              child: SizedBox(
-                height: 64,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Row(
-                    children: [
-                      _buildCover(context, song.coverUrl),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            ScrollingText(
-                              text: song.title,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Row(
-                              children: [
-                                if (ref.watch(dlnaStateProvider.select((s) => s.isCasting)))
-                                  Padding(
-                                    padding: const EdgeInsets.only(right: 4),
-                                    child: Icon(
-                                      Icons.cast_connected,
-                                      size: 12,
-                                      color: theme.colorScheme.primary,
-                                    ),
-                                  ),
-                                Expanded(
-                                  child: Text(
-                                    song.artist ?? AppLocalizations.of(context).playerUnknownArtist,
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: theme.colorScheme.onSurfaceVariant,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
+          Material(
+            color: ext?.glassFill ?? theme.colorScheme.surface,
+            elevation: 0,
+            child: Semantics(
+              label: AppLocalizations.of(context).playerExpandPlayer,
+              button: true,
+              child: InkWell(
+                onTap: onTap ?? () {
+                  debugPrint('[Player] MiniPlayer tapped, opening full player');
+                  openFullPlayer(context);
+                },
+                child: SizedBox(
+                  height: 64,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Row(
+                      children: [
+                        _buildCover(context, song.coverUrl),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ScrollingText(
+                                text: song.title,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w500,
                                 ),
-                              ],
-                            ),
-                          ],
+                              ),
+                              const SizedBox(height: 2),
+                              Row(
+                                children: [
+                                  if (ref.watch(dlnaStateProvider.select((s) => s.isCasting)))
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 4),
+                                      child: Icon(Icons.cast_connected, size: 12, color: theme.colorScheme.primary),
+                                    ),
+                                  Expanded(
+                                    child: Text(
+                                      song.artist ?? AppLocalizations.of(context).playerUnknownArtist,
+                                      style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      _buildActions(context, state, notifier, controls),
-                    ],
+                        _buildActions(context, state, notifier, controls),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
+  }
 
-    if (!useCapsule) {
-      return SizedBox(height: 66, child: content);
-    }
+  /// Lynx 风格胶囊迷你播放器：pill 全圆角 + 3px 进度条 + 48px 行 + 圆形播放按钮
+  Widget _buildCapsule(
+    BuildContext context,
+    WidgetRef ref,
+    ThemeData theme,
+    SongloftThemeExtension? ext,
+    dynamic song,
+    PlayerState state,
+    PlayerNotifier notifier,
+  ) {
+    const capsuleHeight = 51.0; // 3px progress + 48px row
+    const rowHeight = 48.0;
+    final radius = BorderRadius.circular(capsuleHeight / 2);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
+      padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
       child: Container(
-        height: 66,
+        height: capsuleHeight,
         decoration: BoxDecoration(
           color: ext?.glassFill ?? theme.colorScheme.surfaceContainer,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: radius,
           border: Border.all(
             color: ext?.glassBorder ?? theme.colorScheme.outlineVariant,
             width: 0.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withAlpha(15),
-              blurRadius: 16,
+              color: Colors.black.withAlpha(20),
+              blurRadius: 12,
               offset: const Offset(0, 4),
             ),
           ],
         ),
         clipBehavior: Clip.antiAlias,
-        child: content,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: radius,
+            onTap: onTap ?? () => openFullPlayer(context),
+            child: Column(
+              children: [
+                // 3px 进度条
+                SizedBox(
+                  height: 3,
+                  child: PlayerProgressBar(
+                    position: state.currentTime,
+                    duration: state.duration,
+                    onSeek: notifier.seek,
+                    mini: true,
+                  ),
+                ),
+                // 48px 内容行
+                SizedBox(
+                  height: rowHeight,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Row(
+                      children: [
+                        // 36px 封面
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            color: theme.colorScheme.surfaceContainerHighest,
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: song.coverUrl != null && (song.coverUrl as String).isNotEmpty
+                              ? Image.network(
+                                  UrlHelper.buildCoverUrl(song.coverUrl, width: 108),
+                                  fit: BoxFit.cover,
+                                  cacheWidth: 108,
+                                  errorBuilder: (_, _, _) => Icon(
+                                    Icons.music_note_rounded,
+                                    size: 18,
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                )
+                              : Icon(
+                                  Icons.music_note_rounded,
+                                  size: 18,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                        ),
+                        const SizedBox(width: 12),
+                        // 标题 + 艺术家
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                song.title as String,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              if (song.artist != null) ...[
+                                const SizedBox(height: 1),
+                                Text(
+                                  song.artist as String,
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // 圆形播放按钮（primary 填充）
+                        GestureDetector(
+                          onTap: notifier.togglePlay,
+                          child: Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: theme.colorScheme.primary,
+                            ),
+                            child: Icon(
+                              state.isPlaying
+                                  ? Icons.pause_rounded
+                                  : Icons.play_arrow_rounded,
+                              size: 20,
+                              color: theme.colorScheme.onPrimary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
