@@ -135,16 +135,10 @@ void main() {
       expect(darkExt.glassGlow, const Color(0xFFFF8A65));
     });
 
-    test('navigation bar indicator uses glassGlowFaint', () {
+    test('navigation bar keeps M3 defaults (glass only in capsule widget)', () {
       final theme = AppTheme.lightTheme();
-      final ext = theme.extension<SongloftThemeExtension>()!;
-      expect(theme.navigationBarTheme.indicatorColor, ext.glassGlowFaint);
-    });
-
-    test('navigation bar background uses glassFill', () {
-      final theme = AppTheme.lightTheme();
-      final ext = theme.extension<SongloftThemeExtension>()!;
-      expect(theme.navigationBarTheme.backgroundColor, ext.glassFill);
+      expect(theme.navigationBarTheme.backgroundColor, isNull);
+      expect(theme.navigationBarTheme.indicatorColor, isNull);
     });
 
     test('default navigationStyle is standard', () {

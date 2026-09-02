@@ -65,8 +65,8 @@ class MiniPlayer extends ConsumerWidget {
             ),
           ),
           Material(
-            color: ext?.glassFill ?? theme.colorScheme.surface,
-            elevation: 0,
+            color: theme.colorScheme.surface,
+            elevation: 2,
             child: Semantics(
               label: AppLocalizations.of(context).playerExpandPlayer,
               button: true,

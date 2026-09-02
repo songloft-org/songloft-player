@@ -218,10 +218,6 @@ class AppTheme {
       ),
       navigationBarTheme: NavigationBarThemeData(
         height: 64,
-        backgroundColor: glassFill,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        indicatorColor: glassGlowFaint,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         indicatorShape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(navigationRadius),
