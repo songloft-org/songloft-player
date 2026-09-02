@@ -16,6 +16,7 @@ import '../../../../core/network/servers_provider.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/storage/secure_storage.dart';
 import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/responsive.dart';
 import '../../../../core/updater/patch_update_dialog.dart';
 import '../../../../core/updater/patch_update_service.dart';
 import '../../../../core/utils/platform_utils.dart';
@@ -239,7 +240,10 @@ class _SettingsCategoryContentState
     };
 
     return ListView(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.md, AppSpacing.md, AppSpacing.md,
+        context.navScrollInset,
+      ),
       children: _interleave(items, const SizedBox(height: AppSpacing.lg)),
     );
   }
