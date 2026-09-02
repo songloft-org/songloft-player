@@ -46,9 +46,9 @@ class SettingsMasterDetail extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.md, AppSpacing.sm, AppSpacing.md,
+        context.navScrollInset,
       ),
       itemCount: categories.length + (header != null ? 1 : 0),
       itemBuilder: (context, index) {

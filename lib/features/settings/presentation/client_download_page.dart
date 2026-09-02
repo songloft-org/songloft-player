@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../config/app_config.dart';
 import '../../../core/network/github_proxy_fallback.dart';
 import '../../../core/theme/app_dimensions.dart';
+import '../../../core/theme/responsive.dart';
 import '../../../core/utils/web_os.dart';
 import '../../../l10n/app_localizations.dart';
 import 'providers/settings_provider.dart';
@@ -121,7 +122,7 @@ class ClientDownloadPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsClientDownloadTitle)),
       body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, context.navScrollInset),
         children: [
           Text(
             l10n.settingsClientDownloadIntro,

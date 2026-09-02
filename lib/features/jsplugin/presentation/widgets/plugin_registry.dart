@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../core/network/api_exceptions.dart';
 import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/responsive.dart';
 import '../../../../core/utils/url_helper.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/utils/responsive_snackbar.dart';
@@ -449,7 +450,7 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
           PluginRegistryWarningsBanner(warnings: _pluginResponse!.warnings),
         Expanded(
           child: ListView.separated(
-            padding: const EdgeInsets.symmetric(vertical: 8),
+            padding: EdgeInsets.fromLTRB(0, 8, 0, context.navScrollInset),
             itemCount: plugins.length,
             separatorBuilder: (_, _) => const Divider(height: 1, indent: 16),
             itemBuilder:

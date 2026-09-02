@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_dimensions.dart';
+import '../../../core/theme/responsive.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/confirm_dialog.dart';
 import '../domain/player_shortcut_action.dart';
@@ -37,7 +38,7 @@ class ShortcutSettingsPage extends ConsumerWidget {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, context.navScrollInset),
         children: [
           SectionCard(
             title: l10n.settingsShortcutsPageTitle,

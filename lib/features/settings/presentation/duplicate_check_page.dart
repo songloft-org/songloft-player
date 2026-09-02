@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../config/app_config.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/theme/app_dimensions.dart';
+import '../../../core/theme/responsive.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/utils/responsive_snackbar.dart';
 import '../data/scan_api.dart';
@@ -297,7 +298,7 @@ class _DuplicateCheckPageState extends ConsumerState<DuplicateCheckPage> {
           _loading && _phase == _PagePhase.status
               ? const Center(child: CircularProgressIndicator())
               : ListView(
-                padding: const EdgeInsets.all(AppSpacing.md),
+                padding: EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, context.navScrollInset),
                 children: [
                   if (_error != null) _buildError(),
                   if (_phase == _PagePhase.status) _buildStatusPhase(),

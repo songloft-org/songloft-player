@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/theme/app_dimensions.dart';
+import '../../../core/theme/responsive.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/utils/responsive_snackbar.dart';
 import 'widgets/section_card.dart';
@@ -43,7 +44,7 @@ class LicensesPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsLicensesTitle)),
       body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, context.navScrollInset),
         children: [
           SectionCard(
             title: l10n.licensesDistributionSection,

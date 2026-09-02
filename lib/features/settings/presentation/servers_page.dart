@@ -12,6 +12,7 @@ import '../../../core/network/server_entry.dart';
 import '../../../core/network/server_probe.dart';
 import '../../../core/network/servers_provider.dart';
 import '../../../core/storage/secure_storage.dart';
+import '../../../core/theme/responsive.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/utils/responsive_snackbar.dart';
 import '../../auth/presentation/providers/auth_provider.dart';
@@ -48,7 +49,7 @@ class ServersPage extends ConsumerWidget {
 
           if (servers.isEmpty) {
             return ListView(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.fromLTRB(16, 16, 16, context.navScrollInset),
               children: [
                 if (localModeCard != null) ...[
                   localModeCard,
@@ -94,7 +95,7 @@ class ServersPage extends ConsumerWidget {
               Expanded(
                 child: ReorderableListView.builder(
                   buildDefaultDragHandles: false,
-                  padding: const EdgeInsets.only(bottom: 96),
+                  padding: EdgeInsets.only(bottom: context.navScrollInset),
                   itemCount: servers.length,
                   onReorderItem: (oldIndex, newIndex) {
                     ref
