@@ -42,110 +42,115 @@ class MiniPlayer extends ConsumerWidget {
     }
 
     final song = state.currentSong!;
+    final ext = theme.extension<SongloftThemeExtension>();
+    final useCapsule = ext?.navigationStyle == 'capsule';
 
-    // 固定高度: 进度条 2px + 主体 64px = 66px
-    return SizedBox(
-      height: 66,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // 迷你进度条（高度精确控制为 2px）
-          SizedBox(
-            height: 2,
-            child: PlayerProgressBar(
-              position: state.currentTime,
-              duration: state.duration,
-              onSeek: notifier.seek,
-              mini: true,
-            ),
+    final content = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          height: 2,
+          child: PlayerProgressBar(
+            position: state.currentTime,
+            duration: state.duration,
+            onSeek: notifier.seek,
+            mini: true,
           ),
-          // 主体内容（高度 64px）— 玻璃表面
-          Material(
-            color: theme.extension<SongloftThemeExtension>()?.glassFill
-                ?? theme.colorScheme.surface,
-            elevation: 0,
-            child: Semantics(
-              label: AppLocalizations.of(context).playerExpandPlayer,
-              button: true,
-              child: InkWell(
-                onTap:
-                    onTap ??
-                    () {
-                      debugPrint(
-                        '[Player] MiniPlayer tapped, opening full player',
-                      );
-                      openFullPlayer(context);
-                    },
-                child: SizedBox(
-                  height: 64,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Row(
-                      children: [
-                        // 封面
-                        _buildCover(context, song.coverUrl),
-                        const SizedBox(width: 12),
-                        // 标题和艺术家
-                        Expanded(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // 标题过长时自动滚动（songloft-org/songloft-player#25）
-                              ScrollingText(
-                                text: song.title,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w500,
-                                ),
+        ),
+        Material(
+          color: useCapsule ? Colors.transparent : (ext?.glassFill ?? theme.colorScheme.surface),
+          elevation: 0,
+          child: Semantics(
+            label: AppLocalizations.of(context).playerExpandPlayer,
+            button: true,
+            child: InkWell(
+              borderRadius: useCapsule ? BorderRadius.circular(16) : null,
+              onTap: onTap ?? () {
+                debugPrint('[Player] MiniPlayer tapped, opening full player');
+                openFullPlayer(context);
+              },
+              child: SizedBox(
+                height: 64,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(
+                    children: [
+                      _buildCover(context, song.coverUrl),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ScrollingText(
+                              text: song.title,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w500,
                               ),
-                              const SizedBox(height: 2),
-                              Row(
-                                children: [
-                                  if (ref.watch(
-                                    dlnaStateProvider.select(
-                                      (s) => s.isCasting,
-                                    ),
-                                  ))
-                                    Padding(
-                                      padding: const EdgeInsets.only(right: 4),
-                                      child: Icon(
-                                        Icons.cast_connected,
-                                        size: 12,
-                                        color: theme.colorScheme.primary,
-                                      ),
-                                    ),
-                                  Expanded(
-                                    child: Text(
-                                      song.artist ??
-                                          AppLocalizations.of(
-                                            context,
-                                          ).playerUnknownArtist,
-                                      style: theme.textTheme.bodySmall
-                                          ?.copyWith(
-                                            color:
-                                                theme
-                                                    .colorScheme
-                                                    .onSurfaceVariant,
-                                          ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Row(
+                              children: [
+                                if (ref.watch(dlnaStateProvider.select((s) => s.isCasting)))
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 4),
+                                    child: Icon(
+                                      Icons.cast_connected,
+                                      size: 12,
+                                      color: theme.colorScheme.primary,
                                     ),
                                   ),
-                                ],
-                              ),
-                            ],
-                          ),
+                                Expanded(
+                                  child: Text(
+                                    song.artist ?? AppLocalizations.of(context).playerUnknownArtist,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                        // 控制按钮（档位由偏好决定）
-                        _buildActions(context, state, notifier, controls),
-                      ],
-                    ),
+                      ),
+                      _buildActions(context, state, notifier, controls),
+                    ],
                   ),
                 ),
               ),
             ),
           ),
-        ],
+        ),
+      ],
+    );
+
+    if (!useCapsule) {
+      return SizedBox(height: 66, child: content);
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
+      child: Container(
+        height: 66,
+        decoration: BoxDecoration(
+          color: ext?.glassFill ?? theme.colorScheme.surfaceContainer,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: ext?.glassBorder ?? theme.colorScheme.outlineVariant,
+            width: 0.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(15),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: content,
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/backend/run_mode_provider.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/url_helper.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -30,13 +31,18 @@ class DesktopPlayer extends ConsumerWidget {
     final notifier = ref.read(playerStateProvider.notifier);
     final theme = Theme.of(context);
 
-    return Container(
+    final ext = theme.extension<SongloftThemeExtension>();
+    final useCapsule = ext?.navigationStyle == 'capsule';
+
+    final bar = Container(
       height: 90,
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(
-          top: BorderSide(color: theme.colorScheme.outlineVariant, width: 1),
-        ),
+        color: useCapsule
+            ? Colors.transparent
+            : theme.colorScheme.surface,
+        border: useCapsule
+            ? null
+            : Border(top: BorderSide(color: theme.colorScheme.outlineVariant, width: 1)),
       ),
       child: Column(
         children: [
@@ -70,6 +76,31 @@ class DesktopPlayer extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+
+    if (!useCapsule) return bar;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+      child: Container(
+        decoration: BoxDecoration(
+          color: ext?.glassFill ?? theme.colorScheme.surfaceContainer,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: ext?.glassBorder ?? theme.colorScheme.outlineVariant,
+            width: 0.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(15),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: bar,
       ),
     );
   }

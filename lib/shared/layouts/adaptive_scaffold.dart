@@ -398,7 +398,7 @@ class AdaptiveScaffold extends StatelessWidget {
                     ),
                   ),
                   selected: isSelected,
-                  selectedTileColor: ext?.glassGlowFaint ??
+                  selectedTileColor: ext?.glassGlow.withAlpha(77) ??
                       colorScheme.primaryContainer.withValues(alpha: 0.3),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -517,7 +517,7 @@ class _WidescreenDock extends StatelessWidget {
                 return Material(
                   color:
                       isSelected
-                          ? (ext?.glassGlowFaint ?? colorScheme.secondaryContainer)
+                          ? (ext?.glassGlow.withAlpha(77) ?? colorScheme.secondaryContainer)
                           : Colors.transparent,
                   borderRadius: BorderRadius.circular(16),
                   child: InkWell(
