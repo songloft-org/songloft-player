@@ -28,6 +28,7 @@ class AdaptiveScaffold extends StatelessWidget {
   final List<NavDestination> destinations;
   final Widget? bottomPlayer;
   final Widget? playlistDrawer;
+  final bool allowExtendBody;
 
   const AdaptiveScaffold({
     super.key,
@@ -37,6 +38,7 @@ class AdaptiveScaffold extends StatelessWidget {
     required this.destinations,
     this.bottomPlayer,
     this.playlistDrawer,
+    this.allowExtendBody = true,
   });
 
   @override
@@ -65,7 +67,7 @@ class AdaptiveScaffold extends StatelessWidget {
 
     return Scaffold(
       body: body,
-      extendBody: useCapsule,
+      extendBody: useCapsule && allowExtendBody,
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

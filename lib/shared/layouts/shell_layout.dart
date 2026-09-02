@@ -378,6 +378,7 @@ class _ShellLayoutState extends ConsumerState<ShellLayout> {
       bottomPlayer:
           (isPluginTab || isSettings) ? null : _buildBottomPlayer(context),
       playlistDrawer: showPlaylistDrawer ? const PlaylistDrawer() : null,
+      allowExtendBody: !isPluginTab,
     );
 
     return scaffold;
