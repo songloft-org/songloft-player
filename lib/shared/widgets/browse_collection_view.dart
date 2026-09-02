@@ -72,7 +72,7 @@ class BrowseCollectionView extends StatelessWidget {
         hp,
         AppSpacing.md,
         hp,
-        MediaQuery.paddingOf(context).bottom + 80,
+        context.navScrollInset,
       ),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: crossAxisCount,
@@ -96,7 +96,7 @@ class BrowseCollectionView extends StatelessWidget {
         hp,
         AppSpacing.sm,
         hp,
-        MediaQuery.paddingOf(context).bottom + 80,
+        context.navScrollInset,
       ),
       itemCount: itemCount + (isLoadingMore ? 1 : 0),
       itemBuilder: (context, index) {

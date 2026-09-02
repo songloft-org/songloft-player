@@ -1138,7 +1138,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
       controller: _scrollController,
       // Web 端收紧离屏预解码范围，降低超大歌单封面 GPU 纹理累积（原生端为 null 保持默认）。
       scrollCacheExtent: webListCacheExtent,
-      padding: const EdgeInsets.only(bottom: 80),
+      padding: EdgeInsets.only(bottom: context.navScrollInset),
       itemCount: state.songs.length + (state.isLoadingMore ? 1 : 0),
       itemBuilder: (context, index) {
         if (index >= state.songs.length) {
@@ -1279,7 +1279,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
                     // Web 端收紧离屏预解码范围，降低超大歌单封面 GPU 纹理累积
                     // （原生端为 null 保持默认）。
                     scrollCacheExtent: webListCacheExtent,
-                    padding: const EdgeInsets.only(bottom: 80),
+                    padding: EdgeInsets.only(bottom: context.navScrollInset),
                     itemCount:
                         state.songs.length + (state.isLoadingMore ? 1 : 0),
                     itemBuilder: (context, index) {

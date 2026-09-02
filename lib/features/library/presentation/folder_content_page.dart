@@ -223,7 +223,7 @@ class _FolderContentPageState extends ConsumerState<FolderContentPage>
       child: ListView(
         controller: _scrollController,
         padding: EdgeInsets.only(
-          bottom: MediaQuery.paddingOf(context).bottom + 80,
+          bottom: context.navScrollInset,
         ),
         children: [
           if (hasFolders)

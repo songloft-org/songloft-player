@@ -65,6 +65,7 @@ class AdaptiveScaffold extends StatelessWidget {
 
     return Scaffold(
       body: body,
+      extendBody: useCapsule,
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

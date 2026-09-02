@@ -244,7 +244,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             const SizedBox(height: AppSpacing.lg),
 
             // 底部安全区域
-            SizedBox(height: MediaQuery.paddingOf(context).bottom + 80),
+            SizedBox(height: context.navScrollInset),
           ],
         ),
       ),

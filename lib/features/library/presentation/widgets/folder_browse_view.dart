@@ -240,7 +240,7 @@ class _FolderBrowseViewState extends ConsumerState<FolderBrowseView>
       child: ListView(
         controller: _scrollController,
         padding: EdgeInsets.only(
-          bottom: MediaQuery.paddingOf(context).bottom + 80,
+          bottom: context.navScrollInset,
         ),
         children: [
           if (hasFolders)

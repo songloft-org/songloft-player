@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'app_theme.dart';
+
 enum ScreenType { mobile, tablet, desktop, widescreen }
 
 class ResponsiveBreakpoints {
@@ -71,6 +73,16 @@ extension ResponsiveContext on BuildContext {
       case ScreenType.mobile:
         return const Size(64, 36);
     }
+  }
+
+  /// 底部滚动间距（等价 Lynx --nav-inset）。
+  /// capsule 模式 extendBody: true → padding.bottom 已含胶囊高度，加 16px 呼吸空间；
+  /// standard 模式 extendBody: false → 手动加 80px 腾出导航栏空间。
+  double get navScrollInset {
+    final ext = Theme.of(this).extension<SongloftThemeExtension>();
+    final bottom = MediaQuery.paddingOf(this).bottom;
+    if (ext?.navigationStyle == 'capsule') return bottom + 16;
+    return bottom + 80;
   }
 
   /// 获取响应式对话框最大宽度
