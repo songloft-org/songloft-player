@@ -10,11 +10,13 @@ class ThemePackColors {
   final Color seedColor;
   final Color? backgroundColor;
   final Color? surfaceColor;
+  final Color? glassColor;
 
   ThemePackColors({
     required this.seedColor,
     this.backgroundColor,
     this.surfaceColor,
+    this.glassColor,
   });
 
   factory ThemePackColors.fromJson(Map<String, dynamic> json) {
@@ -27,6 +29,10 @@ class ThemePackColors {
       surfaceColor:
           json['surfaceColor'] != null
               ? _parseColor(json['surfaceColor'] as String)
+              : null,
+      glassColor:
+          json['glassColor'] != null
+              ? _parseColor(json['glassColor'] as String)
               : null,
     );
   }
@@ -47,6 +53,7 @@ class ThemePack {
   final double? cardRadius;
   final double? controlRadius;
   final double? navigationRadius;
+  final String navigationStyle;
   final String createdAt;
   final String updatedAt;
 
@@ -64,6 +71,7 @@ class ThemePack {
     this.cardRadius,
     this.controlRadius,
     this.navigationRadius,
+    this.navigationStyle = 'standard',
     required this.createdAt,
     required this.updatedAt,
   });
@@ -99,6 +107,7 @@ class ThemePack {
       cardRadius: (data?['cardRadius'] as num?)?.toDouble(),
       controlRadius: (data?['controlRadius'] as num?)?.toDouble(),
       navigationRadius: (data?['navigationRadius'] as num?)?.toDouble(),
+      navigationStyle: data?['navigationStyle'] as String? ?? 'standard',
       createdAt: json['created_at'] as String? ?? '',
       updatedAt: json['updated_at'] as String? ?? '',
     );

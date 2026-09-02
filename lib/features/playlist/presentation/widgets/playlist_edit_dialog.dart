@@ -1,6 +1,9 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/theme/app_theme.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/utils/responsive_snackbar.dart';
 import '../../domain/playlist.dart';
@@ -135,103 +138,117 @@ class PlaylistEditDialogState extends ConsumerState<PlaylistEditDialog>
         (coverMode == 'local' ||
             coverMode == 'song' ||
             widget.playlist.coverUrl?.isNotEmpty == true);
-    return AlertDialog(
-      title: Text(
-        widget.playlist.isBuiltIn
-            ? l10n.playlistEditCover
-            : l10n.playlistEditPlaylist,
-      ),
-      content: SingleChildScrollView(
-        child: SizedBox(
-          width: 320,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // 封面预览区域
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: buildCoverPreview(colorScheme),
-              ),
-              const SizedBox(height: 12),
-              // 封面操作按钮
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                alignment: WrapAlignment.center,
+    final ext = Theme.of(context).extension<SongloftThemeExtension>()!;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(ext.cardRadius),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: AlertDialog(
+          backgroundColor: ext.glassFill,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(ext.cardRadius),
+            side: BorderSide(color: ext.glassBorder, width: 0.5),
+          ),
+          title: Text(
+            widget.playlist.isBuiltIn
+                ? l10n.playlistEditCover
+                : l10n.playlistEditPlaylist,
+          ),
+          content: SingleChildScrollView(
+            child: SizedBox(
+              width: 320,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  OutlinedButton.icon(
-                    onPressed: _isSaving ? null : pickCoverLocalImage,
-                    icon: const Icon(Icons.upload, size: 18),
-                    label: Text(l10n.playlistUploadImage),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: _isSaving ? null : pickCoverFromSongs,
-                    icon: const Icon(Icons.music_note, size: 18),
-                    label: Text(l10n.playlistPickFromSongs),
-                  ),
-                  if (hasCover)
-                    TextButton.icon(
-                      onPressed: _isSaving ? null : clearCoverSelection,
-                      icon: Icon(
-                        Icons.clear,
-                        size: 18,
-                        color: colorScheme.error,
-                      ),
-                      label: Text(
-                        l10n.playlistClear,
-                        style: TextStyle(color: colorScheme.error),
-                      ),
+                  // 封面预览区域
+                  Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(12),
                     ),
+                    clipBehavior: Clip.antiAlias,
+                    child: buildCoverPreview(colorScheme),
+                  ),
+                  const SizedBox(height: 12),
+                  // 封面操作按钮
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: _isSaving ? null : pickCoverLocalImage,
+                        icon: const Icon(Icons.upload, size: 18),
+                        label: Text(l10n.playlistUploadImage),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: _isSaving ? null : pickCoverFromSongs,
+                        icon: const Icon(Icons.music_note, size: 18),
+                        label: Text(l10n.playlistPickFromSongs),
+                      ),
+                      if (hasCover)
+                        TextButton.icon(
+                          onPressed: _isSaving ? null : clearCoverSelection,
+                          icon: Icon(
+                            Icons.clear,
+                            size: 18,
+                            color: colorScheme.error,
+                          ),
+                          label: Text(
+                            l10n.playlistClear,
+                            style: TextStyle(color: colorScheme.error),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // 歌单名称
+                  TextField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      labelText: l10n.playlistNameLabel,
+                      border: const OutlineInputBorder(),
+                    ),
+                    enabled: !_isSaving && !widget.playlist.isBuiltIn,
+                  ),
+                  const SizedBox(height: 16),
+                  // 歌单描述
+                  TextField(
+                    controller: _descController,
+                    decoration: InputDecoration(
+                      labelText: l10n.playlistDescLabel,
+                      border: const OutlineInputBorder(),
+                    ),
+                    maxLines: 3,
+                    enabled: !_isSaving && !widget.playlist.isBuiltIn,
+                  ),
                 ],
               ),
-              const SizedBox(height: 16),
-              // 歌单名称
-              TextField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: l10n.playlistNameLabel,
-                  border: const OutlineInputBorder(),
-                ),
-                enabled: !_isSaving && !widget.playlist.isBuiltIn,
-              ),
-              const SizedBox(height: 16),
-              // 歌单描述
-              TextField(
-                controller: _descController,
-                decoration: InputDecoration(
-                  labelText: l10n.playlistDescLabel,
-                  border: const OutlineInputBorder(),
-                ),
-                maxLines: 3,
-                enabled: !_isSaving && !widget.playlist.isBuiltIn,
-              ),
-            ],
+            ),
           ),
+          actions: [
+            TextButton(
+              onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
+              child: Text(l10n.commonCancel),
+            ),
+            FilledButton(
+              onPressed: _isSaving ? null : _save,
+              child:
+                  _isSaving
+                      ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                      : Text(l10n.playlistSave),
+            ),
+          ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
-          child: Text(l10n.commonCancel),
-        ),
-        FilledButton(
-          onPressed: _isSaving ? null : _save,
-          child:
-              _isSaving
-                  ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                  : Text(l10n.playlistSave),
-        ),
-      ],
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../config/app_config.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/responsive.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/frontend_version_api.dart';
@@ -81,71 +83,85 @@ class _FrontendUpgradeDialogState extends ConsumerState<FrontendUpgradeDialog> {
     final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context);
 
-    return AlertDialog(
-      title: Row(
-        children: [
-          const Icon(Icons.phone_android),
-          const SizedBox(width: 8),
-          Text(l10n.settingsFrontendUpgradeTitle),
-        ],
-      ),
-      content: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: context.responsiveDialogMaxWidth,
-          maxHeight: MediaQuery.sizeOf(context).height * 0.6,
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+    final ext = Theme.of(context).extension<SongloftThemeExtension>()!;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(ext.cardRadius),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: AlertDialog(
+          backgroundColor: ext.glassFill,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(ext.cardRadius),
+            side: BorderSide(color: ext.glassBorder, width: 0.5),
+          ),
+          title: Row(
             children: [
-              // 错误信息
-              if (_error != null)
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: colorScheme.errorContainer,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.error_outline,
-                        color: colorScheme.error,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          _error!,
-                          style: TextStyle(color: colorScheme.onErrorContainer),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-              // 正在检查
-              if (_isChecking)
-                Center(
-                  child: Column(
-                    children: [
-                      const CircularProgressIndicator(),
-                      const SizedBox(height: 16),
-                      Text(l10n.settingsFrontendUpgradeChecking),
-                    ],
-                  ),
-                )
-              else if (_error != null)
-                const SizedBox.shrink()
-              else if (_checkResult != null)
-                _buildCheckResult(_checkResult!),
+              const Icon(Icons.phone_android),
+              const SizedBox(width: 8),
+              Text(l10n.settingsFrontendUpgradeTitle),
             ],
           ),
+          content: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: context.responsiveDialogMaxWidth,
+              maxHeight: MediaQuery.sizeOf(context).height * 0.6,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 错误信息
+                  if (_error != null)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: colorScheme.errorContainer,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            color: colorScheme.error,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _error!,
+                              style: TextStyle(color: colorScheme.onErrorContainer),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                  // 正在检查
+                  if (_isChecking)
+                    Center(
+                      child: Column(
+                        children: [
+                          const CircularProgressIndicator(),
+                          const SizedBox(height: 16),
+                          Text(l10n.settingsFrontendUpgradeChecking),
+                        ],
+                      ),
+                    )
+                  else if (_error != null)
+                    const SizedBox.shrink()
+                  else if (_checkResult != null)
+                    _buildCheckResult(_checkResult!),
+                ],
+              ),
+            ),
+          ),
+          actions: _buildActions(),
         ),
       ),
-      actions: _buildActions(),
     );
   }
 

@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:songloft_flutter/config/app_config.dart';
 import 'package:songloft_flutter/features/settings/data/frontend_version_api.dart';
 import 'package:songloft_flutter/features/settings/presentation/providers/settings_provider.dart';
+import 'package:songloft_flutter/core/theme/app_theme.dart';
 import 'package:songloft_flutter/features/settings/presentation/widgets/frontend_upgrade_dialog.dart';
 import 'package:songloft_flutter/l10n/app_localizations.dart';
 
@@ -52,11 +53,14 @@ void main() {
             () => _FakeGithubProxyNotifier(proxy),
           ),
         ],
-        child: const MaterialApp(
-          locale: Locale('zh'),
+        child: MaterialApp(
+          locale: const Locale('zh'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(body: FrontendUpgradeDialog()),
+          theme: ThemeData(
+            extensions: const [SongloftThemeExtension()],
+          ),
+          home: const Scaffold(body: FrontendUpgradeDialog()),
         ),
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/app_theme.dart';
 
 class SectionCard extends StatelessWidget {
   final String title;
@@ -37,12 +38,17 @@ class SectionCard extends StatelessWidget {
             ),
           ),
         ),
-        // Card container
+        // Card container — light glass
         Container(
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainer,
+            color: Theme.of(context).extension<SongloftThemeExtension>()?.glassFillStrong
+                ?? colorScheme.surfaceContainer,
             borderRadius: AppRadius.lgAll,
-            border: Border.all(color: colorScheme.outlineVariant, width: 1),
+            border: Border.all(
+              color: Theme.of(context).extension<SongloftThemeExtension>()?.glassBorder
+                  ?? colorScheme.outlineVariant,
+              width: 0.5,
+            ),
           ),
           clipBehavior: Clip.antiAlias,
           child: Column(

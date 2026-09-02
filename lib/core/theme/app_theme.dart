@@ -4,18 +4,36 @@ import '../../features/settings/data/theme_pack_api.dart';
 import 'app_dimensions.dart';
 import 'responsive.dart';
 
-/// 自定义主题扩展，承载主题包特有的参数（圆角、渐变等）
+/// 自定义主题扩展，承载主题包特有的参数（圆角、渐变、玻璃色等）
 class SongloftThemeExtension extends ThemeExtension<SongloftThemeExtension> {
   final List<Color>? playerGradientColors;
   final double cardRadius;
   final double controlRadius;
   final double navigationRadius;
 
+  // Liquid Glass tokens
+  final Color glassFill;
+  final Color glassFillStrong;
+  final Color glassBorder;
+  final Color glassHighlight;
+  final Color glassGlow;
+  final Color glassGlowFaint;
+  final Color glassSheen;
+  final String navigationStyle;
+
   const SongloftThemeExtension({
     this.playerGradientColors,
     this.cardRadius = AppRadius.md,
     this.controlRadius = AppRadius.md,
     this.navigationRadius = AppRadius.md,
+    this.glassFill = const Color(0xB8FFFFFF),
+    this.glassFillStrong = const Color(0xD9FFFFFF),
+    this.glassBorder = const Color(0x73FFFFFF),
+    this.glassHighlight = const Color(0x99FFFFFF),
+    this.glassGlow = const Color(0xFF3BAEEF),
+    this.glassGlowFaint = const Color(0x193BAEEF),
+    this.glassSheen = const Color(0x2E3BAEEF),
+    this.navigationStyle = 'standard',
   });
 
   @override
@@ -24,12 +42,28 @@ class SongloftThemeExtension extends ThemeExtension<SongloftThemeExtension> {
     double? cardRadius,
     double? controlRadius,
     double? navigationRadius,
+    Color? glassFill,
+    Color? glassFillStrong,
+    Color? glassBorder,
+    Color? glassHighlight,
+    Color? glassGlow,
+    Color? glassGlowFaint,
+    Color? glassSheen,
+    String? navigationStyle,
   }) {
     return SongloftThemeExtension(
       playerGradientColors: playerGradientColors ?? this.playerGradientColors,
       cardRadius: cardRadius ?? this.cardRadius,
       controlRadius: controlRadius ?? this.controlRadius,
       navigationRadius: navigationRadius ?? this.navigationRadius,
+      glassFill: glassFill ?? this.glassFill,
+      glassFillStrong: glassFillStrong ?? this.glassFillStrong,
+      glassBorder: glassBorder ?? this.glassBorder,
+      glassHighlight: glassHighlight ?? this.glassHighlight,
+      glassGlow: glassGlow ?? this.glassGlow,
+      glassGlowFaint: glassGlowFaint ?? this.glassGlowFaint,
+      glassSheen: glassSheen ?? this.glassSheen,
+      navigationStyle: navigationStyle ?? this.navigationStyle,
     );
   }
 
@@ -48,6 +82,21 @@ class SongloftThemeExtension extends ThemeExtension<SongloftThemeExtension> {
       navigationRadius:
           lerpDouble(navigationRadius, other.navigationRadius, t) ??
           navigationRadius,
+      glassFill: Color.lerp(glassFill, other.glassFill, t) ?? glassFill,
+      glassFillStrong:
+          Color.lerp(glassFillStrong, other.glassFillStrong, t) ??
+          glassFillStrong,
+      glassBorder:
+          Color.lerp(glassBorder, other.glassBorder, t) ?? glassBorder,
+      glassHighlight:
+          Color.lerp(glassHighlight, other.glassHighlight, t) ??
+          glassHighlight,
+      glassGlow: Color.lerp(glassGlow, other.glassGlow, t) ?? glassGlow,
+      glassGlowFaint:
+          Color.lerp(glassGlowFaint, other.glassGlowFaint, t) ??
+          glassGlowFaint,
+      glassSheen: Color.lerp(glassSheen, other.glassSheen, t) ?? glassSheen,
+      navigationStyle: t < 0.5 ? navigationStyle : other.navigationStyle,
     );
   }
 
@@ -119,12 +168,38 @@ class AppTheme {
     final cardBorderRadius = BorderRadius.circular(cardRadius);
     final controlBorderRadius = BorderRadius.circular(controlRadius);
 
+    // 玻璃色：从主题包取 glassColor，无则回落星蓝基线
+    final glassBase = themeColors?.glassColor ??
+        (isLight ? const Color(0xFF3BAEEF) : const Color(0xFF5BC0F5));
+    final glassFill = isLight
+        ? const Color(0xB8FFFFFF)   // white @ 0.72
+        : const Color(0xAD1C1C1E); // #1C1C1E @ 0.68
+    final glassFillStrong = isLight
+        ? const Color(0xD9FFFFFF)   // white @ 0.85
+        : const Color(0xD11C1C1E); // #1C1C1E @ 0.82
+    final glassBorder = isLight
+        ? const Color(0x73FFFFFF)   // white @ 0.45
+        : const Color(0x1FFFFFFF); // white @ 0.12
+    final glassHighlight = isLight
+        ? const Color(0x99FFFFFF)   // white @ 0.60
+        : const Color(0x26FFFFFF); // white @ 0.15
+    final glassGlowFaint = glassBase.withAlpha(isLight ? 26 : 36);  // 0.10 / 0.14
+    final glassSheen = glassBase.withAlpha(isLight ? 46 : 26);      // 0.18 / 0.10
+
     // 主题扩展
     final extension = SongloftThemeExtension(
       playerGradientColors: themePack?.playerGradient,
       cardRadius: cardRadius,
       controlRadius: controlRadius,
       navigationRadius: navigationRadius,
+      glassFill: glassFill,
+      glassFillStrong: glassFillStrong,
+      glassBorder: glassBorder,
+      glassHighlight: glassHighlight,
+      glassGlow: glassBase,
+      glassGlowFaint: glassGlowFaint,
+      glassSheen: glassSheen,
+      navigationStyle: themePack?.navigationStyle ?? 'standard',
     );
 
     return ThemeData(
@@ -143,6 +218,10 @@ class AppTheme {
       ),
       navigationBarTheme: NavigationBarThemeData(
         height: 64,
+        backgroundColor: glassFill,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        indicatorColor: glassGlowFaint,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         indicatorShape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(navigationRadius),

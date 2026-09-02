@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/responsive.dart';
 import '../../../../core/utils/url_helper.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -58,10 +59,11 @@ class MiniPlayer extends ConsumerWidget {
               mini: true,
             ),
           ),
-          // 主体内容（高度 64px）
+          // 主体内容（高度 64px）— 玻璃表面
           Material(
-            color: theme.colorScheme.surface,
-            elevation: 2,
+            color: theme.extension<SongloftThemeExtension>()?.glassFill
+                ?? theme.colorScheme.surface,
+            elevation: 0,
             child: Semantics(
               label: AppLocalizations.of(context).playerExpandPlayer,
               button: true,

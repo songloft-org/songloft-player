@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/theme/widgets/glass_surface.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/dlna_state.dart';
 import '../providers/dlna_provider.dart';
@@ -27,10 +28,13 @@ class _DlnaDeviceSheetState extends ConsumerState<DlnaDeviceSheet> {
     final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context);
 
-    return SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
+    return GlassSurface(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+      strong: true,
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Row(
@@ -104,6 +108,7 @@ class _DlnaDeviceSheetState extends ConsumerState<DlnaDeviceSheet> {
             ),
           const SizedBox(height: 8),
         ],
+      ),
       ),
     );
   }

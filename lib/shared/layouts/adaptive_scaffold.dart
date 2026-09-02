@@ -1,6 +1,10 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
+import '../../core/theme/app_theme.dart';
 import '../../core/theme/responsive.dart';
+import '../../core/theme/widgets/glass_capsule_bar.dart';
 import '../../l10n/app_localizations.dart';
 
 /// 导航目的地定义
@@ -56,34 +60,8 @@ class AdaptiveScaffold extends StatelessWidget {
 
   /// Mobile: 底部导航栏布局
   Widget _buildMobileLayout(BuildContext context) {
-    final hasOverflow = destinations.length > _mobileMaxVisible;
-
-    if (!hasOverflow) {
-      return Scaffold(
-        body: body,
-        bottomNavigationBar: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (bottomPlayer != null) bottomPlayer!,
-            NavigationBar(
-              selectedIndex: currentIndex,
-              onDestinationSelected: onDestinationSelected,
-              destinations:
-                  destinations.map((dest) {
-                    return NavigationDestination(
-                      icon: dest.icon,
-                      selectedIcon: dest.selectedIcon,
-                      label: dest.label,
-                    );
-                  }).toList(),
-            ),
-          ],
-        ),
-      );
-    }
-
-    final barSelectedIndex =
-        currentIndex < _mobileRealSlots ? currentIndex : _mobileRealSlots;
+    final ext = Theme.of(context).extension<SongloftThemeExtension>();
+    final useCapsule = ext?.navigationStyle == 'capsule';
 
     return Scaffold(
       body: body,
@@ -91,31 +69,95 @@ class AdaptiveScaffold extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (bottomPlayer != null) bottomPlayer!,
-          NavigationBar(
-            selectedIndex: barSelectedIndex,
-            onDestinationSelected: (index) {
-              if (index < _mobileRealSlots) {
-                onDestinationSelected(index);
-              } else {
-                _showOverflowSheet(context);
-              }
-            },
-            destinations: [
-              for (var i = 0; i < _mobileRealSlots; i++)
-                NavigationDestination(
-                  icon: destinations[i].icon,
-                  selectedIcon: destinations[i].selectedIcon,
-                  label: destinations[i].label,
-                ),
-              NavigationDestination(
-                icon: const Icon(Icons.more_horiz),
-                selectedIcon: const Icon(Icons.more_horiz),
-                label: AppLocalizations.of(context).more,
-              ),
-            ],
-          ),
+          if (useCapsule)
+            _buildCapsuleNav(context)
+          else
+            _buildStandardNav(context),
         ],
       ),
+    );
+  }
+
+  Widget _buildCapsuleNav(BuildContext context) {
+    final hasOverflow = destinations.length > _mobileMaxVisible;
+    final visibleDests = hasOverflow
+        ? destinations.sublist(0, _mobileRealSlots)
+        : destinations;
+    final barSelectedIndex = hasOverflow && currentIndex >= _mobileRealSlots
+        ? _mobileRealSlots
+        : currentIndex;
+
+    final capsuleDests = [
+      for (final dest in visibleDests)
+        GlassCapsuleDestination(
+          label: dest.label,
+          icon: dest.icon,
+          selectedIcon: dest.selectedIcon,
+        ),
+      if (hasOverflow)
+        GlassCapsuleDestination(
+          label: AppLocalizations.of(context).more,
+          icon: const Icon(Icons.more_horiz),
+          selectedIcon: const Icon(Icons.more_horiz),
+        ),
+    ];
+
+    return GlassCapsuleBar(
+      selectedIndex: barSelectedIndex,
+      onDestinationSelected: (index) {
+        if (hasOverflow && index == _mobileRealSlots) {
+          _showOverflowSheet(context);
+        } else {
+          onDestinationSelected(index);
+        }
+      },
+      destinations: capsuleDests,
+    );
+  }
+
+  Widget _buildStandardNav(BuildContext context) {
+    final hasOverflow = destinations.length > _mobileMaxVisible;
+
+    if (!hasOverflow) {
+      return NavigationBar(
+        selectedIndex: currentIndex,
+        onDestinationSelected: onDestinationSelected,
+        destinations:
+            destinations.map((dest) {
+              return NavigationDestination(
+                icon: dest.icon,
+                selectedIcon: dest.selectedIcon,
+                label: dest.label,
+              );
+            }).toList(),
+      );
+    }
+
+    final barSelectedIndex =
+        currentIndex < _mobileRealSlots ? currentIndex : _mobileRealSlots;
+
+    return NavigationBar(
+      selectedIndex: barSelectedIndex,
+      onDestinationSelected: (index) {
+        if (index < _mobileRealSlots) {
+          onDestinationSelected(index);
+        } else {
+          _showOverflowSheet(context);
+        }
+      },
+      destinations: [
+        for (var i = 0; i < _mobileRealSlots; i++)
+          NavigationDestination(
+            icon: destinations[i].icon,
+            selectedIcon: destinations[i].selectedIcon,
+            label: destinations[i].label,
+          ),
+        NavigationDestination(
+          icon: const Icon(Icons.more_horiz),
+          selectedIcon: const Icon(Icons.more_horiz),
+          label: AppLocalizations.of(context).more,
+        ),
+      ],
     );
   }
 
@@ -227,110 +269,60 @@ class AdaptiveScaffold extends StatelessWidget {
     );
   }
 
-  /// Desktop: 宽侧边导航布局
+  static const double _desktopSidebarWidth = 240;
+
+  /// Desktop: 宽侧边导航布局（Apple HIG Materials — 毛玻璃侧边栏）
   Widget _buildDesktopLayout(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final ext = theme.extension<SongloftThemeExtension>();
 
     return Scaffold(
-      body: Row(
+      body: Stack(
         children: [
-          SizedBox(
-            width: 240,
-            child: Column(
-              children: [
-                // App 标题区域
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 24,
-                  ),
-                  child: Row(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.asset(
-                          'assets/icons/app_icon.png',
-                          width: 32,
-                          height: 32,
-                        ),
+          // 底层：body 内容（左侧预留侧边栏宽度）
+          Row(
+            children: [
+              const SizedBox(width: _desktopSidebarWidth),
+              Expanded(
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Expanded(child: body),
+                          if (playlistDrawer != null) playlistDrawer!,
+                        ],
                       ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Songloft',
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                    if (bottomPlayer != null) bottomPlayer!,
+                  ],
                 ),
-                const Divider(height: 1),
-                // 导航列表
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    itemCount: destinations.length,
-                    itemBuilder: (context, index) {
-                      final dest = destinations[index];
-                      final isSelected = index == currentIndex;
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        child: ListTile(
-                          leading: IconTheme(
-                            data: IconThemeData(
-                              color:
-                                  isSelected
-                                      ? colorScheme.primary
-                                      : colorScheme.onSurfaceVariant,
-                            ),
-                            child: isSelected ? dest.selectedIcon : dest.icon,
-                          ),
-                          title: Text(
-                            dest.label,
-                            style: TextStyle(
-                              color:
-                                  isSelected
-                                      ? colorScheme.primary
-                                      : colorScheme.onSurface,
-                              fontWeight:
-                                  isSelected
-                                      ? FontWeight.w600
-                                      : FontWeight.normal,
-                            ),
-                          ),
-                          selected: isSelected,
-                          selectedTileColor: colorScheme.primaryContainer
-                              .withValues(alpha: 0.3),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          onTap: () => onDestinationSelected(index),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-          const VerticalDivider(thickness: 1, width: 1),
-          Expanded(
-            child: Column(
-              children: [
-                Expanded(
-                  child: Row(
-                    children: [
-                      Expanded(child: body),
-                      if (playlistDrawer != null) playlistDrawer!,
-                    ],
+          // 玻璃侧边栏：BackdropFilter + 半透着色
+          Positioned(
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: _desktopSidebarWidth,
+            child: ClipRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: ext?.glassFill ?? colorScheme.surface,
+                    border: Border(
+                      right: BorderSide(
+                        color: ext?.glassBorder ?? colorScheme.outlineVariant,
+                        width: 0.5,
+                      ),
+                    ),
                   ),
+                  child: _buildDesktopSidebarContent(context, theme, colorScheme, ext),
                 ),
-                if (bottomPlayer != null) bottomPlayer!,
-              ],
+              ),
             ),
           ),
         ],
@@ -338,22 +330,134 @@ class AdaptiveScaffold extends StatelessWidget {
     );
   }
 
+  Widget _buildDesktopSidebarContent(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    SongloftThemeExtension? ext,
+  ) {
+    return Column(
+      children: [
+        // App 标题区域
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(
+                  'assets/icons/app_icon.png',
+                  width: 32,
+                  height: 32,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Songloft',
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Divider(
+          height: 1,
+          color: ext?.glassBorder ?? colorScheme.outlineVariant,
+        ),
+        // 导航列表
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            itemCount: destinations.length,
+            itemBuilder: (context, index) {
+              final dest = destinations[index];
+              final isSelected = index == currentIndex;
+              return Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 2,
+                ),
+                child: ListTile(
+                  leading: IconTheme(
+                    data: IconThemeData(
+                      color: isSelected
+                          ? (ext?.glassGlow ?? colorScheme.primary)
+                          : colorScheme.onSurfaceVariant,
+                    ),
+                    child: isSelected ? dest.selectedIcon : dest.icon,
+                  ),
+                  title: Text(
+                    dest.label,
+                    style: TextStyle(
+                      color: isSelected
+                          ? (ext?.glassGlow ?? colorScheme.primary)
+                          : colorScheme.onSurface,
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.normal,
+                    ),
+                  ),
+                  selected: isSelected,
+                  selectedTileColor: ext?.glassGlowFaint ??
+                      colorScheme.primaryContainer.withValues(alpha: 0.3),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  onTap: () => onDestinationSelected(index),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
   /// 超宽屏：左侧 Dock 导航布局（宽高比 > 2.2）
   Widget _buildWidescreenLayout(BuildContext context) {
-    // 超宽屏纵向空间稀缺：播放器改走右侧竖排常驻面板（bottomPlayer 在 widescreen
-    // 模式下由 ShellLayout 传入 WidescreenSidePlayer），而非底部横条。
+    final ext = Theme.of(context).extension<SongloftThemeExtension>();
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      body: Row(
+      body: Stack(
         children: [
-          _WidescreenDock(
-            destinations: destinations,
-            currentIndex: currentIndex,
-            onDestinationSelected: onDestinationSelected,
+          // 底层：body 内容
+          Row(
+            children: [
+              const SizedBox(width: _WidescreenDock._dockWidth),
+              Expanded(child: body),
+              if (playlistDrawer != null) playlistDrawer!,
+              if (bottomPlayer != null) bottomPlayer!,
+            ],
           ),
-          const VerticalDivider(thickness: 1, width: 1),
-          Expanded(child: body),
-          if (playlistDrawer != null) playlistDrawer!,
-          if (bottomPlayer != null) bottomPlayer!,
+          // 玻璃 Dock
+          Positioned(
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: _WidescreenDock._dockWidth,
+            child: ClipRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: ext?.glassFill ?? colorScheme.surfaceContainerLow,
+                    border: Border(
+                      right: BorderSide(
+                        color: ext?.glassBorder ?? colorScheme.outlineVariant,
+                        width: 0.5,
+                      ),
+                    ),
+                  ),
+                  child: _WidescreenDock(
+                    destinations: destinations,
+                    currentIndex: currentIndex,
+                    onDestinationSelected: onDestinationSelected,
+                  ),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -383,9 +487,10 @@ class _WidescreenDock extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Container(
+    final ext = theme.extension<SongloftThemeExtension>();
+
+    return SizedBox(
       width: _dockWidth,
-      color: colorScheme.surfaceContainerLow,
       child: Column(
         children: [
           // Logo 区域
@@ -412,7 +517,7 @@ class _WidescreenDock extends StatelessWidget {
                 return Material(
                   color:
                       isSelected
-                          ? colorScheme.secondaryContainer
+                          ? (ext?.glassGlowFaint ?? colorScheme.secondaryContainer)
                           : Colors.transparent,
                   borderRadius: BorderRadius.circular(16),
                   child: InkWell(
