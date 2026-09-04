@@ -118,14 +118,22 @@ class _PluginRenderViewState extends State<PluginRenderView>
     }
   }
 
-  /// 窗口可见性变化（Windows 最小化 / 托盘）：不可见时下一帧把渲染面移出
-  /// widget 树以销毁 WebView2 HWND；恢复可见时换 key 重建并重新计时。
+  /// 窗口可见性变化（Windows 最小化 / 托盘）。
+  ///
+  /// 不可见时下一帧把渲染面移出 widget 树以销毁 WebView2 HWND（仅原生 platform
+  /// view 才需要，见 [_needsHwndUnmount]）；恢复可见时换 key 重建并重新计时。
+  ///
+  /// 重建动作刻意收窄到 `_needsHwndUnmount`：WebF 是普通 Flutter RenderObject，
+  /// 最小化时从未被移出树（`surfaceMounted` 恒 true），恢复时若也 `_reloadSeq++`
+  /// 会连带销毁进程内缓存的 controller，整页重载、丢失页面 JS 状态（列表滚动位置、
+  /// 筛选项等回到第一屏）—— songloft-org/songloft#438。原生 WebView2 才真的在
+  /// 最小化时销毁过 HWND，恢复时必须换 key 重建以重新创建原生表面。
   void _onWindowVisibilityChanged() {
     final visible = windowVisibleNotifier.value;
     if (!mounted || _hwndVisible == visible) return;
     setState(() {
       _hwndVisible = visible;
-      if (visible) {
+      if (visible && _needsHwndUnmount) {
         _isLoading = true;
         _errorMessage = null;
         _reloadSeq++;
