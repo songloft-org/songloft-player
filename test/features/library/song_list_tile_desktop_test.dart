@@ -40,6 +40,7 @@ Future<void> _pump(WidgetTester tester, double width) async {
                 onTap: () {},
                 onDelete: () {},
                 onAddToPlaylist: () {},
+                onManageTags: () {},
               ),
             ),
           ),
@@ -59,5 +60,9 @@ void main() {
 
     // 编辑按钮（tooltip=编辑）应存在
     expect(find.byTooltip('编辑'), findsOneWidget);
+
+    // 管理标签按钮应存在，且不能把删除按钮挤出操作列
+    expect(find.byTooltip('管理标签'), findsOneWidget);
+    expect(find.byTooltip('删除'), findsOneWidget);
   });
 }

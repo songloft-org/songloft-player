@@ -10,6 +10,7 @@ import '../../../shared/widgets/delete_song_dialog.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/entity_detail_scaffold.dart';
 import '../../../shared/widgets/manage_tags_modal.dart';
+import '../../../shared/widgets/selection_action_button.dart';
 import '../../../shared/mixins/song_list_actions.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../player/domain/playback_context.dart';
@@ -172,6 +173,11 @@ class _TagSongsPageState extends ConsumerState<TagSongsPage>
     AddToPlaylistModal.show(context, songIds: _selectedIds.toList());
   }
 
+  void _manageSelectedTags() {
+    if (_selectedIds.isEmpty) return;
+    ManageTagsModal.show(context, songIds: _selectedIds.toList());
+  }
+
   Future<void> _deleteSong(int songId) async {
     final l10n = AppLocalizations.of(context);
     final result = await DeleteSongDialog.show(
@@ -251,23 +257,21 @@ class _TagSongsPageState extends ConsumerState<TagSongsPage>
       appBarActions:
           _isSelectMode
               ? [
-                TextButton.icon(
-                  icon: const Icon(Icons.playlist_add),
-                  label: Text(l10n.addToPlaylist),
+                SelectionActionButton(
+                  icon: Icons.playlist_add,
+                  label: l10n.addToPlaylist,
                   onPressed:
                       _selectedIds.isEmpty ? null : _addSelectedToPlaylist,
                 ),
-                TextButton.icon(
-                  icon: Icon(
-                    Icons.delete,
-                    color: _selectedIds.isEmpty ? null : colorScheme.error,
-                  ),
-                  label: Text(
-                    l10n.libraryDeleteWithCount(_selectedIds.length),
-                    style: TextStyle(
-                      color: _selectedIds.isEmpty ? null : colorScheme.error,
-                    ),
-                  ),
+                SelectionActionButton(
+                  icon: Icons.label_outline,
+                  label: l10n.manageTags,
+                  onPressed: _selectedIds.isEmpty ? null : _manageSelectedTags,
+                ),
+                SelectionActionButton(
+                  icon: Icons.delete,
+                  label: l10n.libraryDeleteWithCount(_selectedIds.length),
+                  color: colorScheme.error,
                   onPressed: _selectedIds.isEmpty ? null : _batchDelete,
                 ),
                 TextButton(

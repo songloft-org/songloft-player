@@ -12,8 +12,9 @@ import '../../../../shared/widgets/favorite_button.dart';
 import '../../../../shared/widgets/song_tile.dart';
 
 /// 桌面端「操作按钮」列宽度。tile 内的按钮区与列表表头占位需保持一致，
-/// 否则表头与行的操作列对不齐；宽度需容纳 5 个紧凑按钮（play/收藏/编辑/加歌单/删除）。
-const double kDesktopActionsWidth = 180;
+/// 否则表头与行的操作列对不齐；宽度需容纳 6 个紧凑按钮
+/// （play/收藏/编辑/加歌单/管理标签/删除）。
+const double kDesktopActionsWidth = 208;
 
 /// 曲库歌曲列表项：窄屏复用通用 [SongTile]，宽屏为库特有的多列表格行。
 class SongListTile extends StatelessWidget {
@@ -298,8 +299,8 @@ class SongListTile extends StatelessWidget {
 
     final l10n = AppLocalizations.of(context);
 
-    // 紧凑化：默认 IconButton 触摸目标 48px，5 个按钮会撑破操作列导致右侧按钮
-    // （编辑/添加/删除）被裁剪不可见。shrinkWrap + compact 让按钮回落到 minWidth。
+    // 紧凑化：默认 IconButton 触摸目标 48px，6 个按钮会撑破操作列导致右侧按钮
+    // （编辑/添加/标签/删除）被裁剪不可见。shrinkWrap + compact 让按钮回落到 minWidth。
     const constraints = BoxConstraints(minWidth: 28, minHeight: 28);
 
     Widget actionButton({
@@ -339,6 +340,11 @@ class SongListTile extends StatelessWidget {
           icon: Icons.playlist_add,
           tooltip: l10n.addToPlaylist,
           onPressed: onAddToPlaylist,
+        ),
+        actionButton(
+          icon: Icons.label_outline,
+          tooltip: l10n.manageTags,
+          onPressed: onManageTags,
         ),
         actionButton(
           icon: Icons.delete_outline,

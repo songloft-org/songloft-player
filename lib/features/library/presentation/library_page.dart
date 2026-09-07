@@ -22,6 +22,7 @@ import '../../playlist/presentation/widgets/playlist_browse_view.dart';
 import 'providers/songs_provider.dart';
 import 'song_edit_page.dart';
 import '../../../shared/widgets/manage_tags_modal.dart';
+import '../../../shared/widgets/selection_action_button.dart';
 import 'widgets/facet_grid_view.dart';
 import 'widgets/folder_browse_view.dart';
 import 'widgets/library_view_switcher.dart';
@@ -478,9 +479,9 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
         ),
         title: Text(l10n.librarySelectedCount(state.selectedSongIds.length)),
         actions: [
-          TextButton.icon(
-            icon: const Icon(Icons.playlist_add),
-            label: Text(l10n.addToPlaylist),
+          SelectionActionButton(
+            icon: Icons.playlist_add,
+            label: l10n.addToPlaylist,
             onPressed:
                 state.selectedSongIds.isEmpty
                     ? null
@@ -489,23 +490,21 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
                       state.selectedSongIds.toList(),
                     ),
           ),
-          TextButton.icon(
-            icon: Icon(
-              Icons.delete,
-              color:
-                  state.selectedSongIds.isEmpty
-                      ? null
-                      : Theme.of(context).colorScheme.error,
-            ),
-            label: Text(
-              l10n.libraryDeleteWithCount(state.selectedSongIds.length),
-              style: TextStyle(
-                color:
-                    state.selectedSongIds.isEmpty
-                        ? null
-                        : Theme.of(context).colorScheme.error,
-              ),
-            ),
+          SelectionActionButton(
+            icon: Icons.label_outline,
+            label: l10n.manageTags,
+            onPressed:
+                state.selectedSongIds.isEmpty
+                    ? null
+                    : () => ManageTagsModal.show(
+                      context,
+                      songIds: state.selectedSongIds.toList(),
+                    ),
+          ),
+          SelectionActionButton(
+            icon: Icons.delete,
+            label: l10n.libraryDeleteWithCount(state.selectedSongIds.length),
+            color: Theme.of(context).colorScheme.error,
             onPressed:
                 state.selectedSongIds.isEmpty
                     ? null
