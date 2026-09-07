@@ -3356,6 +3356,18 @@ abstract class AppLocalizations {
   /// **'电台歌单'**
   String get playlistFilterRadio;
 
+  /// No description provided for @playlistFilterRemote.
+  ///
+  /// In zh, this message translates to:
+  /// **'网络歌单'**
+  String get playlistFilterRemote;
+
+  /// No description provided for @playlistFilterLocal.
+  ///
+  /// In zh, this message translates to:
+  /// **'本地歌单'**
+  String get playlistFilterLocal;
+
   /// No description provided for @playlistMultiSelect.
   ///
   /// In zh, this message translates to:
@@ -3661,6 +3673,12 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'已置顶'**
   String get playlistLabelPinned;
+
+  /// No description provided for @playlistLabelRemote.
+  ///
+  /// In zh, this message translates to:
+  /// **'网络'**
+  String get playlistLabelRemote;
 
   /// No description provided for @playlistConfirmDelete.
   ///

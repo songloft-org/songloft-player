@@ -124,6 +124,37 @@ class PaginatedSongsState {
 // 歌单列表 Provider（滚动分页）
 // ============================================================
 
+/// 歌单列表 Provider 的 family 参数：歌单类型 + 歌单内歌曲来源两个维度的过滤组合。
+///
+/// 之所以不是裸 `String?`（原先只有 type）：曲库的「网络歌单 / 本地歌单」视图不按
+/// `playlists.type` 过滤，而是按歌单内歌曲的来源过滤（[songSource]，见后端 song_source
+/// 参数），两个维度必须能独立表达（songloft-org/songloft#445）。
+///
+/// 作为 Riverpod family 的 key 必须是值相等语义，故重写 == / hashCode。
+@immutable
+class PlaylistListQuery {
+  /// 歌单类型过滤：'normal' / 'radio'，null 表示不按类型过滤。
+  final String? type;
+
+  /// 歌单内歌曲来源过滤：'remote'（网络歌单）/ 'local'（本地歌单），null 表示不过滤。
+  final String? songSource;
+
+  const PlaylistListQuery({this.type, this.songSource});
+
+  @override
+  bool operator ==(Object other) =>
+      other is PlaylistListQuery &&
+      other.type == type &&
+      other.songSource == songSource;
+
+  @override
+  int get hashCode => Object.hash(type, songSource);
+
+  @override
+  String toString() =>
+      'PlaylistListQuery(type: $type, songSource: $songSource)';
+}
+
 /// 歌单列表分页 Notifier。
 ///
 /// - 初次进入加载首页（pageLimit 条），状态由 `AsyncValue.loading` 切换为 `AsyncValue.data`。
@@ -132,10 +163,10 @@ class PaginatedSongsState {
 /// - 后端 ListPlaylists 响应不返回 total，使用"页数据小于 pageLimit"判断末页。
 class PaginatedPlaylistsNotifier
     extends AsyncNotifier<PaginatedPlaylistsState> {
-  PaginatedPlaylistsNotifier(this._typeArg);
+  PaginatedPlaylistsNotifier(this._query);
 
-  /// family 参数：歌单类型过滤（null 表示全部）
-  final String? _typeArg;
+  /// family 参数：歌单类型 + 歌曲来源过滤组合
+  final PlaylistListQuery _query;
 
   /// 排除的标签（默认 null，让后端默认排除 hidden）
   String? _excludeLabels;
@@ -149,14 +180,15 @@ class PaginatedPlaylistsNotifier
   @override
   Future<PaginatedPlaylistsState> build() async {
     final repository = ref.watch(playlistRepositoryProvider);
-    final typeLabel = _typeArg ?? 'all';
+    final typeLabel = _query.songSource ?? _query.type ?? 'all';
     // 首屏关键请求：单次超时 + 有限重试兜底，避免偶发「服务端已返回但请求卡在坏连接上
     // 不完成」导致首页无限骨架屏、只能反复退出重启（songloft-org/songloft#314）。
     // 全部重试失败才抛出，交由 UI 显示错误态 + 手动重试。
     try {
       final response = await loadWithRetry(
         () => repository.getPlaylists(
-          type: _typeArg,
+          type: _query.type,
+          songSource: _query.songSource,
           excludeLabels: _excludeLabels,
           keyword: _keyword,
           limit: pageLimit,
@@ -215,7 +247,8 @@ class PaginatedPlaylistsNotifier
     try {
       final repository = ref.read(playlistRepositoryProvider);
       final response = await repository.getPlaylists(
-        type: _typeArg,
+        type: _query.type,
+        songSource: _query.songSource,
         excludeLabels: _excludeLabels,
         keyword: _keyword,
         limit: pageLimit,
@@ -250,11 +283,11 @@ class PaginatedPlaylistsNotifier
   }
 }
 
-/// 歌单列表 Provider（family 参数为 type 过滤）
+/// 歌单列表 Provider（family 参数为 [PlaylistListQuery]：type + songSource 过滤组合）
 final playlistListProvider = AsyncNotifierProvider.family<
   PaginatedPlaylistsNotifier,
   PaginatedPlaylistsState,
-  String?
+  PlaylistListQuery
 >(PaginatedPlaylistsNotifier.new);
 
 // ============================================================

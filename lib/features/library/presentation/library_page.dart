@@ -387,11 +387,13 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
       return _buildFlatContent(context, state);
     }
     if (isPlaylistLibraryView(selected)) {
-      // 歌单视图：嵌入歌单浏览视图（type 由视图 key 决定）；工具栏由顶部 AppBar 驱动，
-      // 模式变化经 onModeChanged 通知本页重建 AppBar。
+      // 歌单视图：嵌入歌单浏览视图（type 与歌曲来源过滤都由视图 key 决定，两者互不重叠：
+      // playlist_normal/playlist_radio 走 type，playlist_remote/playlist_local 走
+      // songSource）；工具栏由顶部 AppBar 驱动，模式变化经 onModeChanged 通知本页重建 AppBar。
       return PlaylistBrowseView(
         key: _playlistViewKey,
         typeFilter: playlistViewType(selected),
+        songSourceFilter: playlistViewSongSource(selected),
         onModeChanged: () {
           if (mounted) setState(() {});
         },

@@ -41,7 +41,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          playlistListProvider('normal').overrideWith(
+          playlistListProvider(
+            const PlaylistListQuery(type: 'normal'),
+          ).overrideWith(
             () =>
                 normalNotifier != null
                     ? normalNotifier()
@@ -49,7 +51,9 @@ void main() {
                     ? _FailingNotifier('normal')
                     : _FakePlaylistsNotifier('normal', normalCount),
           ),
-          playlistListProvider('radio').overrideWith(
+          playlistListProvider(
+            const PlaylistListQuery(type: 'radio'),
+          ).overrideWith(
             () =>
                 radioCount == null
                     ? _FailingNotifier('radio')
@@ -245,7 +249,9 @@ class _FixedGridConfig extends HomeGridConfigNotifier {
 }
 
 class _FakePlaylistsNotifier extends PaginatedPlaylistsNotifier {
-  _FakePlaylistsNotifier(String super.typeArg, this._count) : _type = typeArg;
+  _FakePlaylistsNotifier(String type, this._count)
+    : _type = type,
+      super(PlaylistListQuery(type: type));
 
   final String _type;
   final int _count;
@@ -274,7 +280,9 @@ class _FakePlaylistsNotifier extends PaginatedPlaylistsNotifier {
 
 /// 可分页的假上游：模拟 total 条数据，按 pageLimit 分页，记录 loadMore 调用次数。
 class _PagedNotifier extends PaginatedPlaylistsNotifier {
-  _PagedNotifier(String super.typeArg, {required this.total}) : _type = typeArg;
+  _PagedNotifier(String type, {required this.total})
+    : _type = type,
+      super(PlaylistListQuery(type: type));
 
   final String _type;
   final int total;
@@ -325,7 +333,7 @@ class _PagedNotifier extends PaginatedPlaylistsNotifier {
 }
 
 class _FailingNotifier extends PaginatedPlaylistsNotifier {
-  _FailingNotifier(String super.typeArg);
+  _FailingNotifier(String type) : super(PlaylistListQuery(type: type));
 
   @override
   Future<PaginatedPlaylistsState> build() async {

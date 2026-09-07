@@ -1041,6 +1041,8 @@
   "playlistTryOtherKeywords": "Try other keywords",
   "playlistFilterNormal": "Playlists",
   "playlistFilterRadio": "Radios",
+  "playlistFilterRemote": "Remote Playlists",
+  "playlistFilterLocal": "Local Playlists",
   "playlistMultiSelect": "Multi-select",
   "playlistMore": "More",
   "playlistDone": "Done",
@@ -1137,6 +1139,7 @@
   "playlistLabelAuto": "Auto",
   "playlistLabelHidden": "Hidden",
   "playlistLabelPinned": "Pinned",
+  "playlistLabelRemote": "Remote",
   "playlistConfirmDelete": "Confirm deletion",
   "playlistDeleteConfirm": "Delete playlist \"{name}\"? This cannot be undone.",
   "@playlistDeleteConfirm": {

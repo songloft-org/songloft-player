@@ -26,13 +26,39 @@ Widget? playlistTypeBadge(BuildContext context, Playlist playlist) {
   );
 }
 
-/// 歌单标签行（置顶 / 内置 / 自动 / 隐藏等）。置顶不是 labels 数组的一员（独立的
-/// pinned_at 字段），故单独判断后拼在最前面，与其余标签同款式渲染。
+/// 歌单标签行（置顶 / 网络 / 内置 / 自动 / 隐藏等）。置顶与「网络」都不是 labels 数组的
+/// 一员（分别来自 pinned_at 与 remote_count 字段），故单独判断后拼在最前面，与其余标签
+/// 同款式渲染。
+///
+/// 「网络」徽标**只标网络、不标本地**：本地是绝大多数歌单的默认预期，给每张卡都挂一个
+/// 「本地」chip 只是噪音；需要区分的是混在里面的少数网络歌单（songloft-org/songloft#445）。
+/// 电台歌单已有独立的电台 typeBadge（见 [playlistTypeBadge]），不再叠加来源徽标。
 List<Widget> playlistLabelChips(BuildContext context, Playlist playlist) {
   return [
     if (playlist.isPinned) _pinnedChip(context),
+    if (playlist.type != 'radio' && playlist.hasRemoteSongs)
+      _remoteChip(context),
     ...playlist.labels.map((label) => _labelChip(context, label)),
   ];
+}
+
+Widget _remoteChip(BuildContext context) {
+  final colorScheme = Theme.of(context).colorScheme;
+  final textTheme = Theme.of(context).textTheme;
+  final l10n = AppLocalizations.of(context);
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+    decoration: BoxDecoration(
+      color: colorScheme.tertiaryContainer,
+      borderRadius: BorderRadius.circular(4),
+    ),
+    child: Text(
+      l10n.playlistLabelRemote,
+      style: textTheme.labelSmall?.copyWith(
+        color: colorScheme.onSurfaceVariant,
+      ),
+    ),
+  );
 }
 
 Widget _pinnedChip(BuildContext context) {

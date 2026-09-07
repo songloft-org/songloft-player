@@ -1147,6 +1147,8 @@
   "playlistTryOtherKeywords": "尝试其他关键词",
   "playlistFilterNormal": "普通歌单",
   "playlistFilterRadio": "电台歌单",
+  "playlistFilterRemote": "网络歌单",
+  "playlistFilterLocal": "本地歌单",
   "playlistMultiSelect": "多选",
   "playlistMore": "更多",
   "playlistDone": "完成",
@@ -1243,6 +1245,7 @@
   "playlistLabelAuto": "自动",
   "playlistLabelHidden": "已隐藏",
   "playlistLabelPinned": "已置顶",
+  "playlistLabelRemote": "网络",
   "playlistConfirmDelete": "确认删除",
   "playlistDeleteConfirm": "确定要删除歌单「{name}」吗？此操作不可恢复。",
   "@playlistDeleteConfirm": {

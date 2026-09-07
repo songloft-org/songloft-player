@@ -25,17 +25,25 @@ import 'playlist_form_dialog.dart';
 
 /// 可嵌入的歌单浏览视图：搜索 + 通用卡片（grid/list）+ 分页 + 多选/排序/新建。
 ///
-/// 由曲库页在「全部歌单 / 普通歌单 / 电台歌单」视图下嵌入使用，[typeFilter] 固定该视图的
-/// 歌单 type（null=全部）。**工具栏由曲库顶部 AppBar 驱动**：本视图仅渲染搜索 + 内容
+/// 由曲库页在「全部歌单 / 普通歌单 / 电台歌单 / 网络歌单 / 本地歌单」视图下嵌入使用：
+/// [typeFilter] 固定该视图的歌单 type（null=不按 type 过滤），[songSourceFilter] 固定
+/// 按歌单内歌曲来源过滤（null=不过滤，'remote'=网络歌单，'local'=本地歌单）。两者独立。
+/// **工具栏由曲库顶部 AppBar 驱动**：本视图仅渲染搜索 + 内容
 /// （多选/排序模式下切换内容形态），通过公共方法/getter 暴露操作，模式变化经
 /// [onModeChanged] 通知父级重建 AppBar。
 class PlaylistBrowseView extends ConsumerStatefulWidget {
   final String? typeFilter;
+  final String? songSourceFilter;
 
   /// 多选/排序等模式或选中数变化时回调，供父级(曲库页)重建顶部 AppBar。
   final VoidCallback? onModeChanged;
 
-  const PlaylistBrowseView({super.key, this.typeFilter, this.onModeChanged});
+  const PlaylistBrowseView({
+    super.key,
+    this.typeFilter,
+    this.songSourceFilter,
+    this.onModeChanged,
+  });
 
   @override
   ConsumerState<PlaylistBrowseView> createState() => PlaylistBrowseViewState();
@@ -57,7 +65,11 @@ class PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
 
   bool _showHiddenState = false;
 
-  String? get _type => widget.typeFilter;
+  /// 本视图的歌单列表 Provider family key（type + 歌曲来源两个维度）。
+  PlaylistListQuery get _query => PlaylistListQuery(
+    type: widget.typeFilter,
+    songSource: widget.songSourceFilter,
+  );
 
   // ---------- 供父级 AppBar 读取的状态 ----------
   bool get isSelectionMode => _isSelectionMode;
@@ -76,11 +88,14 @@ class PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
   @override
   void didUpdateWidget(covariant PlaylistBrowseView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // 切换歌单子视图（全部/普通/电台）时重置交互态与搜索。
+    // 切换歌单子视图（全部/普通/电台/网络/本地）时重置交互态与搜索。
+    // **必须同时比较 songSourceFilter**：全部歌单 ↔ 网络歌单 的 typeFilter 两边都是
+    // null，只比 typeFilter 会漏掉这类切换，导致搜索词和多选态残留到新视图。
     // 注意：不要在此同步调用 onModeChanged（父级 setState）——那会在 build 阶段重入，
     // 导致同一 GlobalKey 组件瞬时并存报错。父级切视图时已自行 setState 重建 AppBar，
     // 此处仅重置本地字段即可（紧随其后的 build 会用到新值）。
-    if (oldWidget.typeFilter != widget.typeFilter) {
+    if (oldWidget.typeFilter != widget.typeFilter ||
+        oldWidget.songSourceFilter != widget.songSourceFilter) {
       _searchDebounce?.cancel();
       _searchController.clear();
       _searchKeyword = '';
@@ -104,7 +119,7 @@ class PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
     if (!_scrollController.hasClients) return;
     final position = _scrollController.position;
     if (position.pixels >= position.maxScrollExtent - _loadMoreThreshold) {
-      ref.read(playlistListProvider(_type).notifier).loadMore();
+      ref.read(playlistListProvider(_query).notifier).loadMore();
     }
   }
 
@@ -112,7 +127,7 @@ class PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
     _searchDebounce?.cancel();
     _searchDebounce = Timer(const Duration(milliseconds: 300), () {
       _searchKeyword = value.trim();
-      ref.read(playlistListProvider(_type).notifier).search(_searchKeyword);
+      ref.read(playlistListProvider(_query).notifier).search(_searchKeyword);
     });
   }
 
@@ -120,12 +135,12 @@ class PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
     _searchDebounce?.cancel();
     _searchController.clear();
     _searchKeyword = '';
-    ref.read(playlistListProvider(_type).notifier).search('');
+    ref.read(playlistListProvider(_query).notifier).search('');
   }
 
   @override
   Widget build(BuildContext context) {
-    final playlistsAsync = ref.watch(playlistListProvider(_type));
+    final playlistsAsync = ref.watch(playlistListProvider(_query));
 
     if (_isSortMode) {
       return Center(
@@ -150,7 +165,7 @@ class PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
                     (error, _) => ErrorView(
                       message: error.toString(),
                       onRetry:
-                          () => ref.invalidate(playlistListProvider(_type)),
+                          () => ref.invalidate(playlistListProvider(_query)),
                     ),
               ),
             ),
@@ -210,7 +225,7 @@ class PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
       itemCount: state.items.length,
       scrollController: _scrollController,
       isLoadingMore: state.isLoadingMore,
-      onRefresh: () async => ref.invalidate(playlistListProvider(_type)),
+      onRefresh: () async => ref.invalidate(playlistListProvider(_query)),
       cardBuilder: (context, index) {
         final playlist = state.items[index];
         void onTap() => context.push('/playlists/${playlist.id}');
@@ -398,9 +413,9 @@ class PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
   }
 
   Future<void> selectAllInSelection() async {
-    await ref.read(playlistListProvider(_type).notifier).loadAll();
+    await ref.read(playlistListProvider(_query).notifier).loadAll();
     if (!mounted) return;
-    final playlists = ref.read(playlistListProvider(_type)).value?.items ?? [];
+    final playlists = ref.read(playlistListProvider(_query)).value?.items ?? [];
     setState(() {
       final selectableIds =
           playlists.where((p) => !p.isBuiltIn).map((p) => p.id).toSet();
@@ -414,9 +429,9 @@ class PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
   }
 
   Future<void> enterSortMode() async {
-    await ref.read(playlistListProvider(_type).notifier).loadAll();
+    await ref.read(playlistListProvider(_query).notifier).loadAll();
     if (!mounted) return;
-    final full = ref.read(playlistListProvider(_type)).value?.items ?? [];
+    final full = ref.read(playlistListProvider(_query)).value?.items ?? [];
     setState(() {
       _isSortMode = true;
       _isSelectionMode = false;
@@ -454,9 +469,9 @@ class PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
   }
 
   Future<void> autoSortByName({bool ascending = true}) async {
-    await ref.read(playlistListProvider(_type).notifier).loadAll();
+    await ref.read(playlistListProvider(_query).notifier).loadAll();
     if (!mounted) return;
-    final full = ref.read(playlistListProvider(_type)).value?.items ?? [];
+    final full = ref.read(playlistListProvider(_query)).value?.items ?? [];
 
     // TODO(i18n): 启用中文拼音排序时，注入拼音比较器：
     // PlaylistSort(compareStrings: lpinyinCompare)
@@ -468,9 +483,9 @@ class PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
   }
 
   Future<void> autoSortByNumberPrefix() async {
-    await ref.read(playlistListProvider(_type).notifier).loadAll();
+    await ref.read(playlistListProvider(_query).notifier).loadAll();
     if (!mounted) return;
-    final full = ref.read(playlistListProvider(_type)).value?.items ?? [];
+    final full = ref.read(playlistListProvider(_query)).value?.items ?? [];
 
     // TODO(i18n): 启用中文拼音排序时，注入拼音比较器：
     // PlaylistSort(compareStrings: lpinyinCompare)
@@ -507,7 +522,7 @@ class PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
     setState(() => _showHiddenState = !_showHiddenState);
     _notify();
     ref
-        .read(playlistListProvider(_type).notifier)
+        .read(playlistListProvider(_query).notifier)
         .setExcludeLabels(_showHiddenState ? 'none' : null);
   }
 

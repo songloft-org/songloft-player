@@ -40,7 +40,9 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
     if (notification.metrics.axis != Axis.vertical) return false;
     if (notification.metrics.pixels >=
         notification.metrics.maxScrollExtent - _loadMoreThreshold) {
-      ref.read(playlistListProvider(null).notifier).loadMore();
+      ref
+          .read(playlistListProvider(const PlaylistListQuery()).notifier)
+          .loadMore();
     }
     return false;
   }
@@ -67,7 +69,14 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
         child: Center(
           child: TextButton.icon(
             onPressed:
-                () => ref.read(playlistListProvider(null).notifier).loadMore(),
+                () =>
+                    ref
+                        .read(
+                          playlistListProvider(
+                            const PlaylistListQuery(),
+                          ).notifier,
+                        )
+                        .loadMore(),
             icon: const Icon(Icons.refresh, size: 16),
             label: Text(l10n.loadFailedTapRetry),
           ),
@@ -230,7 +239,9 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-    final playlistsAsync = ref.watch(playlistListProvider(null));
+    final playlistsAsync = ref.watch(
+      playlistListProvider(const PlaylistListQuery()),
+    );
 
     return LoadingOverlay(
       isLoading: _isAdding,
@@ -356,7 +367,9 @@ class _AddToPlaylistModalState extends ConsumerState<AddToPlaylistModal> {
                             FilledButton.icon(
                               onPressed:
                                   () => ref.invalidate(
-                                    playlistListProvider(null),
+                                    playlistListProvider(
+                                      const PlaylistListQuery(),
+                                    ),
                                   ),
                               icon: const Icon(Icons.refresh),
                               label: Text(l10n.commonRetry),

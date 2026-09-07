@@ -13,9 +13,13 @@ class PlaylistApi {
   PlaylistApi(this.dio);
 
   /// 获取歌单列表
-  /// GET /api/v1/playlists?type=normal&keyword=&limit=20&offset=0
+  /// GET /api/v1/playlists?type=normal&song_source=remote&keyword=&limit=20&offset=0
+  ///
+  /// [songSource] 按歌单内歌曲来源过滤（'remote'=网络歌单 / 'local'=本地歌单 / null=不过滤）。
+  /// 后端是 EXISTS 语义：混合歌单两个取值下都会出现，空歌单都不出现。
   Future<PlaylistListResponse> getPlaylists({
     String? type,
+    String? songSource,
     String? excludeLabels,
     String? keyword,
     int limit = 20,
@@ -24,6 +28,9 @@ class PlaylistApi {
     final queryParams = <String, dynamic>{'limit': limit, 'offset': offset};
     if (type != null) {
       queryParams['type'] = type;
+    }
+    if (songSource != null) {
+      queryParams['song_source'] = songSource;
     }
     if (excludeLabels != null) {
       queryParams['exclude_labels'] = excludeLabels;

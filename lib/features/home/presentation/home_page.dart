@@ -54,7 +54,9 @@ class _HomePageState extends ConsumerState<HomePage> {
     _autoLoadCursor[type] = state.items.length;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      ref.read(playlistListProvider(type).notifier).loadMore();
+      ref
+          .read(playlistListProvider(PlaylistListQuery(type: type)).notifier)
+          .loadMore();
     });
   }
 
@@ -64,8 +66,12 @@ class _HomePageState extends ConsumerState<HomePage> {
     // 本地按 type 拆分：pageLimit=30 是两个 section 的**共享**预算，歌单一多电台
     // section 会一条都拿不到，而可配网格的 6×5=30 上限更喂不饱。typed provider
     // 各自独立 30 条，同时少发一个 HTTP 请求（songloft-org/songloft#332）。
-    final normalAsync = ref.watch(playlistListProvider('normal'));
-    final radioAsync = ref.watch(playlistListProvider('radio'));
+    final normalAsync = ref.watch(
+      playlistListProvider(const PlaylistListQuery(type: 'normal')),
+    );
+    final radioAsync = ref.watch(
+      playlistListProvider(const PlaylistListQuery(type: 'radio')),
+    );
 
     // 首次加载 = 既没数据也没错误。下拉刷新时 Riverpod 保留旧值（hasValue 仍为
     // true），因此刷新不会把内容打回骨架屏。
@@ -86,8 +92,12 @@ class _HomePageState extends ConsumerState<HomePage> {
     void retryAll() {
       // 清游标：刷新后 items 退回第一页，不清的话续拉会被同条数去重挡住。
       _autoLoadCursor.clear();
-      ref.invalidate(playlistListProvider('normal'));
-      ref.invalidate(playlistListProvider('radio'));
+      ref.invalidate(
+        playlistListProvider(const PlaylistListQuery(type: 'normal')),
+      );
+      ref.invalidate(
+        playlistListProvider(const PlaylistListQuery(type: 'radio')),
+      );
       // 底部统计面板与歌单区同一次下拉刷新：它是常驻 provider（非 autoDispose），
       // 不 invalidate 就会永远停在首次加载时的数字上。
       ref.invalidate(libraryStatsProvider);
@@ -180,7 +190,12 @@ class _HomePageState extends ConsumerState<HomePage> {
               const SizedBox(height: AppSpacing.md),
               if (normalFailed && normalPlaylists.isEmpty)
                 _SectionLoadError(
-                  onRetry: () => ref.invalidate(playlistListProvider('normal')),
+                  onRetry:
+                      () => ref.invalidate(
+                        playlistListProvider(
+                          const PlaylistListQuery(type: 'normal'),
+                        ),
+                      ),
                 )
               else if (isWide)
                 _PlaylistGrid(
@@ -215,7 +230,12 @@ class _HomePageState extends ConsumerState<HomePage> {
               const SizedBox(height: AppSpacing.md),
               if (radioFailed && radioPlaylists.isEmpty)
                 _SectionLoadError(
-                  onRetry: () => ref.invalidate(playlistListProvider('radio')),
+                  onRetry:
+                      () => ref.invalidate(
+                        playlistListProvider(
+                          const PlaylistListQuery(type: 'radio'),
+                        ),
+                      ),
                 )
               else if (isWide)
                 _PlaylistGrid(

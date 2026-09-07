@@ -10,6 +10,7 @@ abstract class IPlaylistRepository {
   /// 获取歌单列表
   Future<PlaylistListResponse> getPlaylists({
     String? type,
+    String? songSource,
     String? excludeLabels,
     String? keyword,
     int limit = 20,

@@ -11,7 +11,9 @@ import '../providers/category_provider.dart';
 // 视图 key 分三组（渲染时按固定组顺序展示并在组间加分割线，组内顺序沿用用户配置）：
 // - 歌曲组：all/local/remote/radio（按 type 过滤的扁平歌曲列表，「网络」= remote）
 // - 分类组：artist/album/genre/year/decade/language/style（facet 卡片 → 下钻）
-// - 歌单组：playlist/playlist_normal/playlist_radio（歌单卡片列表 → 歌单详情）
+// - 歌单组：playlist/playlist_normal/playlist_radio/playlist_remote/playlist_local
+//   （歌单卡片列表 → 歌单详情）。前三个按 playlists.type 过滤，后两个**不按 type**，
+//   而是按歌单内歌曲的来源过滤（见 [playlistViewSongSource]）。
 
 /// 扁平列表视图的 key 集合。
 const Set<String> flatLibraryViewKeys = {'all', 'local', 'remote', 'radio'};
@@ -21,6 +23,8 @@ const Set<String> playlistLibraryViewKeys = {
   'playlist',
   'playlist_normal',
   'playlist_radio',
+  'playlist_remote',
+  'playlist_local',
 };
 
 /// 判断某视图是否为扁平歌曲列表视图。
@@ -44,6 +48,9 @@ String? flatViewType(String key) {
 }
 
 /// 歌单视图对应的歌单 type 过滤值；playlist 返回 null（全部歌单）。
+///
+/// 注意 playlist_remote / playlist_local 也返回 null —— 它们不按歌单 type 过滤，
+/// 而是走 [playlistViewSongSource]（歌单表没有来源字段，只能按歌单内歌曲反推）。
 String? playlistViewType(String key) {
   switch (key) {
     case 'playlist_normal':
@@ -51,7 +58,23 @@ String? playlistViewType(String key) {
     case 'playlist_radio':
       return AppConstants.playlistTypeRadio;
     default:
-      return null; // playlist（全部）
+      return null; // playlist（全部）/ playlist_remote / playlist_local
+  }
+}
+
+/// 歌单视图对应的「歌单内歌曲来源」过滤值（后端 song_source 参数）；其余视图返回 null。
+///
+/// 判定是 EXISTS 语义（含该来源的歌曲即命中），故本地+网络混合的歌单在两个视图里都会
+/// 出现，空歌单两个视图都不出现。电台歌曲 type 是 radio 而非 remote，故电台歌单不会
+/// 出现在网络歌单视图里（它有独立的 playlist_radio 视图）。
+String? playlistViewSongSource(String key) {
+  switch (key) {
+    case 'playlist_remote':
+      return AppConstants.songTypeRemote;
+    case 'playlist_local':
+      return AppConstants.songTypeLocal;
+    default:
+      return null;
   }
 }
 
@@ -82,6 +105,10 @@ String libraryViewLabel(AppLocalizations l10n, String key) {
       return l10n.playlistFilterNormal;
     case 'playlist_radio':
       return l10n.playlistFilterRadio;
+    case 'playlist_remote':
+      return l10n.playlistFilterRemote;
+    case 'playlist_local':
+      return l10n.playlistFilterLocal;
     default:
       return categoryFieldLabel(l10n, key);
   }
@@ -122,6 +149,11 @@ IconData libraryViewIcon(String key) {
       return Icons.playlist_play;
     case 'playlist_radio':
       return Icons.radio;
+    // 与歌曲组的 remote / local 视图用同一组图标，保持「网络/本地」语义一致。
+    case 'playlist_remote':
+      return Icons.cloud_outlined;
+    case 'playlist_local':
+      return Icons.folder_outlined;
     default:
       return Icons.label_outline;
   }

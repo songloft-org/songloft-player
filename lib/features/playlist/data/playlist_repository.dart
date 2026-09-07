@@ -18,6 +18,7 @@ class PlaylistRepository implements IPlaylistRepository {
   @override
   Future<PlaylistListResponse> getPlaylists({
     String? type,
+    String? songSource,
     String? excludeLabels,
     String? keyword,
     int limit = 20,
@@ -26,6 +27,7 @@ class PlaylistRepository implements IPlaylistRepository {
     try {
       return await playlistApi.getPlaylists(
         type: type,
+        songSource: songSource,
         excludeLabels: excludeLabels,
         keyword: keyword,
         limit: limit,

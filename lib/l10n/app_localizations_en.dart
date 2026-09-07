@@ -1848,6 +1848,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playlistFilterRadio => 'Radios';
 
   @override
+  String get playlistFilterRemote => 'Remote Playlists';
+
+  @override
+  String get playlistFilterLocal => 'Local Playlists';
+
+  @override
   String get playlistMultiSelect => 'Multi-select';
 
   @override
@@ -2030,6 +2036,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get playlistLabelPinned => 'Pinned';
+
+  @override
+  String get playlistLabelRemote => 'Remote';
 
   @override
   String get playlistConfirmDelete => 'Confirm deletion';

@@ -11,6 +11,11 @@ class Playlist {
   final String sortBy; // 视图排序字段
   final String sortOrder; // 视图排序方向
   final int songCount;
+
+  /// 歌单内网络歌曲（songs.type=remote）数量，>0 即视为「网络歌单」。
+  /// 歌单表本身没有来源字段，只能由歌曲反推（songloft-org/songloft#445）。
+  /// **仅列表接口填充**，歌单详情接口恒为 0，故只用于列表卡片徽标。
+  final int remoteCount;
   final DateTime? pinnedAt; // 置顶时间，null 表示未置顶
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -25,6 +30,7 @@ class Playlist {
     this.sortBy = 'position',
     this.sortOrder = 'asc',
     this.songCount = 0,
+    this.remoteCount = 0,
     this.pinnedAt,
     required this.createdAt,
     required this.updatedAt,
@@ -41,6 +47,7 @@ class Playlist {
       sortBy: json['sort_by'] as String? ?? 'position',
       sortOrder: json['sort_order'] as String? ?? 'asc',
       songCount: _intFromJson(json['song_count']),
+      remoteCount: _intFromJson(json['remote_count']),
       pinnedAt: _nullableDateTimeFromJson(json['pinned_at']),
       createdAt: _dateTimeFromJson(json['created_at']),
       updatedAt: _dateTimeFromJson(json['updated_at']),
@@ -58,6 +65,7 @@ class Playlist {
       'sort_by': sortBy,
       'sort_order': sortOrder,
       'song_count': songCount,
+      'remote_count': remoteCount,
       'pinned_at': pinnedAt?.toIso8601String(),
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
@@ -75,6 +83,7 @@ class Playlist {
     String? sortBy,
     String? sortOrder,
     int? songCount,
+    int? remoteCount,
     DateTime? pinnedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -89,6 +98,7 @@ class Playlist {
       sortBy: sortBy ?? this.sortBy,
       sortOrder: sortOrder ?? this.sortOrder,
       songCount: songCount ?? this.songCount,
+      remoteCount: remoteCount ?? this.remoteCount,
       pinnedAt: pinnedAt ?? this.pinnedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -107,6 +117,10 @@ class Playlist {
 
   /// 是否是内置歌单
   bool get isBuiltIn => labels.contains('built_in');
+
+  /// 是否含网络歌曲（即「网络歌单」）。混合歌单同样为 true —— 判定是「含」而非「全是」，
+  /// 与后端 song_source 过滤的 EXISTS 语义一致。依赖仅列表接口填充的 [remoteCount]。
+  bool get hasRemoteSongs => remoteCount > 0;
 
   /// 是否是自动创建的歌单
   bool get isAutoCreated => labels.contains('auto_created');

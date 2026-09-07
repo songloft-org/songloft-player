@@ -1806,6 +1806,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get playlistFilterRadio => '电台歌单';
 
   @override
+  String get playlistFilterRemote => '网络歌单';
+
+  @override
+  String get playlistFilterLocal => '本地歌单';
+
+  @override
   String get playlistMultiSelect => '多选';
 
   @override
@@ -1969,6 +1975,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get playlistLabelPinned => '已置顶';
+
+  @override
+  String get playlistLabelRemote => '网络';
 
   @override
   String get playlistConfirmDelete => '确认删除';
