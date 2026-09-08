@@ -1,0 +1,2872 @@
+{
+  "@@locale": "es",
+  "updateFoundTitle": "Actualización disponible",
+  "updateFoundBody": "Hay una nueva versión {version} disponible. ¿Descargar y actualizar ahora?",
+  "@updateFoundBody": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateComponentsHeader": "Las siguientes actualizaciones están disponibles. ¿Descargar y actualizar ahora?",
+  "updateComponentFrontend": "Parche de frontend {version}",
+  "@updateComponentFrontend": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateComponentBackend": "Parche de backend {version}",
+  "@updateComponentBackend": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateRestartInterrupt": "La app se reiniciará, lo que puede interrumpir la reproducción.",
+  "updateActionDownload": "Descargar y actualizar",
+  "updateActionLater": "Más tarde",
+  "updateActionIgnore": "Ignorar esta versión",
+  "updateDownloading": "Descargando actualización…",
+  "updateReadyTitle": "Actualización completada",
+  "updateReadyBody": "La actualización se ha descargado. Reinicia la app para aplicarla.",
+  "updateActionRestartNow": "Reiniciar ahora",
+  "updateFailed": "Error en la actualización, inténtalo de nuevo",
+  "updateIncompatibleTitle": "Se requiere una versión nueva",
+  "updateIncompatibleBody": "La versión {version} incluye cambios que no se pueden actualizar en caliente. Descarga el instalador más reciente desde Ajustes.",
+  "@updateIncompatibleBody": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateActionGoDownload": "Ir a descargar",
+  "language": "Idioma",
+  "languageSimplifiedChinese": "简体中文",
+  "languageEnglish": "English",
+  "languageSystem": "Seguir sistema",
+  "themeTitle": "Tema",
+  "themeModeTitle": "Modo de tema",
+  "themeModeSubtitle": "Elige la apariencia de la app",
+  "themeLight": "Claro",
+  "themeDark": "Oscuro",
+  "themeSystem": "Sistema",
+  "themePackTitle": "Paquetes de tema",
+  "themePackSubtitle": "Personaliza colores y estilos visuales con paquetes de tema",
+  "themePackImport": "Importar",
+  "themePackRestoreDefault": "Restaurar predeterminado",
+  "themePackEmpty": "No hay paquetes de tema instalados",
+  "themePackLoadError": "No se pudieron cargar los paquetes de tema",
+  "themePackImportSuccess": "Paquete de tema importado correctamente",
+  "themePackImportError": "Error al importar",
+  "themePackDeleteConfirmTitle": "Eliminar paquete de tema",
+  "themePackDeleteConfirmContent": "¿Seguro que quieres eliminar \"{name}\"?",
+  "@themePackDeleteConfirmContent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "themeCatalogTitle": "Temas en línea",
+  "themeCatalogRefresh": "Actualizar",
+  "themeCatalogEmpty": "No hay temas en línea disponibles",
+  "themeCatalogLoadError": "No se pudieron cargar los temas en línea",
+  "themeCatalogInstall": "Instalar",
+  "themeCatalogUpdate": "Actualizar",
+  "themeCatalogInstalled": "Instalado",
+  "themeCatalogInstallSuccess": "El tema \"{name}\" se instaló correctamente",
+  "@themeCatalogInstallSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "themeCatalogInstallError": "Error en la instalación",
+  "commonConfirm": "Confirmar",
+  "commonCancel": "Cancelar",
+  "commonDelete": "Eliminar",
+  "commonRetry": "Reintentar",
+  "commonLoading": "Cargando",
+  "commonUnknown": "Desconocido",
+  "errorNetworkFailed": "Error de conexión de red",
+  "errorGeneric": "Algo salió mal",
+  "deleteAlsoLocalFile": "Eliminar también el archivo local",
+  "deleteIrreversible": "Esta acción no se puede deshacer",
+  "navHome": "Inicio",
+  "navLibrary": "Biblioteca",
+  "navPlaylists": "Listas de reproducción",
+  "navSettings": "Ajustes",
+  "favoriteAdded": "Añadido a favoritos",
+  "favoriteRemoved": "Eliminado de favoritos",
+  "favoriteAddFailed": "No se pudo añadir a favoritos",
+  "favoriteRemoveFailed": "No se pudo quitar de favoritos",
+  "favorite": "Favorito",
+  "unfavorite": "Quitar favorito",
+  "commonCreate": "Crear",
+  "commonConfirmWithCount": "Aceptar ({count})",
+  "commonLoadFailed": "No se pudo cargar",
+  "commonLoadFailedDetail": "No se pudo cargar: {error}",
+  "clearSearch": "Borrar búsqueda",
+  "selectAll": "Seleccionar todo",
+  "selectFolder": "Seleccionar carpeta",
+  "more": "Más",
+  "expand": "Expandir",
+  "collapse": "Contraer",
+  "songTypeLocal": "Local",
+  "songTypeRemote": "Remota",
+  "songTypeRadio": "Radio",
+  "filterAll": "Todas",
+  "pickerSelectSongs": "Seleccionar canciones",
+  "pickerSearchHint": "Buscar canciones, artistas o álbumes",
+  "pickerNoMatchInFolder": "No hay canciones que coincidan en esta carpeta",
+  "pickerNoMatch": "No hay canciones que coincidan",
+  "pickerNoSongsInFolder": "No hay canciones en esta carpeta",
+  "pickerNoSongs": "Aún no hay canciones",
+  "pickerFetchListFailed": "No se pudo obtener la lista: {error}",
+  "pickerSelectingAll": "Seleccionando todo...",
+  "pickerDeselectAllWithCount": "Deseleccionar todo ({count} seleccionadas)",
+  "pickerSelectAllCount": "Seleccionar todas {count}",
+  "loadFailedTapRetry": "No se pudo cargar, toca para reintentar",
+  "loadedAllHint": "— Todo cargado —",
+  "addToPlaylist": "Añadir a lista de reproducción",
+  "newPlaylist": "Nueva lista de reproducción",
+  "playlistNameLabel": "Nombre de la lista",
+  "noPlaylists": "Aún no hay listas de reproducción",
+  "songsCount": "{count, plural, =1{1 canción} other{{count} canciones}}",
+  "@songsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addFailed": "No se pudo añadir",
+  "addFailedDetail": "No se pudo añadir: {error}",
+  "addedToPlaylist": "Se añadieron {added} canción(es) a \"{name}\"",
+  "addedToPlaylistWithSkip": "Se añadieron {added} a \"{name}\", se omitieron {skipped}",
+  "createdPlaylistAdded": "Lista \"{name}\" creada con {added} canción(es) añadidas",
+  "createdPlaylistWithSkip": "Lista \"{name}\" creada con {added} añadidas, {skipped} omitidas",
+  "createPlaylistFailed": "No se pudo crear la lista de reproducción",
+  "createPlaylistFailedDetail": "No se pudo crear la lista: {error}",
+  "selectAllFiles": "Seleccionar todos los archivos",
+  "allSongs": "Todas las canciones",
+  "musicDirEmpty": "El directorio de música está vacío",
+  "dirEmpty": "El directorio está vacío",
+  "loadDirFailed": "No se pudo cargar el directorio: {error}",
+  "githubProxyDirect": "Directo (sin proxy)",
+  "coreErrorConnectionTimeout": "No se pudo conectar con {target} (tiempo de espera agotado). Comprueba: (1) que el servicio backend esté en ejecución, (2) que la URL y el puerto sean correctos, (3) si accedes vía ZeroTier/VPN, que la VPN esté conectada y el \"enrutamiento global\" activado.",
+  "@coreErrorConnectionTimeout": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "coreErrorConnectionFailed": "No se pudo conectar con {target}. Comprueba que la URL sea correcta; si accedes vía ZeroTier/VPN, asegúrate de que la VPN esté activada.",
+  "@coreErrorConnectionFailed": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "coreErrorBadCertificate": "Falló la verificación del certificado",
+  "coreErrorRequestCancelled": "Solicitud cancelada",
+  "coreErrorUnknownNetwork": "Error de red desconocido",
+  "coreErrorNoResponse": "El servidor no respondió",
+  "coreErrorRequestFailed": "La solicitud falló",
+  "coreErrorUnauthorized": "Tu sesión ha caducado, inicia sesión de nuevo",
+  "coreErrorForbidden": "Acceso denegado",
+  "coreErrorNotFound": "El recurso solicitado no existe",
+  "coreErrorServer": "Error del servidor, inténtalo de nuevo más tarde",
+  "coreNotFoundPageTitle": "Página no encontrada",
+  "coreBackToHome": "Volver al inicio",
+  "coreNotificationChannel": "Control de reproducción de Songloft",
+  "coreVersionDev": "Compilación de desarrollo",
+  "jspluginManagerTitle": "Gestión de plugins JS",
+  "jspluginManagerSubtitle": "Administra los plugins JS instalados",
+  "jspluginUploadPlugin": "Subir plugin",
+  "jspluginUpdateAll": "Actualizar todos",
+  "jspluginCleanupData": "Limpiar datos",
+  "jspluginCleanupOrphanTitle": "Limpiar datos huérfanos",
+  "jspluginCleanupOrphanContent": "Se eliminarán los datos de almacenamiento persistente que dejaron los plugins desinstalados. Esta acción no se puede deshacer.",
+  "jspluginCleanup": "Limpiar",
+  "jspluginCleanupFailed": "Error al limpiar: {error}",
+  "@jspluginCleanupFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginNoInstalled": "No hay plugins JS instalados",
+  "jspluginPickFileFailed": "No se pudo elegir el archivo: {error}",
+  "@jspluginPickFileFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginCannotReadFile": "No se pueden leer los datos del archivo",
+  "jspluginCannotGetPath": "No se pudo obtener la ruta del archivo",
+  "jspluginUploadSuccess": "{count} plugin(s) subido(s) correctamente",
+  "@jspluginUploadSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "jspluginUploadPartial": "{success} correctos, {failed} fallidos\n{error}",
+  "@jspluginUploadPartial": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginUploadFailed": "Error al subir: {error}",
+  "@jspluginUploadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginUploadDialogTitle": "Subir plugin JS",
+  "jspluginSelectFileSemantics": "Selecciona un archivo de plugin para subir",
+  "jspluginTapToSelectFile": "Toca para seleccionar un archivo",
+  "jspluginUploadHint": "Compatible con el formato .jsplugin.zip; subir un plugin con el mismo nombre sobrescribe la versión existente (actualización manual)",
+  "jspluginRemove": "Quitar",
+  "jspluginUploading": "Subiendo...",
+  "jspluginUpload": "Subir",
+  "jspluginOperationFailed": "La operación falló: {error}",
+  "@jspluginOperationFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginCannotOpenLink": "No se puede abrir el enlace: {url}",
+  "@jspluginCannotOpenLink": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginForceUpdateSuccess": "Plugin actualizado a la fuerza",
+  "jspluginForceUpdateFailed": "Error en la actualización forzada: {error}",
+  "@jspluginForceUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginConfirmDelete": "Confirmar eliminación",
+  "jspluginDeleteConfirmContent": "¿Seguro que quieres eliminar el plugin \"{name}\"?",
+  "@jspluginDeleteConfirmContent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginKeepData": "Conservar datos del plugin",
+  "jspluginKeepDataSubtitle": "Conserva los datos de almacenamiento de archivos para reinstalarlo fácilmente después",
+  "jspluginDeleted": "Plugin eliminado",
+  "jspluginDeleteFailed": "Error al eliminar: {error}",
+  "@jspluginDeleteFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginAuthor": "Autor: {author}",
+  "@jspluginAuthor": {
+    "placeholders": {
+      "author": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginOpenHomepageSemantics": "Abrir la página del plugin",
+  "jspluginStatusError": "Error",
+  "jspluginStatusEnabled": "Activado",
+  "jspluginStatusDisabled": "Desactivado",
+  "jspluginMoreActions": "Más acciones",
+  "jspluginOpenHomepage": "Abrir página de inicio",
+  "jspluginKeepAlive": "Mantener en ejecución",
+  "jspluginCancelKeepAlive": "Dejar de mantener en ejecución",
+  "jspluginCheckUpdate": "Buscar actualizaciones",
+  "jspluginForceUpdate": "Forzar actualización",
+  "jspluginUpdate": "Actualizar",
+  "jspluginCheckUpdateTimeout": "La comprobación de actualizaciones agotó el tiempo. Prueba a cambiar de proxy e inténtalo de nuevo.",
+  "jspluginCheckUpdateFailed": "Error al buscar actualizaciones: {error}",
+  "@jspluginCheckUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginUpdateSuccess": "Plugin actualizado correctamente",
+  "jspluginUpdateFailed": "Error al actualizar: {error}",
+  "@jspluginUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginUpdateTimeout": "La actualización agotó el tiempo. Inténtalo de nuevo.",
+  "jspluginUpdateDialogTitle": "Actualizar plugin - {name}",
+  "@jspluginUpdateDialogTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginCheckingUpdate": "Buscando actualizaciones...",
+  "jspluginDownloadingUpdate": "Descargando y actualizando el plugin...",
+  "jspluginDoNotCloseDialog": "No cierres este diálogo",
+  "jspluginAlreadyLatest": "Ya está actualizado",
+  "jspluginCurrentVersion": "Versión actual: {version}",
+  "@jspluginCurrentVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginNewVersionFound": "Hay una versión nueva disponible",
+  "jspluginRecheck": "Volver a comprobar",
+  "jspluginUpdateNow": "Actualizar ahora",
+  "jspluginClose": "Cerrar",
+  "jspluginBatchUpdateFailed": "Error en la actualización por lotes: {error}",
+  "@jspluginBatchUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginBatchUpdateTimeout": "La actualización por lotes agotó el tiempo. Inténtalo de nuevo.",
+  "jspluginBatchUpdating": "Comprobando y actualizando todos los plugins...",
+  "jspluginStatUpdated": "Actualizado",
+  "jspluginStatFailed": "Fallido",
+  "jspluginStatSkipped": "Actualizado",
+  "jspluginUpdateFailedShort": "Error en la actualización",
+  "jspluginVersionLatest": "v{version} ya está actualizado",
+  "@jspluginVersionLatest": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginStartUpdate": "Iniciar actualización",
+  "jspluginForceUpdateDialogTitle": "Forzar actualización - {name}",
+  "@jspluginForceUpdateDialogTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginForceUpdateContent": "Esto ignora la comprobación de versión y vuelve a descargar e instalar el plugin.",
+  "jspluginConfirmUpdate": "Confirmar actualización",
+  "jspluginStoreTitle": "Tienda de plugins",
+  "jspluginRefreshList": "Actualizar lista de plugins",
+  "jspluginManageRegistries": "Administrar fuentes",
+  "jspluginNoRegistries": "Aún no hay fuentes añadidas",
+  "jspluginNoRegistriesHint": "Añade una fuente para explorar e instalar plugins",
+  "jspluginAddRegistry": "Añadir fuente",
+  "jspluginRegistry": "Fuente",
+  "jspluginOfficial": "Oficial",
+  "jspluginAllSources": "Todas",
+  "jspluginAutoUpdate": "Autoactualizar plugins",
+  "jspluginAutoUpdateHint": "Comprueba y actualiza periódicamente los plugins instalados en segundo plano",
+  "jspluginSearchHint": "Buscar plugins...",
+  "jspluginLoadingList": "Cargando lista de plugins…",
+  "jspluginNoMatch": "No se encontraron plugins que coincidan",
+  "jspluginRegistryEmpty": "Esta fuente no tiene plugins",
+  "jspluginRegistryWarningsSummary": "No se pudieron cargar algunos datos de plugins (avisos: {count})",
+  "@jspluginRegistryWarningsSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "jspluginRegistryWarningsTitle": "Avisos de carga",
+  "jspluginRegistryWarningsDetails": "Ver detalles de los avisos",
+  "jspluginPrevPage": "Página anterior",
+  "jspluginNextPage": "Página siguiente",
+  "jspluginInstallFailed": "Error en la instalación: {error}",
+  "@jspluginInstallFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginReinstall": "Reinstalar",
+  "jspluginUpdateTo": "Actualizar a v{version}",
+  "@jspluginUpdateTo": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginInstall": "Instalar",
+  "jspluginOverwriteInstall": "Reemplazar",
+  "jspluginConflictBanner": "Entra en conflicto con {plugin} instalado",
+  "@jspluginConflictBanner": {
+    "placeholders": {
+      "plugin": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginConflictDialogTitle": "¿Reemplazar el plugin instalado?",
+  "jspluginConflictDialogBody": "El identificador \"{entryPath}\" ya lo usa {plugin}. Instalar este plugin lo reemplaza, y el reemplazo hereda los datos almacenados del plugin original. Esto no se puede deshacer.",
+  "@jspluginConflictDialogBody": {
+    "placeholders": {
+      "entryPath": {
+        "type": "String"
+      },
+      "plugin": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginConflictDialogConfirm": "Reemplazar",
+  "jspluginSaveFailed": "Error al guardar: {error}",
+  "@jspluginSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "jspluginEditRegistry": "Editar fuente",
+  "jspluginDeleteRegistry": "Eliminar fuente",
+  "jspluginNameOptional": "Nombre (opcional)",
+  "jspluginRegistryNameHint": "Mi fuente de plugins",
+  "jspluginTokenOptional": "Token (opcional)",
+  "jspluginSave": "Guardar",
+  "jspluginAdd": "Añadir",
+  "jspluginAuthConfigured": "Autenticación configurada",
+  "jspluginGridTitle": "Plugins JS",
+  "jspluginCleanupDone": "Limpieza completada",
+  "libraryPlayFailed": "Error de reproducción",
+  "libraryNoPlayableSongs": "No hay canciones para reproducir",
+  "libraryPlayingAllSongs": "Reproduciendo las {total} canciones",
+  "@libraryPlayingAllSongs": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryDismissError": "Descartar",
+  "libraryExitSelection": "Salir de la selección",
+  "librarySelectedCount": "{count} seleccionadas",
+  "@librarySelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryDeleteWithCount": "Eliminar ({count})",
+  "@libraryDeleteWithCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryDeselectAll": "Deseleccionar todo",
+  "libraryTitle": "Biblioteca",
+  "libraryPlayAll": "Reproducir todas",
+  "librarySort": "Ordenar",
+  "librarySortAddedAt": "Añadidas recientemente",
+  "librarySortFileTime": "Fecha del archivo",
+  "libraryColumnTitle": "Título",
+  "libraryColumnArtist": "Artista",
+  "libraryColumnAlbum": "Álbum",
+  "libraryColumnType": "Tipo",
+  "libraryColumnDuration": "Duración",
+  "librarySortFileSize": "Tamaño de archivo",
+  "librarySelectMode": "Selección múltiple",
+  "libraryMore": "Más",
+  "libraryAddRemoteSong": "Añadir canción remota",
+  "libraryAddRadio": "Añadir radio",
+  "libraryHideHiddenSongs": "Ocultar canciones ocultas",
+  "libraryShowHiddenSongs": "Mostrar canciones ocultas",
+  "libraryCleanInvalidSongs": "Limpiar canciones no válidas",
+  "librarySearchHint": "Buscar canciones...",
+  "libraryNoMatchingSongs": "No se encontraron canciones que coincidan",
+  "libraryEmpty": "La biblioteca está vacía",
+  "libraryTryOtherKeywords": "Prueba con otras palabras clave",
+  "libraryEmptyHint": "Añade algunas canciones para empezar",
+  "libraryDeleteConfirmTitle": "Confirmar eliminación",
+  "libraryDeleteConfirmContent": "¿Seguro que quieres eliminar esta canción?",
+  "libraryCleanTitle": "Limpiar canciones",
+  "libraryCleanContent": "Esto limpiará los registros de canciones no válidos (como canciones locales cuyos archivos se han eliminado).",
+  "libraryCleanedCount": "Se limpiaron {count} canciones no válidas",
+  "@libraryCleanedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryClean": "Limpiar",
+  "libraryBatchDeleteTitle": "Eliminación por lotes",
+  "libraryBatchDeleteContent": "¿Seguro que quieres eliminar las {count} canciones seleccionadas?",
+  "@libraryBatchDeleteContent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryDeletedCount": "Se eliminaron {count} canciones",
+  "@libraryDeletedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryDeleteFailed": "Error al eliminar",
+  "librarySongCount": "{count} canciones",
+  "@librarySongCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryUnknownArtist": "Artista desconocido",
+  "libraryUnknownAlbum": "Álbum desconocido",
+  "libraryPlay": "Reproducir",
+  "libraryEdit": "Editar",
+  "libraryCustomizeViews": "Personalizar vistas",
+  "libraryCustomizeViewsTooltip": "Personaliza qué vistas se muestran y su orden",
+  "libraryViewsMinOne": "Mantén al menos una vista visible",
+  "libraryViewPlaylistAll": "Todas las listas de reproducción",
+  "categorySongsEmpty": "No hay canciones en esta categoría",
+  "libraryViewGroupSongs": "Canciones",
+  "libraryViewGroupCategories": "Categorías",
+  "libraryViewGroupPlaylists": "Listas de reproducción",
+  "libraryViewGroupMoveUp": "Mover grupo hacia arriba",
+  "libraryViewGroupMoveDown": "Mover grupo hacia abajo",
+  "libraryEditLocalSong": "Editar canción local",
+  "libraryEditRadio": "Editar radio",
+  "libraryEditRemoteSong": "Editar canción remota",
+  "librarySave": "Guardar",
+  "libraryFileInfoReadonly": "Información del archivo (solo lectura)",
+  "libraryServerEndpointReadonly": "Endpoint del servidor (solo lectura)",
+  "libraryReadonlyFile": "Archivo",
+  "libraryReadonlyCover": "Portada",
+  "libraryReadonlyLyric": "Letras",
+  "libraryEditTitleLabel": "Título *",
+  "libraryEditTitleRequired": "Introduce un título",
+  "libraryEditArtistHint": "Introduce un artista",
+  "libraryEditAlbumHint": "Introduce un álbum",
+  "libraryRenameFileTitle": "Renombrar archivo en sincronía",
+  "libraryRenameFileSubtitle": "Renombra el archivo de audio local al nuevo título y escribe la etiqueta de título",
+  "libraryVideoToggleTitle": "Contenido de video",
+  "libraryVideoToggleSubtitle": "Este enlace contiene video; al activarlo, el reproductor muestra la imagen y la transmisión se envía como video",
+  "libraryEditSourceUrlLabel": "URL de audio de origen *",
+  "libraryEditUrlLabel": "URL *",
+  "libraryEditUrlHint": "Introduce un enlace de audio",
+  "libraryEditUrlRequired": "Introduce una URL",
+  "libraryEditUrlInvalid": "Introduce una URL válida",
+  "libraryEditSourceCoverUrlLabel": "URL de portada de origen",
+  "libraryEditCoverUrlLabel": "URL de portada",
+  "libraryEditCoverUrlHint": "Introduce un enlace de imagen de portada",
+  "libraryEditDurationLabel": "Duración (segundos)",
+  "libraryEditDurationHint": "Introduce la duración",
+  "libraryEditLyricRemoteUrlLabel": "URL remota de letras",
+  "libraryEditLyricUrlLabel": "URL de letras",
+  "libraryEditLyricUrlHint": "Introduce un enlace de API de letras",
+  "libraryCoverPreview": "Vista previa de portada:",
+  "libraryCopied": "Copiado",
+  "libraryCopy": "Copiar",
+  "librarySaveSuccess": "Guardado correctamente",
+  "libraryAddSuccess": "Añadido correctamente",
+  "libraryOperationFailed": "La operación falló: {error}",
+  "@libraryOperationFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "libraryErrorBadRequest": "Parámetros de solicitud no válidos",
+  "libraryErrorUnauthorized": "No autorizado, inicia sesión de nuevo",
+  "libraryErrorForbidden": "No tienes permiso para realizar esta acción",
+  "libraryErrorNotFound": "Canción no encontrada",
+  "libraryErrorServer": "Error del servidor, inténtalo de nuevo más tarde",
+  "libraryErrorRequestFailed": "La solicitud falló: {code}",
+  "@libraryErrorRequestFailed": {
+    "placeholders": {
+      "code": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryErrorTimeout": "Se agotó el tiempo de conexión de red, comprueba tu red",
+  "libraryErrorConnection": "Falló la conexión de red, comprueba tu red",
+  "libraryErrorNetwork": "Error de red: {message}",
+  "@libraryErrorNetwork": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "libraryFavoritePlaylistNotFound": "La lista de favoritos no existe",
+  "libraryRadioFavoritePlaylistNotFound": "La lista de radios favoritas no existe",
+  "homeEmptyPlaylists": "Aún no hay listas de reproducción",
+  "homeEmptyPlaylistsSubtitle": "Crea tu primera lista para empezar a coleccionar música",
+  "homeCreatePlaylist": "Crear lista de reproducción",
+  "homeMyPlaylists": "Mis listas de reproducción",
+  "homeViewAll": "Ver todo",
+  "homeMyRadios": "Mis radios",
+  "homeLoadingSlowRetrying": "La red está lenta, reintentando…",
+  "homeGreetingLateNight": "Es tarde",
+  "homeGreetingMorning": "Buenos días",
+  "homeGreetingNoon": "Buenas tardes",
+  "homeGreetingAfternoon": "Buenas tardes",
+  "homeGreetingEvening": "Buenas noches",
+  "homeTvGreetingLateNight": "Es tarde, ¿qué tal algo de música?",
+  "homeOpenPlaylist": "Abrir lista de reproducción",
+  "homeOpenPlaylistNamed": "Abrir lista de reproducción {name}",
+  "@homeOpenPlaylistNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "homeSongCountShort": "{count} canciones",
+  "@homeSongCountShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeSongCount": "{count} canciones",
+  "@homeSongCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeStatSongs": "canciones en la biblioteca",
+  "homeStatDurationHm": "{hours} h {minutes} min",
+  "@homeStatDurationHm": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "homeStatDurationM": "{minutes} min",
+  "@homeStatDurationM": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "homeStatSize": "{size} en disco",
+  "@homeStatSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "homeTvLocalMusic": "Música local",
+  "homeTvPlaylist": "Listas de reproducción",
+  "homeTvEmptySubtitle": "Usa la navegación rápida para explorar la música local",
+  "homeHeroSemanticLabel": "{name} - {count} canciones",
+  "@homeHeroSemanticLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeNowPlaying": "Reproduciendo ahora",
+  "homeRecommendedPlaylist": "Recomendadas",
+  "homePlayNow": "Reproducir ahora",
+  "homePluginLoadTimeout": "La página agotó el tiempo de carga. Comprueba si el plugin está disponible o tu conexión de red.",
+  "homePluginClose": "Cerrar",
+  "homePluginOpenInBrowser": "Abrir en el navegador",
+  "homePluginLoadFailed": "No se pudo cargar la página",
+  "homePluginLoadFailedHttp": "No se pudo cargar la página: HTTP {status}{detail}",
+  "@homePluginLoadFailedHttp": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      },
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "homePluginUnknownError": "Error desconocido",
+  "homePluginWebOpenInNewTab": "En la web, abre el plugin en una pestaña nueva",
+  "authLogin": "Iniciar sesión",
+  "authTvSubtitle": "Inicia sesión en Songloft con tu cuenta",
+  "authLoginToContinue": "Inicia sesión para continuar",
+  "authTagline": "Servicio de música local autogestionado",
+  "authUsername": "Nombre de usuario",
+  "authUsernameHint": "Introduce el nombre de usuario",
+  "authUsernameRequired": "Introduce tu nombre de usuario",
+  "authPassword": "Contraseña",
+  "authPasswordHint": "Introduce la contraseña",
+  "authPasswordRequired": "Introduce tu contraseña",
+  "authShowPassword": "Mostrar contraseña",
+  "authHidePassword": "Ocultar contraseña",
+  "authApiUrl": "Dirección de la API",
+  "authApiUrlRequired": "Introduce la dirección de la API",
+  "authInvalidUrl": "Introduce una URL válida (que empiece por http:// o https://)",
+  "authServer": "Servidor",
+  "authTvPressToLogin": "Pulsa OK para iniciar sesión",
+  "authUseLocalMode": "Usar modo local",
+  "authAgreePrefix": "He leído y acepto los ",
+  "authTermsAndPrivacy": "Términos del servicio y política de privacidad",
+  "authPleaseAgreeTerms": "Primero lee y acepta los Términos y la Política de privacidad",
+  "authTermsTitle": "Términos del servicio y política de privacidad",
+  "authCopyright": "© {year} Songloft",
+  "@authCopyright": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "authAutoLoggingIn": "Iniciando sesión automáticamente…",
+  "authStartingLocalBackend": "Iniciando backend local…",
+  "authPreparing": "Preparando…",
+  "authConnecting": "Conectando…",
+  "authLoggingIn": "Iniciando sesión…",
+  "authAutoLoginFailed": "Error en el inicio de sesión automático: {error}",
+  "@authAutoLoginFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authLocalModeFailed": "No se pudo iniciar el modo local: {error}",
+  "@authLocalModeFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authLoginFailed": "Error al iniciar sesión: {error}",
+  "@authLoginFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authSessionExpired": "Tu sesión ha caducado. Inicia sesión de nuevo.",
+  "authNoRefreshToken": "No hay token de actualización disponible",
+  "dlnaCast": "Transmitir",
+  "dlnaCasting": "Transmitiendo",
+  "dlnaDisconnect": "Desconectar",
+  "dlnaConnected": "Conectado",
+  "dlnaSearching": "Buscando dispositivos...",
+  "dlnaSearchingLan": "Buscando dispositivos en la red local...",
+  "dlnaNoDevices": "No se encontraron dispositivos DLNA",
+  "startupStarting": "Iniciando…",
+  "startupStartingLocalBackend": "Iniciando backend local…",
+  "startupConnectingLocalBackend": "Conectando con el backend local…",
+  "startupConnectingTo": "Conectando con {target}…",
+  "@startupConnectingTo": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "playerModeOrder": "En orden",
+  "playerModeLoop": "Repetir todo",
+  "playerModeSingle": "Repetir una",
+  "playerModeRandom": "Aleatorio",
+  "playerModeSinglePlay": "Reproducir una vez",
+  "playerSpeed": "Velocidad",
+  "playerSpeedTitle": "Velocidad de reproducción",
+  "playerSpeedNormal": "Normal",
+  "playerClose": "Cerrar",
+  "playerSleepTimer": "Temporizador de sueño",
+  "playerSleepTimerWithStatus": "Temporizador de sueño: {status}",
+  "@playerSleepTimerWithStatus": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "playerSleepTimerCancel": "Cancelar temporizador",
+  "playerSleepTimerByDuration": "Por duración",
+  "playerHours": "{count} h",
+  "@playerHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playerMinutes": "{count} min",
+  "@playerMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playerCustom": "Personalizado",
+  "playerCustomDuration": "Duración personalizada",
+  "playerUnitMinutes": "min",
+  "playerSleepTimerBySongs": "Por canciones",
+  "playerSongsUnit": "{count} canciones",
+  "@playerSongsUnit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playerCustomSongCount": "Número de canciones personalizado",
+  "playerUnitSongs": "canciones",
+  "playerRemainingSongs": "Quedan {count} canciones",
+  "@playerRemainingSongs": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playerEnterNumber": "Introduce un número",
+  "playerEnterValidInteger": "Introduce un número entero válido",
+  "playerEnterIntegerInRange": "Introduce un número entero entre {min} y {max}",
+  "@playerEnterIntegerInRange": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "playerBack": "Atrás",
+  "playerNowPlaying": "Reproduciendo ahora",
+  "playerNoContent": "No se está reproduciendo nada",
+  "playerUnknownArtist": "Artista desconocido",
+  "playerPlayMode": "Modo de reproducción",
+  "playerVolumeDown": "Bajar volumen",
+  "playerVolumeUp": "Subir volumen",
+  "playerPrevious": "Anterior",
+  "playerNext": "Siguiente",
+  "playerPlaylist": "Lista de reproducción",
+  "playerBuffering": "Buffering",
+  "playerCaching": "Almacenando en caché, espera…",
+  "playerPause": "Pausa",
+  "playerPlay": "Reproducir",
+  "playerSeekHint": "← → Buscar",
+  "playerProgress": "Progreso de reproducción",
+  "playerQueueTitle": "Cola de reproducción",
+  "playerClearPlaylist": "Vaciar lista de reproducción",
+  "playerQueueEmpty": "La cola está vacía",
+  "playerDrawerEmptyHint": "Añade canciones para empezar a reproducir",
+  "playerQueueEmptyHint": "Añade canciones a la cola para empezar a reproducir",
+  "playerRemovedSong": "Se quitó \"{title}\"",
+  "@playerRemovedSong": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "playerClearQueueTitle": "Vaciar cola de reproducción",
+  "playerClearQueueConfirm": "¿Vaciar la cola de reproducción?",
+  "playerClear": "Vaciar",
+  "playerRemoveFromPlaylist": "Quitar de la lista de reproducción",
+  "playerRemoveFromQueue": "Quitar de la cola",
+  "playerMute": "Silenciar",
+  "playerUnmute": "Reactivar sonido",
+  "playerVolumePercent": "Volumen {value}%",
+  "@playerVolumePercent": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "playerVolume": "Volumen",
+  "playerCloseVolumePanel": "Cerrar panel de volumen",
+  "playerOpenFullPlayer": "Abrir reproductor a pantalla completa",
+  "playerEqualizer": "Ecualizador",
+  "playerAudioTrack": "Pista de audio",
+  "playerSelectAudioTrack": "Seleccionar pista de audio",
+  "playerAudioTrackNumbered": "Pista {index}",
+  "@playerAudioTrackNumbered": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "playerLyrics": "Letras",
+  "playerCollapse": "Contraer",
+  "playerSubtitleOn": "Mostrar subtítulos",
+  "playerSubtitleOff": "Ocultar subtítulos",
+  "playerEnterFullscreen": "Pantalla completa",
+  "playerExitFullscreen": "Salir de pantalla completa",
+  "playerSleepTimerOn": "Temporizador de sueño (activado)",
+  "playerDeleteCurrentSong": "Eliminar canción actual",
+  "playerExpandPlayer": "Expandir reproductor",
+  "playerBufferingSemantic": "Buffering",
+  "playerLyricsLoading": "Cargando letras...",
+  "playerLyricsLoadFailed": "No se pudieron cargar las letras",
+  "playerLyricsEmpty": "Sin letras",
+  "playerLyricsSeekTo": "Ir a esta línea de la letra",
+  "playerAdjustLyrics": "Ajustar letras",
+  "playerLyricsRefetch": "Volver a buscar letras",
+  "playerEqNotSupported": "El ecualizador no es compatible con esta plataforma",
+  "playerEqPresetFlat": "Plano",
+  "playerEqPresetRock": "Rock",
+  "playerEqPresetPop": "Pop",
+  "playerEqPresetJazz": "Jazz",
+  "playerEqPresetClassical": "Clásica",
+  "playerEqPresetBassBoost": "Refuerzo de graves",
+  "playerEqPresetTrebleBoost": "Refuerzo de agudos",
+  "playerEqPresetVocal": "Vocal",
+  "playerEqPresetCustom": "Personalizado",
+  "playerLyricSavedWritten": "Guardado y escrito en el archivo de audio",
+  "playerLyricSavedWriteFailed": "Guardado en la base de datos, pero no se pudo escribir en el archivo de audio",
+  "playerLyricSavedDbOnly": "Guardado en la base de datos (archivo no actualizado)",
+  "playerSaveFailedDetail": "Error al guardar: {error}",
+  "@playerSaveFailedDetail": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "playerDiscardChangesTitle": "¿Descartar cambios?",
+  "playerDiscardChangesContent": "Tus cambios no se han guardado. ¿Salir de todos modos?",
+  "playerContinueEditing": "Seguir editando",
+  "playerDiscard": "Descartar",
+  "playerGlobalOffset": "Desplazamiento global",
+  "playerLyricOffsetSemantics": "Desplazamiento de letras {value} ms",
+  "@playerLyricOffsetSemantics": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "playerOffsetHint": "Consejo: si las letras aparecen demasiado pronto en general, usa un desplazamiento negativo (-); si aparecen tarde, usa uno positivo (+)",
+  "playerEmptyLine": "(línea vacía)",
+  "playerLineOffset": "Desplazamiento de línea {offset}",
+  "@playerLineOffset": {
+    "placeholders": {
+      "offset": {
+        "type": "String"
+      }
+    }
+  },
+  "playerReset": "Restablecer",
+  "playerSave": "Guardar",
+  "playerNoLyricsToAdjust": "No hay letras para ajustar",
+  "playerDeleteSongTitle": "Eliminar canción",
+  "playerDeleteSongConfirm": "¿Eliminar \"{title}\" de tu biblioteca?",
+  "@playerDeleteSongConfirm": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "playerSongDeleted": "Canción eliminada",
+  "playerDeleteFailed": "Error al eliminar",
+  "playerUnknownSong": "Canción desconocida",
+  "playerPlayFailedNamed": "No se pudo reproducir \"{title}\"",
+  "@playerPlayFailedNamed": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "playerConsecutiveFailures": "{count} canciones seguidas no se pudieron reproducir. Reproducción detenida: comprueba tu conexión de red.",
+  "@playerConsecutiveFailures": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playerPlayFailedTryingNext": "No se pudo reproducir \"{title}\", probando con la siguiente canción...",
+  "@playerPlayFailedTryingNext": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "playerPlayFailedNoOthers": "Error de reproducción: no hay más canciones para reproducir",
+  "playerPlayFailedEndOfList": "Error de reproducción: se llegó al final de la lista",
+  "playlistBack": "Atrás",
+  "playlistSearch": "Buscar",
+  "playlistSearchHint": "Buscar canciones...",
+  "playlistListSearchHint": "Buscar listas de reproducción...",
+  "playlistNoMatching": "No se encontraron listas que coincidan",
+  "playlistTryOtherKeywords": "Prueba con otras palabras clave",
+  "playlistFilterNormal": "Listas de reproducción",
+  "playlistFilterRadio": "Radios",
+  "playlistFilterRemote": "Listas remotas",
+  "playlistFilterLocal": "Listas locales",
+  "playlistMultiSelect": "Selección múltiple",
+  "playlistMore": "Más",
+  "playlistDone": "Hecho",
+  "playlistSort": "Ordenar",
+  "playlistSortModeTitle": "Reordenar listas de reproducción",
+  "playlistSortSaved": "Orden guardado",
+  "playlistSortSaveFailed": "No se pudo guardar el orden",
+  "playlistSortFailed": "Error al ordenar",
+  "playlistAlreadySortedSongs": "Las canciones ya están en este orden",
+  "playlistAlreadySortedPlaylists": "Las listas ya están en este orden",
+  "playlistSortedByNameAsc": "Ordenadas por nombre (A→Z)",
+  "playlistSortedByNameDesc": "Ordenadas por nombre (Z→A)",
+  "playlistSortedByNumber": "Ordenadas por prefijo numérico",
+  "playlistSortCustom": "Orden personalizado",
+  "playlistSortRecentlyAdded": "Añadidas recientemente",
+  "playlistSortFileTime": "Fecha del archivo",
+  "playlistSortTitle": "Título",
+  "playlistSortArtist": "Artista",
+  "playlistSortDuration": "Duración",
+  "playlistSortFileSize": "Tamaño de archivo",
+  "playlistSortNameAsc": "Ordenar por nombre A→Z",
+  "playlistSortNameDesc": "Ordenar por nombre Z→A",
+  "playlistSortNumberPrefix": "Ordenar por prefijo numérico",
+  "playlistSortManual": "Ordenar manualmente",
+  "playlistPlayAll": "Reproducir todas",
+  "playlistAddSongs": "Añadir canciones",
+  "playlistAddSongsFailed": "No se pudieron añadir las canciones",
+  "playlistAddedWithSkipped": "Se añadieron {added}, se omitieron {skipped} (ya existen o tipo incompatible)",
+  "@playlistAddedWithSkipped": {
+    "placeholders": {
+      "added": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistAddedCount": "{count, plural, =1{Se añadió 1 canción} other{Se añadieron {count} canciones}}",
+  "@playlistAddedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistLoadMoreRetry": "No se pudo cargar más, toca para reintentar",
+  "playlistAllLoaded": "— Todo cargado ({count}) —",
+  "@playlistAllLoaded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistDeselectAll": "Deseleccionar todo",
+  "playlistRemove": "Quitar",
+  "playlistRemoveFromPlaylist": "Quitar de la lista de reproducción",
+  "playlistDeleteFromLibrary": "Eliminar de la biblioteca",
+  "playlistActionsCount": "Acciones ({count})",
+  "@playlistActionsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistBatchRemoveTitle": "Quitar en lote",
+  "playlistBatchRemoveConfirm": "{count, plural, =1{¿Quitar 1 canción de esta lista?} other{¿Quitar {count} canciones de esta lista?}}",
+  "@playlistBatchRemoveConfirm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistRemovedCount": "{count, plural, =1{Se quitó 1 canción} other{Se quitaron {count} canciones}}",
+  "@playlistRemovedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistRemoveFailed": "No se pudo quitar",
+  "playlistEditCover": "Cambiar portada",
+  "playlistEditPlaylist": "Editar lista de reproducción",
+  "playlistEditAction": "Editar",
+  "playlistDelete": "Eliminar lista de reproducción",
+  "playlistEmptySongs": "No hay canciones en esta lista",
+  "playlistEmptySongsSubtitle": "Añade música que te guste",
+  "playlistLabelBuiltIn": "Integrada",
+  "playlistLabelAutoCreated": "Creada automáticamente",
+  "playlistLabelAuto": "Automática",
+  "playlistLabelHidden": "Oculta",
+  "playlistLabelPinned": "Fijada",
+  "playlistLabelRemote": "Remota",
+  "playlistConfirmDelete": "Confirmar eliminación",
+  "playlistDeleteConfirm": "¿Eliminar la lista \"{name}\"? Esta acción no se puede deshacer.",
+  "@playlistDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistDeleted": "Lista de reproducción eliminada",
+  "playlistDeleteWithSongs": "Eliminar también las canciones de la biblioteca (incluidos los archivos locales)",
+  "playlistEmpty": "La lista está vacía",
+  "playlistPlayFailed": "Error de reproducción",
+  "playlistPlayingCount": "{count, plural, =1{Reproduciendo 1 canción} other{Reproduciendo las {count} canciones}}",
+  "@playlistPlayingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistPlayingSong": "Reproduciendo: {title}",
+  "@playlistPlayingSong": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistRemoveSongTitle": "Quitar canción",
+  "playlistRemoveSongConfirm": "¿Quitar \"{title}\" de esta lista de reproducción?",
+  "@playlistRemoveSongConfirm": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistSongRemoved": "Canción quitada",
+  "playlistDeleteSong": "Eliminar canción",
+  "playlistDeleteSongConfirm": "¿Eliminar \"{title}\" de la biblioteca?",
+  "@playlistDeleteSongConfirm": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistSongDeleted": "Canción eliminada",
+  "playlistDeleteFailed": "No se pudo eliminar",
+  "playlistBatchDelete": "Eliminar en lote",
+  "playlistBatchDeleteSongsConfirm": "{count, plural, =1{¿Eliminar la canción seleccionada de la biblioteca?} other{¿Eliminar las {count} canciones seleccionadas de la biblioteca?}}",
+  "@playlistBatchDeleteSongsConfirm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistDeletedSongsCount": "{count, plural, =1{Se eliminó 1 canción} other{Se eliminaron {count} canciones}}",
+  "@playlistDeletedSongsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistUnknownArtist": "Artista desconocido",
+  "playlistPickImageFailed": "No se pudo elegir la imagen: {error}",
+  "@playlistPickImageFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistNameRequired": "Introduce un nombre para la lista de reproducción",
+  "playlistNameHint": "Introduce un nombre para la lista de reproducción",
+  "playlistDescLabel": "Descripción de la lista",
+  "playlistDescHint": "Introduce una descripción (opcional)",
+  "playlistCoverUploadFailed": "No se pudo subir la portada",
+  "playlistSaveFailed": "No se pudo guardar: {error}",
+  "@playlistSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistUploadImage": "Subir imagen",
+  "playlistPickFromSongs": "Elegir de las canciones",
+  "playlistClear": "Borrar",
+  "playlistSave": "Guardar",
+  "playlistOk": "Aceptar",
+  "playlistTitle": "Listas de reproducción",
+  "playlistSwitchToListView": "Cambiar a vista de lista",
+  "playlistSwitchToGridView": "Cambiar a vista de cuadrícula",
+  "playlistCreate": "Crear lista de reproducción",
+  "playlistCreated": "Lista de reproducción creada",
+  "playlistUpdated": "Lista de reproducción actualizada",
+  "playlistShowHidden": "Mostrar listas ocultas",
+  "playlistHideHidden": "Ocultar listas ocultas",
+  "playlistEmptyHint": "Toca el botón de la esquina superior derecha para crear una lista",
+  "playlistConfirmBatchDelete": "Confirmar eliminación en lote",
+  "playlistBatchDeleteConfirm": "{count, plural, =1{¿Eliminar la lista seleccionada? Esta acción no se puede deshacer.} other{¿Eliminar las {count} listas seleccionadas? Esta acción no se puede deshacer.}}",
+  "@playlistBatchDeleteConfirm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistDeletedCount": "{count, plural, =1{Se eliminó 1 lista} other{Se eliminaron {count} listas}}",
+  "@playlistDeletedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistHidden": "Lista oculta",
+  "playlistUnhidden": "Lista visible de nuevo",
+  "playlistPin": "Fijar lista",
+  "playlistUnpin": "Desfijar",
+  "playlistPinned": "Lista fijada",
+  "playlistUnpinned": "Lista desfijada",
+  "playlistPlayingMultiple": "{count, plural, =1{Reproduciendo 1 lista} other{Reproduciendo {count} listas}}",
+  "@playlistPlayingMultiple": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistExitMultiSelect": "Salir de la selección",
+  "playlistSelectedCount": "{count} seleccionadas",
+  "@playlistSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistPlayCount": "Reproducir ({count})",
+  "@playlistPlayCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistDeleteCount": "Eliminar ({count})",
+  "@playlistDeleteCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistTypeNormalOption": "Lista normal",
+  "playlistTypeRadioOption": "Lista de radio",
+  "playlistMoreActions": "Más acciones",
+  "playlistHide": "Ocultar lista",
+  "playlistUnhide": "Mostrar lista",
+  "playlistPickCoverTitle": "Elegir portada de canción",
+  "playlistClose": "Cerrar",
+  "playlistNoCoveredSongs": "No hay canciones con portada en esta lista",
+  "playlistLoadRetry": "No se pudo cargar, toca para reintentar",
+  "playlistNoCoverLoadMore": "No hay portadas en esta página, cargar más",
+  "playlistAllLoadedSimple": "— Todo cargado —",
+  "playlistSelectThisCover": "Seleccionar esta portada",
+  "playlistErrRequestFailed": "La solicitud falló",
+  "playlistErrTimeout": "Se agotó el tiempo de conexión de red",
+  "playlistErrCancelled": "Solicitud cancelada",
+  "playlistErrNetwork": "Error de red: {message}",
+  "@playlistErrNetwork": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheSaveConfigFailed": "No se pudo guardar la configuración: {error}",
+  "@settingsCacheSaveConfigFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheCleanServerTitle": "Vaciar caché del servidor",
+  "settingsCacheCleanServerContent": "¿Vaciar toda la caché de música del servidor? Los archivos se tendrán que descargar de nuevo.",
+  "settingsCacheServerCleaned": "Caché del servidor vaciada",
+  "settingsCacheCleanFailed": "Error al vaciar: {error}",
+  "@settingsCacheCleanFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheCleanLocalTitle": "Vaciar caché local",
+  "settingsCacheCleanLocalContent": "¿Vaciar toda la caché local? Incluye la caché de audio, imágenes y letras.",
+  "settingsCacheLocalCleaned": "Caché local vaciada",
+  "settingsCacheCleanBrowserTitle": "Vaciar caché del navegador",
+  "settingsCacheCleanBrowserContent": "Esto vaciará todos los recursos de frontend en caché y recargará la página. Tu sesión y los datos del servidor no se verán afectados.",
+  "webUpdateAvailableTitle": "Actualización disponible",
+  "webUpdateAvailableContent": "El servidor se ha actualizado, pero esta página sigue ejecutando una versión anterior. Toca \"Actualizar ahora\" para vaciar la caché del navegador y cargar la última versión. Tu sesión no se verá afectada.",
+  "webUpdateAvailableRefresh": "Actualizar ahora",
+  "webUpdateAvailableLater": "Más tarde",
+  "settingsCacheUpdateConfigFailed": "No se pudo actualizar la configuración: {error}",
+  "@settingsCacheUpdateConfigFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheDirRestored": "Directorio de caché predeterminado restaurado",
+  "settingsCacheDirUpdated": "Directorio de caché actualizado",
+  "settingsCacheUpdateFailed": "Error al actualizar: {error}",
+  "@settingsCacheUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheConfirmClean": "Confirmar",
+  "settingsCacheServerTitle": "Caché de música del servidor",
+  "settingsCacheManage": "Administrar",
+  "settingsCacheNoLimit": "{size} (sin límite)",
+  "@settingsCacheNoLimit": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheFileCount": "{count} archivos",
+  "@settingsCacheFileCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsCacheStatsLoadFailed": "No se pudo cargar la información de la caché",
+  "settingsCacheDirTitle": "Directorio de caché",
+  "settingsCacheNotConfigured": "Sin configurar",
+  "settingsCacheMaxSize": "Tamaño máximo de caché: {size}",
+  "@settingsCacheMaxSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheTranscodeTitle": "Formato de transcodificación de caché",
+  "settingsCacheTranscodeDesc": "Transcodifica las canciones de red a un formato unificado al almacenarlas en caché, mejorando la compatibilidad con los dispositivos (p. ej., los altavoces Xiao AI no pueden reproducir MKV); al activarlo, el contenido de video se guarda solo en audio y la transmisión no tendrá imagen",
+  "settingsCacheTranscodeOriginal": "Original (sin transcodificar)",
+  "settingsCacheTranscodeDialogTitle": "Formato de transcodificación de caché",
+  "settingsCacheTranscodeQualityTitle": "Calidad de transcodificación",
+  "settingsCacheTranscodeQualityHighest": "Máxima calidad",
+  "settingsCacheTranscodeQualityDialogTitle": "Calidad de transcodificación",
+  "settingsCacheTranscodeUpdated": "Ajustes de transcodificación de caché actualizados",
+  "settingsCacheCleaning": "Vaciando...",
+  "settingsCacheCleanServerButton": "Vaciar caché del servidor",
+  "settingsCacheLocalTitle": "Caché local",
+  "settingsCacheSize": "Tamaño de caché",
+  "settingsCacheCalculating": "Calculando...",
+  "settingsCacheLocalDesc": "Incluye la caché de audio, imágenes y letras",
+  "settingsCacheMaxLocalSize": "Tamaño máximo de caché local: {size}",
+  "@settingsCacheMaxLocalSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheCleanLocalButton": "Vaciar caché local",
+  "settingsCacheBrowserTitle": "Caché del navegador",
+  "settingsCacheBrowserDesc": "Vacía los recursos de frontend en caché del navegador para solucionar problemas de página tras una actualización",
+  "settingsCacheCleanBrowserButton": "Vaciar caché del navegador",
+  "settingsCacheDirDialogDesc": "Establece el directorio de almacenamiento de la caché de música del servidor. Déjalo vacío para usar el predeterminado. Cambiar de directorio no migra los archivos de caché existentes.",
+  "settingsCacheDirLabel": "Directorio de caché (ruta absoluta)",
+  "settingsCacheDirDefault": "Predeterminado: {dir}",
+  "@settingsCacheDirDefault": {
+    "placeholders": {
+      "dir": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheValidate": "Validar",
+  "settingsCacheRestoreDefault": "Restaurar predeterminado",
+  "settingsCacheSave": "Guardar",
+  "settingsCacheDirUnavailable": "Directorio no disponible",
+  "settingsCacheDirCreated": "Directorio creado automáticamente",
+  "settingsCacheDiskTotal": "Total {size}",
+  "@settingsCacheDiskTotal": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheDiskFree": "Libre {size}",
+  "@settingsCacheDiskFree": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCacheDirAvailable": "Directorio disponible",
+  "settingsMetadataUseTagTitle": "Usar etiquetas para sobrescribir el título",
+  "settingsMetadataUseTagOn": "Sobrescribir los títulos con las etiquetas de audio al actualizar los metadatos de canciones remotas",
+  "settingsMetadataUseTagOff": "Mantener los nombres de archivo como títulos de canciones remotas, sin sobrescribir con etiquetas",
+  "settingsMetadataSaved": "Guardado",
+  "settingsMetadataSaveFailed": "No se pudo guardar: {error}",
+  "@settingsMetadataSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsMetadataRefreshTitle": "Actualizar metadatos de canciones remotas",
+  "settingsMetadataRefreshSubtitle": "Analizar todas las canciones remotas con metadatos incompletos",
+  "settingsMetadataStart": "Iniciar",
+  "settingsMetadataPreparing": "Preparando...",
+  "settingsMetadataRefreshing": "Actualizando metadatos",
+  "settingsMetadataStatusCancelled": "Cancelado",
+  "settingsMetadataStatusFailed": "Fallido",
+  "settingsMetadataStatusDone": "Completado",
+  "settingsMetadataSuccess": "{count} correctos",
+  "@settingsMetadataSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsMetadataFailedCount": ", {count} fallidos",
+  "@settingsMetadataFailedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsMetadataRefreshResult": "Actualización de metadatos {status}",
+  "@settingsMetadataRefreshResult": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsMetadataRefreshAgain": "Actualizar de nuevo",
+  "settingsClientDownloadTitle": "Descargar app cliente",
+  "settingsClientDownloadIntro": "En comparación con la interfaz web, el cliente nativo admite reproducción en segundo plano, caché local, controles multimedia en pantalla de bloqueo/notificaciones y más.",
+  "settingsClientDownloadStandardSection": "Estándar · Se conecta al servidor actual",
+  "settingsClientDownloadBundleSection": "Bundle · Backend integrado, sin necesidad de servidor",
+  "settingsClientDownloadStandardAllVersions": "Todas las versiones estándar",
+  "settingsClientDownloadBundleAllVersions": "Todas las versiones bundle",
+  "settingsClientDownloadRecommendFor": "Recomendado para tu dispositivo: {os}",
+  "@settingsClientDownloadRecommendFor": {
+    "placeholders": {
+      "os": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsClientDownloadStandardBtn": "Estándar ({label})",
+  "@settingsClientDownloadStandardBtn": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsClientDownloadBundleBtn": "Bundle ({label})",
+  "@settingsClientDownloadBundleBtn": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsClientDownloadNoteUnsigned": "Sin firmar, requiere instalación manual",
+  "settingsTabConfigTitle": "Ajustes de menú",
+  "settingsTabConfigBuiltInSection": "Páginas integradas",
+  "settingsTabConfigLibrary": "Biblioteca",
+  "settingsTabConfigPlaylists": "Listas de reproducción",
+  "settingsTabConfigPluginEntry": "Entradas de plugins",
+  "settingsTabConfigNoPlugins": "No hay plugins disponibles",
+  "settingsTabConfigNoPluginsHint": "Primero instala y activa los plugins en los ajustes",
+  "settingsTabConfigPluginOrder": "Orden de plugins",
+  "settingsTabConfigEnabledCount": "{count} pestaña(s) activadas (Inicio y Ajustes siempre se muestran)",
+  "@settingsTabConfigEnabledCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsTabConfigCollapseHint": "En móvil, las pestañas más allá de 5 se agrupan en el menú \"Más\"",
+  "settingsTabConfigMaxTabs": "Mostrar como máximo {count} pestañas",
+  "@settingsTabConfigMaxTabs": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsTabConfigSaveFailed": "No se pudo guardar: {error}",
+  "@settingsTabConfigSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsUpgradeStatusStable": "Estable",
+  "settingsUpgradeStatusDev": "Dev",
+  "settingsUpgradeStatusDownloading": "Descargando...",
+  "settingsUpgradeStatusTesting": "Verificando...",
+  "settingsUpgradeStatusReplacing": "Reemplazando...",
+  "settingsUpgradeStatusResetting": "Revirtiendo...",
+  "settingsUpgradeStatusRestarting": "Reiniciando...",
+  "settingsUpgradeStatusCompleted": "Actualización completada",
+  "settingsUpgradeStatusFailed": "Error en la actualización",
+  "settingsUpgradeStatusIdle": "Inactivo",
+  "settingsFrontendVerDevVersion": "Versión de desarrollo",
+  "settingsFrontendVerCheckFailed": "No se pudo comprobar si hay actualizaciones del cliente: {error}",
+  "@settingsFrontendVerCheckFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsScanScanFailed": "Error al escanear: {error}",
+  "@settingsScanScanFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsScanCancelFailed": "Error al cancelar: {error}",
+  "@settingsScanCancelFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsScanModeSkipDesc": "Solo importa los archivos de música recién descubiertos",
+  "settingsScanModeReimportDesc": "Volver a escanear y sobrescribir toda la información de música",
+  "settingsScanDismiss": "Descartar",
+  "settingsScanExcludeDirTitle": "Ajustes de directorios excluidos",
+  "settingsScanExcludeDirSubtitle": "Configura los directorios que se ignorarán durante el escaneo",
+  "settingsScanModeSkip": "Omitir existentes",
+  "settingsScanModeReimport": "Reimportar",
+  "settingsScanStarting": "Iniciando...",
+  "settingsScanScanLocal": "Escanear música local",
+  "settingsScanScanSelectedDirs": "Escanear {count} directorios seleccionados",
+  "@settingsScanScanSelectedDirs": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsScanTargetDirsTitle": "Directorios específicos (opcional)",
+  "settingsScanTargetDirsSubtitle": "Escanea solo los directorios seleccionados; déjalo vacío para escanear toda la biblioteca",
+  "settingsScanTargetDirsSelected": "{count} directorios seleccionados",
+  "@settingsScanTargetDirsSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsScanDirsToScan": "Directorios a escanear:",
+  "settingsScanClear": "Borrar",
+  "settingsScanCreatingPlaylists": "Creando automáticamente listas por directorio...",
+  "settingsScanSplittingCue": "Dividiendo pista única (CUE)...",
+  "settingsScanSplittingCueProgress": "Dividiendo pista única (CUE): {count} fuentes procesadas",
+  "@settingsScanSplittingCueProgress": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsScanDiscovering": "Descubriendo archivos...",
+  "settingsScanDiscoveringProgress": "Descubriendo archivos: {count} encontrados",
+  "@settingsScanDiscoveringProgress": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsScanScanningFile": "Escaneando: {file}",
+  "@settingsScanScanningFile": {
+    "placeholders": {
+      "file": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsScanProgressStats": "Procesados: {scanned}/{total}, importados: {imported}, omitidos: {skipped}, fallidos: {failed}",
+  "@settingsScanProgressStats": {
+    "placeholders": {
+      "scanned": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsScanCancelScan": "Cancelar escaneo",
+  "settingsScanAutoCreatePlaylists": "Crear listas automáticamente tras el escaneo",
+  "settingsScanAutoCreatePlaylistsDesc": "Genera listas automáticamente según la estructura de directorios",
+  "settingsScanAutoFingerprint": "Calcular huellas de audio tras el escaneo",
+  "settingsScanAutoFingerprintDesc": "Las huellas solo se usan para detectar duplicados y búsquedas de plugins. Activarlo en una biblioteca grande mantiene la CPU ocupada mucho tiempo; si está desactivado, puedes calcularlas manualmente en la página de detección de duplicados",
+  "settingsScanLoadingConfig": "Cargando...",
+  "settingsScanReadConfigFailed": "No se pudo leer la configuración",
+  "settingsScanSaveFailed": "No se pudo guardar: {error}",
+  "@settingsScanSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsScanPlaylistModeDirectory": "Por carpeta",
+  "settingsScanPlaylistModeDirectoryDesc": "Genera una lista separada para cada carpeta",
+  "settingsScanPlaylistModeTopLevel": "Por carpeta de nivel superior",
+  "settingsScanPlaylistModeTopLevelDesc": "Fusiona las canciones de las subcarpetas en la lista de la carpeta de nivel superior",
+  "settingsScanPlaylistModeBubbleUp": "Incluir subdirectorios",
+  "settingsScanPlaylistModeBubbleUpDesc": "Las canciones aparecen en todas las listas de las carpetas superiores",
+  "settingsScanPlaylistModeTitle": "Modo de creación de listas",
+  "settingsScanPlaylistModeDisabled": "La creación automática de listas está desactivada; esta opción no tiene efecto",
+  "settingsScanTitleSource": "Usar el nombre de archivo como título",
+  "settingsScanTitleSourceFilenameDesc": "Usa el nombre de archivo (sin extensión) como título de la canción; adecuado cuando los nombres ya están numerados",
+  "settingsScanTitleSourceTagDesc": "Prefiere la información de etiquetas de audio para el título de la canción",
+  "settingsScanTitleSourceSaved": "Guardado; surte efecto tras escanear en modo 'Reimportar'",
+  "settingsScanInterval10Min": "10 minutos",
+  "settingsScanInterval30Min": "30 minutos",
+  "settingsScanInterval1Hour": "1 hora",
+  "settingsScanInterval3Hour": "3 horas",
+  "settingsScanInterval6Hour": "6 horas",
+  "settingsScanInterval12Hour": "12 horas",
+  "settingsScanInterval24Hour": "24 horas",
+  "settingsScanIntervalSeconds": "{count} segundos",
+  "@settingsScanIntervalSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsScanAutoScan": "Escaneo automático",
+  "settingsScanAutoScanInterval": "Escaneo automático cada {interval}",
+  "@settingsScanAutoScanInterval": {
+    "placeholders": {
+      "interval": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsScanAutoScanOff": "Desactivado",
+  "settingsScanScanInterval": "Intervalo de escaneo",
+  "settingsScanCompletedSummary": "Escaneo completado, {count} canciones locales en total",
+  "@settingsScanCompletedSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsScanCompletedStats": "Importados {imported}, omitidos {skipped}, fallidos {failed}",
+  "@settingsScanCompletedStats": {
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsScanRescan": "Volver a escanear",
+  "settingsScanCancelledSummary": "Escaneo cancelado ({count} archivos procesados)",
+  "@settingsScanCancelledSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsScanErrorTitle": "Error de escaneo",
+  "settingsExcludeDirLoadFailed": "No se pudo cargar la configuración: {error}",
+  "@settingsExcludeDirLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsExcludeDirSaved": "Ajustes de directorios excluidos guardados; limpiando en segundo plano las canciones de los directorios excluidos",
+  "settingsExcludeDirSaveFailed": "No se pudo guardar: {error}",
+  "@settingsExcludeDirSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsExcludeDirTabName": "Por nombre",
+  "settingsExcludeDirTabPath": "Por ruta",
+  "settingsExcludeDirTabPlaylist": "Exclusión en listas",
+  "settingsExcludeDirSaving": "Guardando...",
+  "settingsExcludeDirSaveConfig": "Guardar ajustes de exclusión",
+  "settingsExcludeDirSaveHint": "Tras guardar, las canciones importadas en directorios excluidos se limpiarán automáticamente",
+  "settingsExcludeDirInputName": "Introduce el nombre del directorio",
+  "settingsExcludeDirInputHint": "Escribe y selecciona, o pulsa Enter para añadir",
+  "settingsExcludeDirLoadingCandidates": "Cargando candidatos...",
+  "settingsExcludeDirAdd": "Añadir",
+  "settingsExcludeDirExcludedNames": "Nombres de directorio excluidos:",
+  "settingsExcludeDirNameHint": "Se excluirá cualquier directorio que contenga este nombre en cualquier nivel de ruta",
+  "settingsExcludeDirMusicDir": "Directorio de música: {path}",
+  "@settingsExcludeDirMusicDir": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsExcludeDirExcludedPaths": "Rutas excluidas:",
+  "settingsExcludeDirAutoCreateExcluded": "Directorios excluidos de las listas creadas automáticamente:",
+  "settingsExcludeDirAutoCreateHint": "Los directorios que contengan este nombre en cualquier nivel no se crearán automáticamente como listas",
+  "settingsServersTitle": "Servidores",
+  "settingsServersTestAll": "Probar todos",
+  "settingsServersEmptyTitle": "Aún no hay servidores añadidos",
+  "settingsServersEmptyHint": "Toca el botón \"+\" para añadir una dirección de API.\nAl iniciar, los servidores se comprueban en orden y se usa el primero que responde.",
+  "settingsServersAdd": "Añadir servidor",
+  "settingsServersEditTitle": "Editar servidor",
+  "settingsServersNameLabel": "Nombre (opcional)",
+  "settingsServersNameHint": "LAN / WAN / Respaldo",
+  "settingsServersUrlLabel": "Dirección de la API",
+  "settingsServersUsername": "Nombre de usuario",
+  "settingsServersPassword": "Contraseña",
+  "settingsServersSave": "Guardar",
+  "settingsServersSaveFailed": "No se pudo guardar: {error}",
+  "@settingsServersSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsServersDeleteTitle": "Eliminar servidor",
+  "settingsServersDeleteCurrentConfirm": "Este es el servidor en uso. Tras eliminarlo, los servidores restantes de la lista se volverán a probar en el próximo inicio. ¿Continuar?",
+  "settingsServersDeleteConfirm": "¿Eliminar \"{name}\"?",
+  "@settingsServersDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsServersReachable": "{name} es accesible",
+  "@settingsServersReachable": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsServersUnreachable": "{name} no es accesible",
+  "@settingsServersUnreachable": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsServersProbeResult": "Prueba completada: {ok} / {total} accesibles",
+  "@settingsServersProbeResult": {
+    "placeholders": {
+      "ok": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsServersAlreadyCurrent": "Ya es el servidor actual",
+  "settingsServersSwitched": "Cambiado a {name}, inicia sesión de nuevo",
+  "@settingsServersSwitched": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsServersSwitchTo": "Cambiar a este",
+  "settingsServersTestConnection": "Probar conexión",
+  "settingsServersEditAction": "Editar",
+  "settingsServersLocalMode": "Modo local",
+  "settingsServersLocalModeDesc": "Al activarlo, el backend se ejecuta en este dispositivo para que puedas reproducir música local sin red.",
+  "settingsServersMusicDir": "Carpeta de música",
+  "settingsServersNotSelected": "Sin seleccionar",
+  "settingsServersSelect": "Seleccionar",
+  "settingsServersFixedMusicDirHint": "Coloca la música en la carpeta de Songloft mediante la app Archivos o una computadora (Finder / uso compartido de archivos de iTunes) y vuelve a escanear.",
+  "settingsServersSwitchFailed": "Error al cambiar: {error}",
+  "@settingsServersSwitchFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsServersSwitchedLocal": "Cambiado a modo local",
+  "settingsServersMusicDirUpdated": "Carpeta de música actualizada",
+  "settingsDuplicateTitle": "Detección de duplicados",
+  "settingsDuplicateDismissError": "Descartar",
+  "settingsDuplicateIntro": "Identifica archivos duplicados con contenido idéntico mediante huellas de audio. La misma canción se reconoce incluso con distintos nombres de archivo y formatos.",
+  "settingsDuplicateFingerprintStats": "Estadísticas de huellas",
+  "settingsDuplicateLocalSongs": "Canciones locales",
+  "settingsDuplicateComputed": "Con huella",
+  "settingsDuplicatePending": "Pendientes",
+  "settingsDuplicateUncomputable": "No calculables",
+  "settingsDuplicateUncomputableHint": "Estos archivos no tienen pista de audio, están dañados, agotaron el tiempo o el ffmpeg del servidor no admite su formato. No se reintentarán automáticamente: usa \"Reintentar solo fallidos\" (p. ej. tras una actualización del servidor) o \"Recalcular todas las huellas\".",
+  "settingsDuplicateViewFailed": "Ver detalles del error",
+  "settingsDuplicateFailedTitle": "Canciones con huella fallida",
+  "settingsDuplicateNoFailed": "No hay canciones fallidas",
+  "settingsDuplicateSongCount": "{count}",
+  "@settingsDuplicateSongCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDuplicateChromaprintMissing": "La detección de huellas de audio requiere ffmpeg con soporte de chromaprint. Los usuarios de Docker pueden simplemente actualizar a la última imagen.",
+  "settingsDuplicateStartCompute": "Calcular y detectar",
+  "settingsDuplicateCheck": "Detectar duplicados",
+  "settingsDuplicateRecomputeAll": "Recalcular todas las huellas",
+  "settingsDuplicateRetryFailed": "Reintentar solo fallidos",
+  "settingsDuplicateComputing": "Calculando huellas de audio... {computed}/{total}",
+  "@settingsDuplicateComputing": {
+    "placeholders": {
+      "computed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDuplicateFailed": "Fallidos: {count}",
+  "@settingsDuplicateFailed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDuplicateAutoDetect": "Los duplicados se detectarán automáticamente al terminar el cálculo",
+  "settingsDuplicateStopCompute": "Detener cálculo",
+  "settingsDuplicateStopComputeHint": "Las huellas ya calculadas se conservan; las canciones restantes se calcularán la próxima vez",
+  "settingsDuplicateRecheck": "Volver a comprobar",
+  "settingsDuplicateNoResults": "No se encontraron canciones duplicadas",
+  "settingsDuplicateNoResultsHint": "¡Tu biblioteca de música está limpia!",
+  "settingsDuplicateSummary": "Se encontraron {groups} grupos duplicados ({songs} canciones en total)",
+  "@settingsDuplicateSummary": {
+    "placeholders": {
+      "groups": {
+        "type": "int"
+      },
+      "songs": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDuplicateIgnoredCount": "{count} grupos ignorados",
+  "@settingsDuplicateIgnoredCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDuplicateCleanAll": "Limpiar todos los duplicados (eliminar {count})",
+  "@settingsDuplicateCleanAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDuplicateGroupLabel": "Grupo duplicado {index}",
+  "@settingsDuplicateGroupLabel": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDuplicateUnignore": "Dejar de ignorar",
+  "settingsDuplicateIgnore": "Ignorar este grupo",
+  "settingsDuplicateDeleteUnselected": "Eliminar no seleccionadas",
+  "settingsDuplicateRecommended": "Recomendado",
+  "settingsDuplicateConfirmTitle": "Confirmar eliminación",
+  "settingsDuplicateConfirmMessage": "Esto eliminará {count} canciones duplicadas y sus archivos de audio, conservando la versión seleccionada de cada grupo. Esta acción no se puede deshacer.",
+  "@settingsDuplicateConfirmMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDuplicateDeleted": "Se eliminaron {count} canciones duplicadas",
+  "@settingsDuplicateDeleted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDuplicateDeleteFailed": "Error al eliminar: {error}",
+  "@settingsDuplicateDeleteFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCategoryAppearanceTitle": "Apariencia",
+  "settingsCategoryAppearanceSubtitle": "Tema, menú y pantalla",
+  "settingsCategoryPlaybackTitle": "Reproducción",
+  "settingsCategoryPlaybackSubtitle": "Calidad de audio",
+  "settingsCategoryLibraryTitle": "Biblioteca",
+  "settingsCategoryLibrarySubtitle": "Escaneo, importación y conversión",
+  "settingsCategoryExtensionsTitle": "Extensiones",
+  "settingsCategoryExtensionsSubtitle": "Gestión de plugins",
+  "settingsCategoryCacheTitle": "Caché",
+  "settingsCategoryCacheSubtitle": "Caché del servidor y local",
+  "settingsCategoryNetworkTitle": "Red",
+  "settingsCategoryNetworkSubtitle": "Configuración de proxy",
+  "settingsCategoryDataTitle": "Datos",
+  "settingsCategoryDataSubtitle": "Exportación e importación de listas",
+  "settingsCategoryAboutTitle": "Acerca de y actualizaciones",
+  "settingsCategoryAboutSubtitle": "Versión y registros",
+  "settingsCategoryAccountTitle": "Cuenta",
+  "settingsCategoryAccountSubtitle": "Servidor e inicio de sesión",
+  "settingsDevVersion": "Compilación de desarrollo",
+  "settingsStableVersion": "Estable",
+  "settingsLocalMode": "Modo local",
+  "settingsManage": "Administrar",
+  "settingsMenuTitle": "Ajustes de menú",
+  "settingsMenuLibrary": "Biblioteca",
+  "settingsMenuPlaylists": "Listas de reproducción",
+  "settingsTabsEnabledCount": "{count} pestañas activadas (Inicio y Ajustes siempre se muestran)",
+  "@settingsTabsEnabledCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsTabsCollapseHint": "En móvil, las pestañas más allá de 5 se agrupan en el menú \"Más\"",
+  "settingsMaxTabsLimit": "Puedes mostrar como máximo {count} pestañas",
+  "@settingsMaxTabsLimit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsSaveFailed": "No se pudo guardar: {error}",
+  "@settingsSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsQualityOriginal": "Calidad original",
+  "settingsQualityLow": "Baja (128 kbps)",
+  "settingsQualityMedium": "Media (192 kbps)",
+  "settingsQualityHigh": "Alta (320 kbps)",
+  "settingsQualityTitle": "Calidad de audio",
+  "settingsQualityDialogTitle": "Seleccionar calidad de audio",
+  "settingsQualityOriginalDesc": "Sin transcodificación, usa la calidad original del archivo",
+  "settingsQualityTranscodeDesc": "Transcodificar a MP3, adecuado para redes débiles",
+  "settingsAutoPlayOnLaunchTitle": "Reproducción automática al iniciar",
+  "settingsAutoPlayOnLaunchDesc": "Reanuda automáticamente la última reproducción al abrir la app",
+  "settingsMiniPlayerControlsTitle": "Botones del mini reproductor",
+  "settingsMiniPlayerControlsDesc": "Qué controles mostrar en la barra del mini reproductor inferior",
+  "settingsMiniPlayerControlsDialogTitle": "Botones a mostrar",
+  "settingsMiniPlayerControlsPlayOnly": "Solo reproducir/pausar",
+  "settingsMiniPlayerControlsPrevNext": "Anterior / siguiente",
+  "settingsMiniPlayerControlsPrevNextMode": "Anterior / siguiente + modo de reproducción",
+  "settingsHomeGridTitle": "Cuadrícula de inicio de listas",
+  "settingsHomeGridDesc": "Columnas y filas de las secciones \"Mis listas\" / \"Mis radios\" en la página de inicio de pantalla ancha",
+  "settingsHomeGridColumnsTitle": "Por fila",
+  "settingsHomeGridColumnsAuto": "Automático",
+  "settingsHomeGridRowsTitle": "Filas",
+  "settingsHomeGridRowsAll": "Todas",
+  "settingsHomeGridSummary": "Actual: {layout} — hasta {count} listas",
+  "@settingsHomeGridSummary": {
+    "placeholders": {
+      "layout": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsHomeGridSummaryAuto": "Actual: {layout} — las columnas se adaptan al ancho de la ventana (3 en tablet, 4 en escritorio)",
+  "@settingsHomeGridSummaryAuto": {
+    "placeholders": {
+      "layout": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsHomeGridSummaryAllRows": "Actual: {layout} — muestra todas las listas (hasta {count} por sección; usa \"Ver todo\" para el resto)",
+  "@settingsHomeGridSummaryAllRows": {
+    "placeholders": {
+      "layout": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsHomeGridClampHint": "Las columnas se reducen automáticamente cuando la ventana es demasiado estrecha para mantener legibles las tarjetas.",
+  "settingsHomeGridNarrowHint": "Esta ventana es estrecha, por lo que las listas del inicio usan un carrusel horizontal; el ajuste se aplica cuando la ventana sea más ancha.",
+  "settingsFontScaleTitle": "Tamaño de fuente",
+  "settingsFontScaleSmall": "Pequeña",
+  "settingsFontScaleDefault": "Predeterminada",
+  "settingsFontScaleLarge": "Grande",
+  "settingsFontScaleExtraLarge": "XL",
+  "settingsAutoEnterLyricsOnLaunchTitle": "Abrir letras al iniciar",
+  "settingsAutoEnterLyricsOnLaunchDesc": "Abre automáticamente la vista de letras a pantalla completa al abrir la app (se adapta al tamaño de pantalla)",
+  "settingsNotificationLyricInTitleTitle": "Letras en el título de la notificación",
+  "settingsNotificationLyricInTitleDesc": "Activado: la línea de título muestra las letras y el nombre de la canción pasa al subtítulo. Desactivado: el título muestra el nombre de la canción y las letras van al subtítulo",
+  "settingsDesktopLyricTitle": "Letras en escritorio",
+  "settingsDesktopLyricDesc": "Muestra una ventana flotante de letras en el escritorio que se desplaza con la reproducción",
+  "settingsDesktopLyricLockTitle": "Bloquear posición de las letras",
+  "settingsDesktopLyricLockDesc": "Al bloquear, la ventana no se puede arrastrar y los clics atraviesan hacia lo que hay debajo",
+  "settingsDesktopLyricFontSizeTitle": "Tamaño de fuente de las letras",
+  "settingsDesktopLyricFontSizeSmall": "Pequeña",
+  "settingsDesktopLyricFontSizeMedium": "Mediana",
+  "settingsDesktopLyricFontSizeLarge": "Grande",
+  "settingsDesktopLyricOpacityTitle": "Opacidad del fondo",
+  "desktopLyricNoLyric": "No hay letras disponibles",
+  "desktopLyricContextLock": "Bloquear posición",
+  "desktopLyricContextHide": "Ocultar letras de escritorio",
+  "settingsShortcutsEntryTitle": "Atajos de teclado",
+  "settingsShortcutsEntrySubtitle": "Personaliza las teclas de control de reproducción",
+  "settingsShortcutsPageTitle": "Atajos de teclado",
+  "settingsShortcutsEnableTitle": "Activar atajos de teclado",
+  "settingsShortcutsEnableSubtitle": "Controla la reproducción con atajos dentro de la ventana de escritorio",
+  "settingsShortcutActionPlayPause": "Reproducir / Pausar",
+  "settingsShortcutActionPlayNext": "Siguiente pista",
+  "settingsShortcutActionPlayPrev": "Pista anterior",
+  "settingsShortcutActionSeekForward": "Avanzar",
+  "settingsShortcutActionSeekBackward": "Retroceder",
+  "settingsShortcutActionVolumeUp": "Subir volumen",
+  "settingsShortcutActionVolumeDown": "Bajar volumen",
+  "settingsShortcutActionToggleMute": "Silenciar / reactivar",
+  "settingsShortcutRecordPrompt": "Pulsa una combinación de teclas…",
+  "settingsShortcutUnset": "Sin asignar",
+  "settingsShortcutConflictTitle": "Conflicto de atajos",
+  "settingsShortcutConflict": "Esta combinación ya la usa \"{action}\"",
+  "@settingsShortcutConflict": {
+    "placeholders": {
+      "action": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsShortcutOverride": "Sobrescribir",
+  "settingsShortcutClear": "Borrar",
+  "settingsShortcutResetAll": "Restablecer todo a los valores predeterminados",
+  "settingsShortcutResetAllConfirm": "¿Restablecer todos los atajos a sus valores predeterminados?",
+  "settingsQualitySwitched": "Calidad de audio cambiada a {quality}",
+  "@settingsQualitySwitched": {
+    "placeholders": {
+      "quality": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSwitchFailed": "Error al cambiar: {error}",
+  "@settingsSwitchFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsLibraryDuplicateTitle": "Detección de duplicados",
+  "settingsLibraryDuplicateSubtitle": "Identifica archivos duplicados con contenido idéntico mediante huella de audio",
+  "settingsPluginStoreTitle": "Tienda de plugins",
+  "settingsPluginStoreSubtitle": "Explora e instala plugins",
+  "settingsExportPlaylistTitle": "Exportar listas de reproducción",
+  "settingsExportPlaylistSubtitle": "Respalda todos los datos de las listas en un archivo JSON",
+  "settingsImportPlaylistTitle": "Importar listas de reproducción",
+  "settingsImportPlaylistSubtitle": "Restaura los datos de las listas desde un archivo JSON de respaldo",
+  "settingsDownloadAppTitle": "Descargar la app",
+  "settingsDownloadAppSubtitle": "Consigue el cliente nativo móvil / de escritorio con reproducción en segundo plano, caché y más",
+  "settingsWebDebugConsoleTitle": "Consola de depuración",
+  "settingsWebDebugConsoleSubtitle": "Activa el panel de depuración web de NextConsole (requiere recargar la página)",
+  "settingsWebDebugConsoleEnabled": "Consola de depuración activada, la página se recargará",
+  "settingsWebDebugConsoleDisabled": "Consola de depuración desactivada, la página se recargará",
+  "settingsAboutTitle": "Acerca de",
+  "settingsAboutSubtitle": "Información de versión y licencia",
+  "settingsAccountServer": "Servidor",
+  "settingsNoMusicDir": "No hay carpeta de música seleccionada",
+  "settingsLogout": "Cerrar sesión",
+  "settingsLogoutConfirmTitle": "Confirmar cierre de sesión",
+  "settingsLogoutConfirmContent": "¿Seguro que quieres cerrar la sesión de la cuenta actual?",
+  "settingsLogoutButton": "Cerrar sesión",
+  "settingsExportNotLoggedIn": "Sin sesión iniciada, no se puede exportar",
+  "settingsExportFailed": "Error al exportar: {error}",
+  "@settingsExportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsImportReadFailed": "No se puede leer el contenido del archivo",
+  "settingsImportPathFailed": "No se pudo obtener la ruta del archivo",
+  "settingsImportComplete": "Importación completada: {created} listas creadas, {merged} fusionadas, {songsCreated} canciones creadas, {songsMatched} coincidentes",
+  "@settingsImportComplete": {
+    "placeholders": {
+      "created": {},
+      "merged": {},
+      "songsCreated": {},
+      "songsMatched": {}
+    }
+  },
+  "settingsImportFailed": "Error al importar: {error}",
+  "@settingsImportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCheckServerUpdate": "Buscar actualizaciones del servidor",
+  "settingsUpdateAvailable": "Nueva versión disponible: {version}",
+  "@settingsUpdateAvailable": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCurrentVersionLatest": "Versión actual: {version} (actualizada)",
+  "@settingsCurrentVersionLatest": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCheckingUpdate": "Buscando actualizaciones...",
+  "settingsCheckUpdateFailed": "No se pudo buscar actualizaciones",
+  "settingsCheckClientUpdate": "Buscar actualizaciones del cliente",
+  "settingsAutoUpdateCheckTitle": "Buscar actualizaciones al iniciar",
+  "settingsAutoUpdateCheckSubtitle": "Comprueba en segundo plano poco después del inicio, como máximo una vez cada {hours} horas",
+  "@settingsAutoUpdateCheckSubtitle": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsCurrentVersion": "Versión actual: {version}",
+  "@settingsCurrentVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsHlsProxyTitle": "Proxy de backend para radio HLS",
+  "settingsHlsProxySubtitle": "Al activarlo, el servidor obtiene el m3u8 de la radio y hace de proxy de los segmentos, evitando la protección antienlaces por Referer / CORS. Todos los segmentos usan el ancho de banda de esta máquina: ten en cuenta el costo de tráfico.",
+  "settingsHlsProxyEnabled": "Proxy HLS activado",
+  "settingsHlsProxyDisabled": "Proxy HLS desactivado",
+  "settingsVolumeNormalizeTitle": "Normalización de volumen",
+  "settingsVolumeNormalizeSubtitle": "Activa la normalización de sonoridad EBU R128 para igualar el volumen entre distintas fuentes de audio. Requiere ffmpeg; aumenta el uso de CPU y la latencia del primer arranque",
+  "settingsVolumeNormalizeEnabled": "Normalización de volumen activada",
+  "settingsVolumeNormalizeDisabled": "Normalización de volumen desactivada",
+  "settingsVolumeNormalizeLoudnessTitle": "Sonoridad objetivo (LUFS)",
+  "settingsVolumeNormalizeLoudnessSubtitle": "Personaliza la sonoridad objetivo EBU R128, predeterminada en -16. El streaming suele usar -14 y la radiodifusión -23. Rango de -40 a -5",
+  "settingsVolumeNormalizeLoudnessInvalid": "Introduce un valor entre -40 y -5",
+  "settingsVolumeNormalizeLoudnessSaved": "Sonoridad objetivo establecida en {value} LUFS",
+  "@settingsVolumeNormalizeLoudnessSaved": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsProxyAllowlistTitle": "Lista blanca de proxy para redes privadas",
+  "settingsProxyAllowlistEmpty": "Sin configurar (las direcciones privadas se rechazan)",
+  "settingsProxyAllowlistCount": "{count} dirección(es)/rango(s) permitidos",
+  "@settingsProxyAllowlistCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsProxyAllowlistDialogDesc": "El proxy a direcciones privadas está bloqueado por defecto para evitar SSRF. Si necesitas que este servidor haga de proxy de recursos internos (p. ej. un WebDAV accesible solo en la LAN), indica aquí las direcciones permitidas.",
+  "settingsProxyAllowlistLabel": "Direcciones permitidas (una por línea)",
+  "settingsProxyAllowlistHelper": "Una IP única (p. ej. 192.168.1.100) o rango CIDR (p. ej. 192.168.1.0/24) por línea. Solo afecta al proxy genérico de recursos.",
+  "settingsProxyAllowlistSaved": "Lista blanca de proxy de redes privadas guardada",
+  "settingsInsecureTlsTitle": "Ignorar verificación de certificados SSL",
+  "settingsInsecureTlsSubtitle": "Actívalo al conectar con un servidor con certificado HTTPS autofirmado o no válido. Se aplica a las solicitudes de API y a la reproducción de audio.",
+  "settingsInsecureTlsEnabled": "Verificación de certificados ignorada",
+  "settingsInsecureTlsDisabled": "Verificación de certificados activada",
+  "settingsInsecureTlsWarnTitle": "Seguridad reducida",
+  "settingsInsecureTlsWarnContent": "Al activarlo se aceptará cualquier certificado HTTPS, lo que te expone a ataques de intermediario. Úsalo solo en intranets de confianza o con certificados autofirmados. ¿Activarlo de todos modos?",
+  "settingsHttpProxyTitle": "Proxy HTTP",
+  "settingsHttpProxyNotConfigured": "Sin configurar (directo)",
+  "settingsHttpProxyDialogDesc": "Establece un proxy HTTP global. Todas las solicitudes salientes del backend (descargas de plugins, comprobaciones de actualizaciones, etc.) pasarán por él. Déjalo vacío para conexión directa.",
+  "settingsHttpProxyAddressLabel": "Dirección del proxy",
+  "settingsHttpProxyHelper": "Admite proxies HTTP/HTTPS/SOCKS5",
+  "settingsClear": "Borrar",
+  "settingsSave": "Guardar",
+  "settingsHttpProxyCleared": "Proxy HTTP eliminado",
+  "settingsHttpProxySet": "Proxy HTTP configurado: {proxy}",
+  "@settingsHttpProxySet": {
+    "placeholders": {
+      "proxy": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsGithubProxyTitle": "Proxy de GitHub",
+  "settingsGithubProxyDialogDesc": "Compartido por la instalación/actualización de plugins, las comprobaciones de actualizaciones y las descargas del cliente. Elige un espejo si GitHub va lento en tu región.",
+  "settingsGithubProxyCustom": "Proxy personalizado",
+  "settingsGithubProxyCustomHelper": "Introduce una dirección de proxy, p. ej. https://example.com/",
+  "settingsGithubProxyCopyPrompt": "Copiar mensaje para preguntar a una IA",
+  "settingsGithubProxyCopied": "Copiado: pégalo en cualquier chat de IA",
+  "settingsGithubProxyCleared": "Cambiado a conexión directa",
+  "settingsGithubProxySet": "Proxy de GitHub configurado: {proxy}",
+  "@settingsGithubProxySet": {
+    "placeholders": {
+      "proxy": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsLogLevelDebug": "Depuración (detallado, para depurar)",
+  "settingsLogLevelInfo": "Información (predeterminado)",
+  "settingsLogLevelWarn": "Advertencias",
+  "settingsLogLevelError": "Errores (solo errores)",
+  "settingsLogLevelTitle": "Nivel de registro",
+  "settingsLogLevelDialogTitle": "Seleccionar nivel de registro",
+  "settingsLogLevelSwitched": "Nivel de registro cambiado a {level}",
+  "@settingsLogLevelSwitched": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsExportLogsTitle": "Exportar registros",
+  "settingsExportLogsSubtitle": "Empaqueta los registros de frontend y backend (con datos sensibles omitidos) para informes de errores",
+  "settingsExportLogsShareSubject": "Registros de Songloft",
+  "settingsExportLogsSuccess": "Registros empaquetados, elige cómo compartirlos o guardarlos",
+  "settingsExportLogsSuccessNoBackend": "Registros de frontend exportados (registros de backend no disponibles)",
+  "settingsExportLogsFailed": "No se pudieron exportar los registros: {error}",
+  "@settingsExportLogsFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsAccountUrlNotConfigured": "Sin configurar · Toca para añadir",
+  "settingsAccountUrlSummary": "{count} direcciones · Actual: {label}",
+  "@settingsAccountUrlSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsAccountLoading": "Cargando...",
+  "settingsAboutDesc1": "Songloft es una app de servidor de música personal de código abierto.",
+  "settingsAboutDesc2": "Admite gestión de biblioteca local, reproducción en línea y extensiones de plugins.",
+  "settingsAboutGithubSemantics": "Abrir la página de GitHub",
+  "settingsUpgradeCheckTimeout": "La comprobación de actualizaciones agotó el tiempo. Prueba a cambiar el proxy e inténtalo de nuevo.",
+  "settingsUpgradeCheckFailed": "No se pudo buscar actualizaciones: {error}",
+  "@settingsUpgradeCheckFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsUpgradeChannelDev": "Compilación de desarrollo",
+  "settingsUpgradeChannelStable": "Compilación estable",
+  "settingsUpgradeVersionWithDetails": "{version} ({details})",
+  "@settingsUpgradeVersionWithDetails": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "details": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsUpgradeStartFailed": "No se pudo iniciar la actualización: {error}",
+  "@settingsUpgradeStartFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsUpgradeConfirmReset": "Confirmar reversión",
+  "settingsUpgradeConfirmResetContent": "¿Revertir a la versión de imagen base del contenedor Docker?\n\nEl servicio se reiniciará automáticamente tras la reversión.",
+  "settingsUpgradeResetFailed": "Error en la reversión: {error}",
+  "@settingsUpgradeResetFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsUpgradeTitle": "Buscar actualizaciones",
+  "settingsUpgradeChecking": "Buscando actualizaciones...",
+  "settingsUpgradeUpToDate": "Tienes la última versión",
+  "settingsUpgradeCurrentVersion": "Versión actual: {version}",
+  "@settingsUpgradeCurrentVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsUpgradeSelectVersion": "Selecciona la versión a la que actualizar:",
+  "settingsUpgradeBuildTime": "Fecha de compilación: {time}",
+  "@settingsUpgradeBuildTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsUpgradeReleaseNotes": "Notas de la versión:",
+  "settingsUpgradeResetting": "Revirtiendo...",
+  "settingsUpgradeResetButton": "Revertir a la versión base",
+  "settingsUpgradeCompleted": "Actualización completada",
+  "settingsUpgradeRestartSoon": "La app se reiniciará en breve",
+  "settingsUpgradeFailed": "Error en la actualización",
+  "settingsUpgradeClose": "Cerrar",
+  "settingsUpgradeLater": "Más tarde",
+  "settingsUpgradeGoDownload": "Ir a descargar",
+  "settingsUpgradeUpgradeNow": "Actualizar ahora",
+  "settingsUpgradeUploadButton": "Subir actualización",
+  "settingsUpgradeUploading": "Subiendo...",
+  "settingsUpgradeUploadFailed": "Error al subir: {error}",
+  "@settingsUpgradeUploadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsUpgradeUploadConfirmChannel": "Confirmación de cambio de canal",
+  "settingsUpgradeUploadConfirmChannelContent": "El canal actual es {currentChannel}, el archivo subido es {uploadChannel} ({version}). ¿Confirmar el cambio de canal y la actualización?\n\nEl servicio se reiniciará automáticamente.",
+  "@settingsUpgradeUploadConfirmChannelContent": {
+    "placeholders": {
+      "currentChannel": {
+        "type": "String"
+      },
+      "uploadChannel": {
+        "type": "String"
+      },
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsUpgradeUploadConfirmNormal": "¿Confirmar la actualización a {version} ({channel})?\n\nEl servicio se reiniciará automáticamente.",
+  "@settingsUpgradeUploadConfirmNormal": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "channel": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsUpgradeUploadConfirm": "Confirmar actualización",
+  "settingsFrontendUpgradeCheckTimeout": "La comprobación de actualizaciones agotó el tiempo. Prueba a cambiar el proxy e inténtalo de nuevo.",
+  "settingsFrontendUpgradeTitle": "Actualización del cliente",
+  "settingsFrontendUpgradeChecking": "Buscando actualizaciones...",
+  "settingsFrontendUpgradeUpToDate": "Tienes la última versión",
+  "settingsFrontendUpgradeCurrentVersion": "Versión actual: {version}",
+  "@settingsFrontendUpgradeCurrentVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsFrontendUpgradeLatestVersion": "Última versión: {version}",
+  "@settingsFrontendUpgradeLatestVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsFrontendUpgradePublishedAt": "Publicado: {date}",
+  "@settingsFrontendUpgradePublishedAt": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsFrontendUpgradeReleaseNotes": "Notas de la versión:",
+  "settingsFrontendUpgradeClose": "Cerrar",
+  "settingsFrontendUpgradeLater": "Más tarde",
+  "settingsFrontendUpgradeGoDownload": "Ir a descargar",
+  "settingsFrontendUpgradeDownloadFull": "Descargar instalador completo",
+  "settingsFrontendUpgradeReinstallHint": "Si la app se comporta mal tras una actualización en caliente, descarga el instalador completo y reinstala sobre él",
+  "settingsConfigTitle": "Configuración",
+  "settingsConfigSubtitle": "Administra los elementos de configuración del sistema",
+  "settingsConfigAdd": "Añadir configuración",
+  "settingsConfigRefresh": "Actualizar",
+  "settingsConfigEmpty": "No hay elementos de configuración",
+  "settingsConfigEmptyHint": "Toca \"Añadir configuración\" para crear un elemento nuevo",
+  "settingsConfigKeyLabel": "Clave de configuración",
+  "settingsConfigKeyHint": "p. ej. app.setting.name",
+  "settingsConfigKeyRequired": "Introduce una clave de configuración",
+  "settingsConfigValueLabel": "Valor de configuración",
+  "settingsConfigValueHint": "Valor de configuración (admite varias líneas)",
+  "settingsConfigValueRequired": "Introduce un valor de configuración",
+  "settingsConfigAddButton": "Añadir",
+  "settingsConfigAdded": "Configuración añadida",
+  "settingsConfigAddFailed": "No se pudo añadir: {error}",
+  "@settingsConfigAddFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsConfigEditTitle": "Editar configuración: {key}",
+  "@settingsConfigEditTitle": {
+    "placeholders": {
+      "key": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsConfigKeyDisplay": "Clave de configuración: {key}",
+  "@settingsConfigKeyDisplay": {
+    "placeholders": {
+      "key": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsConfigSave": "Guardar",
+  "settingsConfigUpdated": "Configuración actualizada",
+  "settingsConfigUpdateFailed": "No se pudo actualizar: {error}",
+  "@settingsConfigUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsConfigConfirmDelete": "Confirmar eliminación",
+  "settingsConfigDeleteConfirm": "¿Eliminar la configuración \"{key}\"?",
+  "@settingsConfigDeleteConfirm": {
+    "placeholders": {
+      "key": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsConfigDeleted": "Configuración eliminada",
+  "settingsConfigDeleteFailed": "No se pudo eliminar: {error}",
+  "@settingsConfigDeleteFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsConfigEdit": "Editar",
+  "settingsTokenTitle": "Gestión de tokens",
+  "settingsTokenSubtitle": "Administra los tokens de inicio de sesión",
+  "settingsTokenEmpty": "No hay tokens",
+  "settingsTokenConfirmRevoke": "Confirmar revocación",
+  "settingsTokenRevokeConfirm": "Revocar este token invalidará la sesión de inicio de sesión correspondiente. ¿Continuar?",
+  "settingsTokenRevoke": "Revocar",
+  "settingsTokenRevoked": "Token revocado",
+  "settingsTokenRevokeFailed": "No se pudo revocar: {error}",
+  "@settingsTokenRevokeFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsTokenStatusRevoked": "Revocado",
+  "settingsTokenStatusExpired": "Expirado",
+  "settingsTokenStatusActive": "Activo",
+  "settingsTokenType": "Tipo: {type}",
+  "@settingsTokenType": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsTokenTypeAccess": "Token de acceso",
+  "settingsTokenTypeRefresh": "Token de actualización",
+  "settingsTokenClient": "Cliente: {info}",
+  "@settingsTokenClient": {
+    "placeholders": {
+      "info": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsTokenExpiresAt": "Expira: {time}",
+  "@settingsTokenExpiresAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "coreTrayOpen": "Abrir Songloft",
+  "coreTrayOpenLogs": "Abrir directorio de registros",
+  "coreTrayExit": "Salir",
+  "coreUrlEmpty": "La URL no puede estar vacía",
+  "coreUrlInvalid": "Introduce una URL válida (que incluya http:// o https://)",
+  "corePickMusicDir": "Seleccionar carpeta de música",
+  "categoryFieldGenre": "Género",
+  "categoryFieldArtist": "Artista",
+  "categoryFieldAlbum": "Álbum",
+  "categoryFieldYear": "Año",
+  "categoryFieldDecade": "Década",
+  "categoryFieldLanguage": "Idioma",
+  "categoryFieldStyle": "Estilo",
+  "categoryFieldFolder": "Carpetas",
+  "categoryValueUnknown": "Desconocido",
+  "categoryValueYear": "{value}",
+  "@categoryValueYear": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "categoryValueDecade": "{value}s",
+  "@categoryValueDecade": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "categoryBrowseTitle": "Explorar por categoría",
+  "categoryEmptyTitle": "No hay categorías de \"{label}\"",
+  "@categoryEmptyTitle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "categoryEmptySubtitle": "No hay canciones que clasificar en esta dimensión",
+  "folderBrowseEmpty": "No se encontraron carpetas",
+  "folderBrowseNoMusicPath": "Ruta de música no configurada",
+  "categorySongCount": "{count} canciones",
+  "@categorySongCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "categorySearchHint": "Buscar {label}…",
+  "@categorySearchHint": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "categoryNoMatch": "No se encontró ningún {label} que coincida",
+  "@categoryNoMatch": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "songCacheCacheSong": "Guardar en el dispositivo",
+  "songCacheRemove": "Quitar de la caché",
+  "songCacheInfo": "Información de la canción",
+  "songCacheConfirm": "Guardar",
+  "songCacheCancel": "Cancelar",
+  "songCacheStarted": "Guardando \"{title}\"",
+  "@songCacheStarted": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "songCacheDone": "Guardada en el dispositivo",
+  "songCacheRemoved": "Quitada de la caché",
+  "songCacheFailed": "Error al guardar",
+  "songCacheLimitExceeded": "Se alcanzó el límite de caché local; libera espacio en Ajustes primero",
+  "songCacheVideoWarnTitle": "Guardar archivo de video",
+  "songCacheVideoWarnContent": "Los archivos de video son grandes. ¿Guardarlo en el dispositivo de todos modos?",
+  "songInfoTitle": "Información de la canción",
+  "songInfoArtist": "Artista",
+  "songInfoAlbum": "Álbum",
+  "songInfoFormat": "Formato",
+  "songInfoBitRate": "Bitrate",
+  "songInfoSampleRate": "Frecuencia de muestreo",
+  "songInfoFileSize": "Tamaño de archivo",
+  "songInfoType": "Tipo",
+  "songInfoPlaybackSource": "Fuente de reproducción",
+  "songInfoSourceLocal": "Caché local",
+  "songInfoSourceRemote": "Streaming",
+  "songInfoSourceUnknown": "Sin reproducción",
+  "songInfoCachePath": "Ubicación de la caché",
+  "songInfoQualityNote": "La calidad de la caché sigue la calidad de reproducción establecida al guardar; cambiar el ajuste después no afecta a los archivos ya guardados.",
+  "songTypeLocalLabel": "Local",
+  "songTypeRemoteLabel": "Remota",
+  "songTypeRadioLabel": "Radio",
+  "localSongCacheTitle": "Caché de canciones del dispositivo",
+  "localSongCacheSummary": "{count} canciones · {size}",
+  "@localSongCacheSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "localSongCacheEmpty": "No hay canciones guardadas manualmente",
+  "localSongCacheSingles": "Canciones guardadas",
+  "localSongCachePlaylists": "Listas guardadas",
+  "localSongCacheClearAll": "Vaciar caché de canciones del dispositivo",
+  "localSongCacheClearAllConfirm": "¿Vaciar toda la caché de canciones del dispositivo?",
+  "playlistCacheAll": "Guardar lista en caché",
+  "playlistCacheClear": "Vaciar caché de la lista",
+  "playlistCacheProgress": "Guardando lista en caché {done}/{total}",
+  "@playlistCacheProgress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistCacheDone": "Lista guardada en caché ({ok} correctos, {failed} fallidos)",
+  "@playlistCacheDone": {
+    "placeholders": {
+      "ok": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistCacheCleared": "Caché de la lista vaciada",
+  "playHistory": "Historial de reproducción",
+  "playHistoryTitle": "Historial de reproducción · {name}",
+  "@playHistoryTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playHistoryEmpty": "Aún no hay historial de reproducción",
+  "playHistoryEmptyHint": "Las canciones que reproduzcas aquí se registran para que puedas retomar donde lo dejaste",
+  "playHistoryClear": "Borrar historial",
+  "playHistoryClearConfirm": "¿Borrar el historial de reproducción de aquí?",
+  "playHistoryCleared": "Historial de reproducción borrado",
+  "playHistoryDeleteEntry": "Quitar esta entrada",
+  "playHistoryOperationFailed": "La operación falló, inténtalo de nuevo",
+  "playHistorySongMissing": "Esta canción ya no está en la lista; el resto se ha añadido a la cola",
+  "scrollToTop": "Volver arriba",
+  "playlistLocatePlaying": "Localizar canción en reproducción",
+  "playlistLocateNotFound": "La canción actual no está en esta lista",
+  "playlistSortShuffle": "Aleatorio",
+  "playlistShuffled": "Canciones en orden aleatorio",
+  "settingsLicensesTitle": "Licencias de código abierto",
+  "settingsLicensesSubtitle": "Licencia de distribución y componentes de terceros",
+  "licensesDistributionSection": "Licencia de distribución",
+  "licensesDistributionHeadline": "Los binarios de este cliente se distribuyen bajo la Licencia Pública General de GNU, versión 3 (GPL-3.0).",
+  "licensesDistributionWhy": "Por qué: el cliente enlaza con el motor de renderizado WebF, que es GPL-3.0 puro sin excepción de enlace. Por lo tanto, cada instalador que distribuimos se rige en su totalidad por GPL-3.0.",
+  "licensesDistributionSource": "El código fuente en sí sigue bajo la Licencia Apache 2.0. Compilarlo tú mismo con la dependencia WebF eliminada produce un binario sin código GPL, al que solo se aplica Apache-2.0.",
+  "licensesDistributionWeb": "La compilación web no se ve afectada: WebF no admite Flutter Web y no se enlaza allí, por lo que el bundle web sigue rigiéndose solo por Apache-2.0.",
+  "licensesSourceSection": "Código fuente correspondiente completo",
+  "licensesSourceHint": "Tienes derecho al código fuente correspondiente completo de este software. Cada versión incluye un recurso CORRESPONDING-SOURCE.txt que indica los repositorios, la etiqueta y los SHAs exactos de commit usados en esa compilación.",
+  "licensesSourceClient": "Código fuente del cliente",
+  "licensesSourceServer": "Código fuente del servidor",
+  "licensesSourceWebf": "Código fuente de WebF",
+  "licensesTextsSection": "Textos de licencia",
+  "licensesGplTitle": "Texto completo de GNU GPL v3.0",
+  "licensesGplSubtitle": "Incluido dentro del instalador, legible sin conexión",
+  "licensesNoticeTitle": "Avisos de terceros (NOTICE)",
+  "licensesNoticeSubtitle": "Licencias y orígenes de WebF, libmpv, FFmpeg, fuentes y más",
+  "licensesFlutterTitle": "Todas las licencias de paquetes",
+  "licensesFlutterSubtitle": "Textos de licencia por paquete recopilados por Flutter",
+  "licensesLoadFailed": "No se pudo cargar el texto de la licencia: {error}",
+  "@licensesLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "manageTags": "Administrar etiquetas",
+  "createTagHint": "Introduce el nombre de la etiqueta nueva...",
+  "noTags": "Aún no hay etiquetas",
+  "songCountUnit": "canciones",
+  "songTags": "Etiquetas",
+  "tagCreated": "Etiqueta creada",
+  "tagDeleted": "Etiqueta eliminada",
+  "tagRenamed": "Etiqueta renombrada",
+  "renameTag": "Renombrar etiqueta",
+  "deleteTagConfirm": "¿Eliminar la etiqueta \"{name}\"? Las canciones de esta etiqueta no se eliminarán.",
+  "@deleteTagConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "licensesCopyAll": "Copiar texto completo",
+  "licensesCopied": "Copiado al portapapeles",
+  "licensesOpenFailed": "No se pudo abrir el enlace: {url}",
+  "@licensesOpenFailed": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  }
+}
