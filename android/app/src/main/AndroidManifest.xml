@@ -48,11 +48,19 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-        <!-- audio_service 服务 -->
+        <!-- Android Auto: declara la app como app de medios (aparece en el cajon y permite abrirla) -->
+        <meta-data
+            android:name="com.google.android.gms.car.application"
+            android:resource="@xml/automotive_app_desc" />
+        <!-- audio_service 服务 (Android Auto: requiere intent-filter MediaBrowserService) -->
         <service
             android:name="com.ryanheise.audioservice.AudioService"
             android:foregroundServiceType="mediaPlayback"
-            android:exported="true">
+            android:exported="true"
+            tools:ignore="Instantiatable">
+            <intent-filter>
+                <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
         </service>
         <receiver
             android:name="com.ryanheise.audioservice.MediaButtonReceiver"
