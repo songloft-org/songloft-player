@@ -286,8 +286,16 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
   }
 
   /// 通知栏「退出」按钮：停止播放并移除通知（songloft-org/songloft#452）。
-  /// MediaControl.stop 是 audio_service 内置动作，点击后调用覆写的 [stop] 方法。
-  static const _stopControl = MediaControl.stop;
+  /// 必须用 customAction 确保 audio_service 在通知栏渲染为可见按钮
+  /// （MediaControl.stop 只注册系统媒体键，不生成可见按钮）。
+  /// androidIcon 复用 ic_widget_favorite：热更不能新增 res 资源，
+  /// 该图标自 fd56c02 起在所有宿主 APK 中均已存在。
+  static const _stopControl = MediaControl(
+    androidIcon: 'drawable/ic_widget_favorite',
+    label: 'Exit',
+    action: MediaAction.stop,
+    customAction: CustomMediaAction(name: 'stopPlayback'),
+  );
 
   /// 依据 `_player` 当前快照构建一份 audio_service [PlaybackState]。
   /// 抽出成独立方法，供 playbackEventStream 转换与 play/pause 等动作后的主动重播共用。
@@ -442,6 +450,10 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
     Map<String, dynamic>? extras,
   ]) async {
     debugPrint('[AudioService] customAction: $name');
+    if (name == 'stopPlayback') {
+      await stop();
+      return;
+    }
     if (name == 'toggleFavorite') {
       onToggleFavorite?.call();
     }
