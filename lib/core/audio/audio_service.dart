@@ -395,6 +395,12 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
   Future<void> stop() async {
     if (_disposed) return;
     debugPrint('[AudioService] ⏹️ stop() 被调用');
+    // Web HLS 视频主控模式：just_audio 无音源，停止 video 元素
+    if (hlsVideoPrimaryMode && onStopHlsVideo != null) {
+      onStopHlsVideo!();
+      hlsVideoPrimaryMode = false;
+      hlsVideoUrl = null;
+    }
     await _player.stop();
     return super.stop();
   }
