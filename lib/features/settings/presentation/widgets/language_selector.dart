@@ -6,7 +6,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../providers/settings_provider.dart';
 
 /// 语言选择器组件。
-/// 三选项：简体中文 / English / 跟随系统（null）。
+/// 四选项：简体中文 / English / Español / 跟随系统（null）。
 class LanguageSelector extends ConsumerWidget {
   const LanguageSelector({super.key});
 
@@ -26,6 +26,11 @@ class LanguageSelector extends ConsumerWidget {
         locale: const Locale('en'),
         icon: Icons.language_rounded,
         label: l10n.languageEnglish,
+      ),
+      (
+        locale: const Locale('es'),
+        icon: Icons.public_rounded,
+        label: 'Español',
       ),
       (
         locale: null,
