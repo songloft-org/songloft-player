@@ -285,6 +285,10 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
     _broadcastState();
   }
 
+  /// 通知栏「退出」按钮：停止播放并移除通知（songloft-org/songloft#452）。
+  /// MediaControl.stop 是 audio_service 内置动作，点击后调用覆写的 [stop] 方法。
+  static const _stopControl = MediaControl.stop;
+
   /// 依据 `_player` 当前快照构建一份 audio_service [PlaybackState]。
   /// 抽出成独立方法，供 playbackEventStream 转换与 play/pause 等动作后的主动重播共用。
   PlaybackState _buildPlaybackState() {
@@ -295,6 +299,7 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
         if (_favoriteControlSupported)
           _isCurrentSongFavorited ? _unfavoriteControl : _favoriteControl,
         MediaControl.skipToNext,
+        _stopControl,
       ],
       // 显式声明 play/pause/skip 系统动作：Android 13+ 通知与灵动岛/锁屏的媒体控件由系统
       // 依据 MediaSession 的 action 位渲染，除 controls 带入的动作外再补一层，确保上一首/
