@@ -34,6 +34,24 @@ class PluginTabPage extends ConsumerStatefulWidget {
     this.isActive = true,
   });
 
+  /// 插件 iframe 指针事件是否被宿主浮层挂起（songloft-org/songloft#451）。
+  /// Flutter Web 中 iframe 是位于 Flutter canvas 之上的真实 DOM 元素，
+  /// 与 Flutter 弹出层（如底部导航“更多”溢出菜单）几何重叠区域的指针事件
+  /// 会被 iframe 截获（iframe 内文档的事件不会冒泡出 iframe），浮层重叠区
+  /// 无法点击。浮层显示期间置为 true，把所有活跃 iframe 的 pointer-events
+  /// 切到 none，让事件穿透回 Flutter canvas。
+  static bool _pointerEventsSuspended = false;
+
+  /// 挂起/恢复所有活跃插件 iframe 的指针事件（经
+  /// `core/plugin_iframe_gate.dart` 条件桥，仅供 Web 端浮层调用）。
+  static void setPointerEventsSuspended(bool suspended) {
+    if (_pointerEventsSuspended == suspended) return;
+    _pointerEventsSuspended = suspended;
+    for (final state in _PluginTabPageState._activeStates.values) {
+      state._applyPointerEvents();
+    }
+  }
+
   @override
   ConsumerState<PluginTabPage> createState() => _PluginTabPageState();
 }
@@ -44,6 +62,17 @@ class _PluginTabPageState extends ConsumerState<PluginTabPage> {
 
   late final String _viewType;
   web.HTMLIFrameElement? _iframe;
+
+  /// 把当前挂起态应用到本 iframe。viewFactory 重建 iframe 时也调用一次，
+  /// 避免“浮层打开期间 iframe 恰好重建 → 新 iframe 带回可点击状态”导致
+  /// 浮层关闭后的恢复失效。
+  void _applyPointerEvents() {
+    final iframe = _iframe;
+    if (iframe == null) return;
+    iframe.style.pointerEvents =
+        PluginTabPage._pointerEventsSuspended ? 'none' : '';
+  }
+
   String? _lastTheme;
 
   /// `build()` 里读 `Theme.of(context)` 存下来，iframe 的 `load` 回调里复用。
@@ -111,6 +140,8 @@ class _PluginTabPageState extends ConsumerState<PluginTabPage> {
               ..style.width = '100%'
               ..style.height = '100%';
         state._iframe = iframe;
+        // 宿主浮层挂起期间重建的新 iframe 立即应用挂起态（#451）。
+        state._applyPointerEvents();
         // 文档就绪后补推色板（没有 URL 通道，见 `_syncTheme`）。
         // 重新查一次 `_activeStates` 而不是用闭包捕获的 `state`：本 factory 只注册
         // 一次、重挂时会被再调用产生新 iframe，老 iframe 的这个监听器仍活着，
