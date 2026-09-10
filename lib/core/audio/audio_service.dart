@@ -288,10 +288,12 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
   /// 通知栏「退出」按钮：停止播放并移除通知（songloft-org/songloft#452）。
   /// 必须用 customAction 确保 audio_service 在通知栏渲染为可见按钮
   /// （MediaControl.stop 只注册系统媒体键，不生成可见按钮）。
-  /// androidIcon 复用 ic_widget_favorite：热更不能新增 res 资源，
-  /// 该图标自 fd56c02 起在所有宿主 APK 中均已存在。
+  /// androidIcon 用专用 ic_notification_close（Material close X 字形，与 lynx 工程对齐，
+  /// 替换此前误用的爱心图 ic_widget_favorite）。新增 res/ 资源不能热更，必须随整包发布
+  /// （bump pubspec +N），否则旧 APK 热更到此引用会 getIdentifier() 返回 0、
+  /// 原生构建通知抛 IllegalArgumentException 使整条媒体通知挂掉（songloft-org/songloft#329）。
   static const _stopControl = MediaControl(
-    androidIcon: 'drawable/ic_widget_favorite',
+    androidIcon: 'drawable/ic_notification_close',
     label: 'Exit',
     action: MediaAction.stop,
     customAction: CustomMediaAction(name: 'stopPlayback'),

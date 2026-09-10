@@ -15,6 +15,10 @@ import 'package:flutter_test/flutter_test.dart';
 ///
 /// 本测试静态校验第 2 类（第 1 类要真机比对 APK，只能靠"复用早已存在的资源 + 不改名"的
 /// 约定，见 audio_service.dart 里 _favoriteControl 上方注释）。
+///
+/// 例外：通知栏「退出」按钮（`_stopControl`）用的是**新增**资源 `ic_notification_close`，
+/// 不走"复用历史资源"的约定——它必须随整包发布（bump pubspec `+N`），不能走热更补丁，
+/// 否则旧 APK 热更到此引用会触发第 1 类失败。本测试只校验它在仓库内存在 + 无 `?attr`。
 void main() {
   test('audio_service.dart 引用的 androidIcon 资源存在且不含 ?attr 主题引用', () {
     final source = File('lib/core/audio/audio_service.dart').readAsStringSync();
