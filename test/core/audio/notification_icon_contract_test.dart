@@ -16,9 +16,8 @@ import 'package:flutter_test/flutter_test.dart';
 /// 本测试静态校验第 2 类（第 1 类要真机比对 APK，只能靠"复用早已存在的资源 + 不改名"的
 /// 约定，见 audio_service.dart 里 _favoriteControl 上方注释）。
 ///
-/// 例外：通知栏「退出」按钮（`_stopControl`）用的是**新增**资源 `ic_notification_close`，
-/// 不走"复用历史资源"的约定——它必须随整包发布（bump pubspec `+N`），不能走热更补丁，
-/// 否则旧 APK 热更到此引用会触发第 1 类失败。本测试只校验它在仓库内存在 + 无 `?attr`。
+/// 例外：`audio_service_*` 前缀的资源来自 audio_service 包的 AAR，由 Gradle 合并进
+/// APK，不在本仓库 res/ 下——跳过本地文件检查。
 void main() {
   test('audio_service.dart 引用的 androidIcon 资源存在且不含 ?attr 主题引用', () {
     final source = File('lib/core/audio/audio_service.dart').readAsStringSync();
@@ -31,6 +30,10 @@ void main() {
     expect(refs, isNotEmpty, reason: '正则没匹配到 androidIcon，改了写法就同步改这个测试');
 
     for (final ref in refs) {
+      // audio_service_* 资源来自 audio_service 包 AAR，Gradle 合并时自动打入 APK，
+      // 不在本仓库 res/ 下，跳过本地文件检查。
+      if (ref.name.startsWith('audio_service_')) continue;
+
       final candidates =
           Directory('android/app/src/main/res')
               .listSync()
@@ -54,7 +57,6 @@ void main() {
 
       for (final file in candidates) {
         if (!file.path.endsWith('.xml')) continue;
-        // 注释里本来就会写"不要用 ?attr"这类说明，先剥掉再校验真正的属性。
         final markup = file.readAsStringSync().replaceAll(
           RegExp(r'<!--.*?-->', dotAll: true),
           '',
