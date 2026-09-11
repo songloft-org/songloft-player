@@ -83,6 +83,8 @@ final lyricStateProvider = NotifierProvider<LyricNotifier, LyricState>(
 
 class LyricNotifier extends Notifier<LyricState> {
   String? _lastLoadedUrl;
+  int _loadGeneration = 0;
+  CancelToken? _cancelToken;
 
   @override
   LyricState build() {
@@ -105,11 +107,14 @@ class LyricNotifier extends Notifier<LyricState> {
     });
 
     if (lyricUrl != null && lyricUrl.isNotEmpty) {
+      _cancelToken?.cancel('song changed');
       Future.microtask(() => _loadLyrics(lyricUrl));
       return const LyricState(isLoading: true);
     }
 
     _lastLoadedUrl = null;
+    _cancelToken?.cancel('song changed');
+    _loadGeneration++;
     Future.microtask(() => ref.read(audioHandlerProvider).restoreNowPlaying());
     return const LyricState();
   }
@@ -144,6 +149,11 @@ class LyricNotifier extends Notifier<LyricState> {
 
     if (!forceRefresh && _lastLoadedUrl == lyricUrl && state.hasLyrics) return;
 
+    final generation = ++_loadGeneration;
+    _cancelToken?.cancel('new load');
+    final cancelToken = CancelToken();
+    _cancelToken = cancelToken;
+
     state = state.copyWith(
       isLoading: true,
       loadFailed: false,
@@ -154,6 +164,7 @@ class LyricNotifier extends Notifier<LyricState> {
     // 强制刷新时跳过本地缓存，直连后端重抓（后端会重跑歌词搜索插件）
     if (!forceRefresh) {
       final cached = await LyricCacheService().get(lyricUrl);
+      if (generation != _loadGeneration) return;
       if (cached != null) {
         _applyPayload(lyricUrl, _decodeCached(cached));
         return;
@@ -168,7 +179,12 @@ class LyricNotifier extends Notifier<LyricState> {
         final sep = fullUrl.contains('?') ? '&' : '?';
         fullUrl += '${sep}refresh=${DateTime.now().millisecondsSinceEpoch}';
       }
-      final response = await Dio().get<Map<String, dynamic>>(fullUrl);
+      final response = await Dio().get<Map<String, dynamic>>(
+        fullUrl,
+        cancelToken: cancelToken,
+      );
+
+      if (generation != _loadGeneration) return;
 
       final body =
           response.data is Map<String, dynamic>
@@ -191,8 +207,14 @@ class LyricNotifier extends Notifier<LyricState> {
           }),
         );
       }
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) return;
+      debugPrint('[LyricProvider] Failed to load lyric: $e');
+      if (generation != _loadGeneration) return;
+      state = state.copyWith(isLoading: false, loadFailed: true);
     } catch (e) {
       debugPrint('[LyricProvider] Failed to load lyric: $e');
+      if (generation != _loadGeneration) return;
       state = state.copyWith(isLoading: false, loadFailed: true);
     }
   }
