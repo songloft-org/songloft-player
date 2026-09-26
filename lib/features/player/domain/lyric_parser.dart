@@ -143,16 +143,28 @@ class LyricParser {
     r'\[\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\]\]([^\[]*)',
   );
 
-  /// 判断一段歌词文本是否包含逐字标记（洛雪相对或绝对双括号）。
+  /// 绝对时间戳逐字标记（单尖括号）：`<mm:ss.xx>` + 其后文本（到下一个 `<` 为止）。
+  ///
+  /// 即常见逐字 LRC 格式（songloft-org/songloft#483）：每字标签为绝对时间，
+  /// 字 i 的高亮区间为 [tag_i, tag_{i+1})；空文本占位标签（如 `<00:00.000>`）
+  /// 在解析时跳过。
+  static final RegExp _absAngleWordRegex = RegExp(
+    r'<(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?>([^<]*)',
+  );
+
+  /// 判断一段歌词文本是否包含逐字标记（洛雪相对、绝对双括号或绝对单尖括号）。
   ///
   /// 供 Provider 决定：`lyric` 字段本身是否已内嵌逐字信息。
   static bool containsWordByWord(String content) {
-    return content.contains('[[') || _lxWordRegex.hasMatch(content);
+    return content.contains('[[') ||
+        _lxWordRegex.hasMatch(content) ||
+        _absAngleWordRegex.hasMatch(content);
   }
 
-  /// 解析逐字歌词，兼容两种格式：
+  /// 解析逐字歌词，兼容三种格式：
   /// - 洛雪相对偏移：`[mm:ss.xxx]<off,dur>字<off,dur>字...`（off/dur 为相对该行的毫秒）
-  /// - 绝对时间戳：`[mm:ss.xx][[mm:ss.xx]]字 [[mm:ss.xx]]字...`（每字双括号绝对时间）
+  /// - 绝对时间戳双括号：`[mm:ss.xx][[mm:ss.xx]]字 [[mm:ss.xx]]字...`（每字双括号绝对时间）
+  /// - 绝对时间戳单尖括号：`[mm:ss.xx]<mm:ss.xx>字<mm:ss.xx>字...`（每字单尖括号绝对时间，songloft-org/songloft#483）
   ///
   /// 无逐字标记的行降级为普通 [LyricLine]（words 为 null）。
   /// 绝对格式中每字的 end 取下一字的 start；行内最后一字的 end 在跨行阶段
@@ -181,6 +193,8 @@ class LyricParser {
         words = _parseLxWords(body, lineTime ?? Duration.zero);
       } else if (body.contains('[[')) {
         words = _parseAbsWords(body);
+      } else if (_absAngleWordRegex.hasMatch(body)) {
+        words = _parseAbsAngleWords(body);
       }
 
       if (words != null && words.isNotEmpty) {
@@ -241,26 +255,44 @@ class LyricParser {
     return words;
   }
 
-  /// 解析绝对时间戳逐字：`[[mm:ss.xx]]text`。每字 end 先置为 start
-  /// （标记「待补齐」），随后用下一字 start 填充；行内最后一字留到跨行阶段补齐。
+  /// 解析绝对时间戳双括号逐字：`[[mm:ss.xx]]text`。
   static List<LyricWord> _parseAbsWords(String body) {
-    final matches = _absWordRegex.allMatches(body).toList();
     final starts = <Duration>[];
     final texts = <String>[];
-    for (final m in matches) {
-      final t = _durationFrom(m.group(1)!, m.group(2)!, m.group(3));
+    for (final m in _absWordRegex.allMatches(body)) {
       final text = m.group(4) ?? '';
       if (text.isEmpty) continue;
-      starts.add(t);
+      starts.add(_durationFrom(m.group(1)!, m.group(2)!, m.group(3)));
       texts.add(text);
     }
+    return _wordsFromStarts(starts, texts);
+  }
+
+  /// 解析绝对时间戳单尖括号逐字：`<mm:ss.xx>text`（见 [_absAngleWordRegex]）。
+  static List<LyricWord> _parseAbsAngleWords(String body) {
+    final starts = <Duration>[];
+    final texts = <String>[];
+    for (final m in _absAngleWordRegex.allMatches(body)) {
+      final text = m.group(4) ?? '';
+      if (text.isEmpty) continue;
+      starts.add(_durationFrom(m.group(1)!, m.group(2)!, m.group(3)));
+      texts.add(text);
+    }
+    return _wordsFromStarts(starts, texts);
+  }
+
+  /// 由（起始时间, 文本）序列构造逐字数据：非末字 end 取下一字 start；
+  /// 末字 end 暂置为 start（标记「待补齐」），跨行阶段补齐。
+  static List<LyricWord> _wordsFromStarts(
+    List<Duration> starts,
+    List<String> texts,
+  ) {
     final words = <LyricWord>[];
     for (var i = 0; i < starts.length; i++) {
       final isLast = i == starts.length - 1;
       words.add(
         LyricWord(
           start: starts[i],
-          // 非末字 end 取下一字 start；末字暂置为 start，跨行阶段补齐
           end: isLast ? starts[i] : starts[i + 1],
           text: texts[i],
         ),

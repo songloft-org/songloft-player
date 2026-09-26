@@ -97,6 +97,59 @@ void main() {
       expect(words[2].end, const Duration(seconds: 19, milliseconds: 630));
     });
 
+    test('parses absolute single-angle-bracket format', () {
+      final lines = LyricParser.parseWordByWord(
+        '[01:40.626]<01:40.626>无<01:40.906>相<01:41.210>离\n'
+        '[01:42.555]<00:00.000><01:42.555>一<01:42.795>眼',
+      );
+      expect(lines, hasLength(2));
+      final first = lines[0];
+      expect(
+        first.time,
+        const Duration(minutes: 1, seconds: 40, milliseconds: 626),
+      );
+      expect(first.text, '无相离');
+      final words = first.words!;
+      expect(words, hasLength(3));
+      expect(words[0].start, first.time);
+      // 非末字 end 取下一字 start
+      expect(
+        words[0].end,
+        const Duration(minutes: 1, seconds: 40, milliseconds: 906),
+      );
+      // 行内末字 end 用下一行行首时间补齐
+      expect(words[2].end, lines[1].time);
+      // <00:00.000> 空占位标签被跳过
+      final secondWords = lines[1].words!;
+      expect(secondWords, hasLength(2));
+      expect(secondWords[0].text, '一');
+      expect(
+        secondWords[0].start,
+        const Duration(minutes: 1, seconds: 42, milliseconds: 555),
+      );
+      expect(
+        secondWords[0].end,
+        const Duration(minutes: 1, seconds: 42, milliseconds: 795),
+      );
+      // 末行末字兜底 +4s
+      expect(
+        secondWords[1].end,
+        secondWords[1].start + const Duration(seconds: 4),
+      );
+    });
+
+    test('single-angle-bracket line without line tag uses first word time', () {
+      final lines = LyricParser.parseWordByWord('<00:10.000>你<00:10.500>好');
+      expect(lines, hasLength(1));
+      expect(lines[0].time, const Duration(seconds: 10));
+      expect(lines[0].text, '你好');
+      // 末行末字兜底 +4s
+      expect(
+        lines[0].words![1].end,
+        const Duration(seconds: 14, milliseconds: 500),
+      );
+    });
+
     test('last word of last line falls back to +4s', () {
       final lines = LyricParser.parseWordByWord('[00:10.00][[00:10.00]]末');
       final w = lines.single.words!.single;
@@ -114,10 +167,16 @@ void main() {
       expect(lines[1].hasWords, isTrue);
     });
 
-    test('containsWordByWord detects both markups', () {
+    test('containsWordByWord detects all word markups', () {
       expect(LyricParser.containsWordByWord('[00:00.00]<0,10>字'), isTrue);
       expect(LyricParser.containsWordByWord('[00:00.00][[00:00.00]]字'), isTrue);
+      expect(
+        LyricParser.containsWordByWord('[01:42.555]<01:42.555>一<01:42.795>眼'),
+        isTrue,
+      );
       expect(LyricParser.containsWordByWord('[00:00.00]普通歌词'), isFalse);
+      // 非时间形态的尖括号文本不误判为逐字标记
+      expect(LyricParser.containsWordByWord('[00:00.00]普通歌词<hello>'), isFalse);
     });
   });
 
