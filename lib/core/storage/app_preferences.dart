@@ -598,6 +598,16 @@ class AppPreferences {
     return _prefs.setString(_miniPlayerControlsKey, value);
   }
 
+  static const _sidebarCollapsedKey = 'sidebar_collapsed';
+
+  bool getSidebarCollapsed() {
+    return _prefs.getBool(_sidebarCollapsedKey) ?? false;
+  }
+
+  Future<bool> setSidebarCollapsed(bool value) {
+    return _prefs.setBool(_sidebarCollapsedKey, value);
+  }
+
   static const _homeGridColumnsKey = 'home_grid_columns';
   static const _homeGridRowsKey = 'home_grid_rows';
 

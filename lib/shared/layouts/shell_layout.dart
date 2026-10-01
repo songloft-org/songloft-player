@@ -50,6 +50,8 @@ class _ShellLayoutState extends ConsumerState<ShellLayout> {
   ProviderSubscription<AuthState>? _updateAuthSub;
   Timer? _updateCheckTimer;
 
+  bool _sidebarCollapsed = false;
+
   final _visitedPluginTabs = <String>{};
 
   /// 每个保活插件 Tab 的稳定 GlobalKey（按 entryPath 缓存）。
@@ -79,8 +81,25 @@ class _ShellLayoutState extends ConsumerState<ShellLayout> {
   @override
   void initState() {
     super.initState();
+    _loadSidebarState();
     _scheduleAutoEnterLyrics();
     _scheduleUpdateCheck();
+  }
+
+  Future<void> _loadSidebarState() async {
+    final prefs = await ref.read(appPreferencesProvider.future);
+    if (!mounted) return;
+    final collapsed = prefs.getSidebarCollapsed();
+    if (collapsed != _sidebarCollapsed) {
+      setState(() => _sidebarCollapsed = collapsed);
+    }
+  }
+
+  void _toggleSidebar() async {
+    final newValue = !_sidebarCollapsed;
+    setState(() => _sidebarCollapsed = newValue);
+    final prefs = await ref.read(appPreferencesProvider.future);
+    prefs.setSidebarCollapsed(newValue);
   }
 
   /// 启动更新检查（热更补丁 + 整包新版本提示）。
@@ -379,6 +398,8 @@ class _ShellLayoutState extends ConsumerState<ShellLayout> {
           (isPluginTab || isSettings) ? null : _buildBottomPlayer(context),
       playlistDrawer: showPlaylistDrawer ? const PlaylistDrawer() : null,
       allowExtendBody: !isPluginTab,
+      isSidebarCollapsed: _sidebarCollapsed,
+      onToggleSidebar: _toggleSidebar,
     );
 
     return scaffold;

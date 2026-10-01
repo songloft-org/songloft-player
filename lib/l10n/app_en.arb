@@ -2759,5 +2759,7 @@
     "placeholders": {
       "name": {"type": "String"}
     }
-  }
+  },
+  "collapseSidebar": "Collapse sidebar",
+  "expandSidebar": "Expand sidebar"
 }

@@ -4595,4 +4595,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String deleteTagConfirm(String name) {
     return 'Delete tag \"$name\"? Songs under this tag will not be deleted.';
   }
+
+  @override
+  String get collapseSidebar => 'Collapse sidebar';
+
+  @override
+  String get expandSidebar => 'Expand sidebar';
 }

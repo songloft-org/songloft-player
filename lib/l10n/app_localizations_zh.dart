@@ -4412,4 +4412,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String deleteTagConfirm(String name) {
     return '确定删除标签「$name」？该标签下的歌曲不会被删除。';
   }
+
+  @override
+  String get collapseSidebar => '收起侧边栏';
+
+  @override
+  String get expandSidebar => '展开侧边栏';
 }

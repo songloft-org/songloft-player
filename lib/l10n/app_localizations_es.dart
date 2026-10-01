@@ -4672,4 +4672,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String deleteTagConfirm(String name) {
     return '¿Eliminar la etiqueta \"$name\"? Las canciones de esta etiqueta no se eliminarán.';
   }
+
+  @override
+  String get collapseSidebar => 'Contraer barra lateral';
+
+  @override
+  String get expandSidebar => 'Expandir barra lateral';
 }

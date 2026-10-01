@@ -31,6 +31,8 @@ class AdaptiveScaffold extends StatelessWidget {
   final Widget? bottomPlayer;
   final Widget? playlistDrawer;
   final bool allowExtendBody;
+  final bool isSidebarCollapsed;
+  final VoidCallback? onToggleSidebar;
 
   const AdaptiveScaffold({
     super.key,
@@ -41,6 +43,8 @@ class AdaptiveScaffold extends StatelessWidget {
     this.bottomPlayer,
     this.playlistDrawer,
     this.allowExtendBody = true,
+    this.isSidebarCollapsed = false,
+    this.onToggleSidebar,
   });
 
   @override
@@ -328,13 +332,19 @@ class AdaptiveScaffold extends StatelessWidget {
   }
 
   static const double _desktopSidebarWidth = 240;
+  static const double _desktopSidebarCollapsedWidth = 72;
+  static const Duration _sidebarAnimDuration = Duration(milliseconds: 200);
+  static const Curve _sidebarAnimCurve = Curves.easeInOut;
 
-  /// Desktop: 宽侧边导航布局
+  /// Desktop: 宽侧边导航布局（支持折叠）
   Widget _buildDesktopLayout(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final ext = theme.extension<SongloftThemeExtension>();
     final useCapsule = ext?.navigationStyle == 'capsule';
+    final collapsed = isSidebarCollapsed;
+    final sidebarWidth =
+        collapsed ? _desktopSidebarCollapsedWidth : _desktopSidebarWidth;
 
     final content = Row(
       children: [
@@ -350,30 +360,42 @@ class AdaptiveScaffold extends StatelessWidget {
       ],
     );
 
-    final sidebarContent = _buildDesktopSidebarContent(
-      context,
-      theme,
-      colorScheme,
-      useCapsule ? ext : null,
-    );
+    final sidebarContent =
+        collapsed
+            ? _buildDesktopSidebarCollapsedContent(
+              context,
+              theme,
+              colorScheme,
+              useCapsule ? ext : null,
+            )
+            : _buildDesktopSidebarContent(
+              context,
+              theme,
+              colorScheme,
+              useCapsule ? ext : null,
+            );
 
     if (useCapsule) {
-      // 玻璃模式：Stack + BackdropFilter 毛玻璃侧边栏；底部播放器是浮起胶囊条，
-      // 横跨「内容列 + 播放列表抽屉」但不覆盖左侧 240px 毛玻璃侧栏。
       return Scaffold(
         body: Stack(
           children: [
             Row(
               children: [
-                const SizedBox(width: _desktopSidebarWidth),
+                AnimatedContainer(
+                  duration: _sidebarAnimDuration,
+                  curve: _sidebarAnimCurve,
+                  width: sidebarWidth,
+                ),
                 Expanded(child: _overlayBottomPlayer(content, bottomPlayer)),
               ],
             ),
-            Positioned(
+            AnimatedPositioned(
+              duration: _sidebarAnimDuration,
+              curve: _sidebarAnimCurve,
               left: 0,
               top: 0,
               bottom: 0,
-              width: _desktopSidebarWidth,
+              width: sidebarWidth,
               child: ClipRect(
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
@@ -397,11 +419,17 @@ class AdaptiveScaffold extends StatelessWidget {
       );
     }
 
-    // 标准模式：原始 Row 布局
     return Scaffold(
       body: Row(
         children: [
-          SizedBox(width: _desktopSidebarWidth, child: sidebarContent),
+          AnimatedContainer(
+            duration: _sidebarAnimDuration,
+            curve: _sidebarAnimCurve,
+            width: sidebarWidth,
+            clipBehavior: Clip.hardEdge,
+            decoration: const BoxDecoration(),
+            child: sidebarContent,
+          ),
           const VerticalDivider(thickness: 1, width: 1),
           Expanded(child: bodyColumn),
         ],
@@ -484,6 +512,118 @@ class AdaptiveScaffold extends StatelessWidget {
             },
           ),
         ),
+        if (onToggleSidebar != null) ...[
+          const Divider(height: 1),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            child: ListTile(
+              leading: const Icon(Icons.keyboard_double_arrow_left, size: 20),
+              title: Text(
+                AppLocalizations.of(context).collapseSidebar,
+                style: TextStyle(
+                  color: colorScheme.onSurfaceVariant,
+                  fontSize: 13,
+                ),
+              ),
+              dense: true,
+              visualDensity: VisualDensity.compact,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              onTap: onToggleSidebar,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildDesktopSidebarCollapsedContent(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    SongloftThemeExtension? ext,
+  ) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          child: Center(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                'assets/icons/app_icon.png',
+                width: 32,
+                height: 32,
+              ),
+            ),
+          ),
+        ),
+        const Divider(height: 1),
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            itemCount: destinations.length,
+            itemBuilder: (context, index) {
+              final dest = destinations[index];
+              final isSelected = index == currentIndex;
+              final color =
+                  isSelected
+                      ? (ext?.glassGlow ?? colorScheme.primary)
+                      : colorScheme.onSurfaceVariant;
+              return Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 2,
+                ),
+                child: Tooltip(
+                  message: dest.label,
+                  preferBelow: false,
+                  waitDuration: const Duration(milliseconds: 500),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () => onDestinationSelected(index),
+                    child: Container(
+                      height: 48,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        color:
+                            isSelected
+                                ? (ext != null
+                                    ? ext.glassGlow.withAlpha(77)
+                                    : colorScheme.primaryContainer.withValues(
+                                      alpha: 0.3,
+                                    ))
+                                : null,
+                      ),
+                      child: Center(
+                        child: IconTheme(
+                          data: IconThemeData(color: color),
+                          child: isSelected ? dest.selectedIcon : dest.icon,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        if (onToggleSidebar != null) ...[
+          const Divider(height: 1),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Tooltip(
+              message: AppLocalizations.of(context).expandSidebar,
+              preferBelow: false,
+              child: IconButton(
+                icon: const Icon(Icons.keyboard_double_arrow_right, size: 20),
+                color: colorScheme.onSurfaceVariant,
+                onPressed: onToggleSidebar,
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }

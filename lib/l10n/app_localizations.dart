@@ -7968,6 +7968,18 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'确定删除标签「{name}」？该标签下的歌曲不会被删除。'**
   String deleteTagConfirm(String name);
+
+  /// No description provided for @collapseSidebar.
+  ///
+  /// In zh, this message translates to:
+  /// **'收起侧边栏'**
+  String get collapseSidebar;
+
+  /// No description provided for @expandSidebar.
+  ///
+  /// In zh, this message translates to:
+  /// **'展开侧边栏'**
+  String get expandSidebar;
 }
 
 class _AppLocalizationsDelegate

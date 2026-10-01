@@ -2839,5 +2839,7 @@
         "type": "String"
       }
     }
-  }
+  },
+  "collapseSidebar": "Contraer barra lateral",
+  "expandSidebar": "Expandir barra lateral"
 }

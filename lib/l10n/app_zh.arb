@@ -2865,5 +2865,7 @@
     "placeholders": {
       "name": {"type": "String"}
     }
-  }
+  },
+  "collapseSidebar": "收起侧边栏",
+  "expandSidebar": "展开侧边栏"
 }
