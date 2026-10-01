@@ -22,6 +22,30 @@ class NavDestination {
   });
 }
 
+/// 桌面侧边栏的几何与动画常量。
+///
+/// 展开态与折叠态共用同一套「图标列 + 文字列」骨架，所有位置都由这里的常量决定：
+/// 图标中心恒为 `x = 36`、行高恒为 48，折叠动画期间没有任何元素需要重新定位。
+const double _desktopSidebarWidth = 240;
+const double _desktopSidebarCollapsedWidth = 72;
+
+/// 图标列宽 = 折叠态侧栏宽度，展开态则是「图标 + 文字」的分栏线。
+const double _desktopSidebarRailWidth = _desktopSidebarCollapsedWidth;
+
+const double _desktopSidebarItemHeight = 48;
+const double _desktopSidebarItemCollapsedInset = 12;
+const double _desktopSidebarItemExpandedInset = 8;
+
+/// 文字透明度区间（相对折叠进度）：先把文字淡掉，再让裁切边缘扫过。
+///
+/// 顺序很重要 —— 文字必须在裁切边缘推过来之前就淡掉。反过来（先裁后淡）会
+/// 出现「半截文字挂在裁切线上」的一帧；而如果干脆不淡只靠裁切，长标签的右端
+/// 会被边缘推着走，看起来像是在拖拽而不是收缩。
+const Interval _sidebarLabelFade = Interval(0.5, 1, curve: Curves.easeOut);
+
+const Duration _sidebarAnimDuration = Duration(milliseconds: 260);
+const Curve _sidebarAnimCurve = Curves.easeInOutCubic;
+
 /// 自适应脚手架，根据屏幕尺寸切换布局模式
 class AdaptiveScaffold extends StatelessWidget {
   final Widget body;
@@ -331,11 +355,6 @@ class AdaptiveScaffold extends StatelessWidget {
     );
   }
 
-  static const double _desktopSidebarWidth = 240;
-  static const double _desktopSidebarCollapsedWidth = 72;
-  static const Duration _sidebarAnimDuration = Duration(milliseconds: 200);
-  static const Curve _sidebarAnimCurve = Curves.easeInOut;
-
   /// Desktop: 宽侧边导航布局（支持折叠）
   Widget _buildDesktopLayout(BuildContext context) {
     final theme = Theme.of(context);
@@ -343,8 +362,6 @@ class AdaptiveScaffold extends StatelessWidget {
     final ext = theme.extension<SongloftThemeExtension>();
     final useCapsule = ext?.navigationStyle == 'capsule';
     final collapsed = isSidebarCollapsed;
-    final sidebarWidth =
-        collapsed ? _desktopSidebarCollapsedWidth : _desktopSidebarWidth;
 
     final content = Row(
       children: [
@@ -360,110 +377,158 @@ class AdaptiveScaffold extends StatelessWidget {
       ],
     );
 
-    final sidebarContent =
-        collapsed
-            ? _buildDesktopSidebarCollapsedContent(
-              context,
-              theme,
-              colorScheme,
-              useCapsule ? ext : null,
-            )
-            : _buildDesktopSidebarContent(
-              context,
-              theme,
-              colorScheme,
-              useCapsule ? ext : null,
-            );
+    final overlayContent = _overlayBottomPlayer(content, bottomPlayer);
 
-    if (useCapsule) {
-      return Scaffold(
-        body: Stack(
-          children: [
-            Row(
-              children: [
-                AnimatedContainer(
-                  duration: _sidebarAnimDuration,
-                  curve: _sidebarAnimCurve,
-                  width: sidebarWidth,
-                ),
-                Expanded(child: _overlayBottomPlayer(content, bottomPlayer)),
-              ],
+    return Scaffold(
+      // 折叠动画只有一条时间轴：侧栏宽度、裁切边缘、文字透明度、选中胶囊宽度
+      // 全部由同一个 progress 派生，不会出现多套隐式动画各自为政导致的错帧。
+      body: _SidebarCollapseAnimator(
+        collapsed: collapsed,
+        duration: _sidebarAnimDuration,
+        curve: _sidebarAnimCurve,
+        builder: (context, progress) {
+          final sidebarWidth =
+              lerpDouble(
+                _desktopSidebarCollapsedWidth,
+                _desktopSidebarWidth,
+                progress,
+              )!;
+          final sidebar = _clipSidebarAtWidth(
+            width: sidebarWidth,
+            child: _buildDesktopSidebarContent(
+              context,
+              theme,
+              colorScheme,
+              useCapsule ? ext : null,
+              collapsed,
+              progress,
             ),
-            AnimatedPositioned(
-              duration: _sidebarAnimDuration,
-              curve: _sidebarAnimCurve,
-              left: 0,
-              top: 0,
-              bottom: 0,
-              width: sidebarWidth,
-              child: ClipRect(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: ext!.glassFill,
-                      border: Border(
-                        right: BorderSide(color: ext.glassBorder, width: 0.5),
+          );
+
+          if (useCapsule) {
+            return Stack(
+              children: [
+                Row(
+                  children: [
+                    SizedBox(width: sidebarWidth),
+                    Expanded(child: overlayContent),
+                  ],
+                ),
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: sidebarWidth,
+                  child: ClipRect(
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: ext!.glassFill,
+                          border: Border(
+                            right: BorderSide(
+                              color: ext.glassBorder,
+                              width: 0.5,
+                            ),
+                          ),
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: sidebar,
+                        ),
                       ),
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: sidebarContent,
                     ),
                   ),
                 ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
+              ],
+            );
+          }
 
-    return Scaffold(
-      body: Row(
-        children: [
-          AnimatedContainer(
-            duration: _sidebarAnimDuration,
-            curve: _sidebarAnimCurve,
-            width: sidebarWidth,
-            clipBehavior: Clip.hardEdge,
-            decoration: const BoxDecoration(),
-            child: sidebarContent,
-          ),
-          const VerticalDivider(thickness: 1, width: 1),
-          Expanded(child: bodyColumn),
-        ],
+          return Row(
+            children: [
+              sidebar,
+              const VerticalDivider(thickness: 1, width: 1),
+              Expanded(child: bodyColumn),
+            ],
+          );
+        },
       ),
     );
   }
 
+  /// 把侧栏内容按展开宽度定宽布局，再裁切到 [width]。
+  ///
+  /// 这是消除抖动的关键：内容**不参与宽度动画**，整个动画期间拿到的约束保持不变，
+  /// 一帧都不会触发内部重排，折叠只是裁切边缘在扫动。
+  ///
+  /// 旧写法把内容直接交给动画中的宽度去 layout：折叠的瞬间图标先跳到容器正中
+  /// （240 / 2 = 120）再滑回 36，展开的瞬间整列文字被挤进 72px 里重新折行、
+  /// 行高来回跳变（还会触发 RenderFlex overflow）——就是肉眼看到的抖动。
+  static Widget _clipSidebarAtWidth({
+    required double width,
+    required Widget child,
+  }) {
+    return SizedBox(
+      key: const ValueKey('desktop-sidebar-viewport'),
+      width: width,
+      child: ClipRect(
+        child: OverflowBox(
+          alignment: Alignment.centerLeft,
+          minWidth: _desktopSidebarWidth,
+          maxWidth: _desktopSidebarWidth,
+          child: child,
+        ),
+      ),
+    );
+  }
+
+  /// 侧栏内容（展开态骨架）：展开与折叠**共用同一棵子树**，[progress] 只驱动
+  /// 文字透明度与选中胶囊宽度（0 = 完全折叠，1 = 完全展开）；[collapsed] 仅用于
+  /// 决定是否挂悬浮提示，不参与布局。
   Widget _buildDesktopSidebarContent(
     BuildContext context,
     ThemeData theme,
     ColorScheme colorScheme,
     SongloftThemeExtension? ext,
+    bool collapsed,
+    double progress,
   ) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       children: [
+        // 头部 logo 与导航图标共用同一条图标列，折叠时同样不位移。
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+          padding: const EdgeInsets.symmetric(vertical: 24),
           child: Row(
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.asset(
-                  'assets/icons/app_icon.png',
-                  width: 32,
-                  height: 32,
+              SizedBox(
+                width: _desktopSidebarRailWidth,
+                child: Center(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.asset(
+                      'assets/icons/app_icon.png',
+                      width: 32,
+                      height: 32,
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
-              Text(
-                'Songloft',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: _SidebarLabel(
+                  progress: progress,
+                  child: Text(
+                    'Songloft',
+                    maxLines: 1,
+                    softWrap: false,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
+              const SizedBox(width: 16),
             ],
           ),
         ),
@@ -475,39 +540,25 @@ class AdaptiveScaffold extends StatelessWidget {
             itemBuilder: (context, index) {
               final dest = destinations[index];
               final isSelected = index == currentIndex;
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                child: ListTile(
-                  leading: IconTheme(
-                    data: IconThemeData(
-                      color:
-                          isSelected
-                              ? (ext?.glassGlow ?? colorScheme.primary)
-                              : colorScheme.onSurfaceVariant,
-                    ),
-                    child: isSelected ? dest.selectedIcon : dest.icon,
-                  ),
-                  title: Text(
-                    dest.label,
-                    style: TextStyle(
-                      color:
-                          isSelected
-                              ? (ext?.glassGlow ?? colorScheme.primary)
-                              : colorScheme.onSurface,
-                      fontWeight:
-                          isSelected ? FontWeight.w600 : FontWeight.normal,
-                    ),
-                  ),
-                  selected: isSelected,
-                  selectedTileColor:
-                      ext != null
-                          ? ext.glassGlow.withAlpha(77)
-                          : colorScheme.primaryContainer.withValues(alpha: 0.3),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  onTap: () => onDestinationSelected(index),
-                ),
+              final accent = ext?.glassGlow ?? colorScheme.primary;
+              return _DesktopSidebarItem(
+                progress: progress,
+                icon: isSelected ? dest.selectedIcon : dest.icon,
+                iconColor: isSelected ? accent : colorScheme.onSurfaceVariant,
+                label: dest.label,
+                labelColor: isSelected ? accent : colorScheme.onSurface,
+                labelWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                highlightColor:
+                    isSelected
+                        ? (ext != null
+                            ? ext.glassGlow.withAlpha(77)
+                            : colorScheme.primaryContainer.withValues(
+                              alpha: 0.3,
+                            ))
+                        : null,
+                // 只有折叠态（只剩图标）才需要悬浮提示。
+                tooltip: collapsed ? dest.label : null,
+                onTap: () => onDestinationSelected(index),
               );
             },
           ),
@@ -515,112 +566,22 @@ class AdaptiveScaffold extends StatelessWidget {
         if (onToggleSidebar != null) ...[
           const Divider(height: 1),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            child: ListTile(
-              leading: const Icon(Icons.keyboard_double_arrow_left, size: 20),
-              title: Text(
-                AppLocalizations.of(context).collapseSidebar,
-                style: TextStyle(
-                  color: colorScheme.onSurfaceVariant,
-                  fontSize: 13,
-                ),
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: _DesktopSidebarItem(
+              progress: progress,
+              // 双箭头绕中心转 180°：展开态朝左（收起），折叠态朝右（展开）。
+              icon: Transform.rotate(
+                angle: (1 - progress) * math.pi,
+                child: const Icon(Icons.keyboard_double_arrow_left, size: 20),
               ),
-              dense: true,
-              visualDensity: VisualDensity.compact,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              iconColor: colorScheme.onSurfaceVariant,
+              // 文案跟着动画进度切换：切换那一刻文字已淡到 0，看不到突变。
+              label:
+                  progress >= 0.5 ? l10n.collapseSidebar : l10n.expandSidebar,
+              labelColor: colorScheme.onSurfaceVariant,
+              labelFontSize: 13,
+              tooltip: collapsed ? l10n.expandSidebar : null,
               onTap: onToggleSidebar,
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildDesktopSidebarCollapsedContent(
-    BuildContext context,
-    ThemeData theme,
-    ColorScheme colorScheme,
-    SongloftThemeExtension? ext,
-  ) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 24),
-          child: Center(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.asset(
-                'assets/icons/app_icon.png',
-                width: 32,
-                height: 32,
-              ),
-            ),
-          ),
-        ),
-        const Divider(height: 1),
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            itemCount: destinations.length,
-            itemBuilder: (context, index) {
-              final dest = destinations[index];
-              final isSelected = index == currentIndex;
-              final color =
-                  isSelected
-                      ? (ext?.glassGlow ?? colorScheme.primary)
-                      : colorScheme.onSurfaceVariant;
-              return Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 2,
-                ),
-                child: Tooltip(
-                  message: dest.label,
-                  preferBelow: false,
-                  waitDuration: const Duration(milliseconds: 500),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: () => onDestinationSelected(index),
-                    child: Container(
-                      height: 48,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        color:
-                            isSelected
-                                ? (ext != null
-                                    ? ext.glassGlow.withAlpha(77)
-                                    : colorScheme.primaryContainer.withValues(
-                                      alpha: 0.3,
-                                    ))
-                                : null,
-                      ),
-                      child: Center(
-                        child: IconTheme(
-                          data: IconThemeData(color: color),
-                          child: isSelected ? dest.selectedIcon : dest.icon,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-        if (onToggleSidebar != null) ...[
-          const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Tooltip(
-              message: AppLocalizations.of(context).expandSidebar,
-              preferBelow: false,
-              child: IconButton(
-                icon: const Icon(Icons.keyboard_double_arrow_right, size: 20),
-                color: colorScheme.onSurfaceVariant,
-                onPressed: onToggleSidebar,
-              ),
             ),
           ),
         ],
@@ -685,6 +646,219 @@ class AdaptiveScaffold extends StatelessWidget {
           if (playlistDrawer != null) playlistDrawer!,
           if (bottomPlayer != null) bottomPlayer!,
         ],
+      ),
+    );
+  }
+}
+
+/// 折叠时淡出的侧栏文字：透明度只在进度过半后才抬起来（见 [_sidebarLabelFade]），
+/// 保证文字一定在裁切边缘扫到它之前就消失。
+class _SidebarLabel extends StatelessWidget {
+  const _SidebarLabel({required this.progress, required this.child});
+
+  final double progress;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) =>
+      Opacity(opacity: _sidebarLabelFade.transform(progress), child: child);
+}
+
+/// 按需套一层 [Tooltip]：不需要（展开态）时直接返回 child，避免多出一个
+/// 无意义的 hover 层。
+Widget _maybeTooltip({required String? message, required Widget child}) {
+  if (message == null || message.isEmpty) return child;
+  return Tooltip(
+    message: message,
+    preferBelow: false,
+    waitDuration: const Duration(milliseconds: 500),
+    child: child,
+  );
+}
+
+/// 侧栏折叠动画的唯一时间轴。
+///
+/// 侧栏宽度、裁切边缘、文字透明度、选中胶囊宽度全部由同一个 [progress]
+/// （0 = 完全折叠，1 = 完全展开）派生并同步推进；中途反向切换时从当前值继续
+/// （`animateTo`），不会跳回起点，也不会像多个隐式动画那样互相错帧。
+class _SidebarCollapseAnimator extends StatefulWidget {
+  const _SidebarCollapseAnimator({
+    required this.collapsed,
+    required this.duration,
+    required this.curve,
+    required this.builder,
+  });
+
+  final bool collapsed;
+  final Duration duration;
+  final Curve curve;
+  final Widget Function(BuildContext context, double progress) builder;
+
+  @override
+  State<_SidebarCollapseAnimator> createState() =>
+      _SidebarCollapseAnimatorState();
+}
+
+class _SidebarCollapseAnimatorState extends State<_SidebarCollapseAnimator>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: widget.duration,
+    value: widget.collapsed ? 0 : 1,
+  );
+
+  late final CurvedAnimation _progress = CurvedAnimation(
+    parent: _controller,
+    curve: widget.curve,
+  );
+
+  @override
+  void didUpdateWidget(covariant _SidebarCollapseAnimator oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.duration != oldWidget.duration) {
+      _controller.duration = widget.duration;
+    }
+    if (widget.collapsed != oldWidget.collapsed) {
+      _controller.animateTo(widget.collapsed ? 0 : 1);
+    }
+  }
+
+  @override
+  void dispose() {
+    _progress.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _progress,
+      builder: (context, _) => widget.builder(context, _progress.value),
+    );
+  }
+}
+
+/// 侧栏导航项：展开态与折叠态**共用同一棵子树**，[progress] 只改两样东西 ——
+/// 选中胶囊的宽度、文字的透明度。
+///
+/// 关键约束（也就是抖动消失的原因）：
+/// - 图标槽固定 [_desktopSidebarRailWidth] 宽并左对齐，图标中心恒为 x = 36，
+///   折叠前后不产生任何位移（旧实现会先跳到渲染宽度正中再滑回来）；
+/// - 行高固定 [_desktopSidebarItemHeight]，折叠前后每行的纵向位置一致
+///   （旧实现展开态用 ListTile、折叠态用 48 高容器，行高不同 → 整列上下跳）；
+/// - 胶囊宽度在 48（折叠）与 224（展开）之间插值，任何一帧都完整落在可见宽度内，
+///   不会被裁切边缘切掉；
+/// - 文字只做淡入淡出，位置与宽度恒定，不参与重排。
+class _DesktopSidebarItem extends StatelessWidget {
+  const _DesktopSidebarItem({
+    required this.progress,
+    required this.icon,
+    required this.iconColor,
+    required this.label,
+    required this.labelColor,
+    required this.onTap,
+    this.labelWeight,
+    this.labelFontSize,
+    this.highlightColor,
+    this.tooltip,
+  });
+
+  /// 0 = 完全折叠，1 = 完全展开。
+  final double progress;
+  final Widget icon;
+  final Color iconColor;
+  final String label;
+  final Color labelColor;
+  final VoidCallback? onTap;
+  final FontWeight? labelWeight;
+  final double? labelFontSize;
+  final Color? highlightColor;
+
+  /// 折叠态（只剩图标）时的悬浮提示；展开态传 null，不额外套 Tooltip 层。
+  final String? tooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    final pillLeft =
+        lerpDouble(
+          _desktopSidebarItemCollapsedInset,
+          _desktopSidebarItemExpandedInset,
+          progress,
+        )!;
+    final pillWidth =
+        lerpDouble(
+          _desktopSidebarItemHeight,
+          _desktopSidebarWidth - _desktopSidebarItemExpandedInset * 2,
+          progress,
+        )!;
+    final borderRadius = BorderRadius.circular(12);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: SizedBox(
+        height: _desktopSidebarItemHeight,
+        child: Stack(
+          children: [
+            Positioned(
+              left: pillLeft,
+              top: 0,
+              bottom: 0,
+              width: pillWidth,
+              child: _maybeTooltip(
+                message: tooltip,
+                // 提示锚在胶囊上（折叠态胶囊即图标方块）。
+                child: Material(
+                  color: highlightColor ?? Colors.transparent,
+                  borderRadius: borderRadius,
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    borderRadius: borderRadius,
+                    onTap: onTap,
+                    child: const SizedBox.expand(),
+                  ),
+                ),
+              ),
+            ),
+            // 图标与文字只负责绘制，不接收指针事件，点击落到下层胶囊的 InkWell。
+            Positioned.fill(
+              child: IgnorePointer(
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: _desktopSidebarRailWidth,
+                      child: Center(
+                        child: IconTheme(
+                          data: IconThemeData(color: iconColor),
+                          child: icon,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: _SidebarLabel(
+                        progress: progress,
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 16),
+                          child: Text(
+                            label,
+                            maxLines: 1,
+                            softWrap: false,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: labelColor,
+                              fontSize: labelFontSize,
+                              fontWeight: labelWeight,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
