@@ -4,9 +4,12 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../config/app_config.dart';
 import '../../../../core/network/api_exceptions.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/theme/responsive.dart';
@@ -525,6 +528,27 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
   bool _isDeleting = false;
   bool _isForceUpdating = false;
 
+  bool get _canOpen =>
+      widget.plugin.isActive &&
+      widget.plugin.entryPath != null &&
+      widget.plugin.entryPath!.isNotEmpty &&
+      !_isToggling &&
+      !_isDeleting &&
+      !_isForceUpdating;
+
+  void _openPlugin() {
+    if (!_canOpen) return;
+    final plugin = widget.plugin;
+    final url =
+        '${AppConfig.resolvedBaseUrl}${AppConfig.basePath}/api/v1/jsplugin/${plugin.entryPath}';
+    context.push(
+      Uri(
+        path: AppRoutes.plugin,
+        queryParameters: {'url': url, 'name': plugin.displayName},
+      ).toString(),
+    );
+  }
+
   Future<void> _togglePlugin() async {
     setState(() => _isToggling = true);
 
@@ -780,95 +804,103 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
       statusColor = Colors.grey;
     }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 第 1 行 —— 标题行：头像 + 插件名 + 操作区
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              PluginIcon(
-                iconUrl: plugin.iconUrl,
-                displayName: plugin.displayName,
-                size: 36,
-                statusColor: statusColor,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  plugin.displayName,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              ..._buildTrailingActions(isMobile),
-            ],
-          ),
-          // 第 2 行 —— 元信息行：状态胶囊 + 版本号 + 作者
-          Padding(
-            padding: const EdgeInsets.only(left: 48, top: 6),
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 6,
-              crossAxisAlignment: WrapCrossAlignment.center,
+    return InkWell(
+      onTap: _canOpen ? _openPlugin : null,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 第 1 行 —— 标题行：头像 + 插件名 + 操作区
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                _buildStatusChip(plugin, colorScheme),
-                if (plugin.version != null)
-                  _buildVersionBadge(plugin.version!, theme),
-                if (plugin.author != null)
-                  Text(
-                    l10n.jspluginAuthor(plugin.author!),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          // 第 3 行 —— 描述（如果存在）
-          if (plugin.description != null)
-            Padding(
-              padding: const EdgeInsets.only(left: 48, top: 6),
-              child: Text(
-                plugin.description!,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+                PluginIcon(
+                  iconUrl: plugin.iconUrl,
+                  displayName: plugin.displayName,
+                  size: 36,
+                  statusColor: statusColor,
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          // 第 4 行 —— 主页链接（仅桌面端）
-          if (!isMobile &&
-              plugin.homepage != null &&
-              plugin.homepage!.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(left: 48, top: 4),
-              child: Semantics(
-                link: true,
-                label: l10n.jspluginOpenHomepageSemantics,
-                child: GestureDetector(
-                  onTap: () => _openHomepage(plugin.homepage!),
+                const SizedBox(width: 12),
+                Expanded(
                   child: Text(
-                    plugin.homepage!,
-                    style: TextStyle(
-                      color: colorScheme.primary,
-                      decoration: TextDecoration.underline,
-                      decorationColor: colorScheme.primary,
-                      fontSize: theme.textTheme.bodySmall?.fontSize,
+                    plugin.displayName,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                if (_canOpen)
+                  Icon(
+                    Icons.chevron_right,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ..._buildTrailingActions(isMobile),
+              ],
+            ),
+            // 第 2 行 —— 元信息行：状态胶囊 + 版本号 + 作者
+            Padding(
+              padding: const EdgeInsets.only(left: 48, top: 6),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  _buildStatusChip(plugin, colorScheme),
+                  if (plugin.version != null)
+                    _buildVersionBadge(plugin.version!, theme),
+                  if (plugin.author != null)
+                    Text(
+                      l10n.jspluginAuthor(plugin.author!),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                ],
               ),
             ),
-        ],
+            // 第 3 行 —— 描述（如果存在）
+            if (plugin.description != null)
+              Padding(
+                padding: const EdgeInsets.only(left: 48, top: 6),
+                child: Text(
+                  plugin.description!,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            // 第 4 行 —— 主页链接（仅桌面端）
+            if (!isMobile &&
+                plugin.homepage != null &&
+                plugin.homepage!.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(left: 48, top: 4),
+                child: Semantics(
+                  link: true,
+                  label: l10n.jspluginOpenHomepageSemantics,
+                  child: GestureDetector(
+                    onTap: () => _openHomepage(plugin.homepage!),
+                    child: Text(
+                      plugin.homepage!,
+                      style: TextStyle(
+                        color: colorScheme.primary,
+                        decoration: TextDecoration.underline,
+                        decorationColor: colorScheme.primary,
+                        fontSize: theme.textTheme.bodySmall?.fontSize,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
