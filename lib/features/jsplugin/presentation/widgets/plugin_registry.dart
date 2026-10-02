@@ -41,21 +41,29 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
 
   bool _loadingRegistries = true;
   bool _loadingPlugins = false;
+  bool _loadingMore = false;
+  bool _hasMore = false;
+  int _requestGeneration = 0;
   RegistryRefreshResponse? _pluginResponse;
   String? _pluginError;
+  String? _loadMoreError;
+  final _installedDuringListing = <String, RegistryPluginEntry>{};
 
   final _searchController = TextEditingController();
+  final _scrollController = ScrollController();
   Timer? _searchDebounce;
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_maybeLoadMore);
     _loadRegistries();
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     _searchDebounce?.cancel();
     super.dispose();
   }
@@ -86,79 +94,134 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
 
   /// [force] 为 true 时让后端绕过缓存重拉。翻页与搜索**不要**传：它们在后端
   /// 缓存的完整列表上切片/过滤，传了会让每次翻页都重拉整棵注册表树。
-  Future<void> _refreshPlugins({bool force = false}) async {
-    if (!_allSources && _selectedRegistry == null) return;
-    final proxy = await ref.read(githubProxyProvider.future);
-    if (!mounted) return;
+  Future<void> _refreshPlugins({
+    bool force = false,
+    bool append = false,
+  }) async {
+    if (append && (_loadingPlugins || _loadingMore || !_hasMore)) return;
+    final generation = append ? _requestGeneration : ++_requestGeneration;
+    final allSources = _allSources;
+    final registry = _selectedRegistry;
+    final search = _searchText;
+    final page = append ? _currentPage + 1 : 1;
     setState(() {
-      _loadingPlugins = true;
-      _pluginError = null;
+      _loadMoreError = null;
+      if (append) {
+        _loadingMore = true;
+      } else {
+        _loadingPlugins = allSources || registry != null;
+        _loadingMore = false;
+        _hasMore = false;
+        _currentPage = 1;
+        _pluginResponse = null;
+        _pluginError = null;
+        _installedDuringListing.clear();
+      }
     });
+    if (!allSources && registry == null) return;
+    if (!append && _scrollController.hasClients) {
+      _scrollController.jumpTo(0);
+    }
     try {
+      final proxy = await ref.read(githubProxyProvider.future);
+      if (!mounted || generation != _requestGeneration) return;
       final api = ref.read(jsPluginApiProvider);
       final response = await api.refreshRegistry(
-        registryUrl: _allSources ? '' : _selectedRegistry!.url,
-        allSources: _allSources,
-        page: _currentPage,
+        registryUrl: allSources ? '' : registry!.url,
+        allSources: allSources,
+        page: page,
         pageSize: _pageSize,
-        search: _searchText.isEmpty ? null : _searchText,
+        search: search.isEmpty ? null : search,
         githubProxy: proxy.isEmpty ? null : proxy,
         // 「全部」模式各源用自身存储的 token，前端不传
-        token:
-            _allSources || _selectedRegistry!.token.isEmpty
-                ? null
-                : _selectedRegistry!.token,
+        token: allSources || registry!.token.isEmpty ? null : registry.token,
         force: force,
       );
-      if (!mounted) return;
+      if (!mounted || generation != _requestGeneration) return;
       setState(() {
-        _pluginResponse = response;
+        final plugins = <String, RegistryPluginEntry>{
+          if (append)
+            for (final plugin in _pluginResponse!.plugins)
+              plugin.rowKey: plugin,
+          for (final plugin in response.plugins)
+            plugin.rowKey: _withInstalledState(plugin),
+        };
+        _pluginResponse = RegistryRefreshResponse(
+          plugins: plugins.values.toList(),
+          total: response.total,
+          page: response.page,
+          pageSize: response.pageSize,
+          warnings: append ? _pluginResponse!.warnings : response.warnings,
+        );
+        _currentPage = response.page;
+        _hasMore =
+            response.plugins.isNotEmpty &&
+            response.page * response.pageSize < response.total;
         _loadingPlugins = false;
+        _loadingMore = false;
       });
-    } on ApiException catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _pluginError = e.message;
-        _loadingPlugins = false;
-      });
+      _scheduleLoadMore();
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || generation != _requestGeneration) return;
       setState(() {
-        _pluginError = e.toString();
+        final message = e is ApiException ? e.message : e.toString();
+        if (append) {
+          _loadMoreError = message;
+        } else {
+          _pluginError = message;
+        }
         _loadingPlugins = false;
+        _loadingMore = false;
       });
     }
+  }
+
+  void _maybeLoadMore() {
+    if (!mounted ||
+        _searchDebounce != null ||
+        _loadMoreError != null ||
+        !_scrollController.hasClients) {
+      return;
+    }
+    if (_scrollController.position.extentAfter <= 200) {
+      _refreshPlugins(append: true);
+    }
+  }
+
+  // 首屏不足一屏、以及窗口变大时也继续加载，不依赖用户先滚动。
+  void _scheduleLoadMore() {
+    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeLoadMore());
+  }
+
+  RegistryPluginEntry _withInstalledState(RegistryPluginEntry plugin) {
+    final installed = _installedDuringListing[plugin.entryPath];
+    if (installed == null) return plugin;
+    if (plugin.matches(installed.entryPath, installed.identity)) {
+      return plugin.copyWith(
+        installed: true,
+        installedVersion: installed.version,
+        hasUpdate: false,
+        conflict: false,
+        conflictWith: '',
+      );
+    }
+    return plugin.copyWith(
+      installed: false,
+      conflict: true,
+      conflictWith:
+          '${installed.name}'
+          '${installed.author != null && installed.author!.isNotEmpty ? '（作者：${installed.author}）' : ''}'
+          ' v${installed.version}',
+    );
   }
 
   /// 安装成功后就地更新状态。必须按 (entryPath, identity) 匹配：只比 entryPath
   /// 会把同名不同作者的其他条目一起点亮成「已安装」（songloft-org/songloft#339）。
   void _markPluginInstalled(RegistryPluginEntry installed) {
     if (_pluginResponse == null) return;
+    _installedDuringListing[installed.entryPath] = installed;
     final updatedPlugins =
-        _pluginResponse!.plugins.map((p) {
-          if (p.matches(installed.entryPath, installed.identity)) {
-            return p.copyWith(
-              installed: true,
-              installedVersion: installed.version,
-              hasUpdate: false,
-              conflict: false,
-              conflictWith: '',
-            );
-          }
-          // 同 entryPath 的其他条目：本地那一个已经被换成 installed 了，
-          // 它们从「已安装」翻转为「冲突」。
-          if (p.entryPath == installed.entryPath) {
-            return p.copyWith(
-              installed: false,
-              conflict: true,
-              conflictWith:
-                  '${installed.name}'
-                  '${installed.author != null && installed.author!.isNotEmpty ? '（作者：${installed.author}）' : ''}'
-                  ' v${installed.version}',
-            );
-          }
-          return p;
-        }).toList();
+        _pluginResponse!.plugins.map(_withInstalledState).toList();
     setState(() {
       _pluginResponse = RegistryRefreshResponse(
         plugins: updatedPlugins,
@@ -172,11 +235,15 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
 
   void _onSearchChanged(String value) {
     _searchDebounce?.cancel();
+    // 输入时立即作废旧请求，防止防抖窗口内旧页返回并混入新搜索。
+    ++_requestGeneration;
+    setState(() {
+      _searchText = value;
+      _loadingPlugins = true;
+      _loadingMore = false;
+    });
     _searchDebounce = Timer(const Duration(milliseconds: 500), () {
-      setState(() {
-        _searchText = value;
-        _currentPage = 1;
-      });
+      _searchDebounce = null;
       _refreshPlugins();
     });
   }
@@ -196,8 +263,6 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
           _selectedRegistry = match.first;
         }
       }
-      _currentPage = 1;
-      _pluginResponse = null;
     });
     _refreshPlugins();
   }
@@ -216,7 +281,9 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
               tooltip: l10n.jspluginRefreshList,
               // 用户主动刷新：绕过缓存拉最新的源内容
               onPressed:
-                  _loadingPlugins ? null : () => _refreshPlugins(force: true),
+                  _loadingPlugins || _loadingMore
+                      ? null
+                      : () => _refreshPlugins(force: true),
             ),
           IconButton(
             icon: const Icon(Icons.settings),
@@ -441,8 +508,6 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
     }
 
     final plugins = _pluginResponse!.plugins;
-    final total = _pluginResponse!.total;
-    final totalPages = (total / _pageSize).ceil();
 
     return Column(
       children: [
@@ -450,58 +515,66 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
         if (_pluginResponse!.warnings.isNotEmpty)
           PluginRegistryWarningsBanner(warnings: _pluginResponse!.warnings),
         Expanded(
-          child: ListView.separated(
-            padding: EdgeInsets.fromLTRB(0, 8, 0, context.navScrollInset),
-            itemCount: plugins.length,
-            separatorBuilder: (_, _) => const Divider(height: 1, indent: 16),
-            itemBuilder:
-                (context, index) => _RegistryPluginItem(
-                  // rowKey 而非 index：_RegistryPluginItem 持有 _installing 本地状态，
-                  // 翻页/搜索后按 index 复用 Element 会把 loading 挂到别的条目上。
-                  key: ValueKey(plugins[index].rowKey),
-                  entry: plugins[index],
-                  // 「全部」模式无法确定插件来源，token 留空（私有源需切到具体源安装）
+          child: NotificationListener<ScrollMetricsNotification>(
+            onNotification: (_) {
+              _scheduleLoadMore();
+              return false;
+            },
+            child: ListView.separated(
+              controller: _scrollController,
+              // 在页面 Scaffold 外的 context 读取 shell 提供的导航栏 inset。
+              // 留白随列表一起滚动，最后一条及加载/重试入口都可滚到导航栏上方。
+              padding: EdgeInsets.fromLTRB(0, 8, 0, context.navScrollInset),
+              itemCount: plugins.length + (_hasMore ? 1 : 0),
+              separatorBuilder: (_, _) => const Divider(height: 1, indent: 16),
+              itemBuilder: (context, index) {
+                if (index == plugins.length) {
+                  return Padding(
+                    padding: const EdgeInsets.all(16),
+                    child:
+                        _loadMoreError != null
+                            ? Column(
+                              children: [
+                                Text(
+                                  _loadMoreError!,
+                                  style: TextStyle(
+                                    color: theme.colorScheme.error,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                TextButton(
+                                  onPressed:
+                                      () => _refreshPlugins(append: true),
+                                  child: Text(l10n.commonRetry),
+                                ),
+                              ],
+                            )
+                            : _loadingMore
+                            ? const Center(
+                              child: SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(),
+                              ),
+                            )
+                            : const SizedBox(height: 24),
+                  );
+                }
+                final plugin = plugins[index];
+                return _RegistryPluginItem(
+                  // rowKey 而非 index：追加/搜索后保持每一行的安装状态身份。
+                  key: ValueKey(plugin.rowKey),
+                  entry: plugin,
                   token: _allSources ? '' : (_selectedRegistry?.token ?? ''),
                   onInstalled: () {
-                    _markPluginInstalled(plugins[index]);
+                    _markPluginInstalled(plugin);
                     ref.invalidate(jsPluginsProvider);
                   },
-                ),
-          ),
-        ),
-        // 分页
-        if (totalPages > 1)
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.chevron_left),
-                  tooltip: l10n.jspluginPrevPage,
-                  onPressed:
-                      _currentPage > 1
-                          ? () {
-                            setState(() => _currentPage--);
-                            _refreshPlugins();
-                          }
-                          : null,
-                ),
-                Text('$_currentPage / $totalPages'),
-                IconButton(
-                  icon: const Icon(Icons.chevron_right),
-                  tooltip: l10n.jspluginNextPage,
-                  onPressed:
-                      _currentPage < totalPages
-                          ? () {
-                            setState(() => _currentPage++);
-                            _refreshPlugins();
-                          }
-                          : null,
-                ),
-              ],
+                );
+              },
             ),
           ),
+        ),
       ],
     );
   }
