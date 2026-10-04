@@ -56,7 +56,7 @@ class PluginRenderSurfaceWebView extends ConsumerStatefulWidget {
 
 class _PluginRenderSurfaceWebViewState
     extends ConsumerState<PluginRenderSurfaceWebView>
-    with PluginHostBridgeMixin
+    with PluginHostBridgeMixin, WidgetsBindingObserver
     implements PluginRenderController {
   InAppWebViewController? _controller;
   bool _pageReady = false;
@@ -66,6 +66,31 @@ class _PluginRenderSurfaceWebViewState
   ColorScheme? _colorScheme;
   Map<String, Object>? _themeAppearance;
   String? _lastPushedThemeSig;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) return;
+    // 等原生表面恢复可见后再通知页面。后台期间连接可能已经失效，但 WebView
+    // 未必派发 visibilitychange（songloft-org/songloft#493）。
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted &&
+          WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
+        setPageVisible(true);
+      }
+    });
+  }
 
   @override
   void didUpdateWidget(covariant PluginRenderSurfaceWebView oldWidget) {
@@ -108,7 +133,7 @@ class _PluginRenderSurfaceWebViewState
   @override
   void clearFocus() => _controller?.clearFocus();
 
-  /// 让插件页在 Tab 切回来时收到一次 `visibilitychange`。
+  /// 让插件页在 Tab 切回或应用恢复前台时收到一次 `visibilitychange`。
   ///
   /// 系统 WebView 被 `Offstage` 隐藏时**不会**自己派发这个事件（它看的是 WebView
   /// 自身的窗口可见性，而 Offstage 只是不 paint），所以这里合成派发。
