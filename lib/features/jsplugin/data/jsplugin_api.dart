@@ -407,6 +407,10 @@ class RegistryRefreshResponse {
 
 /// JS 插件 API 服务
 class JSPluginApi {
+  // 检查更新/代理回退、下载/直连回退及启用各有独立服务端时限。
+  // 单次安装/更新不能沿用普通 API 的 15 秒超时；批量更新逐个处理。
+  static const _installTimeout = Duration(minutes: 4);
+  static const _batchUpdateTimeout = Duration(minutes: 30);
   final Dio dio;
 
   JSPluginApi({required this.dio});
@@ -450,6 +454,7 @@ class JSPluginApi {
       final response = await dio.post(
         '${AppConfig.apiPrefix}/jsplugins/upload',
         data: formData,
+        options: Options(receiveTimeout: _installTimeout),
       );
       return JSPluginUploadResponse.fromJson(
         response.data as Map<String, dynamic>,
@@ -472,6 +477,7 @@ class JSPluginApi {
       final response = await dio.post(
         '${AppConfig.apiPrefix}/jsplugins/upload',
         data: formData,
+        options: Options(receiveTimeout: _installTimeout),
       );
       return JSPluginUploadResponse.fromJson(
         response.data as Map<String, dynamic>,
@@ -547,6 +553,7 @@ class JSPluginApi {
       final response = await dio.get(
         '${AppConfig.apiPrefix}/jsplugins/$id/check-update',
         queryParameters: queryParams,
+        options: Options(receiveTimeout: const Duration(seconds: 45)),
       );
       return JSPluginUpdateCheck.fromJson(
         response.data as Map<String, dynamic>,
@@ -571,7 +578,11 @@ class JSPluginApi {
       if (force) {
         body['force'] = true;
       }
-      await dio.post('${AppConfig.apiPrefix}/jsplugins/$id/update', data: body);
+      await dio.post(
+        '${AppConfig.apiPrefix}/jsplugins/$id/update',
+        data: body,
+        options: Options(receiveTimeout: _installTimeout),
+      );
     } on DioException catch (e) {
       throw ApiException.fromDioException(e);
     }
@@ -594,6 +605,7 @@ class JSPluginApi {
       final response = await dio.post(
         '${AppConfig.apiPrefix}/jsplugins/update-all',
         data: body,
+        options: Options(receiveTimeout: _batchUpdateTimeout),
       );
       return JSPluginBatchUpdateResponse.fromJson(
         response.data as Map<String, dynamic>,
@@ -685,6 +697,7 @@ class JSPluginApi {
       final response = await dio.post(
         '${AppConfig.apiPrefix}/jsplugins/registry/install',
         data: body,
+        options: Options(receiveTimeout: _installTimeout),
       );
       return JSPluginUploadResponse.fromJson(
         response.data as Map<String, dynamic>,

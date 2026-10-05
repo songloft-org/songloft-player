@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -1183,22 +1181,13 @@ class _JSPluginUpdateDialogState extends ConsumerState<_JSPluginUpdateDialog> {
     });
 
     try {
-      final result = await widget.pluginApi
-          .checkUpdate(
-            widget.plugin.id,
-            githubProxy: proxy.isNotEmpty ? proxy : null,
-          )
-          .timeout(const Duration(seconds: 20));
+      final result = await widget.pluginApi.checkUpdate(
+        widget.plugin.id,
+        githubProxy: proxy.isNotEmpty ? proxy : null,
+      );
       if (mounted) setState(() => _checkResult = result);
     } on ApiException catch (e) {
       if (mounted) setState(() => _error = e.message);
-    } on TimeoutException {
-      if (mounted) {
-        setState(
-          () =>
-              _error = AppLocalizations.of(context).jspluginCheckUpdateTimeout,
-        );
-      }
     } catch (e) {
       if (mounted) {
         setState(
@@ -1222,12 +1211,10 @@ class _JSPluginUpdateDialogState extends ConsumerState<_JSPluginUpdateDialog> {
     });
 
     try {
-      await widget.pluginApi
-          .updatePlugin(
-            widget.plugin.id,
-            githubProxy: proxy.isNotEmpty ? proxy : null,
-          )
-          .timeout(const Duration(seconds: 120));
+      await widget.pluginApi.updatePlugin(
+        widget.plugin.id,
+        githubProxy: proxy.isNotEmpty ? proxy : null,
+      );
       if (mounted) {
         Navigator.pop(context);
         widget.onUpdateComplete();
@@ -1243,12 +1230,6 @@ class _JSPluginUpdateDialogState extends ConsumerState<_JSPluginUpdateDialog> {
               _error = AppLocalizations.of(
                 context,
               ).jspluginUpdateFailed(e.message),
-        );
-      }
-    } on TimeoutException {
-      if (mounted) {
-        setState(
-          () => _error = AppLocalizations.of(context).jspluginUpdateTimeout,
         );
       }
     } catch (e) {
@@ -1536,9 +1517,9 @@ class _JSPluginBatchUpdateDialogState
     });
 
     try {
-      final result = await widget.pluginApi
-          .updateAllPlugins(githubProxy: proxy.isNotEmpty ? proxy : null)
-          .timeout(const Duration(seconds: 300));
+      final result = await widget.pluginApi.updateAllPlugins(
+        githubProxy: proxy.isNotEmpty ? proxy : null,
+      );
       if (mounted) {
         setState(() => _response = result);
         widget.onUpdateComplete();
@@ -1550,13 +1531,6 @@ class _JSPluginBatchUpdateDialogState
               _error = AppLocalizations.of(
                 context,
               ).jspluginBatchUpdateFailed(e.message),
-        );
-      }
-    } on TimeoutException {
-      if (mounted) {
-        setState(
-          () =>
-              _error = AppLocalizations.of(context).jspluginBatchUpdateTimeout,
         );
       }
     } catch (e) {
