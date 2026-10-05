@@ -67,7 +67,7 @@ class CapsuleMiniPlayer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(playerStateProvider);
+    final state = ref.watch(activePlaybackStateProvider);
 
     // 空状态：胶囊模式（手机 / 平板 / 桌面）一律整条不渲染。
     // 标准模式的桌面底栏仍会显示空播放器占位，那是另一条分支，不受这里影响。

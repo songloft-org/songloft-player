@@ -25,6 +25,7 @@ import '../../../../l10n/l10n_holder.dart';
 import '../../../../main.dart';
 import '../../../../shared/models/song.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../dlna/presentation/providers/dlna_provider.dart';
 import 'web_video_playback_provider.dart';
 import '../../../library/data/songs_api.dart';
 import '../../../library/presentation/providers/category_provider.dart'
@@ -50,6 +51,23 @@ import 'lyric_provider.dart';
 final playerStateProvider = NotifierProvider<PlayerNotifier, PlayerState>(
   PlayerNotifier.new,
 );
+
+/// Controls display the state of the renderer that currently owns playback.
+final activePlaybackStateProvider = Provider<PlayerState>((ref) {
+  final local = ref.watch(playerStateProvider);
+  final casting = ref.watch(dlnaStateProvider);
+  if (!casting.isCasting) return local;
+  return local.copyWith(
+    isPlaying: casting.isPlaying,
+    currentTime: casting.position,
+    duration:
+        casting.duration > Duration.zero ? casting.duration : local.duration,
+    isBuffering: false,
+    isRetrying: false,
+    errorMessage: casting.error,
+    clearErrorMessage: casting.error == null,
+  );
+});
 
 /// 播放器状态管理 Notifier
 class PlayerNotifier extends Notifier<PlayerState> {
@@ -502,6 +520,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
 
   /// 歌曲播放完成处理
   void _onSongCompleted() {
+    if (ref.read(dlnaStateProvider).isCasting) return;
     _retryPolicy.recordSuccess();
     debugPrint('[Player] Song completed, playMode: ${state.playMode}');
 
@@ -771,6 +790,10 @@ class PlayerNotifier extends Notifier<PlayerState> {
 
   /// 暂停/播放切换
   Future<void> togglePlay() async {
+    if (ref.read(dlnaStateProvider).isCasting) {
+      await ref.read(dlnaStateProvider.notifier).togglePlay();
+      return;
+    }
     if (!state.hasSong) {
       debugPrint('[Player] togglePlay: no song to play');
       return;
@@ -886,25 +909,27 @@ class PlayerNotifier extends Notifier<PlayerState> {
     }
 
     // 如果当前播放超过 3 秒，重新开始当前歌曲
-    if (state.currentTime.inSeconds > 3) {
+    final casting = ref.read(dlnaStateProvider);
+    final position = casting.isCasting ? casting.position : state.currentTime;
+    if (position.inSeconds > 3) {
       debugPrint('[Player] playPrev: seeking to start of current song');
-      await _audioHandler.seek(Duration.zero);
+      await seek(Duration.zero);
       return;
     }
 
     final prevIdx = _modeResolver.prevIndex(
       currentIndex: state.currentIndex,
       length: state.playlist.length,
-      currentPosition: state.currentTime,
+      currentPosition: position,
     );
     if (prevIdx == null) {
       debugPrint('[Player] playPrev: no prev index, seeking to start');
-      await _audioHandler.seek(Duration.zero);
+      await seek(Duration.zero);
       return;
     }
     if (prevIdx == state.currentIndex) {
       debugPrint('[Player] playPrev: same index, seeking to start');
-      await _audioHandler.seek(Duration.zero);
+      await seek(Duration.zero);
       return;
     }
     debugPrint(
@@ -916,6 +941,10 @@ class PlayerNotifier extends Notifier<PlayerState> {
 
   /// 跳转进度
   Future<void> seek(Duration position) async {
+    if (ref.read(dlnaStateProvider).isCasting) {
+      await ref.read(dlnaStateProvider.notifier).seekTo(position);
+      return;
+    }
     // Web HLS 视频主控模式：seek video 元素
     if (kIsWeb && _audioHandler.hlsVideoPrimaryMode) {
       ref.read(webVideoPlaybackProvider.notifier).seek(position);
@@ -929,9 +958,14 @@ class PlayerNotifier extends Notifier<PlayerState> {
   Future<void> seekBy(Duration delta) async {
     if (!state.hasSong) return;
     if (state.currentSong?.isLive ?? false) return;
-    final total = state.duration;
+    final casting = ref.read(dlnaStateProvider);
+    final total =
+        casting.isCasting && casting.duration > Duration.zero
+            ? casting.duration
+            : state.duration;
     if (total <= Duration.zero) return;
-    var target = state.currentTime + delta;
+    var target =
+        (casting.isCasting ? casting.position : state.currentTime) + delta;
     if (target < Duration.zero) target = Duration.zero;
     if (target > total) target = total;
     await seek(target);
@@ -940,6 +974,13 @@ class PlayerNotifier extends Notifier<PlayerState> {
   /// 设置音量 (0-100)
   Future<void> setVolume(double volume) async {
     final clampedVolume = volume.clamp(0.0, 100.0);
+    if (ref.read(dlnaStateProvider).isCasting) {
+      await ref
+          .read(dlnaStateProvider.notifier)
+          .setVolume(clampedVolume.round());
+      state = state.copyWith(volume: clampedVolume);
+      return;
+    }
     state = state.copyWith(volume: clampedVolume, clearPreviousVolume: true);
 
     if (_useSystemVolume) {
@@ -1886,6 +1927,11 @@ class PlayerNotifier extends Notifier<PlayerState> {
       return;
     }
 
+    if (ref.read(dlnaStateProvider).isCasting) {
+      await ref.read(dlnaStateProvider.notifier).castSong(song);
+      return;
+    }
+
     final previousSong = _lastPlayedSong;
     _lastPlayedSong = song;
     if (previousSong != null &&
@@ -2193,7 +2239,7 @@ final hasCurrentSongProvider = Provider<bool>((ref) {
 
 /// 便捷 Provider：当前是否正在播放
 final isPlayingProvider = Provider<bool>((ref) {
-  final state = ref.watch(playerStateProvider);
+  final state = ref.watch(activePlaybackStateProvider);
   return state.isPlaying;
 });
 
@@ -2205,7 +2251,7 @@ final currentSongProvider = Provider<Song?>((ref) {
 
 /// 便捷 Provider：播放进度
 final playerProgressProvider = Provider<double>((ref) {
-  final state = ref.watch(playerStateProvider);
+  final state = ref.watch(activePlaybackStateProvider);
   return state.progress;
 });
 

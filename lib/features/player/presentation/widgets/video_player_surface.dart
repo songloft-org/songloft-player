@@ -107,7 +107,7 @@ class _VideoPlayerSurfaceState extends ConsumerState<VideoPlayerSurface> {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(playerStateProvider);
+    final state = ref.watch(activePlaybackStateProvider);
     final notifier = ref.read(playerStateProvider.notifier);
 
     // 暂停时常驻控制层;恢复播放后重新计时隐藏。

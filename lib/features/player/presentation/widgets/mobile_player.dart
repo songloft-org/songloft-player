@@ -75,7 +75,7 @@ class _MobilePlayerState extends ConsumerState<MobilePlayer>
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(playerStateProvider);
+    final state = ref.watch(activePlaybackStateProvider);
     final notifier = ref.read(playerStateProvider.notifier);
     final theme = Theme.of(context);
     final size = MediaQuery.sizeOf(context);

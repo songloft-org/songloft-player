@@ -28,7 +28,7 @@ class DesktopPlayer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(playerStateProvider);
+    final state = ref.watch(activePlaybackStateProvider);
     final notifier = ref.read(playerStateProvider.notifier);
     final theme = Theme.of(context);
 

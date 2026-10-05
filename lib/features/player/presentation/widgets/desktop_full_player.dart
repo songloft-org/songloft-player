@@ -63,7 +63,7 @@ class _DesktopFullPlayerState extends ConsumerState<DesktopFullPlayer>
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(playerStateProvider);
+    final state = ref.watch(activePlaybackStateProvider);
     final notifier = ref.read(playerStateProvider.notifier);
     final theme = Theme.of(context);
     final isDesktop = context.isDesktop;

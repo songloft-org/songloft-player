@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:dlna_dart/dlna.dart';
 import 'package:dlna_dart/xmlParser.dart';
 import '../domain/dlna_state.dart';
@@ -7,11 +8,11 @@ class DlnaService {
   final DLNAManager _manager = DLNAManager();
   DeviceManager? _deviceManager;
   DLNADevice? _activeDevice;
-  StreamSubscription? _positionSub;
 
   Timer? _transportTimer;
   bool _hasStartedPlaying = false;
   bool _suppressCompletion = false; // 重新投歌期间抑制完成误判
+  int _generation = 0;
 
   final _devicesController = StreamController<List<DlnaDeviceInfo>>.broadcast();
   final _positionController = StreamController<PositionParser>.broadcast();
@@ -52,6 +53,7 @@ class DlnaService {
     String title = '',
     PlayType mime = AudioMime.mp3,
   }) async {
+    final generation = ++_generation;
     final device = _deviceManager?.deviceList[deviceId];
     if (device == null) throw Exception('Device not found: $deviceId');
 
@@ -63,18 +65,13 @@ class DlnaService {
       // mime 由调用方按歌曲真实格式决定（视频→VideoMime，音频→对应 AudioMime），
       // 不再硬编码 mp3：写死 mp3 会让 DIDL 永远声明 audio/mp3，非 mp3（flac/wav）或视频投屏可能被渲染器拒绝。
       await _sendWithRetry(() => device.setUrl(url, title: title, type: mime));
+      if (generation != _generation) return;
       await _sendWithRetry(() => device.play());
     } finally {
       _suppressCompletion = false;
     }
 
-    _positionSub?.cancel();
-    device.positionPoller.start();
-    _positionSub = device.currPosition.stream.listen((pos) {
-      _positionController.add(pos);
-    });
-
-    _startCompletionMonitor();
+    if (generation == _generation) _startCompletionMonitor();
   }
 
   /// 设备在切歌/播放结束瞬间会主动关闭连接（HttpException: Connection closed
@@ -100,9 +97,30 @@ class DlnaService {
     _transportTimer?.cancel();
     _transportTimer = Timer.periodic(const Duration(seconds: 2), (_) async {
       final device = _activeDevice;
+      final generation = _generation;
       if (device == null || _suppressCompletion) return;
       try {
+        // dlna_dart 0.1.1 sends an extra MediaDuration argument, which strict
+        // renderers reject with 402. GetPositionInfo only accepts InstanceID.
+        final xml = await device.request(
+          'GetPositionInfo',
+          utf8.encode('''
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+<s:Body><u:GetPositionInfo xmlns:u="urn:schemas-upnp-org:service:AVTransport:1">
+<InstanceID>0</InstanceID></u:GetPositionInfo></s:Body></s:Envelope>'''),
+        );
+        if (_activeDevice == device &&
+            generation == _generation &&
+            !_suppressCompletion &&
+            !_positionController.isClosed) {
+          _positionController.add(PositionParser(xml));
+        }
+      } catch (_) {
+        // Position reporting is optional; transport completion still works.
+      }
+      try {
         final xml = await device.getTransportInfo();
+        if (generation != _generation || _suppressCompletion) return;
         final s = TransportInfoParser(xml).CurrentTransportState.toUpperCase();
         if (s == 'PLAYING' || s == 'TRANSITIONING') {
           _hasStartedPlaying = true;
@@ -132,7 +150,6 @@ class DlnaService {
   Future<void> stop() async {
     _stopCompletionMonitor();
     _activeDevice?.positionPoller.stop();
-    _positionSub?.cancel();
     await _activeDevice?.stop();
   }
 
@@ -147,8 +164,8 @@ class DlnaService {
       _activeDevice?.volume(volume.clamp(0, 100));
 
   void disconnect() {
+    ++_generation;
     _stopCompletionMonitor();
-    _positionSub?.cancel();
     _activeDevice?.positionPoller.stop();
     try {
       _activeDevice?.stop();
@@ -158,7 +175,6 @@ class DlnaService {
 
   void dispose() {
     _stopCompletionMonitor();
-    _positionSub?.cancel();
     _activeDevice?.dispose();
     stopDiscovery();
     _devicesController.close();

@@ -124,6 +124,16 @@ final dlnaStateProvider = NotifierProvider<DlnaNotifier, DlnaState>(
 );
 
 class DlnaNotifier extends Notifier<DlnaState> {
+  Future<void> _commands = Future<void>.value();
+  int _generation = 0;
+  bool _isChangingSong = false;
+
+  Future<void> _serialize(Future<void> Function() command) {
+    final result = _commands.then((_) => command());
+    _commands = result.catchError((Object _) {});
+    return result;
+  }
+
   StreamSubscription? _devicesSub;
   StreamSubscription? _positionSub;
   StreamSubscription? _completionSub;
@@ -131,6 +141,7 @@ class DlnaNotifier extends Notifier<DlnaState> {
   @override
   DlnaState build() {
     ref.onDispose(() {
+      ++_generation;
       _devicesSub?.cancel();
       _positionSub?.cancel();
       _completionSub?.cancel();
@@ -166,15 +177,25 @@ class DlnaNotifier extends Notifier<DlnaState> {
     final playerState = ref.read(playerStateProvider);
     final song = playerState.currentSong;
     if (song == null || song.url == null) return;
+    final generation = ++_generation;
 
     state = state.copyWith(error: () => null);
 
     try {
       final args = _castArgsFor(song);
       final url = await _toCastReachableUrl(args.url);
-      await _service.castTo(device.id, url, title: song.title, mime: args.mime);
-
-      await _audioHandler.pause();
+      await _serialize(() async {
+        if (generation != _generation) return;
+        await _service.castTo(
+          device.id,
+          url,
+          title: song.title,
+          mime: args.mime,
+        );
+        if (generation != _generation) return;
+        await _audioHandler.pause();
+      });
+      if (generation != _generation) return;
 
       _positionSub?.cancel();
       _positionSub = _service.positionStream.listen((pos) {
@@ -189,51 +210,57 @@ class DlnaNotifier extends Notifier<DlnaState> {
         (_) => _onDeviceCompleted(),
       );
 
-      _listenSongChanges();
-
       state = state.copyWith(
         activeDevice: () => device,
         isCasting: true,
         isPlaying: true,
+        position: Duration.zero,
+        duration: Duration(milliseconds: (song.duration * 1000).round()),
       );
     } catch (e) {
+      if (generation != _generation) return;
       state = state.copyWith(error: () => e.toString());
     }
   }
 
-  int? _lastSongId;
-
-  void _listenSongChanges() {
-    _lastSongId = ref.read(playerStateProvider).currentSong?.id;
-    ref.listen(currentSongProvider, (prev, next) {
-      if (!state.isCasting || next == null) return;
-      if (next.id == _lastSongId) return;
-      _lastSongId = next.id;
-      if (next.url != null) {
-        unawaited(_safeCast(next));
-      }
-    });
-  }
-
   /// 带错误兜底的投歌（castTo 内部已带 HttpException 重试）
-  Future<void> _safeCast(Song song) async {
+  Future<void> castSong(Song song) async {
     final device = state.activeDevice;
-    if (device == null) return;
+    if (!state.isCasting || device == null || song.url == null) return;
+    final generation = ++_generation;
+    _isChangingSong = true;
     try {
       final args = _castArgsFor(song);
       final url = await _toCastReachableUrl(args.url);
-      await _service.castTo(device.id, url, title: song.title, mime: args.mime);
-      state = state.copyWith(isPlaying: true, error: () => null);
+      await _serialize(() async {
+        if (generation != _generation || !state.isCasting) return;
+        await _service.castTo(
+          device.id,
+          url,
+          title: song.title,
+          mime: args.mime,
+        );
+      });
+      if (generation != _generation || !state.isCasting) return;
+      state = state.copyWith(
+        isPlaying: true,
+        position: Duration.zero,
+        duration: Duration(milliseconds: (song.duration * 1000).round()),
+        error: () => null,
+      );
     } catch (e) {
+      if (generation != _generation) return;
       state = state.copyWith(error: () => e.toString());
+    } finally {
+      if (generation == _generation) _isChangingSong = false;
     }
   }
 
   /// 设备端当前曲播放完成：按播放模式推进歌单。
-  /// order/loop/random 推进队列后由 [_listenSongChanges] 自动投下一首；
+  /// order/loop/random 推进队列后直接投下一首；
   /// single 循环重投当前曲；singlePlay 与顺序模式末尾则停止。
   void _onDeviceCompleted() {
-    if (!state.isCasting) return;
+    if (!state.isCasting || _isChangingSong) return;
     final playerNotifier = ref.read(playerStateProvider.notifier);
     final playerState = ref.read(playerStateProvider);
 
@@ -244,7 +271,7 @@ class DlnaNotifier extends Notifier<DlnaState> {
       case PlayMode.single:
         final song = playerState.currentSong;
         if (song?.url != null) {
-          unawaited(_safeCast(song!));
+          unawaited(castSong(song!));
         }
         return;
       case PlayMode.order:
@@ -254,8 +281,9 @@ class DlnaNotifier extends Notifier<DlnaState> {
         if (next == null) {
           // 顺序模式已到末尾
           state = state.copyWith(isPlaying: false);
+        } else {
+          unawaited(castSong(next));
         }
-        // next 非空：currentSong 变化 → _listenSongChanges 自动投下一首
         return;
     }
   }
@@ -263,12 +291,16 @@ class DlnaNotifier extends Notifier<DlnaState> {
   Future<void> togglePlay() async {
     if (!state.isCasting) return;
     try {
-      if (state.isPlaying) {
-        await _service.pause();
-      } else {
-        await _service.play();
-      }
-      state = state.copyWith(isPlaying: !state.isPlaying);
+      await _serialize(() async {
+        if (!state.isCasting) return;
+        final playing = state.isPlaying;
+        if (playing) {
+          await _service.pause();
+        } else {
+          await _service.play();
+        }
+        if (state.isCasting) state = state.copyWith(isPlaying: !playing);
+      });
     } catch (e) {
       state = state.copyWith(error: () => e.toString());
     }
@@ -285,6 +317,8 @@ class DlnaNotifier extends Notifier<DlnaState> {
   }
 
   void disconnect() {
+    ++_generation;
+    _isChangingSong = false;
     _positionSub?.cancel();
     _completionSub?.cancel();
     _service.disconnect();
