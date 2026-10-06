@@ -26,7 +26,7 @@ class SongloftMediaKitPlayer extends AudioPlayerPlatform {
 
   /// 视频画面控制器。
   ///
-  /// **桌面（Win/Linux/macOS）**：在 [player] 创建后、任何 `open()` 之前**立即**建好，
+  /// **桌面（Win/Linux/macOS）**：在 [player] 初始化成功后、[ready] 完成前建好，
   /// 使 libmpv render context 在打开媒体时已就绪；否则推迟到首次渲染视频才建会触发
   /// "No render context set" fatal 并永久禁用视频输出（songloft-org/songloft#76）。
   ///
@@ -38,11 +38,11 @@ class SongloftMediaKitPlayer extends AudioPlayerPlatform {
   /// [load] 判定为视频源（URL 带 `media=video`）时，于 `open()` 之前才创建
   /// （见 [_ensureVideoControllerForVideo]），纯音频永不 attach → 不触发该门闩。
   ///
-  /// Web 及回退到原生后端的平台不支持派生 VideoController，恒为 null。
+  /// Web 不使用此播放器，视频由浏览器渲染。
   VideoController? videoController;
 
   late final List<StreamSubscription> _streamSubscriptions;
-  final _readyCompleter = Completer<void>();
+  late final Future<void> _readyFuture;
 
   /// 视频纹理（render context）就绪等待超时：VideoController 构造同步返回，但其原生
   /// render context + 纹理是**异步**建立的；首次 `open()` 前等待纹理 id 变为非 null，
@@ -60,7 +60,7 @@ class SongloftMediaKitPlayer extends AudioPlayerPlatform {
   static bool get _isAndroid =>
       !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
-  Future<void> ready() => _readyCompleter.future;
+  Future<void> ready() => _readyFuture;
 
   final _eventController = StreamController<PlaybackEventMessage>.broadcast();
   final _dataController = StreamController<PlayerDataMessage>.broadcast();
@@ -101,21 +101,8 @@ class SongloftMediaKitPlayer extends AudioPlayerPlatform {
         title: JustAudioMediaKit.title,
         bufferSize: JustAudioMediaKit.bufferSize,
         logLevel: JustAudioMediaKit.mpvLogLevel,
-        ready: () => _readyCompleter.complete(),
       ),
     );
-
-    // 桌面（Win/Linux/macOS）立即派生 VideoController（在任何 open() 之前），让 libmpv 的
-    // render context 在打开媒体时已就绪，避免视频输出因 "No render context set" 被永久禁用。
-    // 移动端刻意不预建（见 videoController 字段文档）：避免 isVideoControllerAttached 的
-    // open() 门闩在 Android 无 Video widget 时挂住全部播放；改由 load() 惰性按视频源创建。
-    if (AudioBackend.usesMediaKit && !_isMobilePlatform) {
-      videoController = VideoController(player);
-    }
-
-    if (JustAudioMediaKit.prefetchPlaylist) {
-      _setMpvProperty('prefetch-playlist', 'yes');
-    }
 
     _streamSubscriptions = [
       player.stream.duration.listen((duration) {
@@ -243,6 +230,25 @@ class SongloftMediaKitPlayer extends AudioPlayerPlatform {
         debugPrint('MPV: [${event.level}] ${event.prefix}: ${event.text}');
       }),
     ];
+
+    _readyFuture = _initializePlayer();
+    _readyFuture.ignore();
+  }
+
+  Future<void> _initializePlayer() async {
+    // 同时接收初始化成功和失败；仅等 configuration.ready 会在失败后永久挂起。
+    await player.platform!.waitForPlayerInitialization;
+
+    // 先设置预取，避免 setProperty 因视频控制器已 attach 而等待视频纹理初始化。
+    if (JustAudioMediaKit.prefetchPlaylist) {
+      await _setMpvProperty('prefetch-playlist', 'yes');
+    }
+
+    // 桌面在初始化成功后、任何 open() 前创建视频控制器，失败时不派生原生视频任务。
+    // 移动端仍由 load() 按视频源惰性创建，避免纯音频等待视频纹理。
+    if (AudioBackend.usesMediaKit && !_isMobilePlatform) {
+      videoController = VideoController(player);
+    }
   }
 
   void _updateDuration(Duration duration) {
@@ -278,7 +284,7 @@ class SongloftMediaKitPlayer extends AudioPlayerPlatform {
   }
 
   /// 移动端惰性创建 VideoController：仅当本次确为视频源时，于 `open()` 之前建好，
-  /// 保证 render context 就绪（避免 "No render context set"）。桌面已在构造时建好，
+  /// 保证 render context 就绪（避免 "No render context set"）。桌面已在 ready 完成前建好，
   /// 此处 no-op；纯音频（videoController 保持 null）不 attach → 不触发 open() 门闩。
   void _ensureVideoControllerForVideo() {
     if (videoController != null || !AudioBackend.usesMediaKit) return;
@@ -363,7 +369,7 @@ class SongloftMediaKitPlayer extends AudioPlayerPlatform {
     _updatePlaybackEvent();
 
     // 移动端惰性创建 VideoController：仅视频源在 open() 之前建（纯音频不 attach，
-    // 规避 isVideoControllerAttached 对 open() 的门闩）。桌面已在构造时建好，此处 no-op。
+    // 规避 isVideoControllerAttached 对 open() 的门闩）。桌面已在 ready 完成前建好，此处 no-op。
     final isVideo = _isVideoRequest(request.audioSourceMessage);
     _currentLoadTimeout = isVideo ? _videoMediaLoadTimeout : _mediaLoadTimeout;
     if (isVideo) {
@@ -605,10 +611,13 @@ class SongloftMediaKitPlayer extends AudioPlayerPlatform {
     _streamSubscriptions.clear();
     debugPrint('[SongloftMediaKitPlayer] subscriptions canceled');
 
-    await player.dispose();
-    debugPrint('[SongloftMediaKitPlayer] media_kit player disposed');
-    await _eventController.close();
-    await _dataController.close();
+    try {
+      await player.dispose();
+      debugPrint('[SongloftMediaKitPlayer] media_kit player disposed');
+    } finally {
+      await _eventController.close();
+      await _dataController.close();
+    }
     debugPrint('[SongloftMediaKitPlayer] controllers closed');
   }
 

@@ -18,7 +18,7 @@ bool get isInAppVideoSupported => AudioBackend.usesMediaKit;
 ///
 /// 关键点：
 /// - 复用 audio_service 正在用的**同一个** Player（音画同源，天然同步）。
-/// - VideoController 由 [SongloftMediaKitPlayer] 在构造时（任何 `open()` 之前）就建好，
+/// - VideoController 由 [SongloftMediaKitPlayer] 在初始化成功后、ready 完成前（任何 `open()` 之前）建好，
 ///   保证 libmpv 的 render context 在打开媒体时已就绪，避免 "No render context set"
 ///   导致视频输出被永久禁用（songloft-org/songloft#76）。这里只做“取用 + 跟随 Player
 ///   重建时重新指向”，不再负责创建。

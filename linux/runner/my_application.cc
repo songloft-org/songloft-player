@@ -1,5 +1,7 @@
 #include "my_application.h"
 
+#include "mpv_locale.h"
+
 #include <flutter_linux/flutter_linux.h>
 #ifdef GDK_WINDOWING_X11
 #include <gdk/gdkx.h>
@@ -106,6 +108,14 @@ static void my_application_startup(GApplication* application) {
   // Perform any actions required at application startup.
 
   G_APPLICATION_CLASS(my_application_parent_class)->startup(application);
+
+  // GTK sets LC_ALL from the user's environment during startup. libmpv rejects
+  // non-C numeric locales in mpv_create(). Reset only numeric formatting before
+  // creating the Flutter engine, preserving the user's language and other locale
+  // categories (#49).
+  if (!EnsureMpvNumericLocale()) {
+    g_warning("Unable to set LC_NUMERIC=C for libmpv");
+  }
 }
 
 // Implements GApplication::shutdown.

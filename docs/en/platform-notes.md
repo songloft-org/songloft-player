@@ -103,6 +103,10 @@ sudo apt-get install clang cmake ninja-build pkg-config libgtk-3-dev
 
 Linux also uses libmpv via `just_audio_media_kit`, but with **dynamic linking to the system libmpv** (not statically bundled). Users must have mpv/libmpv installed on their system.
 
+GTK sets the process locale from the system environment during startup, while libmpv requires `LC_NUMERIC=C`. After GTK startup and before creating the Flutter engine, the Linux runner resets only the numeric locale, preserving language and other categories. This prevents a NULL `mpv_create()` result from crashing playback ([#49](https://github.com/songloft-org/songloft-player/issues/49)).
+
+The client uses a [local media_kit patch](../../third_party/media_kit/README.en.md) to check creation and initialization failures on both paths and propagate errors to playback callers. Failures are logged and failed instances are released instead of waiting indefinitely; another playback attempt can create a new player. This fix requires a full client update because Dart patches cannot update the Linux runner.
+
 ### Distribution Formats
 
 The build script supports tar.gz, deb, rpm, and AppImage formats.

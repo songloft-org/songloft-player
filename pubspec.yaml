@@ -86,6 +86,9 @@ dependencies:
   reorderable_grid_view: ^2.2.8
 
 dependency_overrides:
+  # 本地补丁：mpv 创建/初始化失败时安全报错（#49）。
+  media_kit:
+    path: third_party/media_kit
   # smtc_windows 1.1.0 的 Rust codegen 使用 flutter_rust_bridge 2.11.1 编译，
   # 但 ^2.11.1 约束允许解析到 2.12.0，导致 codegen/runtime 版本不匹配。
   flutter_rust_bridge: 2.11.1

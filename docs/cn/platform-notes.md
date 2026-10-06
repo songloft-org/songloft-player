@@ -103,6 +103,10 @@ sudo apt-get install clang cmake ninja-build pkg-config libgtk-3-dev
 
 Linux 端同样通过 `just_audio_media_kit` 使用 libmpv，但采用**动态链接系统的 libmpv**（非静态打包），用户系统需安装 mpv/libmpv。
 
+GTK 启动时会按系统环境设置进程 locale，而 libmpv 要求 `LC_NUMERIC=C`。Linux runner 在 GTK 启动后、Flutter 引擎创建前仅重置数值 locale，保留语言等其他类别，避免 `mpv_create()` 返回 NULL 导致播放崩溃（[#49](https://github.com/songloft-org/songloft-player/issues/49)）。
+
+客户端使用 [media_kit 本地补丁](../../third_party/media_kit/README.md)，在两条初始化路径上检查创建及初始化失败，并将异常传回播放调用方。失败会记录诊断日志并释放实例，不会无限等待初始化；再次播放可以重新创建播放器。此修复需要更新客户端整包，Linux runner 不能通过 Dart 补丁更新。
+
 ### 分发格式
 
 构建脚本支持 tar.gz、deb、rpm、AppImage 四种格式。

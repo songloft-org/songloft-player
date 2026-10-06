@@ -1,5 +1,6 @@
 import 'dart:collection';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:just_audio_platform_interface/just_audio_platform_interface.dart';
@@ -36,8 +37,8 @@ class SongloftJustAudioPlatform extends JustAudioPlatform {
     return _players.values.first.player;
   }
 
-  /// 首个 Player 随创建时即派生好的 VideoController（供视频画面渲染）。
-  /// 控制器在 Player 构造时就绪，故无绑定时序竞态。
+  /// 首个 Player 初始化成功后派生的 VideoController（供视频画面渲染）。
+  /// 桌面控制器在 init 返回前创建；移动端按视频源惰性创建。
   VideoController? get firstVideoController {
     if (_players.isEmpty) return null;
     return _players.values.first.videoController;
@@ -53,7 +54,23 @@ class SongloftJustAudioPlatform extends JustAudioPlatform {
     }
     final player = SongloftMediaKitPlayer(request.id);
     _players[request.id] = player;
-    await player.ready();
+    try {
+      await player.ready();
+    } catch (error, stackTrace) {
+      if (identical(_players[request.id], player)) {
+        _players.remove(request.id);
+      }
+      debugPrint('[SongloftJustAudioPlatform] 播放器初始化失败: $error\n$stackTrace');
+      try {
+        await player.release();
+      } catch (disposeError) {
+        debugPrint('[SongloftJustAudioPlatform] 清理失败实例时出错: $disposeError');
+      }
+      throw PlatformException(
+        code: 'audio_initialization_failed',
+        message: error.toString(),
+      );
+    }
     return player;
   }
 
