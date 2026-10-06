@@ -37,6 +37,8 @@ class CastButton extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      useSafeArea: true,
       builder: (_) => const DlnaDeviceSheet(),
     );
   }

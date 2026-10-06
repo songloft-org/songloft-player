@@ -1454,6 +1454,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dlnaNoDevices => 'No DLNA devices found';
 
   @override
+  String get dlnaError => 'Casting error. Please try again.';
+
+  @override
+  String get dlnaErrorDetails => 'Error details';
+
+  @override
+  String get dlnaDismissError => 'Dismiss error';
+
+  @override
+  String get dlnaClose => 'Close';
+
+  @override
   String get startupStarting => 'Starting…';
 
   @override

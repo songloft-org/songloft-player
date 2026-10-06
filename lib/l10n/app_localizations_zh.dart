@@ -1416,6 +1416,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dlnaNoDevices => '未发现 DLNA 设备';
 
   @override
+  String get dlnaError => '投屏出错，请重试';
+
+  @override
+  String get dlnaErrorDetails => '错误详情';
+
+  @override
+  String get dlnaDismissError => '关闭提示';
+
+  @override
+  String get dlnaClose => '关闭';
+
+  @override
   String get startupStarting => '正在启动…';
 
   @override

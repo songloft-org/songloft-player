@@ -11,6 +11,7 @@ import '../../../../shared/models/song.dart';
 import '../../../player/domain/player_state.dart';
 import '../../../player/presentation/providers/player_provider.dart';
 import '../../data/dlna_service.dart';
+import '../../data/dlna_log.dart';
 import '../../domain/dlna_state.dart';
 
 /// 一次投屏所需的参数：资源 URL + DIDL mime 类型。
@@ -173,6 +174,8 @@ class DlnaNotifier extends Notifier<DlnaState> {
     state = state.copyWith(isDiscovering: false);
   }
 
+  void clearError() => state = state.copyWith(error: () => null);
+
   Future<void> castToDevice(DlnaDeviceInfo device) async {
     final playerState = ref.read(playerStateProvider);
     final song = playerState.currentSong;
@@ -219,6 +222,7 @@ class DlnaNotifier extends Notifier<DlnaState> {
       );
     } catch (e) {
       if (generation != _generation) return;
+      dlnaLog('castToDevice failed device=${device.id} song=${song.id}: $e');
       state = state.copyWith(error: () => e.toString());
     }
   }
@@ -250,6 +254,7 @@ class DlnaNotifier extends Notifier<DlnaState> {
       );
     } catch (e) {
       if (generation != _generation) return;
+      dlnaLog('castSong failed device=${device.id} song=${song.id}: $e');
       state = state.copyWith(error: () => e.toString());
     } finally {
       if (generation == _generation) _isChangingSong = false;

@@ -2644,6 +2644,30 @@ abstract class AppLocalizations {
   /// **'未发现 DLNA 设备'**
   String get dlnaNoDevices;
 
+  /// No description provided for @dlnaError.
+  ///
+  /// In zh, this message translates to:
+  /// **'投屏出错，请重试'**
+  String get dlnaError;
+
+  /// No description provided for @dlnaErrorDetails.
+  ///
+  /// In zh, this message translates to:
+  /// **'错误详情'**
+  String get dlnaErrorDetails;
+
+  /// No description provided for @dlnaDismissError.
+  ///
+  /// In zh, this message translates to:
+  /// **'关闭提示'**
+  String get dlnaDismissError;
+
+  /// No description provided for @dlnaClose.
+  ///
+  /// In zh, this message translates to:
+  /// **'关闭'**
+  String get dlnaClose;
+
   /// No description provided for @startupStarting.
   ///
   /// In zh, this message translates to:
