@@ -55,6 +55,8 @@ bool FlutterWindow::OnCreate() {
         registry->GetRegistrarForPlugin("ScreenRetrieverWindowsPluginCApi"));
   });
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
+  webview_window_sync_.Reset(GetHandle(),
+                             flutter_controller_->view()->GetNativeWindow());
 
   flutter_controller_->engine()->SetNextFrameCallback([this]() {
     this->Show();
@@ -75,6 +77,7 @@ bool FlutterWindow::OnCreate() {
 }
 
 void FlutterWindow::OnDestroy() {
+  webview_window_sync_.Reset(nullptr, nullptr);
   if (flutter_controller_) {
     flutter_controller_ = nullptr;
   }
@@ -86,6 +89,14 @@ LRESULT
 FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
                               WPARAM const wparam,
                               LPARAM const lparam) noexcept {
+  // The WebView's independent HWND otherwise stays at the old screen position
+  // and intercepts desktop input after a move (songloft-org/songloft#499).
+  // Observe the applied position, including keyboard moves and DPI transitions,
+  // before a plugin can consume the message and skip the default WM_MOVE path.
+  if (message == WM_WINDOWPOSCHANGED) {
+    webview_window_sync_.Sync();
+  }
+
   // Give Flutter, including plugins, an opportunity to handle window messages.
   if (flutter_controller_) {
     std::optional<LRESULT> result =
