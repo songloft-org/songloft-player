@@ -49,6 +49,7 @@ import 'frontend_upgrade_dialog.dart';
 import 'github_proxy_dialog.dart';
 import 'upgrade_dialog.dart';
 import '../providers/settings_provider.dart';
+import '../providers/song_title_scrolling_provider.dart';
 
 /// 设置分类数量（与 [buildSettingsCategories] 返回长度一致）。
 /// 供 `/settings/category/:index` 路由做越界防御，避免在 redirect 里依赖 l10n。
@@ -489,6 +490,7 @@ class _SettingsCategoryContentState
     final l10n = AppLocalizations.of(context);
     final quality = ref.watch(audioQualityProvider);
     final autoPlayOnLaunch = ref.watch(autoPlayOnLaunchProvider);
+    final songTitleScrolling = ref.watch(songTitleScrollingProvider);
     final miniPlayerControls = ref.watch(miniPlayerControlsProvider);
     final miniPlayerControlsLabels = {
       MiniPlayerControls.playOnly: l10n.settingsMiniPlayerControlsPlayOnly,
@@ -587,6 +589,16 @@ class _SettingsCategoryContentState
             value: autoPlayOnLaunch,
             onChanged: (v) {
               ref.read(autoPlayOnLaunchProvider.notifier).setEnabled(v);
+            },
+          ),
+          const Divider(height: 1),
+          SwitchListTile(
+            secondary: const Icon(Icons.text_fields),
+            title: Text(l10n.settingsSongTitleScrollingTitle),
+            subtitle: Text(l10n.settingsSongTitleScrollingSubtitle),
+            value: songTitleScrolling,
+            onChanged: (value) {
+              ref.read(songTitleScrollingProvider.notifier).setEnabled(value);
             },
           ),
           const Divider(height: 1),

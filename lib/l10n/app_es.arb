@@ -2042,6 +2042,8 @@
   "settingsCategoryAppearanceTitle": "Apariencia",
   "settingsCategoryAppearanceSubtitle": "Tema, menú y pantalla",
   "settingsCategoryPlaybackTitle": "Reproducción",
+  "settingsSongTitleScrollingTitle": "Desplazar títulos largos",
+  "settingsSongTitleScrollingSubtitle": "Desplaza automáticamente los títulos y nombres de artistas largos; muestra puntos suspensivos al desactivarlo",
   "settingsCategoryPlaybackSubtitle": "Calidad de audio",
   "settingsCategoryLibraryTitle": "Biblioteca",
   "settingsCategoryLibrarySubtitle": "Escaneo, importación y conversión",

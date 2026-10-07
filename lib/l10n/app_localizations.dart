@@ -5752,6 +5752,18 @@ abstract class AppLocalizations {
   /// **'播放设置'**
   String get settingsCategoryPlaybackTitle;
 
+  /// No description provided for @settingsSongTitleScrollingTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'长歌名滚动'**
+  String get settingsSongTitleScrollingTitle;
+
+  /// No description provided for @settingsSongTitleScrollingSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'自动滚动显示过长的歌名和歌手名；关闭后显示省略号'**
+  String get settingsSongTitleScrollingSubtitle;
+
   /// No description provided for @settingsCategoryPlaybackSubtitle.
   ///
   /// In zh, this message translates to:

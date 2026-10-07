@@ -3176,6 +3176,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsCategoryPlaybackTitle => '播放设置';
 
   @override
+  String get settingsSongTitleScrollingTitle => '长歌名滚动';
+
+  @override
+  String get settingsSongTitleScrollingSubtitle => '自动滚动显示过长的歌名和歌手名；关闭后显示省略号';
+
+  @override
   String get settingsCategoryPlaybackSubtitle => '音质';
 
   @override

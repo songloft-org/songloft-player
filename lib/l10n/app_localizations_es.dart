@@ -3358,6 +3358,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsCategoryPlaybackTitle => 'Reproducción';
 
   @override
+  String get settingsSongTitleScrollingTitle => 'Desplazar títulos largos';
+
+  @override
+  String get settingsSongTitleScrollingSubtitle =>
+      'Desplaza automáticamente los títulos y nombres de artistas largos; muestra puntos suspensivos al desactivarlo';
+
+  @override
   String get settingsCategoryPlaybackSubtitle => 'Calidad de audio';
 
   @override

@@ -1,8 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../features/settings/presentation/providers/song_title_scrolling_provider.dart';
 
 /// 自动滚动文本组件
 /// 当文本溢出时自动水平滚动显示完整内容
-class ScrollingText extends StatefulWidget {
+class ScrollingText extends ConsumerWidget {
   /// 要显示的文本
   final String text;
 
@@ -24,10 +29,50 @@ class ScrollingText extends StatefulWidget {
   });
 
   @override
-  State<ScrollingText> createState() => _ScrollingTextState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final enabled = ref.watch(songTitleScrollingProvider);
+    return Semantics(
+      // 保留完整文本，静态省略与滚动容器都不改变读屏内容。
+      label: text,
+      child: ExcludeSemantics(
+        child:
+            enabled
+                ? _AnimatedScrollingText(
+                  text: text,
+                  style: style,
+                  velocity: velocity,
+                  pauseDuration: pauseDuration,
+                )
+                : Text(
+                  text,
+                  style: style,
+                  maxLines: 1,
+                  softWrap: false,
+                  overflow: TextOverflow.ellipsis,
+                ),
+      ),
+    );
+  }
 }
 
-class _ScrollingTextState extends State<ScrollingText>
+class _AnimatedScrollingText extends StatefulWidget {
+  final String text;
+  final TextStyle? style;
+  final double velocity;
+  final Duration pauseDuration;
+
+  const _AnimatedScrollingText({
+    required this.text,
+    this.style,
+    required this.velocity,
+    required this.pauseDuration,
+  });
+
+  @override
+  State<_AnimatedScrollingText> createState() => _ScrollingTextState();
+}
+
+class _ScrollingTextState extends State<_AnimatedScrollingText>
     with SingleTickerProviderStateMixin {
   late ScrollController _scrollController;
   bool _isOverflowing = false;
@@ -37,6 +82,8 @@ class _ScrollingTextState extends State<ScrollingText>
   // 避免新旧两个循环同时驱动同一个 controller
   int _generation = 0;
   double _lastMaxWidth = 0;
+  Timer? _pauseTimer;
+  Completer<void>? _pauseCompleter;
 
   @override
   void initState() {
@@ -48,7 +95,7 @@ class _ScrollingTextState extends State<ScrollingText>
   }
 
   @override
-  void didUpdateWidget(ScrollingText oldWidget) {
+  void didUpdateWidget(_AnimatedScrollingText oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.text != widget.text) {
       _restart();
@@ -58,6 +105,7 @@ class _ScrollingTextState extends State<ScrollingText>
   void _restart() {
     _generation++;
     _isScrolling = false;
+    _cancelPause();
     if (_scrollController.hasClients) {
       _scrollController.jumpTo(0);
     }
@@ -68,8 +116,27 @@ class _ScrollingTextState extends State<ScrollingText>
 
   @override
   void dispose() {
+    _cancelPause();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _cancelPause() {
+    _pauseTimer?.cancel();
+    _pauseTimer = null;
+    _pauseCompleter?.complete();
+    _pauseCompleter = null;
+  }
+
+  Future<void> _pause() {
+    final completer = Completer<void>();
+    _pauseCompleter = completer;
+    _pauseTimer = Timer(widget.pauseDuration, () {
+      _pauseTimer = null;
+      _pauseCompleter = null;
+      completer.complete();
+    });
+    return completer.future;
   }
 
   void _checkOverflow() {
@@ -101,7 +168,7 @@ class _ScrollingTextState extends State<ScrollingText>
 
     while (alive() && _isOverflowing) {
       // 暂停在开头
-      await Future.delayed(widget.pauseDuration);
+      await _pause();
       if (!alive()) return;
 
       // 计算滚动时长
@@ -119,7 +186,7 @@ class _ScrollingTextState extends State<ScrollingText>
       if (!alive()) return;
 
       // 暂停在末尾
-      await Future.delayed(widget.pauseDuration);
+      await _pause();
       if (!alive()) return;
 
       // 滚动回开头
@@ -133,33 +200,26 @@ class _ScrollingTextState extends State<ScrollingText>
 
   @override
   Widget build(BuildContext context) {
-    // 滚动容器会切断语义合并链，导致列表行丢失歌名 aria-label；
-    // 这里显式以完整文本提供语义标签，并屏蔽内部滚动节点
-    return Semantics(
-      label: widget.text,
-      child: ExcludeSemantics(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            if (constraints.maxWidth != _lastMaxWidth) {
-              _lastMaxWidth = constraints.maxWidth;
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) _restart();
-              });
-            }
-            return SingleChildScrollView(
-              controller: _scrollController,
-              scrollDirection: Axis.horizontal,
-              physics: const NeverScrollableScrollPhysics(),
-              child: Text(
-                widget.text,
-                style: widget.style,
-                maxLines: 1,
-                softWrap: false,
-              ),
-            );
-          },
-        ),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth != _lastMaxWidth) {
+          _lastMaxWidth = constraints.maxWidth;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _restart();
+          });
+        }
+        return SingleChildScrollView(
+          controller: _scrollController,
+          scrollDirection: Axis.horizontal,
+          physics: const NeverScrollableScrollPhysics(),
+          child: Text(
+            widget.text,
+            style: widget.style,
+            maxLines: 1,
+            softWrap: false,
+          ),
+        );
+      },
     );
   }
 }

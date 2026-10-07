@@ -2016,6 +2016,8 @@
   "settingsCategoryAppearanceTitle": "Appearance",
   "settingsCategoryAppearanceSubtitle": "Theme, menu and display",
   "settingsCategoryPlaybackTitle": "Playback",
+  "settingsSongTitleScrollingTitle": "Scroll long song titles",
+  "settingsSongTitleScrollingSubtitle": "Automatically scroll long song titles and artist names; show ellipses when disabled",
   "settingsCategoryPlaybackSubtitle": "Audio quality",
   "settingsCategoryLibraryTitle": "Library",
   "settingsCategoryLibrarySubtitle": "Scan, import and convert",

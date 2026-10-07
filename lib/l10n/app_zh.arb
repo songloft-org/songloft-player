@@ -2122,6 +2122,8 @@
   "settingsCategoryAppearanceTitle": "外观设置",
   "settingsCategoryAppearanceSubtitle": "主题、菜单和显示",
   "settingsCategoryPlaybackTitle": "播放设置",
+  "settingsSongTitleScrollingTitle": "长歌名滚动",
+  "settingsSongTitleScrollingSubtitle": "自动滚动显示过长的歌名和歌手名；关闭后显示省略号",
   "settingsCategoryPlaybackSubtitle": "音质",
   "settingsCategoryLibraryTitle": "音乐库管理",
   "settingsCategoryLibrarySubtitle": "扫描、导入和转换",

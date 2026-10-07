@@ -3313,6 +3313,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsCategoryPlaybackTitle => 'Playback';
 
   @override
+  String get settingsSongTitleScrollingTitle => 'Scroll long song titles';
+
+  @override
+  String get settingsSongTitleScrollingSubtitle =>
+      'Automatically scroll long song titles and artist names; show ellipses when disabled';
+
+  @override
   String get settingsCategoryPlaybackSubtitle => 'Audio quality';
 
   @override

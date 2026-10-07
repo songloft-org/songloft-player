@@ -30,6 +30,7 @@ class AppPreferences {
   // 启动更新检查的跨会话节流时间戳 + 「启动时自动检查」开关
   static const _lastPatchCheckAtKey = 'last_patch_check_at';
   static const _autoUpdateCheckKey = 'auto_update_check_enabled';
+  static const _songTitleScrollingKey = 'song_title_scrolling_enabled';
 
   final SharedPreferences _prefs;
 
@@ -243,6 +244,13 @@ class AppPreferences {
   /// 设置启动时是否自动检查更新
   Future<bool> setAutoUpdateCheckEnabled(bool enabled) =>
       _prefs.setBool(_autoUpdateCheckKey, enabled);
+
+  /// 长歌名是否自动滚动（设备本地偏好，缺省开启）
+  bool isSongTitleScrollingEnabled() =>
+      _prefs.getBool(_songTitleScrollingKey) ?? true;
+
+  Future<bool> setSongTitleScrollingEnabled(bool enabled) =>
+      _prefs.setBool(_songTitleScrollingKey, enabled);
 
   /// 获取上次登录的用户名
   String? getLastUsername() {
