@@ -319,7 +319,22 @@ void main() {
     );
     expect(find.text('已安装'), findsWidgets);
   });
-  for (final version in ['2.9.0', 'dev']) {
+  testWidgets('dev 服务端跳过最低版本检查，仍需确认后才安装', (tester) async {
+    final plugins = _Plugins();
+    await _pump(
+      tester,
+      _Discovery(discoveryPlugin(minimum: '999.0.0')),
+      plugins,
+      version: 'dev',
+    );
+    await _detail(tester);
+    await _install(tester);
+    expect(plugins.installs, isEmpty);
+    await tester.tap(find.byKey(const ValueKey('github-install-confirm')));
+    await _frames(tester);
+    expect(plugins.installs, hasLength(1));
+  });
+  for (final version in ['2.9.0', 'unknown']) {
     testWidgets('最低服务端版本不足或未知时禁用安装：$version', (tester) async {
       await _pump(
         tester,

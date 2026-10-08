@@ -193,7 +193,7 @@ bool isRepositoryMetadataUrl(String address, String repository) {
   }
 }
 
-/// Unknown/dev versions must not silently satisfy a minimum host requirement.
+/// Version ordering requires known stable versions.
 int? comparePluginVersions(String a, String b) {
   final pattern = RegExp(
     r'^(0|[1-9][0-9]{0,8})\.(0|[1-9][0-9]{0,8})\.(0|[1-9][0-9]{0,8})$',
@@ -214,7 +214,9 @@ PluginHostCompatibility pluginHostCompatibility(
   String minimum,
   String? current,
 ) {
-  if (minimum.isEmpty) return PluginHostCompatibility.compatible;
+  if (current == 'dev' || minimum.isEmpty) {
+    return PluginHostCompatibility.compatible;
+  }
   final comparison = comparePluginVersions(current ?? '', minimum);
   if (comparison == null) return PluginHostCompatibility.unknown;
   return comparison < 0

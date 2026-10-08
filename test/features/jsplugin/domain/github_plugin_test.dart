@@ -125,7 +125,13 @@ void main() {
       expect(releaseDownload(address, discoveryRepo), isNull);
     }
   });
-  test('最低宿主版本不得把 dev 或坏版本当成兼容', () {
+  test('dev 宿主跳过最低版本检查，正式版和未知版本继续校验', () {
+    for (final minimum in ['2.10.0', '999.0.0', 'future']) {
+      expect(
+        pluginHostCompatibility(minimum, 'dev'),
+        PluginHostCompatibility.compatible,
+      );
+    }
     expect(
       pluginHostCompatibility('', null),
       PluginHostCompatibility.compatible,
@@ -140,7 +146,6 @@ void main() {
     );
     for (final value in [
       null,
-      'dev',
       '2.10',
       '02.10.0',
       '2.10.0-beta',

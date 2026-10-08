@@ -12,6 +12,8 @@ Release tags locate the actual Release referenced by the download URL; they need
 
 Details show the version, permissions and minimum host version. Installation requires confirmation that Songloft has not reviewed the plugin; conflicting entry paths require replacement confirmation. Unknown or insufficient host versions and unavailable installed-plugin data disable installation. The existing server installation endpoint is reused; format validation is not a security review. Details use a bottom sheet on narrow screens and a dialog on wide screens.
 
+When the server explicitly reports `dev`, all plugins bypass the minimum host version check. Stable servers still compare minimum versions; failed version requests and other unrecognized versions require a retry. `dev` does not bypass plugin validation, installed-plugin data checks or installation confirmation.
+
 Validation: static analysis, all 539 tests and the Web build pass. Widget tests cover Chinese, English and Spanish at narrow/wide widths with large text. Docker Chromium exercises live GitHub discovery (seven repositories: three valid, four excluded), zero requests before confirmation, exactly one install after confirmation and return to the store. Queries against an isolated real Go backend confirm the installed version and Release URL. Native Flutter devices have not been tested.
 
 ## Environment Setup
