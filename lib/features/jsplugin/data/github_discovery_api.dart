@@ -355,7 +355,6 @@ class GithubDiscoveryApi {
     if (release['draft'] != false ||
         release['prerelease'] != false ||
         release['tag_name'] != download.tag ||
-        download.tag.replaceFirst(RegExp(r'^v'), '') != manifest.version ||
         release['assets'] is! List ||
         release['published_at'] is! String ||
         DateTime.tryParse(release['published_at']) == null) {

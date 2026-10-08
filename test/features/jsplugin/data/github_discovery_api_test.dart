@@ -65,6 +65,29 @@ void main() {
     cancelToken: cancel ?? CancelToken(),
   );
 
+  test('发布标签不限制清单版本，兼容 v0.17 与 0.17.0', () async {
+    final url = discoveryDownload.replaceFirst('/v1.2.3/', '/v0.17/');
+    for (final version in ['0.17.0', '1.2.3']) {
+      final adapter = _Adapter((request) {
+        if (request.uri.path.endsWith('plugin.json')) {
+          return _json({
+            ...discoveryManifest(),
+            'version': version,
+            'download_url': url,
+          });
+        }
+        if (request.uri.path.endsWith('/releases/tags/v0.17')) {
+          final release = discoveryRelease();
+          release['tag_name'] = 'v0.17';
+          (release['assets'] as List).single['browser_download_url'] = url;
+          return _json(release);
+        }
+        return _standard(request);
+      });
+      expect((await run(adapter)).plugins.single.manifest.version, version);
+    }
+  });
+
   test('公开 topic 搜索与真实发布包校验，不携带服务器认证', () async {
     final adapter = _Adapter(_standard);
     final result = await run(adapter, search: 'test topic:other');
