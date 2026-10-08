@@ -14,6 +14,8 @@ class JSPlugin {
   final String? description;
   final String? author;
   final String? homepage;
+  final String? updateUrl;
+  final String? downloadUrl;
   final String? entryPath;
   final String? main;
   final String? icon;
@@ -37,6 +39,8 @@ class JSPlugin {
     this.description,
     this.author,
     this.homepage,
+    this.updateUrl,
+    this.downloadUrl,
     this.entryPath,
     this.main,
     this.icon,
@@ -56,6 +60,12 @@ class JSPlugin {
       description: json['description'] as String?,
       author: json['author'] as String?,
       homepage: json['homepage'] as String?,
+      updateUrl:
+          json['update_url'] is String ? json['update_url'] as String : null,
+      downloadUrl:
+          json['download_url'] is String
+              ? json['download_url'] as String
+              : null,
       entryPath: json['entry_path'] as String?,
       main: json['main'] as String?,
       icon: json['icon'] as String?,

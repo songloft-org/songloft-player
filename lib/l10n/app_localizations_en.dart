@@ -9,6 +9,140 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get githubDiscoveryTitle => 'GitHub discovery';
+
+  @override
+  String get githubDiscoveryCommunity => 'Community';
+
+  @override
+  String get githubDiscoveryNotice =>
+      'Automatically discovered community plugins. Not reviewed by Songloft; format validation is not a security review.';
+
+  @override
+  String get githubDiscoverySearch => 'Search plugins or owner/repo';
+
+  @override
+  String get githubDiscoverySort => 'Sort';
+
+  @override
+  String get githubDiscoveryUpdated => 'Recently updated';
+
+  @override
+  String get githubDiscoveryStars => 'Most stars';
+
+  @override
+  String get githubDiscoveryDetails => 'View details';
+
+  @override
+  String get githubDiscoveryInstalled => 'Installed';
+
+  @override
+  String get githubDiscoveryUpdateAvailable => 'Update available';
+
+  @override
+  String githubDiscoveryUpdateTo(String version) {
+    return 'Update to v$version';
+  }
+
+  @override
+  String get githubDiscoveryHelpTitle => 'About GitHub discovery';
+
+  @override
+  String get githubDiscoveryHelp =>
+      'Searches public, non-archived, non-fork repositories with the songloft-plugin topic. Plugins must have a valid root plugin.json, same-repository update metadata and a matching stable Release containing a .jsplugin.zip asset. Repository update order differs from plugin release order. Network failures remain unverified; GitHub rate limits can leave results incomplete. Songloft has not reviewed the source or packages. Review code and permissions before installing.';
+
+  @override
+  String get githubDiscoveryRateLimited =>
+      'GitHub rate limit reached. Verified plugins remain available; retry later.';
+
+  @override
+  String githubDiscoveryRetryAt(String time) {
+    return 'Retry after $time';
+  }
+
+  @override
+  String get githubDiscoveryLoadFailed =>
+      'Could not load GitHub discovery. Check your connection and retry.';
+
+  @override
+  String get githubDiscoveryEmpty => 'No valid published plugins found.';
+
+  @override
+  String get githubDiscoveryPending =>
+      'Repositories could not be verified yet. Retry later.';
+
+  @override
+  String githubDiscoverySummary(
+    int checked,
+    int found,
+    int excluded,
+    int failed,
+  ) {
+    return 'Checked $checked repositories · Found $found plugins · Filtered $excluded · Unverified $failed';
+  }
+
+  @override
+  String get githubDiscoveryIncomplete =>
+      'GitHub returned partial results. Refresh later.';
+
+  @override
+  String get githubDiscoveryLoadMore => 'Discover more';
+
+  @override
+  String get githubDiscoveryInstallTitle => 'Install an unreviewed plugin?';
+
+  @override
+  String githubDiscoveryInstallWarning(String repository, String version) {
+    return 'Install v$version from $repository. This plugin has not been reviewed by Songloft and can access data and networks allowed by its declared permissions. Review its source first.';
+  }
+
+  @override
+  String githubDiscoveryReplaceWarning(String name, String version) {
+    return 'The same plugin entry is occupied by $name v$version. Installing will replace it and inherit its saved data.';
+  }
+
+  @override
+  String get githubDiscoveryPermissions => 'Declared permissions';
+
+  @override
+  String get githubDiscoveryNoPermissions => 'No permissions declared';
+
+  @override
+  String get githubDiscoveryInstallFailed =>
+      'Plugin installation failed. Retry.';
+
+  @override
+  String githubDiscoveryPublished(String date) {
+    return 'Published: $date';
+  }
+
+  @override
+  String githubDiscoveryMinimumHost(String version) {
+    return 'Minimum server version: $version';
+  }
+
+  @override
+  String get githubDiscoverySource => 'View source';
+
+  @override
+  String get githubDiscoveryRelease => 'View release';
+
+  @override
+  String get githubDiscoveryIncompatible =>
+      'Upgrade the server to meet this plugin\'s minimum version.';
+
+  @override
+  String get githubDiscoveryHostUnknown =>
+      'Cannot verify server compatibility. Tap to retry.';
+
+  @override
+  String get githubDiscoveryInstalledUnknown =>
+      'Checking installed plugins; tap to retry if loading fails.';
+
+  @override
+  String get githubDiscoveryOpenFailed => 'Could not open the link.';
+
+  @override
   String get updateFoundTitle => 'Update available';
 
   @override

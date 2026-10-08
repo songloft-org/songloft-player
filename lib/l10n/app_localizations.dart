@@ -100,6 +100,221 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
+  /// No description provided for @githubDiscoveryTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'GitHub 发现'**
+  String get githubDiscoveryTitle;
+
+  /// No description provided for @githubDiscoveryCommunity.
+  ///
+  /// In zh, this message translates to:
+  /// **'社区'**
+  String get githubDiscoveryCommunity;
+
+  /// No description provided for @githubDiscoveryNotice.
+  ///
+  /// In zh, this message translates to:
+  /// **'自动发现 GitHub 社区插件，未经 Songloft 审核；格式校验不代表安全审核。'**
+  String get githubDiscoveryNotice;
+
+  /// No description provided for @githubDiscoverySearch.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索插件或 owner/repo'**
+  String get githubDiscoverySearch;
+
+  /// No description provided for @githubDiscoverySort.
+  ///
+  /// In zh, this message translates to:
+  /// **'排序'**
+  String get githubDiscoverySort;
+
+  /// No description provided for @githubDiscoveryUpdated.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近更新'**
+  String get githubDiscoveryUpdated;
+
+  /// No description provided for @githubDiscoveryStars.
+  ///
+  /// In zh, this message translates to:
+  /// **'最多星标'**
+  String get githubDiscoveryStars;
+
+  /// No description provided for @githubDiscoveryDetails.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看详情'**
+  String get githubDiscoveryDetails;
+
+  /// No description provided for @githubDiscoveryInstalled.
+  ///
+  /// In zh, this message translates to:
+  /// **'已安装'**
+  String get githubDiscoveryInstalled;
+
+  /// No description provided for @githubDiscoveryUpdateAvailable.
+  ///
+  /// In zh, this message translates to:
+  /// **'有可用更新'**
+  String get githubDiscoveryUpdateAvailable;
+
+  /// No description provided for @githubDiscoveryUpdateTo.
+  ///
+  /// In zh, this message translates to:
+  /// **'更新到 v{version}'**
+  String githubDiscoveryUpdateTo(String version);
+
+  /// No description provided for @githubDiscoveryHelpTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'GitHub 发现说明'**
+  String get githubDiscoveryHelpTitle;
+
+  /// No description provided for @githubDiscoveryHelp.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索公开且未归档的非 fork 仓库，topic 为 songloft-plugin。只展示根 plugin.json 格式合规、同仓库更新清单和匹配的稳定 Release 中存在 .jsplugin.zip 安装包的插件。仓库更新排序不等于插件发布时间排序。网络失败记为暂未验证，可能因 GitHub 限流而只返回部分结果。源码和安装包未经 Songloft 审核，安装前请查看代码和权限。'**
+  String get githubDiscoveryHelp;
+
+  /// No description provided for @githubDiscoveryRateLimited.
+  ///
+  /// In zh, this message translates to:
+  /// **'GitHub 请求已限流，已验证的插件仍可查看，请稍后重试。'**
+  String get githubDiscoveryRateLimited;
+
+  /// No description provided for @githubDiscoveryRetryAt.
+  ///
+  /// In zh, this message translates to:
+  /// **'可在 {time} 后重试'**
+  String githubDiscoveryRetryAt(String time);
+
+  /// No description provided for @githubDiscoveryLoadFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'GitHub 发现加载失败，请检查网络后重试。'**
+  String get githubDiscoveryLoadFailed;
+
+  /// No description provided for @githubDiscoveryEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'没有发现符合规范且已发布的插件。'**
+  String get githubDiscoveryEmpty;
+
+  /// No description provided for @githubDiscoveryPending.
+  ///
+  /// In zh, this message translates to:
+  /// **'仓库暂未验证，请稍后重试。'**
+  String get githubDiscoveryPending;
+
+  /// No description provided for @githubDiscoverySummary.
+  ///
+  /// In zh, this message translates to:
+  /// **'已检查 {checked} 个仓库 · 发现 {found} 个插件 · 过滤 {excluded} 个 · 暂未验证 {failed} 个'**
+  String githubDiscoverySummary(
+    int checked,
+    int found,
+    int excluded,
+    int failed,
+  );
+
+  /// No description provided for @githubDiscoveryIncomplete.
+  ///
+  /// In zh, this message translates to:
+  /// **'GitHub 返回了部分结果，请稍后刷新。'**
+  String get githubDiscoveryIncomplete;
+
+  /// No description provided for @githubDiscoveryLoadMore.
+  ///
+  /// In zh, this message translates to:
+  /// **'继续发现'**
+  String get githubDiscoveryLoadMore;
+
+  /// No description provided for @githubDiscoveryInstallTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'安装未经审核的插件？'**
+  String get githubDiscoveryInstallTitle;
+
+  /// No description provided for @githubDiscoveryInstallWarning.
+  ///
+  /// In zh, this message translates to:
+  /// **'将安装 {repository} 的 v{version}。该插件未经 Songloft 审核，可能访问其声明权限允许的数据和网络。请先查看源码。'**
+  String githubDiscoveryInstallWarning(String repository, String version);
+
+  /// No description provided for @githubDiscoveryReplaceWarning.
+  ///
+  /// In zh, this message translates to:
+  /// **'同一插件入口已被 {name} v{version} 占用。继续安装会替换它，并继承原插件保存的数据。'**
+  String githubDiscoveryReplaceWarning(String name, String version);
+
+  /// No description provided for @githubDiscoveryPermissions.
+  ///
+  /// In zh, this message translates to:
+  /// **'声明权限'**
+  String get githubDiscoveryPermissions;
+
+  /// No description provided for @githubDiscoveryNoPermissions.
+  ///
+  /// In zh, this message translates to:
+  /// **'未声明权限'**
+  String get githubDiscoveryNoPermissions;
+
+  /// No description provided for @githubDiscoveryInstallFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'插件安装失败，请重试。'**
+  String get githubDiscoveryInstallFailed;
+
+  /// No description provided for @githubDiscoveryPublished.
+  ///
+  /// In zh, this message translates to:
+  /// **'发布时间：{date}'**
+  String githubDiscoveryPublished(String date);
+
+  /// No description provided for @githubDiscoveryMinimumHost.
+  ///
+  /// In zh, this message translates to:
+  /// **'最低服务端版本：{version}'**
+  String githubDiscoveryMinimumHost(String version);
+
+  /// No description provided for @githubDiscoverySource.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看源码'**
+  String get githubDiscoverySource;
+
+  /// No description provided for @githubDiscoveryRelease.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看发布页'**
+  String get githubDiscoveryRelease;
+
+  /// No description provided for @githubDiscoveryIncompatible.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前服务端版本不足，请先升级服务端。'**
+  String get githubDiscoveryIncompatible;
+
+  /// No description provided for @githubDiscoveryHostUnknown.
+  ///
+  /// In zh, this message translates to:
+  /// **'无法确认服务端兼容性，点击重试'**
+  String get githubDiscoveryHostUnknown;
+
+  /// No description provided for @githubDiscoveryInstalledUnknown.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在确认已安装插件；读取失败时点击重试'**
+  String get githubDiscoveryInstalledUnknown;
+
+  /// No description provided for @githubDiscoveryOpenFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'无法打开链接。'**
+  String get githubDiscoveryOpenFailed;
+
   /// No description provided for @updateFoundTitle.
   ///
   /// In zh, this message translates to:

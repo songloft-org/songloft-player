@@ -17,6 +17,7 @@ import '../../features/playlist/presentation/playlist_detail_page.dart';
 import '../../features/settings/presentation/servers_page.dart';
 import '../../features/settings/presentation/settings_page.dart';
 import '../../features/jsplugin/presentation/widgets/plugin_registry.dart';
+import '../../features/jsplugin/presentation/pages/github_discovery_page.dart';
 import '../../features/settings/presentation/duplicate_check_page.dart';
 import '../../features/settings/presentation/shortcut_settings_page.dart';
 import '../../features/settings/presentation/client_download_page.dart';
@@ -51,6 +52,8 @@ class AppRoutes {
   static const String shortcuts = '/settings/shortcuts';
   static const String clientDownload = '/settings/download';
   static const String pluginRegistry = '/settings/plugin-registry';
+  static const String githubPluginDiscovery =
+      '/settings/plugin-registry/github';
   static const String settingsCategory = '/settings/category/:index';
   static const String plugin = '/plugin';
   static const String pluginTab = '/plugin-tab/:entryPath';
@@ -303,6 +306,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.pluginRegistry,
             builder: (context, state) => const PluginRegistryPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.githubPluginDiscovery,
+            builder: (context, state) => const GithubDiscoveryPage(),
           ),
 
           // 设置分类详情（移动端二级页）。做成真实路由让浏览器/系统返回键回到

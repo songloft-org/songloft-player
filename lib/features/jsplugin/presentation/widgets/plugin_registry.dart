@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/network/api_exceptions.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/responsive.dart';
 import '../../../../core/utils/url_helper.dart';
@@ -13,6 +15,8 @@ import '../../../../shared/utils/responsive_snackbar.dart';
 import '../../../settings/data/settings_api.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../data/jsplugin_api.dart';
+import '../../domain/github_plugin.dart';
+import '../providers/github_discovery_provider.dart';
 import '../providers/jsplugin_provider.dart';
 import 'plugin_icon_utils.dart';
 
@@ -22,6 +26,7 @@ const _kOfficialRegistryUrl =
 
 /// 源下拉中「全部」聚合选项的哨兵值
 const _kAllSourcesValue = '__all_sources__';
+const _kGithubDiscoveryValue = '__github_discovery__';
 
 /// 插件商店页面
 class PluginRegistryPage extends ConsumerStatefulWidget {
@@ -52,6 +57,7 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
   Timer? _searchDebounce;
+  int _selectionRevision = 0;
 
   @override
   void initState() {
@@ -194,6 +200,30 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
   }
 
   RegistryPluginEntry _withInstalledState(RegistryPluginEntry plugin) {
+    final discovery =
+        ref.read(githubDiscoveryInstallsProvider)[plugin.entryPath];
+    if (discovery != null) {
+      final sameRepo =
+          releaseDownload(plugin.downloadUrl, discovery.repository.fullName) !=
+          null;
+      return plugin.copyWith(
+        installed: sameRepo,
+        installedVersion: sameRepo ? discovery.manifest.version : '',
+        hasUpdate:
+            sameRepo &&
+            (comparePluginVersions(
+                      plugin.version,
+                      discovery.manifest.version,
+                    ) ??
+                    0) >
+                0,
+        conflict: !sameRepo,
+        conflictWith:
+            sameRepo
+                ? ''
+                : '${discovery.manifest.name} v${discovery.manifest.version}',
+      );
+    }
     final installed = _installedDuringListing[plugin.entryPath];
     if (installed == null) return plugin;
     if (plugin.matches(installed.entryPath, installed.identity)) {
@@ -219,6 +249,9 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
   /// 会把同名不同作者的其他条目一起点亮成「已安装」（songloft-org/songloft#339）。
   void _markPluginInstalled(RegistryPluginEntry installed) {
     if (_pluginResponse == null) return;
+    ref
+        .read(githubDiscoveryInstallsProvider.notifier)
+        .clear(installed.entryPath);
     _installedDuringListing[installed.entryPath] = installed;
     final updatedPlugins =
         _pluginResponse!.plugins.map(_withInstalledState).toList();
@@ -252,6 +285,13 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
   /// 否则按 URL 定位到具体订阅源。
   void _onRegistrySelectionChanged(String? value) {
     if (value == null) return;
+    if (value == _kGithubDiscoveryValue) {
+      // Recreate the FormField so its internal selection remains the source,
+      // rather than the navigation action, when the user returns.
+      setState(() => ++_selectionRevision);
+      context.push(AppRoutes.githubPluginDiscovery);
+      return;
+    }
     setState(() {
       if (value == _kAllSourcesValue) {
         _allSources = true;
@@ -269,6 +309,7 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(githubDiscoveryInstallsProvider);
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     return Scaffold(
@@ -292,12 +333,7 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
           ),
         ],
       ),
-      body:
-          _loadingRegistries
-              ? const Center(child: CircularProgressIndicator())
-              : _registries.isEmpty
-              ? _buildEmptyState(theme)
-              : _buildContent(theme),
+      body: _buildContent(theme),
     );
   }
 
@@ -344,6 +380,7 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
           child: Column(
             children: [
               DropdownButtonFormField<String>(
+                key: ValueKey('registry-selection-$_selectionRevision'),
                 initialValue:
                     _allSources ? _kAllSourcesValue : _selectedRegistry?.url,
                 decoration: InputDecoration(
@@ -409,40 +446,65 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
                       ),
                     ),
                   ),
+                  DropdownMenuItem(
+                    enabled: false,
+                    value: '__community_header__',
+                    child: Text(l10n.githubDiscoveryCommunity),
+                  ),
+                  DropdownMenuItem(
+                    value: _kGithubDiscoveryValue,
+                    child: Row(
+                      children: [
+                        const Icon(Icons.public, size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text(l10n.githubDiscoveryTitle)),
+                        const Icon(Icons.open_in_new, size: 16),
+                      ],
+                    ),
+                  ),
                 ],
                 onChanged: _onRegistrySelectionChanged,
               ),
-              const SizedBox(height: AppSpacing.sm),
-              TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: l10n.jspluginSearchHint,
-                  prefixIcon: const Icon(Icons.search),
-                  border: const OutlineInputBorder(),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
+              if (enabledRegistries.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.sm),
+                TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: l10n.jspluginSearchHint,
+                    prefixIcon: const Icon(Icons.search),
+                    border: const OutlineInputBorder(),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    suffixIcon:
+                        _searchText.isNotEmpty
+                            ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              tooltip: l10n.clearSearch,
+                              onPressed: () {
+                                _searchController.clear();
+                                _onSearchChanged('');
+                              },
+                            )
+                            : null,
                   ),
-                  suffixIcon:
-                      _searchText.isNotEmpty
-                          ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            tooltip: l10n.clearSearch,
-                            onPressed: () {
-                              _searchController.clear();
-                              _onSearchChanged('');
-                            },
-                          )
-                          : null,
+                  onChanged: _onSearchChanged,
                 ),
-                onChanged: _onSearchChanged,
-              ),
+              ],
             ],
           ),
         ),
         const Divider(height: 1),
         // 插件列表
-        Expanded(child: _buildPluginList(theme)),
+        Expanded(
+          child:
+              _loadingRegistries
+                  ? const Center(child: CircularProgressIndicator())
+                  : enabledRegistries.isEmpty
+                  ? _buildEmptyState(theme)
+                  : _buildPluginList(theme),
+        ),
       ],
     );
   }
@@ -507,7 +569,7 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
       );
     }
 
-    final plugins = _pluginResponse!.plugins;
+    final plugins = _pluginResponse!.plugins.map(_withInstalledState).toList();
 
     return Column(
       children: [

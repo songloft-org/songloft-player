@@ -9,6 +9,132 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
+  String get githubDiscoveryTitle => 'GitHub 发现';
+
+  @override
+  String get githubDiscoveryCommunity => '社区';
+
+  @override
+  String get githubDiscoveryNotice =>
+      '自动发现 GitHub 社区插件，未经 Songloft 审核；格式校验不代表安全审核。';
+
+  @override
+  String get githubDiscoverySearch => '搜索插件或 owner/repo';
+
+  @override
+  String get githubDiscoverySort => '排序';
+
+  @override
+  String get githubDiscoveryUpdated => '最近更新';
+
+  @override
+  String get githubDiscoveryStars => '最多星标';
+
+  @override
+  String get githubDiscoveryDetails => '查看详情';
+
+  @override
+  String get githubDiscoveryInstalled => '已安装';
+
+  @override
+  String get githubDiscoveryUpdateAvailable => '有可用更新';
+
+  @override
+  String githubDiscoveryUpdateTo(String version) {
+    return '更新到 v$version';
+  }
+
+  @override
+  String get githubDiscoveryHelpTitle => 'GitHub 发现说明';
+
+  @override
+  String get githubDiscoveryHelp =>
+      '搜索公开且未归档的非 fork 仓库，topic 为 songloft-plugin。只展示根 plugin.json 格式合规、同仓库更新清单和匹配的稳定 Release 中存在 .jsplugin.zip 安装包的插件。仓库更新排序不等于插件发布时间排序。网络失败记为暂未验证，可能因 GitHub 限流而只返回部分结果。源码和安装包未经 Songloft 审核，安装前请查看代码和权限。';
+
+  @override
+  String get githubDiscoveryRateLimited => 'GitHub 请求已限流，已验证的插件仍可查看，请稍后重试。';
+
+  @override
+  String githubDiscoveryRetryAt(String time) {
+    return '可在 $time 后重试';
+  }
+
+  @override
+  String get githubDiscoveryLoadFailed => 'GitHub 发现加载失败，请检查网络后重试。';
+
+  @override
+  String get githubDiscoveryEmpty => '没有发现符合规范且已发布的插件。';
+
+  @override
+  String get githubDiscoveryPending => '仓库暂未验证，请稍后重试。';
+
+  @override
+  String githubDiscoverySummary(
+    int checked,
+    int found,
+    int excluded,
+    int failed,
+  ) {
+    return '已检查 $checked 个仓库 · 发现 $found 个插件 · 过滤 $excluded 个 · 暂未验证 $failed 个';
+  }
+
+  @override
+  String get githubDiscoveryIncomplete => 'GitHub 返回了部分结果，请稍后刷新。';
+
+  @override
+  String get githubDiscoveryLoadMore => '继续发现';
+
+  @override
+  String get githubDiscoveryInstallTitle => '安装未经审核的插件？';
+
+  @override
+  String githubDiscoveryInstallWarning(String repository, String version) {
+    return '将安装 $repository 的 v$version。该插件未经 Songloft 审核，可能访问其声明权限允许的数据和网络。请先查看源码。';
+  }
+
+  @override
+  String githubDiscoveryReplaceWarning(String name, String version) {
+    return '同一插件入口已被 $name v$version 占用。继续安装会替换它，并继承原插件保存的数据。';
+  }
+
+  @override
+  String get githubDiscoveryPermissions => '声明权限';
+
+  @override
+  String get githubDiscoveryNoPermissions => '未声明权限';
+
+  @override
+  String get githubDiscoveryInstallFailed => '插件安装失败，请重试。';
+
+  @override
+  String githubDiscoveryPublished(String date) {
+    return '发布时间：$date';
+  }
+
+  @override
+  String githubDiscoveryMinimumHost(String version) {
+    return '最低服务端版本：$version';
+  }
+
+  @override
+  String get githubDiscoverySource => '查看源码';
+
+  @override
+  String get githubDiscoveryRelease => '查看发布页';
+
+  @override
+  String get githubDiscoveryIncompatible => '当前服务端版本不足，请先升级服务端。';
+
+  @override
+  String get githubDiscoveryHostUnknown => '无法确认服务端兼容性，点击重试';
+
+  @override
+  String get githubDiscoveryInstalledUnknown => '正在确认已安装插件；读取失败时点击重试';
+
+  @override
+  String get githubDiscoveryOpenFailed => '无法打开链接。';
+
+  @override
   String get updateFoundTitle => '发现新版本';
 
   @override

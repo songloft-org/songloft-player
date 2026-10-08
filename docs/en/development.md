@@ -1,5 +1,17 @@
 # Development Guide
 
+## GitHub community plugin discovery
+
+Entry: Settings → Extensions → Plugin Store → source menu → GitHub discovery. This separate page is not saved as a subscription source. Returning preserves the store source and search; source settings still manage subscriptions.
+
+The client searches the public `songloft-plugin` topic and validates root `plugin.json` files, same-repository update chains, hash formats and matching stable Release `.jsplugin.zip` assets. Search, sorting, pagination, refresh, GitHub proxies and rate-limit messages are supported. Invalid and temporarily unverified repositories have separate counts. GitHub requests carry no server login credentials.
+
+URL validation rejects raw or encoded dot segments and backslashes before Dart URI normalization, matching native Lynx validation. Successful-install session markers bridge refreshes; authoritative server lists reconcile them so uninstalling or replacing plugins elsewhere does not retain stale installation state.
+
+Details show the version, permissions and minimum host version. Installation requires confirmation that Songloft has not reviewed the plugin; conflicting entry paths require replacement confirmation. Unknown or insufficient host versions and unavailable installed-plugin data disable installation. The existing server installation endpoint is reused; format validation is not a security review. Details use a bottom sheet on narrow screens and a dialog on wide screens.
+
+Validation: static analysis, all 539 tests and the Web build pass. Widget tests cover Chinese, English and Spanish at narrow/wide widths with large text. Docker Chromium exercises live GitHub discovery (seven repositories: three valid, four excluded), zero requests before confirmation, exactly one install after confirmation and return to the store. Queries against an isolated real Go backend confirm the installed version and Release URL. Native Flutter devices have not been tested.
+
 ## Environment Setup
 
 ### Prerequisites
