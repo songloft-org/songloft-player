@@ -79,7 +79,7 @@ class _GithubPluginDetailState extends ConsumerState<GithubPluginDetail> {
               title: Text(l10n.githubDiscoveryInstallTitle),
               scrollable: true,
               content: Text(
-                '${l10n.githubDiscoveryInstallWarning(plugin.repository.fullName, plugin.manifest.version)}'
+                '${l10n.githubDiscoveryInstallWarning(plugin.downloadRepository, plugin.manifest.version)}'
                 '${replacing ? '\n\n${l10n.githubDiscoveryReplaceWarning(local?.manifest.name ?? occupied!.displayName, version)}' : ''}'
                 '\n\n${l10n.githubDiscoveryPermissions}: ${plugin.manifest.permissions.isEmpty ? l10n.githubDiscoveryNoPermissions : plugin.manifest.permissions.join(', ')}',
               ),
@@ -226,6 +226,7 @@ class _GithubPluginDetailState extends ConsumerState<GithubPluginDetail> {
             ),
             const SizedBox(height: 16),
             SelectableText(plugin.repository.fullName),
+            SelectableText(plugin.downloadUrl),
             const SizedBox(height: 12),
             Text(plugin.manifest.description),
             const SizedBox(height: 12),

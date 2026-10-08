@@ -312,7 +312,10 @@ class GithubDiscoveryApi {
         throw const GithubDiscoveryException(DiscoveryFailure.unpublished);
       }
       if (!visited.add(address) ||
-          !isRepositoryMetadataUrl(address, repo.fullName)) {
+          !isRepositoryMetadataUrl(
+            address,
+            githubUrlRepository(address) ?? '',
+          )) {
         throw const GithubDiscoveryException(DiscoveryFailure.invalidManifest);
       }
       final update = _object(
@@ -338,7 +341,7 @@ class GithubDiscoveryApi {
         throw const GithubDiscoveryException(DiscoveryFailure.unpublished);
       }
     }
-    final download = releaseDownload(downloadUrl, repo.fullName);
+    final download = parseReleaseDownload(downloadUrl);
     if (downloadUrl.isEmpty) {
       throw const GithubDiscoveryException(DiscoveryFailure.invalidManifest);
     }
@@ -347,7 +350,7 @@ class GithubDiscoveryApi {
     }
     final release = _object(
       await _get(
-        'https://api.github.com/repos/${repo.fullName}/releases/tags/${Uri.encodeComponent(download.tag)}',
+        'https://api.github.com/repos/${download.repository}/releases/tags/${Uri.encodeComponent(download.tag)}',
         proxy,
         cancel,
       ),
@@ -377,7 +380,7 @@ class GithubDiscoveryApi {
       manifest: manifest,
       downloadUrl: downloadUrl,
       releaseUrl:
-          'https://github.com/${repo.fullName}/releases/tag/${Uri.encodeComponent(download.tag)}',
+          'https://github.com/${download.repository}/releases/tag/${Uri.encodeComponent(download.tag)}',
       publishedAt: release['published_at'],
     );
     _cache[key] = (until: _now().add(const Duration(hours: 1)), plugin: plugin);

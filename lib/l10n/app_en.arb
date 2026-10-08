@@ -12,7 +12,7 @@
   "githubDiscoveryUpdateTo": "Update to v{version}",
   "@githubDiscoveryUpdateTo": {"placeholders":{"version":{"type":"String"}}},
   "githubDiscoveryHelpTitle": "About GitHub discovery",
-  "githubDiscoveryHelp": "Searches public, non-archived, non-fork repositories with the songloft-plugin topic. Plugins must have a valid root plugin.json, same-repository update metadata and a matching stable Release containing a .jsplugin.zip asset. Repository update order differs from plugin release order. Network failures remain unverified; GitHub rate limits can leave results incomplete. Songloft has not reviewed the source or packages. Review code and permissions before installing.",
+  "githubDiscoveryHelp": "Searches public, non-archived, non-fork repositories with the songloft-plugin topic. Plugins must have a valid root plugin.json, update metadata and packages that may come from another GitHub repository and a matching stable Release containing a .jsplugin.zip asset. Repository update order differs from plugin release order. Network failures remain unverified; GitHub rate limits can leave results incomplete. Songloft has not reviewed the source or packages. Review code and permissions before installing.",
   "githubDiscoveryRateLimited": "GitHub rate limit reached. Verified plugins remain available; retry later.",
   "githubDiscoveryRetryAt": "Retry after {time}",
   "@githubDiscoveryRetryAt": {"placeholders":{"time":{"type":"String"}}},

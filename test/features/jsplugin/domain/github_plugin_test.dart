@@ -172,6 +172,32 @@ void main() {
       updatedAt: DateTime(2026),
     );
     final plugin = discoveryPlugin();
+    final cross = GithubPlugin(
+      repository: plugin.repository,
+      manifest: plugin.manifest,
+      downloadUrl: discoveryDownload.replaceFirst(discoveryRepo, 'other/repo'),
+      releaseUrl: 'https://github.com/other/repo/releases/tag/v1.2.3',
+      publishedAt: plugin.publishedAt,
+    );
+    expect(cross.installedFrom(installed(download: cross.downloadUrl)), isTrue);
+    expect(
+      cross.installedFrom(
+        installed(
+          download: discoveryDownload.replaceFirst(
+            discoveryRepo,
+            'unrelated/repo',
+          ),
+        ),
+      ),
+      isFalse,
+    );
+    for (final url in [
+      cross.downloadUrl.replaceFirst('github.com', 'example.com'),
+      '${cross.downloadUrl}?token=abc',
+      cross.downloadUrl.replaceFirst('other/repo', 'other/%2e%2e'),
+    ]) {
+      expect(parseReleaseDownload(url), isNull);
+    }
     expect(plugin.installedFrom(installed()), isFalse);
     expect(
       plugin.installedFrom(installed(download: discoveryDownload)),

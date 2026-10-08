@@ -65,6 +65,34 @@ void main() {
     cancelToken: cancel ?? CancelToken(),
   );
 
+  test('跨仓库下载验证目标仓库的 Release 和资产', () async {
+    final url = discoveryDownload.replaceFirst(discoveryRepo, 'other/repo');
+    final adapter = _Adapter((request) {
+      if (request.uri.path.endsWith('/plugin.json')) {
+        return _json(discoveryManifest()..['download_url'] = url);
+      }
+      if (request.uri.path.startsWith('/repos/other/repo/releases/')) {
+        final release = discoveryRelease();
+        (release['assets'] as List).first['browser_download_url'] = url;
+        return _json(release);
+      }
+      return _standard(request);
+    });
+    final result = await run(adapter);
+    expect(result.plugins, hasLength(1));
+    expect(result.plugins.single.repository.fullName, discoveryRepo);
+    expect(result.plugins.single.downloadRepository, 'other/repo');
+    expect(
+      result.plugins.single.releaseUrl,
+      contains('/other/repo/releases/tag/'),
+    );
+    expect(
+      adapter.requests.any(
+        (r) => r.uri.path.startsWith('/repos/$discoveryRepo/releases/'),
+      ),
+      isFalse,
+    );
+  });
   test('发布标签不限制清单版本，兼容 v0.17 与 0.17.0', () async {
     final url = discoveryDownload.replaceFirst('/v1.2.3/', '/v0.17/');
     for (final version in ['0.17.0', '1.2.3']) {
@@ -132,7 +160,7 @@ void main() {
     expect(result.checked, 0);
     expect(adapter.requests, hasLength(1));
   });
-  test('支持旧版最小更新清单，拒绝跨仓库、循环和版本错配', () async {
+  test('支持旧版最小更新清单，兼容跨仓库，拒绝循环和版本错配', () async {
     for (final mode in ['valid', 'cross', 'cycle', 'version']) {
       final updateUrl =
           'https://raw.githubusercontent.com/${mode == 'cross' ? 'other/repo' : discoveryRepo}/main/update.json';
@@ -157,12 +185,18 @@ void main() {
         return _standard(request);
       });
       final result = await run(adapter);
-      expect(result.plugins.length, mode == 'valid' ? 1 : 0, reason: mode);
-      if (mode != 'valid') expect(result.failures.values.single, 1);
+      expect(
+        result.plugins.length,
+        mode == 'valid' || mode == 'cross' ? 1 : 0,
+        reason: mode,
+      );
+      if (mode != 'valid' && mode != 'cross') {
+        expect(result.failures.values.single, 1);
+      }
       if (mode == 'cross') {
         expect(
           adapter.requests.any((r) => r.uri.path.contains('other/repo')),
-          isFalse,
+          isTrue,
         );
       }
     }

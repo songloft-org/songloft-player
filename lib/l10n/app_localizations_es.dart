@@ -49,7 +49,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get githubDiscoveryHelp =>
-      'Busca repositorios públicos, no archivados y no derivados con el topic songloft-plugin. Deben tener un plugin.json válido en la raíz, metadatos de actualización del mismo repositorio y una versión estable coincidente con un archivo .jsplugin.zip. El orden de actualización del repositorio difiere del orden de publicación del plugin. Los fallos de red quedan sin verificar; los límites de GitHub pueden dejar resultados incompletos. Songloft no ha revisado el código ni los paquetes. Revisa el código y los permisos antes de instalar.';
+      'Busca repositorios públicos, no archivados y no derivados con el topic songloft-plugin. Deben tener un plugin.json válido en la raíz, metadatos y paquetes que pueden proceder de otro repositorio de GitHub y una versión estable coincidente con un archivo .jsplugin.zip. El orden de actualización del repositorio difiere del orden de publicación del plugin. Los fallos de red quedan sin verificar; los límites de GitHub pueden dejar resultados incompletos. Songloft no ha revisado el código ni los paquetes. Revisa el código y los permisos antes de instalar.';
 
   @override
   String get githubDiscoveryRateLimited =>

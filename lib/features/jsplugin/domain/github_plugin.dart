@@ -111,13 +111,16 @@ class GithubPlugin {
     publishedAt: publishedAt,
   );
 
+  String get downloadRepository =>
+      parseReleaseDownload(downloadUrl)?.repository ?? repository.fullName;
+
   bool installedFrom(JSPlugin? installed) =>
       installed != null &&
       (isRepositoryMetadataUrl(
             installed.updateUrl ?? '',
             repository.fullName,
           ) ||
-          releaseDownload(installed.downloadUrl ?? '', repository.fullName) !=
+          releaseDownload(installed.downloadUrl ?? '', downloadRepository) !=
               null);
 
   bool hasUpdate(JSPlugin? installed) =>
@@ -163,6 +166,30 @@ bool isRepositoryMetadataUrl(String address, String repository) {
   return uri.host == 'raw.githubusercontent.com' &&
           path.startsWith('/$repo/') ||
       uri.host == 'github.com' && path.startsWith('/$repo/raw/');
+}
+
+/// Repository from a strict public GitHub URL; never accepts external hosts.
+String? githubUrlRepository(String address) {
+  final uri = _publicHttps(address);
+  if (uri == null) return null;
+  final parts = uri.path.split('/');
+  if (parts.length < 4 ||
+      !RegExp(r'^[A-Za-z0-9_.-]+$').hasMatch(parts[1]) ||
+      !RegExp(r'^[A-Za-z0-9_.-]+$').hasMatch(parts[2])) {
+    return null;
+  }
+  return '${parts[1]}/${parts[2]}';
+}
+
+({String repository, String tag, String file})? parseReleaseDownload(
+  String address,
+) {
+  final repository = githubUrlRepository(address);
+  if (repository == null) return null;
+  final download = releaseDownload(address, repository);
+  return download == null
+      ? null
+      : (repository: repository, tag: download.tag, file: download.file);
 }
 
 ({String tag, String file})? releaseDownload(

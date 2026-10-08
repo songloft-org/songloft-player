@@ -204,7 +204,7 @@ class _PluginRegistryPageState extends ConsumerState<PluginRegistryPage> {
         ref.read(githubDiscoveryInstallsProvider)[plugin.entryPath];
     if (discovery != null) {
       final sameRepo =
-          releaseDownload(plugin.downloadUrl, discovery.repository.fullName) !=
+          releaseDownload(plugin.downloadUrl, discovery.downloadRepository) !=
           null;
       return plugin.copyWith(
         installed: sameRepo,

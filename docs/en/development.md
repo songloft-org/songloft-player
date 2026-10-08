@@ -221,3 +221,7 @@ flutter test test/core/env/tv_detector_test.dart # Run a specific file
 ```
 
 Test files live under `test/`, mirroring the path structure of `lib/`.
+
+### GitHub discovery: cross-repository packages (2026-10-08)
+
+Download URLs and public update metadata may belong to other GitHub repositories. Clients validate the target repository’s stable Release and actual nonempty asset, retaining version, entry-path, hash and URL checks. Details show the download URL and installation confirmation identifies the package repository. Installed and update status use the actual package repository.
