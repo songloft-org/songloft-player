@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../config/constants.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/widgets/glass_backdrop_filter.dart';
 import '../../../../l10n/app_localizations.dart';
 import 'playlist_cover_edit_mixin.dart';
 
@@ -78,7 +79,7 @@ class PlaylistFormDialogState extends State<PlaylistFormDialog>
     final ext = Theme.of(context).extension<SongloftThemeExtension>()!;
     return ClipRRect(
       borderRadius: BorderRadius.circular(ext.cardRadius),
-      child: BackdropFilter(
+      child: GlassBackdropFilter(
         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: AlertDialog(
           backgroundColor: ext.glassFill,

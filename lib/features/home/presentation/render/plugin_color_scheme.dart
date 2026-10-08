@@ -71,6 +71,8 @@ Map<String, Object> pluginThemeAppearanceMap(ThemeData theme) {
     'cardRadius': ext?.cardRadius ?? AppRadius.md,
     'controlRadius': ext?.controlRadius ?? AppRadius.md,
     'navigationRadius': ext?.navigationRadius ?? AppRadius.md,
+    'reduceTransparency': ext?.reduceTransparency ?? false,
+    'increaseContrast': ext?.increaseContrast ?? false,
     if (playerGradient != null)
       'playerGradient': playerGradient.map(_hex).toList(growable: false),
     if (ext != null) ...<String, String>{

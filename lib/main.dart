@@ -42,6 +42,7 @@ import 'features/desktop_lyric/desktop_lyric_ipc.dart';
 import 'features/desktop_lyric/desktop_lyric_main.dart';
 import 'features/player/presentation/widgets/player_shortcut_scope.dart';
 import 'features/settings/presentation/providers/settings_provider.dart';
+import 'features/settings/presentation/providers/appearance_preferences_provider.dart';
 import 'features/settings/presentation/providers/theme_pack_provider.dart';
 import 'features/startup/presentation/startup_gate.dart';
 import 'l10n/app_localizations.dart';
@@ -465,6 +466,9 @@ class SongloftApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
     final themeMode = ref.watch(themeModeProvider);
+    final appearance =
+        ref.watch(appearancePreferencesProvider).value ??
+        const AppearancePreferences(reduceTransparency: true);
     final locale = ref.watch(localeProvider);
     // 主题包：取已加载的值，加载中或出错时使用默认主题
     final activeThemePack = ref.watch(activeThemePackProvider).value;
@@ -472,8 +476,26 @@ class SongloftApp extends ConsumerWidget {
       title: 'Songloft',
       debugShowCheckedModeBanner: false,
       scrollBehavior: _AppScrollBehavior(),
-      theme: AppTheme.lightTheme(themePack: activeThemePack),
-      darkTheme: AppTheme.darkTheme(themePack: activeThemePack),
+      theme: AppTheme.lightTheme(
+        themePack: activeThemePack,
+        reduceTransparency: appearance.reduceTransparency,
+        increaseContrast: appearance.increaseContrast,
+      ),
+      darkTheme: AppTheme.darkTheme(
+        themePack: activeThemePack,
+        reduceTransparency: appearance.reduceTransparency,
+        increaseContrast: appearance.increaseContrast,
+      ),
+      highContrastTheme: AppTheme.lightTheme(
+        themePack: activeThemePack,
+        reduceTransparency: appearance.reduceTransparency,
+        increaseContrast: true,
+      ),
+      highContrastDarkTheme: AppTheme.darkTheme(
+        themePack: activeThemePack,
+        reduceTransparency: appearance.reduceTransparency,
+        increaseContrast: true,
+      ),
       themeMode: themeMode,
       locale: locale, // null → 跟随系统
       supportedLocales: AppLocalizations.supportedLocales,
@@ -507,16 +529,22 @@ class SongloftApp extends ConsumerWidget {
         final width = MediaQuery.sizeOf(context).width;
         final screenType = _getScreenType(width);
         final isDark = Theme.of(context).brightness == Brightness.dark;
+        final increaseContrast =
+            appearance.increaseContrast || MediaQuery.highContrastOf(context);
         final themed = Theme(
           data:
               isDark
                   ? AppTheme.darkTheme(
                     screenType: screenType,
                     themePack: activeThemePack,
+                    reduceTransparency: appearance.reduceTransparency,
+                    increaseContrast: increaseContrast,
                   )
                   : AppTheme.lightTheme(
                     screenType: screenType,
                     themePack: activeThemePack,
+                    reduceTransparency: appearance.reduceTransparency,
+                    increaseContrast: increaseContrast,
                   ),
           child: scaledChild,
         );

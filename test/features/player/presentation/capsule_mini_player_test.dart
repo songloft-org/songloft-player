@@ -81,6 +81,7 @@ void main() {
     Size viewport = const Size(1200, 800),
     _SeekRecorder? notifier,
     GlobalKey? probeKey,
+    ThemeData? themeOverride,
   }) async {
     tester.view.physicalSize = viewport;
     tester.view.devicePixelRatio = 1.0;
@@ -104,9 +105,13 @@ void main() {
     );
     addTearDown(container.dispose);
 
-    final theme = ThemeData(
-      extensions: [SongloftThemeExtension(navigationStyle: navigationStyle)],
-    );
+    final theme =
+        themeOverride ??
+        ThemeData(
+          extensions: [
+            SongloftThemeExtension(navigationStyle: navigationStyle),
+          ],
+        );
     // 部分子组件（PopupPlayModeControl / PopupSpeedControl）走全局 l10n 访问器，
     // 那是 MaterialApp.builder 在每帧刷新的；测试里手动喂一次。
     updateGlobalL10n(lookupAppLocalizations(const Locale('zh')));
@@ -291,6 +296,35 @@ void main() {
     expectSameHueFade(
       gradientsUnder(tester, find.byKey(CapsuleMiniPlayer.pillKey)),
     );
+  });
+
+  testWidgets('高对比度下无歌词按钮仍可用且不降低前景透明度', (tester) async {
+    for (final theme in [
+      AppTheme.lightTheme(increaseContrast: true),
+      AppTheme.darkTheme(increaseContrast: true),
+    ]) {
+      await pumpCapsule(
+        tester,
+        capsule: const CapsuleMiniPlayer(),
+        themeOverride: theme,
+      );
+      final button = tester.widget<IconButton>(
+        find.widgetWithIcon(IconButton, Icons.lyrics_rounded),
+      );
+      expect(button.onPressed, isNotNull);
+      expect((button.icon as Icon).color, isNull);
+      expect(find.byType(BackdropFilter), findsNothing);
+      await pumpCapsule(
+        tester,
+        capsule: const DesktopPlayer(),
+        themeOverride: theme,
+      );
+      final standardButton = tester.widget<IconButton>(
+        find.widgetWithIcon(IconButton, Icons.lyrics_rounded),
+      );
+      expect(standardButton.onPressed, isNotNull);
+      expect((standardButton.icon as Icon).color, isNull);
+    }
   });
 
   testWidgets('大屏胶囊：常驻工具栏五项齐全，睡眠定时/倍速/均衡器收进「更多」', (tester) async {

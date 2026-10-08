@@ -23,6 +23,8 @@ void main() {
       'cardRadius': 18.0,
       'controlRadius': 22.0,
       'navigationRadius': 30.0,
+      'reduceTransparency': false,
+      'increaseContrast': false,
       'playerGradient': <String>['#123456', '#ABCDEF'],
       'glassFill': 'rgba(255, 255, 255, 0.722)',
       'glassBorder': 'rgba(255, 255, 255, 0.451)',

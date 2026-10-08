@@ -1,15 +1,27 @@
-# Liquid Glass 主题（Flutter）— 计划
+# Liquid Glass 主题（Flutter）
 
-> 跨仓库项目的一部分。姊妹计划：Lynx 端 [`songloft-player-lynx/docs/project/plans/liquid-glass-theme.md`](https://github.com/songloft-org/songloft-player-lynx/blob/main/docs/project/plans/liquid-glass-theme.md)（已实现）。后端 `glassColor` 字段已加（`songloft-org/songloft` `internal/models/theme_pack.go`，本会话）。
+> 基础主题已实现；下文保留原设计结构。姊妹计划：Lynx 端 [液态玻璃主题设计](https://github.com/songloft-org/songloft-player-lynx/blob/main/docs/archive/plans/liquid-glass-theme.md)。后端主题包 `glassColor` 字段见 `songloft-org/songloft` 的 `internal/models/theme_pack.go`。
+
+## 辅助功能设置（2026-10）
+
+“设置 → 外观”提供“减少透明度”和“增强对比度”，均默认关闭，分别以 `reduce_transparency` / `increase_contrast` 保存在当前设备，不参与用户偏好服务器同步。读取偏好期间玻璃保持实心，读取失败使用默认设置；写入串行执行，快速切换不会让旧值最后落盘。
+
+减少透明度使用实心填充、移除玻璃高光并卸载背景模糊。增强对比度使用 Material 的 `contrastLevel: 1` 色板、实心填充和可访问的图标/描边；主题包 seed 与圆角保留，背景与玻璃 tint 覆盖不再覆盖高对比度角色色。增强对比度取本机开关与 `MediaQuery.highContrastOf` 的 OR，系统开启时本机关闭不会抵消它。系统减少透明度未接原生桥，所有平台提供手动选择。
+
+公共 `GlassBackdropFilter` 控制玻璃组件、侧栏与弹窗；封面自身的装饰模糊不作为透明玻璃处理。入口与响应式主题重建均传递偏好，`SongloftThemeExtension` 携带有效状态，切为实心时不插入半透明的材质过渡帧。`songloft-theme.appearance` 下推 `reduceTransparency` / `increaseContrast` 与最终玻璃填充，原生 WebView、独立插件页与插件 Tab iframe 均沿用原有消息去重和加载后重放机制；旧公共资源可忽略新字段。
+
+验证入口：`flutter analyze`、`flutter test`；新增测试覆盖偏好恢复/竞争/销毁、实际设置点击与系统 OR、手机/桌面响应式主题、亮暗默认与自定义主题包对比度、模糊卸载和插件消息。跨平台手动开关不代表各平台系统辅助功能信号都可用，光学质量与性能需设备验证。
+
+2026-10 实施验证：格式化无差异，`flutter analyze` 无问题，完整 `flutter test` 557 项通过，embedded Web 生产构建成功。Docker Chrome 使用隔离 Go 服务与 MIoT 模拟音箱验证 6 个场景：默认玻璃、减少透明度、本机偏好刷新恢复、增强对比度、深色高对比度、375px 手机布局关闭后恢复模糊；断言同时检查本机存储与插件实际材质，页面运行时异常为零。原生 WebView 用模拟平台验证同一 widget/控制器随 Theme 依赖变化实时推送并去重；移除实时推送或系统 OR 的反向测试会失败。本批未构建 Flutter 原生安装包，也未实测各平台的系统高对比度信号。
 
 ## Context
 
-给 Songloft Player (Flutter) 加 Liquid Glass 主题，与 Lynx 端对齐视觉语言。**Flutter 有真 `BackdropFilter` + `ImageFilter.blur`**（已在 `mobile_player.dart`/`desktop_full_player.dart` 的封面背景用 `sigma: 70`），所以做**真玻璃**（实时背景采样折射），不是 Lynx 那套诚实伪造。
+Songloft Player (Flutter) 使用 `BackdropFilter` + `ImageFilter.blur` 做背景采样模糊，叠加半透明填充、描边和高光。背景模糊不等同于原生液态玻璃的折射；各客户端共享主题包字段，分别实现平台材质。
 
-参考：[Beans-Music](https://github.com/XIaodou0416/Beans-Music)（iOS 26 原生 `.glassEffect`，SwiftUI）—— Flutter 等价物是 `BackdropFilter(filter: ImageFilter.blur(sigmaX:, sigmaY:))` + `ClipRRect` + 半透 fill + hairline border + sheen 高光。
+参考：[Beans-Music](https://github.com/XIaodou0416/Beans-Music)（iOS 26 原生 `.glassEffect`，SwiftUI）。本项目在 Flutter 中用 `BackdropFilter(filter: ImageFilter.blur(sigmaX:, sigmaY:))` + `ClipRRect` + 半透 fill + hairline border + sheen 高光实现视觉材质。
 
 **与 Lynx 的关键差异**：
-- Lynx 无 `backdrop-filter` → 半透 + `box-shadow: inset` 伪造；Flutter 有真模糊 → 用 `BackdropFilter`。
+- Lynx 4 支持按宿主/系统能力门控的 themed blur 与原生 glass；Flutter 本项目使用 `BackdropFilter`，不宣称等同 iOS 原生 glass。
 - 跨端共享的是 `.songloft-theme` JSON 包（含新 `glassColor` 字段）；玻璃**渲染**各端各自实现。
 - `glassColor` 独立于 `seedColor`（按钮通道）——真双通道：玻璃色随 `glassColor`，按钮色随 `seedColor`。无 `glassColor` 时回落星蓝基线（light `#3BAEEF` / dark `#5BC0F5`）。
 

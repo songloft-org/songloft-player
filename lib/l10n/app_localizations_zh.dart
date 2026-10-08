@@ -209,6 +209,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get themeTitle => '主题';
 
   @override
+  String get appearanceReduceTransparency => '减少透明度';
+
+  @override
+  String get appearanceReduceTransparencyDescription =>
+      '使用实心背景并关闭玻璃模糊，仅保存在当前设备。';
+
+  @override
+  String get appearanceIncreaseContrast => '增强对比度';
+
+  @override
+  String get appearanceIncreaseContrastDescription =>
+      '提高文字和控件对比度。系统高对比度开启时始终生效。';
+
+  @override
   String get themeModeTitle => '主题模式';
 
   @override

@@ -221,6 +221,20 @@ class AppLocalizationsEs extends AppLocalizations {
   String get themeTitle => 'Tema';
 
   @override
+  String get appearanceReduceTransparency => 'Reducir transparencia';
+
+  @override
+  String get appearanceReduceTransparencyDescription =>
+      'Usar fondos opacos y desactivar el desenfoque del cristal. Se guarda solo en este dispositivo.';
+
+  @override
+  String get appearanceIncreaseContrast => 'Aumentar contraste';
+
+  @override
+  String get appearanceIncreaseContrastDescription =>
+      'Mejorar el contraste del texto y los controles. Siempre activo si el sistema tiene el contraste alto activado.';
+
+  @override
   String get themeModeTitle => 'Modo de tema';
 
   @override

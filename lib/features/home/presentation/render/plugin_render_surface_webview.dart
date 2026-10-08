@@ -92,15 +92,6 @@ class _PluginRenderSurfaceWebViewState
     });
   }
 
-  @override
-  void didUpdateWidget(covariant PluginRenderSurfaceWebView oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // 首屏亮暗靠 URL 的 ?theme=、首屏色板靠 common.css 兜底，这里只处理运行中的
-    // 切换。无条件调用，由 `_syncTheme` 内部去重（换主题包时 `widget.theme` 可能
-    // 不变而色板变了，按 theme 比较会漏推）。
-    _syncTheme();
-  }
-
   /// 亮暗标记 + 宿主真实色板下推（载荷本身当去重签名）。
   /// 色板必须走消息：`?theme=` 只带 light/dark 两个字，
   /// 而 `ColorScheme` 有三十来个角色色、还会被 ThemePack 整体换掉。
@@ -173,6 +164,9 @@ class _PluginRenderSurfaceWebViewState
     final themeData = Theme.of(context);
     _colorScheme = themeData.colorScheme;
     _themeAppearance = pluginThemeAppearanceMap(themeData);
+    // Theme 依赖变化不一定触发 didUpdateWidget；读取最新色板和材质后再推送，
+    // 才能覆盖同一亮暗主题下的辅助设置与主题包切换。
+    _syncTheme();
 
     final tokenScript = _buildTokenInjectionScript();
 

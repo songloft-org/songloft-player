@@ -451,7 +451,11 @@ class DesktopPlayer extends ConsumerWidget {
         Icons.lyrics_rounded,
         size: 20,
         color:
-            hasLyrics
+            hasLyrics ||
+                    theme
+                            .extension<SongloftThemeExtension>()
+                            ?.increaseContrast ==
+                        true
                 ? null
                 : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
       ),

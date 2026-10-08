@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/network/api_exceptions.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/widgets/glass_backdrop_filter.dart';
 import '../../../../core/theme/responsive.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/upgrade_api.dart';
@@ -212,7 +213,7 @@ class _UpgradeDialogState extends ConsumerState<UpgradeDialog> {
     final ext = Theme.of(context).extension<SongloftThemeExtension>()!;
     return ClipRRect(
       borderRadius: BorderRadius.circular(ext.cardRadius),
-      child: BackdropFilter(
+      child: GlassBackdropFilter(
         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: AlertDialog(
           backgroundColor: ext.glassFill,

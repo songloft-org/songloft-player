@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../app_dimensions.dart';
 import '../app_theme.dart';
+import 'glass_backdrop_filter.dart';
 
 class GlassSurface extends StatelessWidget {
   final Widget child;
@@ -42,7 +43,7 @@ class GlassSurface extends StatelessWidget {
 
     return ClipRRect(
       borderRadius: borderRadius,
-      child: BackdropFilter(
+      child: GlassBackdropFilter(
         filter: ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
         child: Container(
           decoration: BoxDecoration(

@@ -20,6 +20,10 @@ class SongloftThemeExtension extends ThemeExtension<SongloftThemeExtension> {
   final Color glassGlowFaint;
   final Color glassSheen;
   final String navigationStyle;
+  final bool reduceTransparency;
+  final bool increaseContrast;
+
+  bool get opaqueGlass => reduceTransparency || increaseContrast;
 
   const SongloftThemeExtension({
     this.playerGradientColors,
@@ -34,6 +38,8 @@ class SongloftThemeExtension extends ThemeExtension<SongloftThemeExtension> {
     this.glassGlowFaint = const Color(0x193BAEEF),
     this.glassSheen = const Color(0x2E3BAEEF),
     this.navigationStyle = 'standard',
+    this.reduceTransparency = false,
+    this.increaseContrast = false,
   });
 
   @override
@@ -50,6 +56,8 @@ class SongloftThemeExtension extends ThemeExtension<SongloftThemeExtension> {
     Color? glassGlowFaint,
     Color? glassSheen,
     String? navigationStyle,
+    bool? reduceTransparency,
+    bool? increaseContrast,
   }) {
     return SongloftThemeExtension(
       playerGradientColors: playerGradientColors ?? this.playerGradientColors,
@@ -64,6 +72,8 @@ class SongloftThemeExtension extends ThemeExtension<SongloftThemeExtension> {
       glassGlowFaint: glassGlowFaint ?? this.glassGlowFaint,
       glassSheen: glassSheen ?? this.glassSheen,
       navigationStyle: navigationStyle ?? this.navigationStyle,
+      reduceTransparency: reduceTransparency ?? this.reduceTransparency,
+      increaseContrast: increaseContrast ?? this.increaseContrast,
     );
   }
 
@@ -73,6 +83,8 @@ class SongloftThemeExtension extends ThemeExtension<SongloftThemeExtension> {
     double t,
   ) {
     if (other is! SongloftThemeExtension) return this;
+    // Do not expose an intermediate translucent fill after disabling blur.
+    if (other.opaqueGlass && t > 0) return other;
     return SongloftThemeExtension(
       playerGradientColors:
           t < 0.5 ? playerGradientColors : other.playerGradientColors,
@@ -94,6 +106,10 @@ class SongloftThemeExtension extends ThemeExtension<SongloftThemeExtension> {
           Color.lerp(glassGlowFaint, other.glassGlowFaint, t) ?? glassGlowFaint,
       glassSheen: Color.lerp(glassSheen, other.glassSheen, t) ?? glassSheen,
       navigationStyle: t < 0.5 ? navigationStyle : other.navigationStyle,
+      // Safety preferences take effect immediately during theme transitions.
+      reduceTransparency:
+          t == 0 ? reduceTransparency : other.reduceTransparency,
+      increaseContrast: t == 0 ? increaseContrast : other.increaseContrast,
     );
   }
 
@@ -115,8 +131,16 @@ class AppTheme {
   static ThemeData lightTheme({
     ScreenType screenType = ScreenType.mobile,
     ThemePack? themePack,
+    bool reduceTransparency = false,
+    bool increaseContrast = false,
   }) {
-    return _buildTheme(Brightness.light, screenType, themePack);
+    return _buildTheme(
+      Brightness.light,
+      screenType,
+      themePack,
+      reduceTransparency,
+      increaseContrast,
+    );
   }
 
   /// 暗色主题
@@ -125,8 +149,16 @@ class AppTheme {
   static ThemeData darkTheme({
     ScreenType screenType = ScreenType.mobile,
     ThemePack? themePack,
+    bool reduceTransparency = false,
+    bool increaseContrast = false,
   }) {
-    return _buildTheme(Brightness.dark, screenType, themePack);
+    return _buildTheme(
+      Brightness.dark,
+      screenType,
+      themePack,
+      reduceTransparency,
+      increaseContrast,
+    );
   }
 
   /// 构建主题的统一方法
@@ -134,6 +166,8 @@ class AppTheme {
     Brightness brightness,
     ScreenType screenType,
     ThemePack? themePack,
+    bool reduceTransparency,
+    bool increaseContrast,
   ) {
     final isDesktop = screenType == ScreenType.desktop;
     final isLight = brightness == Brightness.light;
@@ -146,11 +180,13 @@ class AppTheme {
     var colorScheme = ColorScheme.fromSeed(
       seedColor: seedColor,
       brightness: brightness,
+      contrastLevel: increaseContrast ? 1 : 0,
     );
 
     // 覆盖 surface/background
-    if (themeColors?.backgroundColor != null ||
-        themeColors?.surfaceColor != null) {
+    if (!increaseContrast &&
+        (themeColors?.backgroundColor != null ||
+            themeColors?.surfaceColor != null)) {
       colorScheme = colorScheme.copyWith(
         surface: themeColors?.surfaceColor ?? themeColors?.backgroundColor,
         surfaceContainerLowest: themeColors?.backgroundColor,
@@ -189,6 +225,7 @@ class AppTheme {
       isLight ? 26 : 36,
     ); // 0.10 / 0.14
     final glassSheen = glassBase.withAlpha(isLight ? 46 : 26); // 0.18 / 0.10
+    final opaqueGlass = reduceTransparency || increaseContrast;
 
     // 主题扩展
     final extension = SongloftThemeExtension(
@@ -196,14 +233,30 @@ class AppTheme {
       cardRadius: cardRadius,
       controlRadius: controlRadius,
       navigationRadius: navigationRadius,
-      glassFill: glassFill,
-      glassFillStrong: glassFillStrong,
-      glassBorder: glassBorder,
-      glassHighlight: glassHighlight,
-      glassGlow: glassBase,
-      glassGlowFaint: glassGlowFaint,
-      glassSheen: glassSheen,
+      glassFill:
+          increaseContrast
+              ? colorScheme.surfaceContainer
+              : opaqueGlass
+              ? glassFill.withAlpha(255)
+              : glassFill,
+      glassFillStrong:
+          increaseContrast
+              ? colorScheme.surfaceContainerHigh
+              : opaqueGlass
+              ? glassFillStrong.withAlpha(255)
+              : glassFillStrong,
+      glassBorder: increaseContrast ? colorScheme.outline : glassBorder,
+      glassHighlight:
+          opaqueGlass ? glassHighlight.withAlpha(0) : glassHighlight,
+      glassGlow: increaseContrast ? colorScheme.primary : glassBase,
+      glassGlowFaint:
+          increaseContrast
+              ? colorScheme.surfaceContainerHighest
+              : glassGlowFaint,
+      glassSheen: opaqueGlass ? glassSheen.withAlpha(0) : glassSheen,
       navigationStyle: themePack?.navigationStyle ?? 'standard',
+      reduceTransparency: reduceTransparency,
+      increaseContrast: increaseContrast,
     );
 
     return ThemeData(

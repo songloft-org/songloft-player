@@ -220,6 +220,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get themeTitle => 'Theme';
 
   @override
+  String get appearanceReduceTransparency => 'Reduce transparency';
+
+  @override
+  String get appearanceReduceTransparencyDescription =>
+      'Use opaque backgrounds and disable glass blur. Saved on this device only.';
+
+  @override
+  String get appearanceIncreaseContrast => 'Increase contrast';
+
+  @override
+  String get appearanceIncreaseContrastDescription =>
+      'Improve text and control contrast. Always active when system high contrast is enabled.';
+
+  @override
   String get themeModeTitle => 'Theme mode';
 
   @override

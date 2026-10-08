@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/widgets/glass_backdrop_filter.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/constants/github_proxy.dart';
 
@@ -54,7 +55,7 @@ class _GithubProxyDialogState extends State<GithubProxyDialog> {
     final ext = Theme.of(context).extension<SongloftThemeExtension>()!;
     return ClipRRect(
       borderRadius: BorderRadius.circular(ext.cardRadius),
-      child: BackdropFilter(
+      child: GlassBackdropFilter(
         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: AlertDialog(
           backgroundColor: ext.glassFill,

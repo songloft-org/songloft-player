@@ -447,6 +447,30 @@ abstract class AppLocalizations {
   /// **'主题'**
   String get themeTitle;
 
+  /// No description provided for @appearanceReduceTransparency.
+  ///
+  /// In zh, this message translates to:
+  /// **'减少透明度'**
+  String get appearanceReduceTransparency;
+
+  /// No description provided for @appearanceReduceTransparencyDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'使用实心背景并关闭玻璃模糊，仅保存在当前设备。'**
+  String get appearanceReduceTransparencyDescription;
+
+  /// No description provided for @appearanceIncreaseContrast.
+  ///
+  /// In zh, this message translates to:
+  /// **'增强对比度'**
+  String get appearanceIncreaseContrast;
+
+  /// No description provided for @appearanceIncreaseContrastDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'提高文字和控件对比度。系统高对比度开启时始终生效。'**
+  String get appearanceIncreaseContrastDescription;
+
   /// No description provided for @themeModeTitle.
   ///
   /// In zh, this message translates to:

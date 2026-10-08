@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/plugin_iframe_gate.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/widgets/glass_backdrop_filter.dart';
 import '../../core/theme/responsive.dart';
 import '../../core/theme/widgets/glass_capsule_bar.dart';
 import '../../l10n/app_localizations.dart';
@@ -420,7 +421,7 @@ class AdaptiveScaffold extends StatelessWidget {
                   bottom: 0,
                   width: sidebarWidth,
                   child: ClipRect(
-                    child: BackdropFilter(
+                    child: GlassBackdropFilter(
                       filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
                       child: Container(
                         decoration: BoxDecoration(
@@ -618,7 +619,7 @@ class AdaptiveScaffold extends StatelessWidget {
               bottom: 0,
               width: _WidescreenDock._dockWidth,
               child: ClipRect(
-                child: BackdropFilter(
+                child: GlassBackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
                   child: Container(
                     decoration: BoxDecoration(

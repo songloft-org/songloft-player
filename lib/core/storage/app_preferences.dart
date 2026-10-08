@@ -10,6 +10,8 @@ import '../network/server_entry.dart';
 class AppPreferences {
   static const _themeModeKey = 'theme_mode';
   static const _localeKey = 'app_locale';
+  static const _reduceTransparencyKey = 'reduce_transparency';
+  static const _increaseContrastKey = 'increase_contrast';
   static const _apiBaseUrlKey = 'api_base_url';
   static const _apiServersKey = 'api_servers';
   static const _lastUsedDeviceKey = 'last_used_device';
@@ -41,6 +43,15 @@ class AppPreferences {
     final prefs = await SharedPreferences.getInstance();
     return AppPreferences(prefs);
   }
+
+  /// 设备本地的辅助功能偏好，不参与账号/服务器同步。
+  bool getReduceTransparency() =>
+      _prefs.getBool(_reduceTransparencyKey) ?? false;
+  bool getIncreaseContrast() => _prefs.getBool(_increaseContrastKey) ?? false;
+  Future<bool> setReduceTransparency(bool enabled) =>
+      _prefs.setBool(_reduceTransparencyKey, enabled);
+  Future<bool> setIncreaseContrast(bool enabled) =>
+      _prefs.setBool(_increaseContrastKey, enabled);
 
   /// 获取主题模式
   ThemeMode getThemeMode() {

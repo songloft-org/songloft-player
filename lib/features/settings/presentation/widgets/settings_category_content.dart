@@ -42,6 +42,7 @@ import 'scan_manager.dart';
 import 'section_card.dart';
 import 'settings_master_detail.dart';
 import 'theme_selector.dart';
+import 'appearance_accessibility_settings.dart';
 import 'theme_pack_manager.dart';
 import 'language_selector.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -315,6 +316,8 @@ class _SettingsCategoryContentState
             padding: EdgeInsets.only(bottom: AppSpacing.md),
             child: ThemePackManager(),
           ),
+          const Divider(height: 1),
+          const AppearanceAccessibilitySettings(),
         ],
       ),
       SectionCard(
