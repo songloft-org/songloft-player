@@ -6,6 +6,7 @@ import 'package:audio_service_mpris/audio_service_mpris.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:flutter_patcher/flutter_patcher.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:window_manager/window_manager.dart';
@@ -30,6 +31,7 @@ import 'core/storage/app_preferences.dart';
 import 'core/storage/secure_storage.dart';
 import 'core/tracely/tracely_client.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/widgets/liquid_glass_surface.dart';
 import 'core/theme/responsive.dart';
 import 'core/router/app_router.dart';
 import 'core/utils/file_logger.dart';
@@ -420,13 +422,37 @@ void main(List<String> args) async {
     debugPrint('[Main] FlutterPatcher.init 失败（忽略，不影响启动）: $e');
   }
 
+  var glassShadersReady = false;
+  try {
+    await LiquidGlassWidgets.initialize(
+      warmUpMode: GlassWarmUpMode.never,
+      enablePerformanceMonitor: false,
+    );
+    // 库的预加载会吞掉 shader 错误；直接检查所用资源，保证失败时回退毛玻璃。
+    // FragmentProgram.fromAsset 复用 Flutter 的程序缓存，不会重复编译。
+    await Future.wait([
+      for (final name in ['lightweight_glass', 'interactive_indicator'])
+        FragmentProgram.fromAsset(
+          'packages/liquid_glass_widgets/shaders/$name.frag',
+        ),
+    ]);
+    glassShadersReady = true;
+  } catch (e) {
+    debugPrint('[Main] 玻璃 shader 初始化失败，使用毛玻璃: $e');
+  }
+
   runApp(
-    ProviderScope(
-      overrides: [
-        // 将 audioHandler 注入到 Riverpod 中
-        audioHandlerProvider.overrideWithValue(audioHandler),
-      ],
-      child: const StartupGate(child: SongloftApp()),
+    LiquidGlassWidgets.wrap(
+      brightnessResolver: Theme.maybeBrightnessOf,
+      child: ProviderScope(
+        overrides: [
+          // 将 audioHandler 注入到 Riverpod 中
+          audioHandlerProvider.overrideWithValue(audioHandler),
+        ],
+        child: StartupGate(
+          child: SongloftApp(glassShadersReady: glassShadersReady),
+        ),
+      ),
     ),
   );
 }
@@ -453,7 +479,9 @@ class _AppScrollBehavior extends MaterialScrollBehavior {
 }
 
 class SongloftApp extends ConsumerWidget {
-  const SongloftApp({super.key});
+  final bool glassShadersReady;
+
+  const SongloftApp({super.key, this.glassShadersReady = false});
 
   /// 根据屏幕宽度获取 ScreenType（供响应式主题选择）。
   ScreenType _getScreenType(double width) {
@@ -546,7 +574,10 @@ class SongloftApp extends ConsumerWidget {
                     reduceTransparency: appearance.reduceTransparency,
                     increaseContrast: increaseContrast,
                   ),
-          child: scaledChild,
+          child: SongloftGlassScope(
+            enabled: glassShadersReady,
+            child: scaledChild,
+          ),
         );
         // 桌面端在 MaterialApp.builder（Navigator 之上、WidgetsApp 默认 Shortcuts
         // 之下）挂载全局播放快捷键监听：此处是所有路由的公共祖先，故 push 的全屏

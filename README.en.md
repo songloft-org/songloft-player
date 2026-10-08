@@ -61,7 +61,7 @@ Download the latest version from [GitHub Releases](https://github.com/songloft-o
 
 ## Requirements
 
-- Flutter >= 3.29.0
+- Flutter >= 3.41.0
 - Dart SDK >= 3.7.0
 
 ## Quick Start

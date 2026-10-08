@@ -8,7 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/backend/run_mode_provider.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/theme/widgets/glass_surface.dart';
+import '../../../../core/theme/widgets/liquid_glass_surface.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/url_helper.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -32,12 +32,11 @@ import 'volume_control.dart';
 /// 胶囊迷你播放器（`navigationStyle == 'capsule'`）的唯一实现。
 ///
 /// 手机（[CapsuleMiniPlayer.compact]）与大屏（默认）共用同一套骨架：
-/// `GlassSurface` 式的半透填充 + 顶边圆角进度 + 48px 内容行**相对胶囊垂直居中**，
+/// 液态玻璃材质 + 顶边圆角进度 + 48px 内容行**相对胶囊垂直居中**，
 /// pill 半径 = 高度 / 2。
-/// 区别只有三处：
+/// 两档共用玻璃材质，shader 不可用时回退毛玻璃；减少透明度时使用实心填充。
+/// 尺寸与控制区的区别：
 /// - 尺寸：手机 59（顶边进度热区 11 + 48），大屏 64（顶边进度热区 16 + 48）
-/// - 材质：大屏走真毛玻璃（`BackdropFilter`，sigma 20）；手机只保留半透填充 + 内高光，
-///   不做真模糊（窄屏没有大块背景可模糊，反而白付一次 saveLayer）
 /// - 控制区：大屏是「常驻五项 + 更多菜单」；手机只保留播放 / 切歌，把宽度留给标题
 ///
 /// 进度与内容行是 `Stack` 的两层，不是 `Column` 的兄弟：顶边热区是**覆盖在内容行
@@ -45,7 +44,7 @@ import 'volume_control.dart';
 /// 与顶边进度同时成立 —— 反过来（热区当兄弟）内容行会被推下去约 6.5px，`padding`
 /// 也补不平：那 6.5px 是布局偏移，任何均衡内边距都只能把它挪给另一侧。
 class CapsuleMiniPlayer extends ConsumerWidget {
-  /// 手机档（窄屏、无真模糊、精简控制区）
+  /// 手机档（窄屏、精简控制区）
   final bool compact;
 
   /// 点击胶囊的回调，缺省进入全屏播放器
@@ -74,7 +73,6 @@ class CapsuleMiniPlayer extends ConsumerWidget {
     if (!state.hasSong) return const SizedBox.shrink();
 
     final theme = Theme.of(context);
-    final ext = theme.extension<SongloftThemeExtension>();
     final tier = compact ? _CapsuleTier.mobile : _CapsuleTier.dense;
     final radius = AppCapsulePlayer.pillRadius(tier.height);
     final notifier = ref.read(playerStateProvider.notifier);
@@ -146,26 +144,13 @@ class CapsuleMiniPlayer extends ConsumerWidget {
       ),
     );
 
-    final pill =
-        tier.blurred
-            ? GlassSurface(
-              borderRadius: radius,
-              sigma: AppCapsulePlayer.blurSigma,
-              // 阴影统一交给外层 CapsuleShadowPainter 画在轮廓之外：
-              // GlassSurface 自带的 boxShadow 落在它自己的 ClipRRect 里，只能把半透
-              // 玻璃压暗（顶边那道很重的暗带就是这么来的），起不到投影的作用
-              boxShadow: const [],
-              // GlassSurface 的 ClipRRect 顺带把整宽的顶边进度按胶囊轮廓裁一次，
-              // 进度条两端于是顺着顶角弧线收进去（miot 插件同款 `overflow: hidden`）
-              child: tappable,
-            )
-            : DecoratedBox(
-              decoration: _staticGlassDecoration(theme, ext, radius),
-              // 静态玻璃的圆角只在 BoxDecoration 上，不裁绘制：顶边进度是整宽细条，
-              // 不补这一刀，轨道两端就会在顶角外多出两个方块（大屏档由 GlassSurface
-              // 的 ClipRRect 代劳）
-              child: ClipRRect(borderRadius: radius, child: tappable),
-            );
+    final pill = LiquidGlassSurface(
+      borderRadius: radius,
+      sigma: compact ? 12 : AppCapsulePlayer.blurSigma,
+      // 保持原有大屏内容盒的位置；手机的进度轨道仍与胶囊顶边重合。
+      contentPadding: compact ? EdgeInsets.zero : const EdgeInsets.all(.5),
+      child: tappable,
+    );
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -189,33 +174,6 @@ class CapsuleMiniPlayer extends ConsumerWidget {
             child: pill,
           ),
         ),
-      ),
-    );
-  }
-
-  /// 手机档的静态玻璃：与 [GlassSurface] 同款填充 / 描边 / 内高光，但没有
-  /// `BackdropFilter`（`GlassSurface` 的真实模糊只在宽屏生效）。
-  BoxDecoration _staticGlassDecoration(
-    ThemeData theme,
-    SongloftThemeExtension? ext,
-    BorderRadius radius,
-  ) {
-    final highlight = ext?.glassHighlight ?? const Color(0x99FFFFFF);
-    return BoxDecoration(
-      color: ext?.glassFill ?? theme.colorScheme.surfaceContainer,
-      borderRadius: radius,
-      border: Border.all(
-        color: ext?.glassBorder ?? theme.colorScheme.outlineVariant,
-        width: 0.5,
-      ),
-      gradient: LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        stops: const [0.0, 0.3],
-        // 与 [GlassSurface] 同一处坑：终点必须用「同色透明」。写成
-        // `Colors.transparent` 会从白 60% 一路插值到透明黑，中途的灰 30% 落在半透
-        // 玻璃上就是顶边那条压暗的"重阴影"
-        colors: [highlight, highlight.withValues(alpha: 0)],
       ),
     );
   }
@@ -594,7 +552,6 @@ class _CapsuleTier {
   final double skipHitSize;
   final double progressHitHeight;
   final double minWidthForTime;
-  final bool blurred;
 
   const _CapsuleTier({
     required this.height,
@@ -605,7 +562,6 @@ class _CapsuleTier {
     required this.skipHitSize,
     required this.progressHitHeight,
     required this.minWidthForTime,
-    required this.blurred,
   });
 
   static const mobile = _CapsuleTier(
@@ -618,7 +574,6 @@ class _CapsuleTier {
     progressHitHeight: AppCapsulePlayer.progressHitHeightMobile,
     // 手机横向余量要留给标题，且「手机 + 播放器 → 全屏」的路径一眼可见，时间不必挤
     minWidthForTime: double.infinity,
-    blurred: false,
   );
 
   static const dense = _CapsuleTier(
@@ -630,7 +585,6 @@ class _CapsuleTier {
     skipHitSize: AppCapsulePlayer.skipHitSizeDesktop,
     progressHitHeight: AppCapsulePlayer.progressHitHeightDesktop,
     minWidthForTime: AppCapsulePlayer.minWidthForTime,
-    blurred: true,
   );
 }
 
@@ -639,8 +593,8 @@ class _CapsuleTier {
 /// 视觉轨道 3px，**整宽贴着胶囊顶边框**，两端顺着顶角圆弧被 pill 轮廓裁掉 —— 与
 /// miot 插件 `.player-bar-progress`、Lynx 客户端 `.mini-player__progress` 同一套做法
 /// （两边都是「整宽 3px 细条 + 外壳 `overflow: hidden`」，端点的形状由外壳圆角决定）。
-/// 所以这里既不设左右 inset、也不自己裁：大屏档交给 [GlassSurface] 的 `ClipRRect`，
-/// 手机档交给 pill 外层的 `ClipRRect`。这样进度条的两端就是胶囊顶角的弧线本身，
+/// 所以这里既不设左右 inset、也不自己裁：由 [LiquidGlassSurface] 按胶囊轮廓裁剪。
+/// 这样进度条的两端就是胶囊顶角的弧线本身，
 /// 而不是悬在玻璃中间、与顶边还留一段空隙的一条分离轨道。
 ///
 /// 整块 `hitHeight` 热区（大屏 16 / 手机 9）与胶囊等宽，承接点按跳转与横向拖动；
@@ -872,7 +826,7 @@ class _RenderCapsuleProgressBand extends RenderProxyBox {
 ///
 /// 这里用只重写 `hitTest` 的 `RenderProxyBox` 补上这一步：轮廓内照常命中，
 /// 轮廓外直接返回 false 让事件落到下层。刻意**不**裁剪绘制——胶囊的可见裁剪
-/// 分别由 `GlassSurface`（大屏）与 `_staticGlassDecoration` 的圆角（手机）负责，
+/// 由 [LiquidGlassSurface] 的圆角负责，
 /// 再叠一层同样的圆角 mask 会让边缘被同一个抗锯齿 mask 乘两次而变淡。
 class _RoundedHitClip extends SingleChildRenderObjectWidget {
   final BorderRadius radius;

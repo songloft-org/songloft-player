@@ -61,7 +61,7 @@ https://github.com/songloft-org/songloft/issues/6
 
 ## 环境要求
 
-- Flutter >= 3.29.0
+- Flutter >= 3.41.0
 - Dart SDK >= 3.7.0
 
 ## 快速开始

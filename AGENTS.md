@@ -16,7 +16,7 @@
 
 ## 项目概述
 
-Songloft 跨平台音乐播放器，基于 Flutter 3.29+ / Dart 3.7+ 构建，支持 iOS、Android、macOS、Windows、Linux、Web 六端。
+Songloft 跨平台音乐播放器，基于 Flutter 3.41+ / Dart 3.7+ 构建，支持 iOS、Android、macOS、Windows、Linux、Web 六端。
 
 独立仓库 [songloft-org/songloft-player](https://github.com/songloft-org/songloft-player)，作为父仓库 [songloft](https://github.com/songloft-org/songloft) 的子模块。后端 API 默认 `http://localhost:58091`（账号 admin/admin）。
 

@@ -160,7 +160,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.29.0'
+          flutter-version: '3.41.0'
       - name: Build
         run: ./songloft-player/scripts/build-frontend.sh ${{ matrix.platform }} ${{ runner.temp }}/songloft-player-build
       - uses: actions/upload-artifact@v4
@@ -195,7 +195,7 @@ docker rm tmp-frontend
 
 ### 通用要求
 
-- Flutter SDK 3.29+
+- Flutter SDK 3.41+
 - Dart SDK 3.7+
 - Bash shell
 
@@ -287,7 +287,7 @@ Songloft Flutter 前端全平台并行构建工具
 CPU 核心数：8 (用于控制并发)
 
 Flutter 版本:
-Flutter 3.29.0 • channel stable
+Flutter 3.41.0 • channel stable
 
 [准备阶段] 清理并创建输出目录...
 ✓ 输出目录已准备：/Users/hanxi/toy/songloft/frontend-build

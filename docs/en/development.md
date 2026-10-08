@@ -20,7 +20,7 @@ Validation: static analysis, all 539 tests and the Web build pass. Widget tests 
 
 ### Prerequisites
 
-- Flutter >= 3.29.0
+- Flutter >= 3.41.0
 - Dart SDK >= 3.7.0
 
 ### Platform-Specific Dependencies

@@ -145,6 +145,7 @@ class AdaptiveScaffold extends StatelessWidget {
 
     return GlassCapsuleBar(
       key: hasOverflow ? _navBarKey : null,
+      allowGlass: allowExtendBody,
       selectedIndex: barSelectedIndex,
       onDestinationSelected: (index) {
         if (hasOverflow && index == _mobileRealSlots) {

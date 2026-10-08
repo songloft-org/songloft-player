@@ -6,7 +6,7 @@ license: Apache-2.0
 
 environment:
   sdk: ^3.7.0
-  flutter: '>=3.29.0'
+  flutter: '>=3.41.0'
 
 dependencies:
   flutter:
@@ -49,6 +49,8 @@ dependencies:
   # 颜色提取
   palette_generator: ^0.3.3+4
   # UI
+  # 1.11.0 新增的 iOS 插件要求 iOS 15；1.10.0 保持当前 iOS 13 支持。
+  liquid_glass_widgets: 1.10.0
   # 文件选择
   file_picker: ^10.3.10
   # 日志导出：打包 zip + 系统分享

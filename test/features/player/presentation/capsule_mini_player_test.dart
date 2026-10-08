@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:songloft_flutter/core/backend/run_mode_provider.dart';
 import 'package:songloft_flutter/core/theme/app_dimensions.dart';
 import 'package:songloft_flutter/core/theme/app_theme.dart';
 import 'package:songloft_flutter/core/theme/widgets/glass_surface.dart';
+import 'package:songloft_flutter/core/theme/widgets/liquid_glass_surface.dart';
 import 'package:songloft_flutter/features/dlna/domain/dlna_state.dart';
 import 'package:songloft_flutter/features/dlna/presentation/providers/dlna_provider.dart';
 import 'package:songloft_flutter/features/library/presentation/providers/favorite_provider.dart';
@@ -29,7 +31,7 @@ import 'package:songloft_flutter/shared/models/song.dart';
 
 /// 大屏胶囊迷你播放器（`navigationStyle == 'capsule'`，songloft-org/songloft-player）
 ///
-/// 覆盖三件事：pill 几何（高 64 / 全圆角）与材质（大屏真毛玻璃、手机静态玻璃）、
+/// 覆盖三件事：pill 几何（高 64 / 全圆角）与材质（大屏真毛玻璃、手机毛玻璃回退）、
 /// 大屏工具栏的常驻/收纳分界（睡眠定时与倍速必须收进「更多」，且点开真的能出抽屉）、
 /// 以及标准模式大屏底栏不受影响（仍是 90px + border-top）。
 ///
@@ -82,6 +84,7 @@ void main() {
     _SeekRecorder? notifier,
     GlobalKey? probeKey,
     ThemeData? themeOverride,
+    bool shadersReady = false,
   }) async {
     tester.view.physicalSize = viewport;
     tester.view.devicePixelRatio = 1.0;
@@ -125,15 +128,18 @@ void main() {
           theme: theme,
           // 只测底部这一条：用 Stack + Positioned 复刻 AdaptiveScaffold
           // 浮起胶囊给到的紧宽度约束（Align 会给松约束，量出来的宽度没意义）
-          home: _probe(
-            probeKey,
-            Scaffold(
-              // 取像素的用例要一个已知的纯色背景，默认 surface 不是纯白
-              backgroundColor: probeKey == null ? null : Colors.white,
-              body: Stack(
-                children: [
-                  Positioned(left: 0, right: 0, bottom: 0, child: capsule),
-                ],
+          home: SongloftGlassScope(
+            enabled: shadersReady,
+            child: _probe(
+              probeKey,
+              Scaffold(
+                // 取像素的用例要一个已知的纯色背景，默认 surface 不是纯白
+                backgroundColor: probeKey == null ? null : Colors.white,
+                body: Stack(
+                  children: [
+                    Positioned(left: 0, right: 0, bottom: 0, child: capsule),
+                  ],
+                ),
               ),
             ),
           ),
@@ -167,7 +173,7 @@ void main() {
     expect(size.height, 64);
     expect(size.width, 1200 - AppCapsulePlayer.marginHorizontalDesktop * 2);
 
-    // 真毛玻璃只在大屏档：手机档刻意省掉一次 saveLayer
+    // 未初始化 shader 时，使用毛玻璃回退。
     expect(find.byType(BackdropFilter), findsOneWidget);
   });
 
@@ -202,6 +208,31 @@ void main() {
           .first,
     );
     expect(paint.painter, isA<CapsuleShadowPainter>());
+  });
+
+  testWidgets('液态玻璃两档保持尺寸与进度点击，透明角不触发播放页', (tester) async {
+    for (final compact in [false, true]) {
+      final recorder = _SeekRecorder(buildState());
+      var opens = 0;
+      await pumpCapsule(
+        tester,
+        capsule: CapsuleMiniPlayer(compact: compact, onTap: () => opens++),
+        viewport: compact ? const Size(400, 800) : const Size(1200, 800),
+        notifier: recorder,
+        shadersReady: true,
+      );
+      expect(find.byType(GlassContainer), findsOneWidget);
+      final pill = tester.getRect(find.byKey(CapsuleMiniPlayer.pillKey));
+      expect(pill.height, compact ? 59 : 64);
+      await tester.tapAt(Offset(pill.left + 1, pill.top + 1));
+      expect(recorder.seeks, isEmpty);
+      expect(opens, 0);
+      await tester.tapAt(Offset(pill.center.dx, pill.top + 5));
+      await tester.pump();
+      expect(recorder.seeks.last, const Duration(seconds: 100));
+      expect(opens, 0);
+      expect(tester.takeException(), isNull);
+    }
   });
 
   testWidgets('大屏胶囊：落影不渗到进度条那一侧（胶囊顶边以上零着色）', (tester) async {
@@ -254,7 +285,7 @@ void main() {
   testWidgets('玻璃高光渐变不能插值到透明黑（顶边暗带的根因）', (tester) async {
     const highlight = Color(0x99FFFFFF);
 
-    /// 胶囊玻璃的高光渐变（大屏在 `GlassSurface` 内层，手机在静态玻璃上）
+    /// 毛玻璃回退的高光渐变（手机与大屏共用 `GlassSurface`）
     List<Gradient> gradientsUnder(WidgetTester tester, Finder root) =>
         tester
             .widgetList<DecoratedBox>(
@@ -287,7 +318,7 @@ void main() {
     await pumpCapsule(tester, capsule: const CapsuleMiniPlayer());
     expectSameHueFade(gradientsUnder(tester, find.byType(GlassSurface)));
 
-    // 手机档：静态玻璃
+    // 手机档：同一毛玻璃回退
     await pumpCapsule(
       tester,
       capsule: const CapsuleMiniPlayer.compact(),
@@ -640,7 +671,7 @@ void main() {
     final m = measureProgress(tester);
     expect(m.pill.height, AppCapsulePlayer.heightMobile);
     expect(m.pill.height, 59);
-    expect(m.track.top, 0); // 静态玻璃的描边不占内容盒 → 轨道顶边与 pill 顶边严格重合
+    expect(m.track.top, 0); // 前景描边不占内容盒 → 轨道顶边与 pill 顶边严格重合
     expect(m.track.height, trackHeight);
     expect(m.track.left, 0); // 整宽：左右都不留 inset
     expect(m.track.right, m.pill.width);
@@ -701,7 +732,7 @@ void main() {
     expect(find.byTooltip('下一首'), findsOneWidget);
   });
 
-  testWidgets('手机胶囊：静态半透玻璃（无 BackdropFilter）、高 59、收藏与工具栏都不出现', (tester) async {
+  testWidgets('手机胶囊：毛玻璃回退、高 59、收藏与工具栏都不出现', (tester) async {
     await pumpCapsule(
       tester,
       capsule: const CapsuleMiniPlayer.compact(),
@@ -709,15 +740,14 @@ void main() {
       viewport: const Size(400, 800),
     );
 
-    expect(find.byType(BackdropFilter), findsNothing);
-    expect(find.byType(GlassSurface), findsNothing);
+    expect(find.byType(BackdropFilter), findsOneWidget);
+    expect(find.byType(GlassSurface), findsOneWidget);
 
     final size = tester.getSize(find.byKey(CapsuleMiniPlayer.pillKey));
     expect(size.height, AppCapsulePlayer.heightMobile);
     expect(size.height, 59);
 
-    // 全圆角 pill：手机档的可见圆角由静态玻璃的描边 BoxDecoration 提供
-    // （大屏档由 GlassSurface 提供，手机档没有 BackdropFilter 那层 ClipRRect）
+    // 毛玻璃回退的前景描边与裁剪使用同一个胶囊轮廓。
     final glass = tester
         .widgetList<DecoratedBox>(
           find.descendant(
