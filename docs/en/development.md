@@ -225,3 +225,7 @@ Test files live under `test/`, mirroring the path structure of `lib/`.
 ### GitHub discovery: cross-repository packages (2026-10-08)
 
 Download URLs and public update metadata may belong to other GitHub repositories. Clients validate the target repository’s stable Release and actual nonempty asset, retaining version, entry-path, hash and URL checks. Details show the download URL and installation confirmation identifies the package repository. Installed and update status use the actual package repository.
+
+### GitHub discovery: empty root hashes (2026-10-08)
+
+Root plugin.json entryHash and zipHash may be omitted or empty; nonempty values still undergo format validation. Discovery does not require build hashes to be written back to the source root manifest. The server continues validating the actual installation package.

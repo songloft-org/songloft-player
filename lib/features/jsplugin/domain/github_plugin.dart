@@ -39,8 +39,8 @@ class GithubPluginManifest {
     final version = text('version');
     final entryPath = text('entryPath');
     final main = text('main');
-    final entryHash = text('entryHash');
-    final zipHash = text('zipHash');
+    final entryHash = text('entryHash', optional: true);
+    final zipHash = text('zipHash', optional: true);
     final engine = text('renderEngine', optional: true);
     final permissions = json['permissions'];
     if (utf8.encode(name).length < 2 ||
@@ -52,8 +52,9 @@ class GithubPluginManifest {
         main.contains('\\') ||
         main.contains(':') ||
         main.split('/').any((part) => part == '..' || part == '.') ||
-        !RegExp(r'^[a-f0-9]{64}$').hasMatch(entryHash) ||
-        !RegExp(r'^[a-f0-9]{64}$').hasMatch(zipHash) ||
+        entryHash.isNotEmpty &&
+            !RegExp(r'^[a-f0-9]{64}$').hasMatch(entryHash) ||
+        zipHash.isNotEmpty && !RegExp(r'^[a-f0-9]{64}$').hasMatch(zipHash) ||
         !['', 'webview', 'lynx'].contains(engine) ||
         permissions is! List ||
         permissions.any((value) => value is! String)) {

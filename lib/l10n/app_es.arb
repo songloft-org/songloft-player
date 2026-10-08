@@ -12,7 +12,7 @@
   "githubDiscoveryUpdateTo": "Actualizar a v{version}",
   "@githubDiscoveryUpdateTo": {"placeholders":{"version":{"type":"String"}}},
   "githubDiscoveryHelpTitle": "Acerca de descubrir en GitHub",
-  "githubDiscoveryHelp": "Busca repositorios públicos, no archivados y no derivados con el topic songloft-plugin. Deben tener un plugin.json válido en la raíz, metadatos y paquetes que pueden proceder de otro repositorio de GitHub y una versión estable coincidente con un archivo .jsplugin.zip. El orden de actualización del repositorio difiere del orden de publicación del plugin. Los fallos de red quedan sin verificar; los límites de GitHub pueden dejar resultados incompletos. Songloft no ha revisado el código ni los paquetes. Revisa el código y los permisos antes de instalar.",
+  "githubDiscoveryHelp": "Busca repositorios públicos, no archivados y no derivados con el topic songloft-plugin. Deben tener un plugin.json válido en la raíz (los hashes pueden omitirse o estar vacíos), metadatos y paquetes que pueden proceder de otro repositorio de GitHub y una versión estable coincidente con un archivo .jsplugin.zip. El orden de actualización del repositorio difiere del orden de publicación del plugin. Los fallos de red quedan sin verificar; los límites de GitHub pueden dejar resultados incompletos. Songloft no ha revisado el código ni los paquetes. Revisa el código y los permisos antes de instalar.",
   "githubDiscoveryRateLimited": "Se alcanzó el límite de GitHub. Los plugins verificados siguen disponibles; reintenta más tarde.",
   "githubDiscoveryRetryAt": "Reintentar después de {time}",
   "@githubDiscoveryRetryAt": {"placeholders":{"time":{"type":"String"}}},

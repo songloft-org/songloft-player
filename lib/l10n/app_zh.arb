@@ -12,7 +12,7 @@
   "githubDiscoveryUpdateTo": "更新到 v{version}",
   "@githubDiscoveryUpdateTo": {"placeholders":{"version":{"type":"String"}}},
   "githubDiscoveryHelpTitle": "GitHub 发现说明",
-  "githubDiscoveryHelp": "搜索公开且未归档的非 fork 仓库，topic 为 songloft-plugin。只展示根 plugin.json 格式合规、允许跨 GitHub 仓库的更新清单和发布包和匹配的稳定 Release 中存在 .jsplugin.zip 安装包的插件。仓库更新排序不等于插件发布时间排序。网络失败记为暂未验证，可能因 GitHub 限流而只返回部分结果。源码和安装包未经 Songloft 审核，安装前请查看代码和权限。",
+  "githubDiscoveryHelp": "搜索公开且未归档的非 fork 仓库，topic 为 songloft-plugin。只展示根 plugin.json 格式合规（根清单哈希可省略或留空）、允许跨 GitHub 仓库的更新清单和发布包和匹配的稳定 Release 中存在 .jsplugin.zip 安装包的插件。仓库更新排序不等于插件发布时间排序。网络失败记为暂未验证，可能因 GitHub 限流而只返回部分结果。源码和安装包未经 Songloft 审核，安装前请查看代码和权限。",
   "githubDiscoveryRateLimited": "GitHub 请求已限流，已验证的插件仍可查看，请稍后重试。",
   "githubDiscoveryRetryAt": "可在 {time} 后重试",
   "@githubDiscoveryRetryAt": {"placeholders":{"time":{"type":"String"}}},

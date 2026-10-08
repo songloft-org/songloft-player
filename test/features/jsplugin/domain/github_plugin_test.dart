@@ -5,20 +5,33 @@ import 'package:songloft_flutter/features/jsplugin/domain/github_plugin.dart';
 import '../github_discovery_fixtures.dart';
 
 void main() {
+  test('根清单允许省略或留空哈希，有值时仍校验格式', () {
+    for (final hash in ['entryHash', 'zipHash']) {
+      expect(
+        GithubPluginManifest.fromJson(discoveryManifest()..remove(hash)),
+        isA<GithubPluginManifest>(),
+      );
+      expect(
+        GithubPluginManifest.fromJson({...discoveryManifest(), hash: ''}),
+        isA<GithubPluginManifest>(),
+      );
+      for (final value in [null, 123, 'bad']) {
+        expect(
+          () => GithubPluginManifest.fromJson({
+            ...discoveryManifest(),
+            hash: value,
+          }),
+          throwsFormatException,
+        );
+      }
+    }
+  });
   test('发布清单必填项及类型与 Lynx 一致，未知权限可保留', () {
     expect(GithubPluginManifest.fromJson(discoveryManifest()).permissions, [
       'net',
       'storage',
     ]);
-    for (final key in [
-      'name',
-      'version',
-      'entryPath',
-      'main',
-      'permissions',
-      'entryHash',
-      'zipHash',
-    ]) {
+    for (final key in ['name', 'version', 'entryPath', 'main', 'permissions']) {
       expect(
         () => GithubPluginManifest.fromJson(discoveryManifest()..remove(key)),
         throwsFormatException,

@@ -65,6 +65,25 @@ void main() {
     cancelToken: cancel ?? CancelToken(),
   );
 
+  test('根清单哈希为空或省略时仍可发现实际发布包', () async {
+    for (final omitted in [false, true]) {
+      final adapter = _Adapter((request) {
+        if (request.uri.path.endsWith('/plugin.json')) {
+          final manifest = discoveryManifest();
+          for (final hash in ['entryHash', 'zipHash']) {
+            if (omitted) {
+              manifest.remove(hash);
+            } else {
+              manifest[hash] = '';
+            }
+          }
+          return _json(manifest);
+        }
+        return _standard(request);
+      });
+      expect((await run(adapter)).plugins, hasLength(1));
+    }
+  });
   test('跨仓库下载验证目标仓库的 Release 和资产', () async {
     final url = discoveryDownload.replaceFirst(discoveryRepo, 'other/repo');
     final adapter = _Adapter((request) {
@@ -208,7 +227,7 @@ void main() {
           return _standard(request);
         }
         return switch (mode) {
-          'missing' => _json(discoveryManifest()..remove('zipHash')),
+          'missing' => _json(discoveryManifest()..remove('permissions')),
           'json' => ResponseBody.fromString('<html>oops</html>', 200),
           'oversize' => ResponseBody.fromString(
             List.filled(2 * 1024 * 1024 + 1, 'a').join(),
