@@ -846,30 +846,53 @@ final githubProxyProvider = AsyncNotifierProvider<GithubProxyNotifier, String>(
 // Tab 配置 Provider
 // ============================================================================
 
+class TabConfigSavingNotifier extends Notifier<bool> {
+  @override
+  bool build() {
+    // 切换服务器时解除旧请求的保存状态。
+    ref.watch(settingsApiProvider);
+    return false;
+  }
+
+  void setSaving(bool value) => state = value;
+}
+
+final tabConfigSavingProvider = NotifierProvider<TabConfigSavingNotifier, bool>(
+  TabConfigSavingNotifier.new,
+);
+
 /// 底部导航栏 Tab 配置 Notifier。
 /// 业务端点：GET/PUT /api/v1/settings/tab-config
 class TabConfigNotifier extends AsyncNotifier<TabConfig> {
   @override
   Future<TabConfig> build() async {
     final api = ref.watch(settingsApiProvider);
-    try {
-      return await api.getTabConfig();
-    } catch (_) {
-      return TabConfig.defaultConfig();
-    }
+    return api.getTabConfig();
   }
 
   Future<void> updateConfig(TabConfig config) async {
-    state = AsyncValue.data(config);
+    // 保留已保存的数据供导航渲染，用独立保存状态阻止并发覆盖。
+    // 请求成功后才发布新配置，失败不会销毁原来的插件渲染面。
+    // 刷新失败也可能携带旧 value，不能据此保存到刚切换的新服务器。
+    if (ref.read(tabConfigSavingProvider) ||
+        state.isLoading ||
+        state.hasError ||
+        !state.hasValue) {
+      throw StateError('Tab configuration is not ready');
+    }
+    final api = ref.read(settingsApiProvider);
+    ref.read(tabConfigSavingProvider.notifier).setSaving(true);
     try {
-      final api = ref.read(settingsApiProvider);
       // 以服务端返回的已保存配置为准：后端保存时会清理插件已不存在的
       // 孤儿条目（#416），本地必须同步该结果，否则计数仍会虚高。
       final saved = await api.updateTabConfig(config);
-      state = AsyncValue.data(saved);
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
-      rethrow;
+      if (ref.mounted && identical(ref.read(settingsApiProvider), api)) {
+        state = AsyncValue.data(saved);
+      }
+    } finally {
+      if (ref.mounted && identical(ref.read(settingsApiProvider), api)) {
+        ref.read(tabConfigSavingProvider.notifier).setSaving(false);
+      }
     }
   }
 }

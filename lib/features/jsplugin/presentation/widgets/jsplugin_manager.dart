@@ -16,6 +16,7 @@ import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../data/jsplugin_api.dart';
 import '../providers/jsplugin_provider.dart';
 import 'plugin_icon.dart';
+import 'plugin_navigation_settings.dart';
 
 /// JS 插件管理组件
 class JSPluginManager extends ConsumerStatefulWidget {
@@ -129,6 +130,7 @@ class _JSPluginManagerState extends ConsumerState<JSPluginManager> {
                 ),
               ),
         ),
+        const PluginNavigationOrder(),
       ],
     );
   }
@@ -227,7 +229,7 @@ class _JSPluginManagerState extends ConsumerState<JSPluginManager> {
       separatorBuilder: (_, _) => const Divider(height: 1),
       itemBuilder: (context, index) {
         final plugin = plugins[index];
-        return _JSPluginItem(plugin: plugin);
+        return _JSPluginItem(key: ValueKey(plugin.id), plugin: plugin);
       },
     );
   }
@@ -515,7 +517,7 @@ class _JSPluginUploadDialogState extends State<_JSPluginUploadDialog> {
 class _JSPluginItem extends ConsumerStatefulWidget {
   final JSPlugin plugin;
 
-  const _JSPluginItem({required this.plugin});
+  const _JSPluginItem({super.key, required this.plugin});
 
   @override
   ConsumerState<_JSPluginItem> createState() => _JSPluginItemState();
@@ -872,6 +874,26 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
+            SwitchListTile(
+              key: ValueKey('plugin-enabled-${plugin.id}'),
+              contentPadding: EdgeInsets.zero,
+              dense: true,
+              title: Text(l10n.jspluginEnablePlugin),
+              value: plugin.isActive,
+              onChanged:
+                  _isToggling ||
+                          _isDeleting ||
+                          _isForceUpdating ||
+                          ref.watch(tabConfigSavingProvider) ||
+                          ref.watch(tabConfigProvider).isLoading ||
+                          ref.watch(jsPluginsProvider).isLoading
+                      ? null
+                      : (_) => _togglePlugin(),
+            ),
+            PluginNavigationToggle(
+              plugin: plugin,
+              busy: _isToggling || _isDeleting || _isForceUpdating,
+            ),
             // 第 4 行 —— 主页链接（仅桌面端）
             if (!isMobile &&
                 plugin.homepage != null &&
@@ -967,18 +989,8 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
     final keepAliveList = ref.watch(pluginKeepAliveProvider).value ?? [];
     final isKeepAlive = keepAliveList.contains(plugin.entryPath);
 
-    final Widget switchOrLoader =
-        _isToggling
-            ? const SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-            : Switch(value: plugin.isActive, onChanged: (_) => _togglePlugin());
-
     if (isMobile) {
       return [
-        switchOrLoader,
         PopupMenuButton<String>(
           icon: const Icon(Icons.more_vert),
           tooltip: l10n.jspluginMoreActions,
@@ -1082,7 +1094,6 @@ class _JSPluginItemState extends ConsumerState<_JSPluginItem> {
 
     // 桌面端
     return [
-      switchOrLoader,
       if (plugin.isActive)
         IconButton(
           icon: Icon(isKeepAlive ? Icons.push_pin : Icons.push_pin_outlined),

@@ -11,6 +11,7 @@ import 'package:songloft_flutter/features/jsplugin/presentation/providers/jsplug
 import 'package:songloft_flutter/features/jsplugin/presentation/widgets/jsplugin_manager.dart';
 import 'package:songloft_flutter/l10n/app_localizations.dart';
 import 'package:songloft_flutter/features/settings/presentation/providers/settings_provider.dart';
+import 'package:songloft_flutter/features/settings/data/settings_api.dart';
 
 JSPlugin plugin({String status = 'active', String? entryPath = 'downloader'}) {
   return JSPlugin(
@@ -62,6 +63,11 @@ class TestPluginApi extends JSPluginApi {
   }
 }
 
+class _DefaultTabs extends TabConfigNotifier {
+  @override
+  Future<TabConfig> build() async => TabConfig.defaultConfig();
+}
+
 void main() {
   Future<GoRouter> pumpManager(
     WidgetTester tester,
@@ -91,6 +97,7 @@ void main() {
       ProviderScope(
         overrides: [
           jsPluginsProvider.overrideWith((ref) async => [subject]),
+          tabConfigProvider.overrideWith(_DefaultTabs.new),
           pluginKeepAliveProvider.overrideWith((ref) async => []),
           pluginAutoUpdateProvider.overrideWith((ref) async => false),
           githubProxyProvider.overrideWith(_NoProxy.new),
@@ -152,7 +159,7 @@ void main() {
   testWidgets('点击开关和更多菜单不会打开插件', (tester) async {
     final api = TestPluginApi();
     final router = await pumpManager(tester, plugin(), api: api);
-    await tester.tap(find.byType(Switch).last);
+    await tester.tap(find.byKey(const ValueKey('plugin-enabled-7')));
     await tester.pumpAndSettle();
     expect(api.disabledId, 7);
     expect(router.state.uri.path, '/settings/plugins');

@@ -741,6 +741,24 @@ class AppLocalizationsEs extends AppLocalizations {
   String get jspluginOpenHomepage => 'Abrir página de inicio';
 
   @override
+  String get jspluginEnablePlugin => 'Activar complemento';
+
+  @override
+  String get jspluginShowInNavigation => 'Mostrar en la navegación';
+
+  @override
+  String get jspluginShowInNavigationHint =>
+      'Añadir a la navegación inferior o a la barra lateral; también se puede abrir desde Inicio o la lista de complementos';
+
+  @override
+  String get jspluginNavigationDisabledHint =>
+      'Se oculta al desactivarlo; esta preferencia se restaura al volver a activarlo';
+
+  @override
+  String get jspluginNavigationOrder =>
+      'Orden de complementos en la navegación';
+
+  @override
   String get jspluginKeepAlive => 'Mantener en ejecución';
 
   @override

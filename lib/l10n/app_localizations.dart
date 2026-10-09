@@ -1335,6 +1335,36 @@ abstract class AppLocalizations {
   /// **'打开主页'**
   String get jspluginOpenHomepage;
 
+  /// No description provided for @jspluginEnablePlugin.
+  ///
+  /// In zh, this message translates to:
+  /// **'启用插件'**
+  String get jspluginEnablePlugin;
+
+  /// No description provided for @jspluginShowInNavigation.
+  ///
+  /// In zh, this message translates to:
+  /// **'显示在导航栏'**
+  String get jspluginShowInNavigation;
+
+  /// No description provided for @jspluginShowInNavigationHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'加入底部导航栏或桌面侧栏；关闭后仍可从首页或插件列表打开'**
+  String get jspluginShowInNavigationHint;
+
+  /// No description provided for @jspluginNavigationDisabledHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'插件停用时隐藏入口，重新启用后恢复此选择'**
+  String get jspluginNavigationDisabledHint;
+
+  /// No description provided for @jspluginNavigationOrder.
+  ///
+  /// In zh, this message translates to:
+  /// **'导航栏插件排序'**
+  String get jspluginNavigationOrder;
+
   /// No description provided for @jspluginKeepAlive.
   ///
   /// In zh, this message translates to:

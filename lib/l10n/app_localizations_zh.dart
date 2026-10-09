@@ -711,6 +711,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get jspluginOpenHomepage => '打开主页';
 
   @override
+  String get jspluginEnablePlugin => '启用插件';
+
+  @override
+  String get jspluginShowInNavigation => '显示在导航栏';
+
+  @override
+  String get jspluginShowInNavigationHint => '加入底部导航栏或桌面侧栏；关闭后仍可从首页或插件列表打开';
+
+  @override
+  String get jspluginNavigationDisabledHint => '插件停用时隐藏入口，重新启用后恢复此选择';
+
+  @override
+  String get jspluginNavigationOrder => '导航栏插件排序';
+
+  @override
   String get jspluginKeepAlive => '常驻运行';
 
   @override

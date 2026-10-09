@@ -27,10 +27,8 @@ import '../../../desktop_lyric/desktop_lyric_font_size.dart';
 import '../../../player/domain/mini_player_controls.dart';
 import '../../../player/presentation/providers/mini_player_controls_provider.dart';
 import '../../../playlist/presentation/providers/playlist_provider.dart';
-import '../../../jsplugin/data/jsplugin_api.dart';
 import '../../../jsplugin/presentation/providers/jsplugin_provider.dart';
 import '../../../jsplugin/presentation/widgets/jsplugin_manager.dart';
-import '../../../jsplugin/presentation/widgets/plugin_icon.dart';
 import '../../../../core/backend/run_mode_provider.dart';
 import '../../data/log_export_service.dart';
 import '../../data/settings_api.dart';
@@ -272,16 +270,9 @@ class _SettingsCategoryContentState
     final pluginsAsync = ref.watch(jsPluginsProvider);
     final config = tabConfigAsync.value ?? TabConfig.defaultConfig();
     final plugins = pluginsAsync.value ?? [];
-    final activePlugins =
-        plugins
-            .where(
-              (p) =>
-                  p.isActive && p.entryPath != null && p.entryPath!.isNotEmpty,
-            )
-            .toList();
     // 计数与限额基于「实际会渲染的条目」：孤儿条目（插件已卸载）与禁用插件
     // 不占名额，保证显示数量与首页可见 Tab 严格一致（#416）。
-    final effectiveTabs = config.activeEntries(activePlugins);
+    final effectiveTabs = config.activeEntries(plugins);
     final usedCount =
         _fixedTabs + (config.showLibrary ? 1 : 0) + effectiveTabs.length;
     final atLimit = usedCount >= _maxTabs;
@@ -365,17 +356,19 @@ class _SettingsCategoryContentState
             title: Text(l10n.settingsMenuLibrary),
             value: config.showLibrary,
             onChanged:
-                atLimit && !config.showLibrary
+                ref.watch(tabConfigSavingProvider) ||
+                        tabConfigAsync.isLoading ||
+                        tabConfigAsync.hasError ||
+                        pluginsAsync.isLoading ||
+                        pluginsAsync.hasError ||
+                        !tabConfigAsync.hasValue ||
+                        (atLimit && !config.showLibrary)
                     ? null
                     : (value) => _updateTabConfig(
                       config.copyWith(showLibrary: value),
                       atLimit && value,
                     ),
           ),
-          if (activePlugins.isNotEmpty) ...[
-            const Divider(height: 1),
-            ..._buildPluginTabTiles(config, activePlugins, atLimit),
-          ],
           const Divider(height: 1),
           Padding(
             padding: const EdgeInsets.all(AppSpacing.sm),
@@ -392,79 +385,7 @@ class _SettingsCategoryContentState
           ),
         ],
       ),
-      if (effectiveTabs.isNotEmpty)
-        SectionCard(
-          title: l10n.settingsTabConfigPluginOrder,
-          icon: Icons.reorder,
-          children: [
-            _PluginTabReorderList(
-              pluginTabs: effectiveTabs,
-              plugins: plugins,
-              onReorder:
-                  (newTabs) => _updateTabConfig(
-                    config.copyWith(pluginTabs: newTabs),
-                    false,
-                  ),
-            ),
-          ],
-        ),
     ];
-  }
-
-  List<Widget> _buildPluginTabTiles(
-    TabConfig config,
-    List<JSPlugin> activePlugins,
-    bool atLimit,
-  ) {
-    // 以「实际渲染的条目」为基准增删：保存时顺带清掉孤儿条目（#416）
-    final effectiveTabs = config.activeEntries(activePlugins);
-    final widgets = <Widget>[];
-    for (var i = 0; i < activePlugins.length; i++) {
-      final plugin = activePlugins[i];
-      final isEnabled = config.pluginTabs.any(
-        (pt) => pt.entryPath == plugin.entryPath,
-      );
-
-      if (i > 0) widgets.add(const Divider(height: 1));
-      widgets.add(
-        SwitchListTile(
-          secondary: PluginNavIcon(
-            iconUrl: plugin.iconUrl,
-            size: 24,
-            fallbackIcon: const Icon(Icons.extension_outlined),
-          ),
-          title: Text(plugin.displayName),
-          subtitle: plugin.version != null ? Text('v${plugin.version}') : null,
-          value: isEnabled,
-          onChanged:
-              atLimit && !isEnabled
-                  ? null
-                  : (value) {
-                    final newPluginTabs = List<PluginTabEntry>.from(
-                      effectiveTabs,
-                    );
-                    if (value) {
-                      newPluginTabs.add(
-                        PluginTabEntry(
-                          pluginId: plugin.id,
-                          entryPath: plugin.entryPath!,
-                          name: plugin.displayName,
-                        ),
-                      );
-                    } else {
-                      newPluginTabs.removeWhere(
-                        (pt) => pt.entryPath == plugin.entryPath,
-                      );
-                    }
-                    _updateTabConfig(
-                      config.copyWith(pluginTabs: newPluginTabs),
-                      atLimit && value,
-                    );
-                  },
-        ),
-      );
-    }
-    return widgets;
   }
 
   Future<void> _updateTabConfig(TabConfig config, bool wouldExceedLimit) async {
@@ -2018,67 +1939,6 @@ class _FontScaleSelector extends ConsumerWidget {
       selected: {current},
       onSelectionChanged: (selected) {
         ref.read(fontScaleProvider.notifier).setScale(selected.first);
-      },
-    );
-  }
-}
-
-class _PluginTabReorderList extends StatelessWidget {
-  final List<PluginTabEntry> pluginTabs;
-  final List<JSPlugin> plugins;
-  final ValueChanged<List<PluginTabEntry>> onReorder;
-
-  const _PluginTabReorderList({
-    required this.pluginTabs,
-    required this.plugins,
-    required this.onReorder,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return ReorderableListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      buildDefaultDragHandles: false,
-      itemCount: pluginTabs.length,
-      onReorderItem: (oldIndex, newIndex) {
-        final newList = List<PluginTabEntry>.from(pluginTabs);
-        final item = newList.removeAt(oldIndex);
-        newList.insert(newIndex, item);
-        onReorder(newList);
-      },
-      proxyDecorator: (child, index, animation) {
-        return AnimatedBuilder(
-          animation: animation,
-          builder:
-              (context, child) => Material(
-                elevation: 4,
-                borderRadius: BorderRadius.circular(12),
-                child: child,
-              ),
-          child: child,
-        );
-      },
-      itemBuilder: (context, index) {
-        final pt = pluginTabs[index];
-        final plugin =
-            plugins.where((p) => p.entryPath == pt.entryPath).firstOrNull;
-
-        return ListTile(
-          key: ValueKey(pt.entryPath),
-          leading: PluginNavIcon(
-            iconUrl: plugin?.iconUrl,
-            size: 24,
-            fallbackIcon: const Icon(Icons.extension_outlined),
-          ),
-          title: Text(pt.name),
-          trailing: ReorderableDragStartListener(
-            index: index,
-            child: Icon(Icons.drag_handle, color: colorScheme.onSurfaceVariant),
-          ),
-        );
       },
     );
   }

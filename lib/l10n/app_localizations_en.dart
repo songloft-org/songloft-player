@@ -733,6 +733,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get jspluginOpenHomepage => 'Open Homepage';
 
   @override
+  String get jspluginEnablePlugin => 'Enable plugin';
+
+  @override
+  String get jspluginShowInNavigation => 'Show in navigation';
+
+  @override
+  String get jspluginShowInNavigationHint =>
+      'Add to the bottom navigation or desktop sidebar; you can also open it from Home or the plugin list';
+
+  @override
+  String get jspluginNavigationDisabledHint =>
+      'Hidden while disabled; this choice is restored when the plugin is enabled again';
+
+  @override
+  String get jspluginNavigationOrder => 'Plugin navigation order';
+
+  @override
   String get jspluginKeepAlive => 'Keep Running';
 
   @override
