@@ -4846,4 +4846,65 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get expandSidebar => 'Expandir barra lateral';
+
+  @override
+  String get deviceCacheDirectoryTitle => 'Carpeta de canciones en caché';
+
+  @override
+  String get deviceCacheDirectoryDefault =>
+      'Predeterminada (carpeta privada de la aplicación)';
+
+  @override
+  String get deviceCacheDirectoryHelp =>
+      'Elige una carpeta del dispositivo o de la tarjeta SD para las nuevas canciones en caché, accesible desde el gestor de archivos. Las canciones existentes se pueden trasladar por separado. Vaciar la caché elimina sus archivos.';
+
+  @override
+  String get deviceCacheDirectoryUpgrade =>
+      'Instala el APK más reciente del cliente para usar una carpeta personalizada.';
+
+  @override
+  String get deviceCacheDirectoryUnavailable =>
+      'La carpeta no está disponible o no permite escribir. Comprueba la tarjeta SD y vuelve a seleccionar la carpeta para conceder acceso. Se conservan los registros de caché.';
+
+  @override
+  String get deviceCacheDirectoryBusy =>
+      'Hay una operación de caché en curso. Espera a que termine antes de cambiar de carpeta o trasladar archivos.';
+
+  @override
+  String get deviceCacheDirectorySaved => 'Carpeta de caché actualizada';
+
+  @override
+  String get deviceCacheChooseDirectory =>
+      'Elegir carpeta / conceder acceso de nuevo';
+
+  @override
+  String get deviceCacheRestoreDefault => 'Restaurar carpeta predeterminada';
+
+  @override
+  String get deviceCacheMigrate =>
+      'Trasladar la caché existente a la carpeta actual';
+
+  @override
+  String get deviceCacheMigrationConfirm =>
+      'El traslado detiene la reproducción de canciones en caché y requiere espacio adicional temporalmente. Cada original se elimina solo después de guardar la copia y el índice. La cancelación o un fallo conserva los traslados completados y los originales restantes.';
+
+  @override
+  String get deviceCacheMigrationDone => 'Traslado de caché completado';
+
+  @override
+  String get deviceCacheMigrationFailed =>
+      'No se pudo completar el traslado. Comprueba el acceso a la carpeta y el espacio libre. Se conservan los traslados completados y los originales restantes.';
+
+  @override
+  String get deviceCacheMigrationCancelled =>
+      'Traslado cancelado. Se conservan los traslados completados; no se eliminaron los originales restantes.';
+
+  @override
+  String deviceCacheMigrationProgress(int done, int total) {
+    return '$done / $total canciones trasladadas';
+  }
+
+  @override
+  String get deviceCacheClearFailed =>
+      'No se pudo completar la limpieza de caché. Comprueba el acceso a la carpeta y el espacio disponible. Se conservan los registros de archivos no eliminados.';
 }

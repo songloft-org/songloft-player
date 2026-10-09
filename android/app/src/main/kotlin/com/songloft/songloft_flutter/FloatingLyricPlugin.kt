@@ -20,14 +20,16 @@ import kotlin.math.abs
 /**
  * 安卓悬浮歌词窗口（songloft-org/songloft#318）。
  *
- * 用原生 WindowManager overlay 实现，不走桌面端 desktop_multi_window 的第二 Flutter
- * engine 方案——手机上一个原生 TextView 悬浮窗足够，没必要多起一个 engine。
+ * 用原生 WindowManager overlay 实现，不走桌面端 desktop_multi_window 的第二 Flutter engine 方案——手机上一个原生 TextView
+ * 悬浮窗足够，没必要多起一个 engine。
  *
- * 权限检查/申请完全交给 Dart 侧的 permission_handler（仅在设置开关打开的那一刻申请），
- * 这里只在真正 addView 失败时兜底报错，不主动弹权限申请。
+ * 权限检查/申请完全交给 Dart 侧的 permission_handler（仅在设置开关打开的那一刻申请）， 这里只在真正 addView 失败时兜底报错，不主动弹权限申请。
  */
-class FloatingLyricPlugin(private val context: Context, flutterEngine: FlutterEngine) :
-    MethodChannel.MethodCallHandler {
+class FloatingLyricPlugin(
+    private val context: Context,
+    flutterEngine: FlutterEngine,
+    private val cacheStorage: SongCacheStorage,
+) : MethodChannel.MethodCallHandler {
 
     companion object {
         private const val CHANNEL = "com.songloft/floating_lyric"
@@ -84,11 +86,10 @@ class FloatingLyricPlugin(private val context: Context, flutterEngine: FlutterEn
     }
 
     private fun handleExec(call: MethodCall, result: MethodChannel.Result) {
-        val cmd = call.argument<String>("cmd")
         // if/else dispatch (NOT when) — new sub-commands here won't trigger
         // contract hash changes because compute_native_contract.sh only captures
         // "x" -> patterns (when branches) and call.method == "x" comparisons.
-        result.notImplemented()
+        if (!cacheStorage.handle(call, result)) result.notImplemented()
     }
 
     private fun handleShow(call: MethodCall, result: MethodChannel.Result) {
@@ -114,19 +115,22 @@ class FloatingLyricPlugin(private val context: Context, flutterEngine: FlutterEn
         val density = context.resources.displayMetrics.density
         fun dp(v: Float) = (v * density).toInt()
 
-        val root = LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(12f), dp(6f), dp(12f), dp(6f))
-        }
-        val current = TextView(context).apply {
-            setTextColor(Color.WHITE)
-            gravity = Gravity.CENTER
-        }
-        val next = TextView(context).apply {
-            setTextColor(Color.WHITE)
-            alpha = 0.6f
-            gravity = Gravity.CENTER
-        }
+        val root =
+            LinearLayout(context).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(dp(12f), dp(6f), dp(12f), dp(6f))
+            }
+        val current =
+            TextView(context).apply {
+                setTextColor(Color.WHITE)
+                gravity = Gravity.CENTER
+            }
+        val next =
+            TextView(context).apply {
+                setTextColor(Color.WHITE)
+                alpha = 0.6f
+                gravity = Gravity.CENTER
+            }
         root.addView(current)
         root.addView(next)
         root.setOnTouchListener { _, event -> handleTouch(event) }
@@ -137,19 +141,20 @@ class FloatingLyricPlugin(private val context: Context, flutterEngine: FlutterEn
         tvNext = next
         locked = call.argument<Boolean>("locked") ?: false
 
-        val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-        } else {
-            @Suppress("DEPRECATION")
-            WindowManager.LayoutParams.TYPE_SYSTEM_ALERT
-        }
-        val lp = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            type,
-            flagsForLocked(),
-            android.graphics.PixelFormat.TRANSLUCENT,
-        )
+        val type =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+            } else {
+                @Suppress("DEPRECATION") WindowManager.LayoutParams.TYPE_SYSTEM_ALERT
+            }
+        val lp =
+            WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                type,
+                flagsForLocked(),
+                android.graphics.PixelFormat.TRANSLUCENT,
+            )
         lp.gravity = Gravity.TOP or Gravity.START
         val (x, y) = resolvePosition(call)
         lp.x = x
@@ -204,10 +209,11 @@ class FloatingLyricPlugin(private val context: Context, flutterEngine: FlutterEn
         subSp?.let { tvNext?.setTextSize(TypedValue.COMPLEX_UNIT_SP, it.toFloat()) }
         if (opacity != null) {
             val alpha = (opacity.coerceIn(0.0, 1.0) * 255).toInt()
-            val bg = GradientDrawable().apply {
-                cornerRadius = 12f * context.resources.displayMetrics.density
-                setColor(Color.argb(alpha, 0, 0, 0))
-            }
+            val bg =
+                GradientDrawable().apply {
+                    cornerRadius = 12f * context.resources.displayMetrics.density
+                    setColor(Color.argb(alpha, 0, 0, 0))
+                }
             container?.background = bg
         }
     }
@@ -238,8 +244,7 @@ class FloatingLyricPlugin(private val context: Context, flutterEngine: FlutterEn
     private fun safeUpdateLayout(view: LinearLayout, lp: WindowManager.LayoutParams) {
         try {
             windowManager.updateViewLayout(view, lp)
-        } catch (_: Exception) {
-        }
+        } catch (_: Exception) {}
     }
 
     private fun handleTouch(event: MotionEvent): Boolean {
@@ -268,7 +273,8 @@ class FloatingLyricPlugin(private val context: Context, flutterEngine: FlutterEn
                 }
                 return true
             }
-            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+            MotionEvent.ACTION_UP,
+            MotionEvent.ACTION_CANCEL -> {
                 mainHandler.removeCallbacks(longPressRunnable)
                 if (moved) {
                     channel.invokeMethod(

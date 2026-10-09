@@ -20,6 +20,17 @@ Requires Android SDK, NDK, and JDK 17+.
 - **HyperOS 3 (Xiaomi)**: Set `androidStopForegroundOnPause: false`; without this, the foreground service is reclaimed on pause, interrupting background playback
 - **Split-ABI APK builds**: `flutter build apk --split-per-abi` generates separate APKs for arm64-v8a, armeabi-v7a, and x86_64
 
+### Device song cache directory
+
+Under Settings → Cache Management → Device Song Cache, choose a device or SD card folder (`Music/Songloft` is recommended). New caches are stored there and accessible from a file manager without root. The app requests a system media scan for completed files; discovery by other players also depends on their scan scope. Only local storage providers are supported, not cloud folders.
+
+- The default remains the app-private directory. Selecting a folder or restoring the default affects new caches only. Existing files play from their indexed locations and can be moved separately using “Move existing caches to the current folder”.
+- Migration stops playback of cached songs and temporarily requires additional disk space. Each original is deleted only after its copy and index have been saved. Cancellation or failure preserves completed moves and the remaining originals. If deletion fails after a successful copy, a duplicate may remain at the original location.
+- The index and directory preferences stay app-private; directory grants are never synced with server preferences. Clearing caches deletes only indexed songs, leaving unrelated files in the selected folder untouched.
+- Removing an SD card or revoking access preserves cache records. Reinsert the card and select the original folder again to grant access. External audio files survive uninstall, but the private index does not; reinstalling does not automatically import them.
+- On Android 11+, the system picker cannot grant access to storage roots, the `Download` root, or `Android/data` / `Android/obb`. Choose an allowed subfolder.
+- The new storage capability requires an updated APK. An old APK receiving only a Dart hot update shows an upgrade prompt. Playback uses media_kit's existing `content://` to file descriptor support.
+
 ### Troubleshooting
 
 ```bash

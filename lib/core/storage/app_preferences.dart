@@ -321,6 +321,29 @@ class AppPreferences {
     return _prefs.setInt(_localCacheMaxSizeKey, maxSize);
   }
 
+  // Device-only: URI grants must never be synced to another device/server.
+  Map<String, dynamic>? _songCacheLocation() {
+    final value = _prefs.getString('song_cache_location');
+    return value == null ? null : jsonDecode(value) as Map<String, dynamic>;
+  }
+
+  String? getSongCacheDirectory() => _songCacheLocation()?['uri'] as String?;
+  String? getSongCacheDirectoryLabel() =>
+      _songCacheLocation()?['label'] as String?;
+
+  Future<void> setSongCacheDirectory(String? uri, String? label) async {
+    final saved =
+        uri == null
+            ? await _prefs.remove('song_cache_location')
+            : await _prefs.setString(
+              'song_cache_location',
+              jsonEncode({'uri': uri, 'label': label ?? uri}),
+            );
+    if (!saved) {
+      throw StateError('Cannot save cache directory');
+    }
+  }
+
   int getCurrentIndex() {
     return _prefs.getInt(_currentIndexKey) ?? -1;
   }

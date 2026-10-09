@@ -11,12 +11,14 @@ import '../../../../core/storage/lyric_cache_service.dart';
 import '../../../../core/storage/preference_sync_service.dart';
 import '../../../../core/utils/web_cache_clearer.dart' as web_cache;
 import '../../../../shared/utils/responsive_snackbar.dart';
+import '../../../../shared/utils/device_cache_action.dart';
 import '../../../../shared/widgets/confirm_dialog.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../playlist/presentation/providers/playlist_provider.dart';
 import '../../data/cache_api.dart';
 import '../providers/settings_provider.dart';
 import '../providers/song_cache_provider.dart';
+import 'device_cache_directory.dart';
 
 String _formatSize(int bytes) {
   if (bytes <= 0) return '0 B';
@@ -624,6 +626,7 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
           ],
         ),
         const SizedBox(height: 12),
+        if (Platform.isAndroid) const DeviceCacheDirectory(),
         if (isEmpty)
           Text(
             l10n.localSongCacheEmpty,
@@ -676,7 +679,11 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
               ),
               trailing: IconButton(
                 icon: Icon(Icons.delete_outline, color: colorScheme.error),
-                onPressed: () => notifier.removeSong(e.songId),
+                onPressed:
+                    () => runDeviceCacheRemoval(
+                      context,
+                      () => notifier.removeSong(e.songId),
+                    ),
               ),
             ),
           const SizedBox(height: 8),
@@ -690,7 +697,9 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
                   content: l10n.localSongCacheClearAllConfirm,
                   isDestructive: true,
                 );
-                if (ok) await notifier.clearAll();
+                if (ok && mounted) {
+                  await runDeviceCacheRemoval(context, notifier.clearAll);
+                }
               },
               icon: const Icon(Icons.delete_sweep_outlined),
               label: Text(l10n.localSongCacheClearAll),
@@ -721,7 +730,11 @@ class _CacheManagerState extends ConsumerState<CacheManager> {
       subtitle: Text(l10n.localSongCacheSummary(count, _formatSize(size))),
       trailing: IconButton(
         icon: Icon(Icons.delete_outline, color: colorScheme.error),
-        onPressed: () => notifier.removePlaylist(playlistId),
+        onPressed:
+            () => runDeviceCacheRemoval(
+              context,
+              () => notifier.removePlaylist(playlistId),
+            ),
       ),
     );
   }

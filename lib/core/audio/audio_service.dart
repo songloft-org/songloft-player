@@ -752,8 +752,18 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
       // 客户端本地缓存优先（songloft-org/songloft#312）：用户手动缓存过的歌直接播
       // 本机文件，离线可播、零流量。直播/Web 不缓存（resolvePlayablePath 内部 kIsWeb
       // 返回 null）。命中即用 file:// 源，绕过下方远端流串/边播边缓存分支。
-      await SongCacheService().load();
-      final cachedPath = await SongCacheService().resolvePlayablePath(song.id);
+      final cache = SongCacheService();
+      var cacheLoaded = false;
+      try {
+        await cache.load();
+        cacheLoaded = true;
+      } catch (error) {
+        // An unreadable index must not prevent ordinary remote playback. Cache
+        // mutations still fail, preserving the index for recovery.
+        debugPrint('[Player] cache index unavailable: $error');
+      }
+      final cachedPath =
+          cacheLoaded ? await cache.resolvePlayablePath(song.id) : null;
       lastPlaybackSource =
           cachedPath != null
               ? PlaybackSource.localCache
@@ -785,7 +795,7 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
         debugPrint(
           '[Player] SongloftAudioHandler: play from local cache: $cachedPath',
         );
-        source = ja.AudioSource.uri(Uri.file(cachedPath));
+        source = ja.AudioSource.uri(songCachePlayableUri(cachedPath));
         _normCacheFile = null;
       } else if (useLiveSource) {
         final isMobile =

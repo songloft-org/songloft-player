@@ -13,6 +13,7 @@ import '../../../core/utils/url_helper.dart';
 import '../../../core/utils/web_image_tuning.dart';
 import '../../../shared/models/song.dart';
 import '../../../shared/utils/responsive_snackbar.dart';
+import '../../../shared/utils/device_cache_action.dart';
 import '../../../shared/widgets/delete_song_dialog.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/error_view.dart';
@@ -1580,10 +1581,13 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
 
   /// 清除本歌单的本机缓存（按标签，多来源共享的歌不误删）。
   Future<void> _clearPlaylistCache() async {
-    await ref.read(songCacheProvider.notifier).removePlaylist(_playlistIdInt);
-    if (!mounted) return;
     final l10n = AppLocalizations.of(context);
-    ResponsiveSnackBar.showSuccess(context, message: l10n.playlistCacheCleared);
+    final notifier = ref.read(songCacheProvider.notifier);
+    await runDeviceCacheRemoval(
+      context,
+      () => notifier.removePlaylist(_playlistIdInt),
+      successMessage: l10n.playlistCacheCleared,
+    );
   }
 
   /// 确认删除歌单

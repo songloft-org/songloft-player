@@ -23,14 +23,25 @@ final songCacheProvider = NotifierProvider<SongCacheNotifier, int>(
   SongCacheNotifier.new,
 );
 
+final songCacheServiceProvider = Provider<SongCacheService>(
+  (ref) => SongCacheService(),
+);
+
 class SongCacheNotifier extends Notifier<int> {
-  final SongCacheService _service = SongCacheService();
+  SongCacheService get _service => ref.read(songCacheServiceProvider);
 
   @override
   int build() {
     // 首帧异步载入索引，完成后 bump 修订号刷新已挂载的 UI。
     if (!kIsWeb) {
-      _service.load().then((_) => state = state + 1);
+      _service
+          .load()
+          .then((_) {
+            if (ref.mounted) state = state + 1;
+          })
+          .catchError((Object e) {
+            debugPrint('[SongCache] load failed: $e');
+          });
     }
     return 0;
   }
@@ -60,24 +71,35 @@ class SongCacheNotifier extends Notifier<int> {
       onProgress: onProgress,
       cancelToken: cancelToken,
     );
-    state = state + 1;
+    bump();
   }
 
   Future<void> removeSong(int songId) async {
-    await _service.removeSong(songId);
-    state = state + 1;
+    try {
+      await _service.removeSong(songId);
+    } finally {
+      bump();
+    }
   }
 
   Future<void> removePlaylist(int playlistId) async {
-    await _service.removePlaylist(playlistId);
-    state = state + 1;
+    try {
+      await _service.removePlaylist(playlistId);
+    } finally {
+      bump();
+    }
   }
 
   Future<void> clearAll() async {
-    await _service.clearAll();
-    state = state + 1;
+    try {
+      await _service.clearAll();
+    } finally {
+      bump();
+    }
   }
 
   /// 供批量队列在多首完成后统一刷新一次 UI。
-  void bump() => state = state + 1;
+  void bump() {
+    if (ref.mounted) state = state + 1;
+  }
 }

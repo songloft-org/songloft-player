@@ -4768,4 +4768,62 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get expandSidebar => 'Expand sidebar';
+
+  @override
+  String get deviceCacheDirectoryTitle => 'Song cache directory';
+
+  @override
+  String get deviceCacheDirectoryDefault => 'Default (app-private directory)';
+
+  @override
+  String get deviceCacheDirectoryHelp =>
+      'Choose a device or SD card folder for new caches, accessible from a file manager. Existing caches can be migrated separately. Clearing caches deletes their files.';
+
+  @override
+  String get deviceCacheDirectoryUpgrade =>
+      'Install the latest client APK to use a custom cache directory.';
+
+  @override
+  String get deviceCacheDirectoryUnavailable =>
+      'The folder is unavailable or not writable. Check the SD card and select the folder again to grant access. Cache records are preserved.';
+
+  @override
+  String get deviceCacheDirectoryBusy =>
+      'A cache operation is running. Wait for it to finish before changing folders or migrating.';
+
+  @override
+  String get deviceCacheDirectorySaved => 'Cache directory updated';
+
+  @override
+  String get deviceCacheChooseDirectory => 'Choose folder / grant access again';
+
+  @override
+  String get deviceCacheRestoreDefault => 'Restore default folder';
+
+  @override
+  String get deviceCacheMigrate => 'Move existing caches to the current folder';
+
+  @override
+  String get deviceCacheMigrationConfirm =>
+      'Migration stops playback of cached songs and temporarily uses extra space. Each original is deleted only after its copy and index are saved. Cancellation or failure preserves completed moves and the remaining originals.';
+
+  @override
+  String get deviceCacheMigrationDone => 'Cache migration complete';
+
+  @override
+  String get deviceCacheMigrationFailed =>
+      'Migration could not finish. Check folder access and free space. Completed moves are preserved; remaining original caches are kept.';
+
+  @override
+  String get deviceCacheMigrationCancelled =>
+      'Migration cancelled. Completed moves are preserved; remaining original caches were not deleted.';
+
+  @override
+  String deviceCacheMigrationProgress(int done, int total) {
+    return 'Moved $done / $total songs';
+  }
+
+  @override
+  String get deviceCacheClearFailed =>
+      'Cache cleanup could not finish. Check folder access and storage space. Records for files that were not deleted are preserved.';
 }

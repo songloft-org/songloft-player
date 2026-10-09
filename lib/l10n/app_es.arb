@@ -2893,5 +2893,31 @@
     }
   },
   "collapseSidebar": "Contraer barra lateral",
-  "expandSidebar": "Expandir barra lateral"
+  "expandSidebar": "Expandir barra lateral",
+  "deviceCacheDirectoryTitle": "Carpeta de canciones en caché",
+  "deviceCacheDirectoryDefault": "Predeterminada (carpeta privada de la aplicación)",
+  "deviceCacheDirectoryHelp": "Elige una carpeta del dispositivo o de la tarjeta SD para las nuevas canciones en caché, accesible desde el gestor de archivos. Las canciones existentes se pueden trasladar por separado. Vaciar la caché elimina sus archivos.",
+  "deviceCacheDirectoryUpgrade": "Instala el APK más reciente del cliente para usar una carpeta personalizada.",
+  "deviceCacheDirectoryUnavailable": "La carpeta no está disponible o no permite escribir. Comprueba la tarjeta SD y vuelve a seleccionar la carpeta para conceder acceso. Se conservan los registros de caché.",
+  "deviceCacheDirectoryBusy": "Hay una operación de caché en curso. Espera a que termine antes de cambiar de carpeta o trasladar archivos.",
+  "deviceCacheDirectorySaved": "Carpeta de caché actualizada",
+  "deviceCacheChooseDirectory": "Elegir carpeta / conceder acceso de nuevo",
+  "deviceCacheRestoreDefault": "Restaurar carpeta predeterminada",
+  "deviceCacheMigrate": "Trasladar la caché existente a la carpeta actual",
+  "deviceCacheMigrationConfirm": "El traslado detiene la reproducción de canciones en caché y requiere espacio adicional temporalmente. Cada original se elimina solo después de guardar la copia y el índice. La cancelación o un fallo conserva los traslados completados y los originales restantes.",
+  "deviceCacheMigrationDone": "Traslado de caché completado",
+  "deviceCacheMigrationFailed": "No se pudo completar el traslado. Comprueba el acceso a la carpeta y el espacio libre. Se conservan los traslados completados y los originales restantes.",
+  "deviceCacheMigrationCancelled": "Traslado cancelado. Se conservan los traslados completados; no se eliminaron los originales restantes.",
+  "deviceCacheMigrationProgress": "{done} / {total} canciones trasladadas",
+  "@deviceCacheMigrationProgress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "deviceCacheClearFailed": "No se pudo completar la limpieza de caché. Comprueba el acceso a la carpeta y el espacio disponible. Se conservan los registros de archivos no eliminados."
 }

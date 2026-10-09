@@ -6,6 +6,7 @@ import '../../../../core/utils/formatters.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/models/song.dart';
 import '../../../../shared/utils/responsive_snackbar.dart';
+import '../../../../shared/utils/device_cache_action.dart';
 import '../../../../shared/widgets/confirm_dialog.dart';
 import '../../../../shared/widgets/delete_song_dialog.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -107,10 +108,12 @@ Future<void> removeSongFromDevice(
   Song song,
 ) async {
   final l10n = AppLocalizations.of(context);
-  await ref.read(songCacheProvider.notifier).removeSong(song.id);
-  if (context.mounted) {
-    ResponsiveSnackBar.showSuccess(context, message: l10n.songCacheRemoved);
-  }
+  final notifier = ref.read(songCacheProvider.notifier);
+  await runDeviceCacheRemoval(
+    context,
+    () => notifier.removeSong(song.id),
+    successMessage: l10n.songCacheRemoved,
+  );
 }
 
 /// 打开「歌曲信息」弹窗：码率/格式/采样率/大小/类型/播放来源/缓存位置。

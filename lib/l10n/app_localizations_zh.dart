@@ -4576,4 +4576,58 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get expandSidebar => '展开侧边栏';
+
+  @override
+  String get deviceCacheDirectoryTitle => '歌曲缓存目录';
+
+  @override
+  String get deviceCacheDirectoryDefault => '默认（应用内部目录）';
+
+  @override
+  String get deviceCacheDirectoryHelp =>
+      '选择本机或 SD 卡文件夹，新缓存将保存到这里，文件管理器可直接访问。已有缓存可单独迁移；清空缓存会删除对应文件。';
+
+  @override
+  String get deviceCacheDirectoryUpgrade => '请安装新版客户端 APK 后使用自定义缓存目录。';
+
+  @override
+  String get deviceCacheDirectoryUnavailable =>
+      '目录不可访问或不可写，请检查 SD 卡并重新选择文件夹授权。缓存记录会保留。';
+
+  @override
+  String get deviceCacheDirectoryBusy => '缓存任务正在进行，请等待完成后再修改目录或迁移。';
+
+  @override
+  String get deviceCacheDirectorySaved => '缓存目录已更新';
+
+  @override
+  String get deviceCacheChooseDirectory => '选择文件夹 / 重新授权';
+
+  @override
+  String get deviceCacheRestoreDefault => '恢复默认目录';
+
+  @override
+  String get deviceCacheMigrate => '迁移已有缓存到当前目录';
+
+  @override
+  String get deviceCacheMigrationConfirm =>
+      '迁移会停止正在播放的缓存歌曲，并临时占用额外空间。每首复制和保存成功后才删除原文件；取消或失败时，已完成的迁移会保留，其余原文件不会删除。';
+
+  @override
+  String get deviceCacheMigrationDone => '缓存迁移完成';
+
+  @override
+  String get deviceCacheMigrationFailed =>
+      '迁移未完成，请检查目录权限和剩余空间。已完成的迁移会保留，未完成的原缓存仍可用。';
+
+  @override
+  String get deviceCacheMigrationCancelled => '迁移已取消，已完成的迁移会保留，其余原缓存未删除。';
+
+  @override
+  String deviceCacheMigrationProgress(int done, int total) {
+    return '已迁移 $done / $total 首';
+  }
+
+  @override
+  String get deviceCacheClearFailed => '清理缓存未完成，请检查目录权限和存储空间。未删除文件的缓存记录会保留。';
 }
