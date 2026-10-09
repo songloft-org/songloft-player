@@ -238,6 +238,10 @@ class _FolderContentPageState extends ConsumerState<FolderContentPage>
                 onTap: () => _onSongTap(state.songs, index),
                 onDelete: () => _deleteSong(song.id),
                 onEdit: () => _navigateToEditSong(song),
+                onPlayNext:
+                    () => ref
+                        .read(playerStateProvider.notifier)
+                        .playSongNext(song),
                 onAddToPlaylist:
                     () => AddToPlaylistModal.show(context, songIds: [song.id]),
                 onManageTags:

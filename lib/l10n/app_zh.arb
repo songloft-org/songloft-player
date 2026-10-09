@@ -696,6 +696,7 @@
   },
   "libraryUnknownArtist": "未知艺术家",
   "libraryUnknownAlbum": "未知专辑",
+  "libraryPlayNext": "下一首播放",
   "libraryPlay": "播放",
   "libraryEdit": "编辑",
   "libraryCustomizeViews": "自定义视图",

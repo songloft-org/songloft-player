@@ -18,7 +18,14 @@ Song _localSong() => Song(
   updatedAt: DateTime(2026),
 );
 
-Future<void> _pump(WidgetTester tester, double width) async {
+Future<void> _pump(
+  WidgetTester tester,
+  double width, {
+  VoidCallback? onPlayNext,
+  VoidCallback? onPlay,
+  Locale locale = const Locale('zh'),
+  bool selectionMode = false,
+}) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
@@ -26,7 +33,7 @@ Future<void> _pump(WidgetTester tester, double width) async {
         isRadioFavoritedProvider.overrideWith((ref, id) => false),
       ],
       child: MaterialApp(
-        locale: const Locale('zh'),
+        locale: locale,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
@@ -37,7 +44,9 @@ Future<void> _pump(WidgetTester tester, double width) async {
                 song: _localSong(),
                 index: 0,
                 onEdit: () {},
-                onTap: () {},
+                onTap: onPlay ?? () {},
+                onPlayNext: onPlayNext,
+                isSelectionMode: selectionMode,
                 onDelete: () {},
                 onAddToPlaylist: () {},
                 onManageTags: () {},
@@ -53,16 +62,66 @@ Future<void> _pump(WidgetTester tester, double width) async {
 
 void main() {
   testWidgets('本地歌曲桌面布局：编辑按钮可见且无溢出', (tester) async {
-    await _pump(tester, 1000); // 桌面宽度，触发 _buildDesktopLayout
+    await _pump(tester, 1000, onPlayNext: () {}); // 桌面宽度，触发 _buildDesktopLayout
 
     // 不应有 RenderFlex 溢出异常
     expect(tester.takeException(), isNull);
 
     // 编辑按钮（tooltip=编辑）应存在
     expect(find.byTooltip('编辑'), findsOneWidget);
+    expect(find.byTooltip('下一首播放'), findsOneWidget);
 
     // 管理标签按钮应存在，且不能把删除按钮挤出操作列
     expect(find.byTooltip('管理标签'), findsOneWidget);
     expect(find.byTooltip('删除'), findsOneWidget);
+  });
+  for (final entry in [
+    (const Locale('zh'), '下一首播放'),
+    (const Locale('en'), 'Play next'),
+  ]) {
+    testWidgets('桌面 ${entry.$1.languageCode} 下一首按钮只触发排队', (tester) async {
+      int nextCalls = 0;
+      int playCalls = 0;
+      await _pump(
+        tester,
+        1000,
+        locale: entry.$1,
+        onPlayNext: () => nextCalls++,
+        onPlay: () => playCalls++,
+      );
+      await tester.tap(find.byTooltip(entry.$2));
+      await tester.pump();
+      expect(nextCalls, 1);
+      expect(playCalls, 0);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('窄屏 ${entry.$1.languageCode} 菜单提供下一首播放', (tester) async {
+      int nextCalls = 0;
+      int playCalls = 0;
+      await _pump(
+        tester,
+        390,
+        locale: entry.$1,
+        onPlayNext: () => nextCalls++,
+        onPlay: () => playCalls++,
+      );
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+      expect(find.text(entry.$2), findsOneWidget);
+      await tester.tap(find.text(entry.$2));
+      await tester.pumpAndSettle();
+      expect(nextCalls, 1);
+      expect(playCalls, 0);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('多选模式不显示下一首播放操作', (tester) async {
+    await _pump(tester, 1000, onPlayNext: () {}, selectionMode: true);
+    expect(find.byTooltip('下一首播放'), findsNothing);
+    await _pump(tester, 390, onPlayNext: () {}, selectionMode: true);
+    expect(find.byIcon(Icons.more_vert), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 }

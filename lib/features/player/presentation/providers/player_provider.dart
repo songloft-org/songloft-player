@@ -84,7 +84,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
   bool _disposed = false; // Notifier 是否已销毁（微任务回调前的安全守卫）
 
   final Random _random = Random();
-  late final PlayModeResolver _modeResolver;
+  final PlayModeResolver _modeResolver = PlayModeResolver(mode: PlayMode.order);
   int _loadGeneration = 0; // 后台加载代次，用于取消过期的异步加载任务
   final QueueLoader _queueLoader = QueueLoader();
   int _playGeneration = 0; // 播放协程代次：用户快速切歌时，旧协程在 await 后发现 gen 变化即退出
@@ -111,7 +111,6 @@ class PlayerNotifier extends Notifier<PlayerState> {
   PlayerState build() {
     _audioHandler = ref.watch(audioHandlerProvider);
     _secureStorage = ref.watch(secureStorageProvider);
-    _modeResolver = PlayModeResolver(mode: PlayMode.order);
 
     // 设置通知栏回调
     _audioHandler.onSkipToNext = () => playNext();
@@ -269,6 +268,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
         position: Duration(milliseconds: savedPositionMs),
       );
       final savedContext = prefs.getSourceContext();
+      _modeResolver.markPlayed(safeIndex);
 
       state = state.copyWith(
         playlist: savedQueue,
@@ -556,6 +556,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
       mode: state.playMode,
       currentIndex: state.currentIndex,
       playlistLength: state.playlist.length,
+      hasPriorityNext: _modeResolver.hasPriorityNext,
     )) {
       case CompletionAction.replayCurrent:
         // 单曲循环：重新加载当前歌曲。
@@ -613,6 +614,10 @@ class PlayerNotifier extends Notifier<PlayerState> {
       await _playAtIndex(existingIndex);
     } else {
       // 添加到播放列表末尾并播放
+      final previousQueue = PlayQueue(
+        songs: state.playlist,
+        currentIndex: state.currentIndex,
+      );
       final newPlaylist = [...state.playlist, song];
       final newIndex = newPlaylist.length - 1;
       debugPrint('[Player] Adding song to playlist at index $newIndex');
@@ -622,6 +627,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
         currentSong: song,
         clearPlaybackContext: true,
       );
+      _onQueueEdited(previousQueue);
       final gen = ++_playGeneration;
       await _playCurrent(gen);
       if (gen == _playGeneration) {
@@ -714,6 +720,18 @@ class PlayerNotifier extends Notifier<PlayerState> {
       return;
     }
 
+    final safeIndex = startIndex.clamp(0, songs.length - 1);
+    if (keepContext &&
+        songs.length == state.playlist.length &&
+        songs.indexed.every((entry) {
+          final current = state.playlist[entry.$1];
+          return current.id == entry.$2.id && current.type == entry.$2.type;
+        })) {
+      // 播放抽屉只在当前队列内选曲，不重置历史、手动安排及后台加载。
+      await _playAtIndex(safeIndex);
+      return;
+    }
+
     _playbackResumeState.clear();
 
     // 取消之前的预加载
@@ -731,7 +749,6 @@ class PlayerNotifier extends Notifier<PlayerState> {
     // 递增代次，使正在进行的后台加载自动取消
     _loadGeneration = _queueLoader.invalidate();
 
-    final safeIndex = startIndex.clamp(0, songs.length - 1);
     debugPrint(
       '[Player] playPlaylist: starting with song: ${songs[safeIndex].title}',
     );
@@ -747,6 +764,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
 
     state = state.copyWith(
       playlist: List.from(songs),
+      hasPriorityNext: false,
       currentIndex: safeIndex,
       currentSong: songs[safeIndex],
       playbackContext: resolvedContext,
@@ -760,32 +778,97 @@ class PlayerNotifier extends Notifier<PlayerState> {
     }
   }
 
-  /// 添加到当前播放列表
-  void addToPlaylist(List<Song> songs) {
-    if (songs.isEmpty) return;
-
-    final queue = PlayQueue(
+  /// 安排下一首，不中断当前播放，也不替换队列来源。
+  Future<void> playSongNext(Song song) async {
+    final previousQueue = PlayQueue(
       songs: state.playlist,
       currentIndex: state.currentIndex,
-    ).add(songs);
-
-    state = state.copyWith(playlist: queue.songs);
-    _savePlaybackState();
-  }
-
-  /// 将歌曲插入到播放列表的指定位置
-  /// 用于撤销删除等场景，不会触发播放
-  void insertToPlaylist(int index, Song song) {
-    final queue = PlayQueue(
-      songs: state.playlist,
-      currentIndex: state.currentIndex,
-    ).insert(index, song);
-
+    );
+    final queue = previousQueue.playNext(song);
     state = state.copyWith(
       playlist: queue.songs,
       currentIndex: queue.currentIndex,
     );
+    _remapQueue(previousQueue);
+    if (queue.currentSong == null) {
+      await _playAtIndex(queue.indexOf(song));
+    } else {
+      _modeResolver.prioritizeNext(queue.currentIndex + 1);
+      _refreshNextSelection();
+      _savePlaybackState();
+    }
+  }
+
+  /// 添加到当前播放列表
+  void addToPlaylist(List<Song> songs) {
+    if (songs.isEmpty) return;
+    final previousQueue = PlayQueue(
+      songs: state.playlist,
+      currentIndex: state.currentIndex,
+    );
+    final queue = previousQueue.add(songs);
+    state = state.copyWith(playlist: queue.songs);
+    _onQueueEdited(previousQueue);
     _savePlaybackState();
+  }
+
+  /// 将歌曲插入到播放列表的指定位置，用于撤销删除等场景。
+  void insertToPlaylist(int index, Song song) {
+    final previousQueue = PlayQueue(
+      songs: state.playlist,
+      currentIndex: state.currentIndex,
+    );
+    final queue = previousQueue.insert(index, song);
+    state = state.copyWith(
+      playlist: queue.songs,
+      currentIndex: queue.currentIndex,
+    );
+    _onQueueEdited(previousQueue);
+    _savePlaybackState();
+  }
+
+  void _remapQueue(PlayQueue previousQueue) {
+    final updated = PlayQueue(
+      songs: state.playlist,
+      currentIndex: state.currentIndex,
+    );
+    _modeResolver.remapQueue(previousQueue.indexMappingTo(updated));
+  }
+
+  void _onQueueEdited(PlayQueue previousQueue) {
+    _remapQueue(previousQueue);
+    _refreshNextSelection();
+  }
+
+  void _refreshNextSelection() {
+    _prefetchCancelToken?.cancel('next song changed');
+    _prefetchStrategy.onSongChanged();
+    _modeResolver.preSelectNext(
+      currentIndex: state.currentIndex,
+      length: state.playlist.length,
+    );
+    state = state.copyWith(hasPriorityNext: _modeResolver.hasPriorityNext);
+    if (state.isPlaying) _prefetchNextSong();
+  }
+
+  /// DLNA 在设备成功接收歌曲后记录历史，失败或过期的请求不记录。
+  void recordCastingPlayback(Song song) {
+    if (state.currentSong?.id != song.id ||
+        state.currentSong?.type != song.type) {
+      return;
+    }
+    _modeResolver.markPlayed(state.currentIndex);
+    _refreshNextSelection();
+  }
+
+  /// 投屏失败时放弃本次历史导航，保留最后实际听过的位置。
+  void recordCastingFailure(Song song) {
+    if (state.currentSong?.id != song.id ||
+        state.currentSong?.type != song.type) {
+      return;
+    }
+    _modeResolver.markFailed(state.currentIndex);
+    state = state.copyWith(hasPriorityNext: _modeResolver.hasPriorityNext);
   }
 
   /// 暂停/播放切换
@@ -869,7 +952,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
   /// 投屏专用：仅将播放队列推进到下一首（更新 currentIndex/currentSong），
   /// 不触发本地播放。用于 DLNA 投屏时设备播完当前曲后推进歌单。
   /// 返回推进后的当前歌曲；顺序模式到达末尾时返回 null。
-  /// 注意：single / singlePlay 模式由投屏层单独处理，不应调用此方法。
+  /// single / singlePlay 模式没有手动下一首时由投屏层单独处理。
   Song? advanceForCasting() {
     if (state.playlist.isEmpty) return null;
 
@@ -882,8 +965,8 @@ class PlayerNotifier extends Notifier<PlayerState> {
     // 兜底：任何情况下都不越界访问
     if (nextIdx < 0 || nextIdx >= state.playlist.length) return null;
 
-    _modeResolver.markPlayed(nextIdx);
     state = state.copyWith(
+      hasPriorityNext: _modeResolver.hasPriorityNext,
       currentIndex: nextIdx,
       currentSong: state.playlist[nextIdx],
       currentTime: Duration.zero,
@@ -911,7 +994,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
     // 如果当前播放超过 3 秒，重新开始当前歌曲
     final casting = ref.read(dlnaStateProvider);
     final position = casting.isCasting ? casting.position : state.currentTime;
-    if (position.inSeconds > 3) {
+    if (state.playMode != PlayMode.random && position.inSeconds > 3) {
       debugPrint('[Player] playPrev: seeking to start of current song');
       await seek(Duration.zero);
       return;
@@ -1029,6 +1112,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
   /// 设置播放模式
   Future<void> setPlayMode(PlayMode mode) async {
     _modeResolver.onModeChanged(mode);
+    if (state.currentSong != null) _modeResolver.markPlayed(state.currentIndex);
     state = state.copyWith(playMode: mode);
 
     // 保存到本地存储
@@ -1063,10 +1147,11 @@ class PlayerNotifier extends Notifier<PlayerState> {
 
     final wasCurrentIndex = state.currentIndex;
 
-    final result = PlayQueue(
+    final previousQueue = PlayQueue(
       songs: state.playlist,
       currentIndex: state.currentIndex,
-    ).removeAt(index);
+    );
+    final result = previousQueue.removeAt(index);
 
     if (result.shouldStop) {
       _audioHandler.stop();
@@ -1078,6 +1163,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
       currentSong: result.currentSong,
       clearCurrentSong: result.currentSong == null,
     );
+    _onQueueEdited(previousQueue);
     if (result.currentSong == null) {
       _syncLiveActivitySong(null);
       _syncHomeWidgetSong(null);
@@ -1102,20 +1188,24 @@ class PlayerNotifier extends Notifier<PlayerState> {
   void moveInPlaylist(int oldIndex, int insertIndex) {
     if (oldIndex == insertIndex) return;
 
-    final queue = PlayQueue(
+    final previousQueue = PlayQueue(
       songs: state.playlist,
       currentIndex: state.currentIndex,
-    ).move(oldIndex, insertIndex);
+    );
+    final queue = previousQueue.move(oldIndex, insertIndex);
 
     state = state.copyWith(
       playlist: queue.songs,
       currentIndex: queue.currentIndex,
     );
+    _onQueueEdited(previousQueue);
     _savePlaybackState();
   }
 
   /// 清空播放列表
   void clearPlaylist() {
+    // 清空使尚未完成的切歌也失效，防止旧请求写回新会话的历史。
+    ++_playGeneration;
     // 取消之前的预加载
     _prefetchCancelToken?.cancel('operation changed');
     // 递增代次，使正在进行的后台加载自动取消
@@ -1127,6 +1217,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
     _stopPositionSaveTimer();
     state = state.copyWith(
       playlist: [],
+      hasPriorityNext: false,
       currentIndex: -1,
       clearCurrentSong: true,
       isPlaying: false,
@@ -1432,13 +1523,6 @@ class PlayerNotifier extends Notifier<PlayerState> {
         fetch: fetch,
         onBatch: (batch) {
           addToPlaylist(batch);
-          // 队列增长后必须重算预选的下一首：起播时队列只有 1 首，
-          // random 模式对单曲队列直接返回 0（= 当前这首），
-          // 而 playNext 会优先用这个预选值 —— 不重算就会把同一首立刻重播一遍。
-          _modeResolver.preSelectNext(
-            currentIndex: state.currentIndex,
-            length: state.playlist.length,
-          );
         },
       );
 
@@ -1883,8 +1967,8 @@ class PlayerNotifier extends Notifier<PlayerState> {
     // 不会再用旧歌的 source 覆盖新歌的 setAudioSource。
     final gen = ++_playGeneration;
 
-    _modeResolver.markPlayed(index);
     state = state.copyWith(
+      hasPriorityNext: _modeResolver.hasPriorityNext,
       currentIndex: index,
       currentSong: state.playlist[index],
       currentTime: Duration.zero,
@@ -2006,10 +2090,12 @@ class PlayerNotifier extends Notifier<PlayerState> {
         }
         if (_isSuperseded(gen, 'after-volume')) return;
         debugPrint('[Player] _playCurrent: playback started successfully');
+        _modeResolver.markPlayed(state.currentIndex);
 
         // 播放成功 - 重置连续失败计数
         _retryPolicy.recordSuccess();
         state = state.copyWith(
+          hasPriorityNext: _modeResolver.hasPriorityNext,
           isRetrying: false,
           clearInfoMessage: true,
           // 回填播放来源（本地缓存 / 远端流串），供播放页「歌曲信息」展示。
@@ -2048,10 +2134,15 @@ class PlayerNotifier extends Notifier<PlayerState> {
 
     // 所有重试都失败 —— 仍要确认未被取代，避免影响新歌的状态
     if (_isSuperseded(gen, 'all-retries-exhausted')) return;
+    _modeResolver.markFailed(state.currentIndex);
     debugPrint(
       '[Player] _playCurrent: all retries exhausted for: ${song.title}',
     );
-    state = state.copyWith(isRetrying: false, clearInfoMessage: true);
+    state = state.copyWith(
+      hasPriorityNext: _modeResolver.hasPriorityNext,
+      isRetrying: false,
+      clearInfoMessage: true,
+    );
     _handlePlayFailure(gen);
   }
 
@@ -2117,28 +2208,17 @@ class PlayerNotifier extends Notifier<PlayerState> {
       return;
     }
 
-    int nextIndex;
-    if (state.playMode == PlayMode.random) {
-      nextIndex =
-          _modeResolver.nextIndex(
-            currentIndex: state.currentIndex,
-            length: state.playlist.length,
-          ) ??
-          0;
-    } else {
-      nextIndex = state.currentIndex + 1;
-      if (nextIndex >= state.playlist.length) {
-        if (state.playMode == PlayMode.order) {
-          // 顺序模式已到末尾，停止
-          state = state.copyWith(
-            errorMessage: l10n.playerPlayFailedEndOfList,
-            isPlaying: false,
-          );
-          _audioHandler.stop();
-          return;
-        }
-        nextIndex = 0; // loop 模式回绕
-      }
+    final nextIndex = _modeResolver.nextIndex(
+      currentIndex: state.currentIndex,
+      length: state.playlist.length,
+    );
+    if (nextIndex == null) {
+      state = state.copyWith(
+        errorMessage: l10n.playerPlayFailedEndOfList,
+        isPlaying: false,
+      );
+      _audioHandler.stop();
+      return;
     }
 
     debugPrint('[Player] Skipping to next on failure: index $nextIndex');
@@ -2152,6 +2232,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
       currentIndex: state.currentIndex,
       preSelectedNextIndex: _modeResolver.preSelectedIndex,
       playMode: _modeResolver.mode,
+      hasPriorityNext: _modeResolver.hasPriorityNext,
     );
 
     if (!decision.shouldPrefetch || decision.songToPrefetch == null) return;
@@ -2222,6 +2303,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
       currentIndex: state.currentIndex,
       preSelectedNextIndex: _modeResolver.preSelectedIndex,
       playMode: _modeResolver.mode,
+      hasPriorityNext: _modeResolver.hasPriorityNext,
     );
 
     if (!decision.shouldPrefetch) return;

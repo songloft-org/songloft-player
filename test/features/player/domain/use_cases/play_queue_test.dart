@@ -132,6 +132,84 @@ void main() {
       });
     });
 
+    group('playNext', () {
+      test('new song follows current without changing the current song', () {
+        final original = PlayQueue(
+          songs: [_makeSong(1), _makeSong(2)],
+          currentIndex: 0,
+        );
+        final queue = original.playNext(_makeSong(3));
+        expect(queue.songs.map((s) => s.id), [1, 3, 2]);
+        expect(queue.currentSong?.id, 1);
+        expect(original.songs.length, 2);
+      });
+
+      test('existing earlier song moves after current without duplicates', () {
+        final original = PlayQueue(
+          songs: [_makeSong(1), _makeSong(2), _makeSong(3), _makeSong(4)],
+          currentIndex: 2,
+        );
+        final queue = original.playNext(_makeSong(1));
+        expect(queue.songs.map((s) => s.id), [2, 3, 1, 4]);
+        expect(queue.currentIndex, 1);
+        expect(queue.currentSong?.id, 3);
+        expect(original.indexMappingTo(queue), {0: 2, 1: 0, 2: 1, 3: 3});
+      });
+
+      test('existing later song moves after current', () {
+        final queue = PlayQueue(
+          songs: [_makeSong(1), _makeSong(2), _makeSong(3)],
+          currentIndex: 0,
+        ).playNext(_makeSong(3));
+        expect(queue.songs.map((s) => s.id), [1, 3, 2]);
+      });
+
+      test(
+        'current song can be scheduled once again, repeated requests deduplicate',
+        () {
+          final song = _makeSong(1);
+          final original = PlayQueue(
+            songs: [song, _makeSong(2)],
+            currentIndex: 0,
+          );
+          final queue = original.playNext(song).playNext(song);
+          expect(queue.songs.map((s) => s.id), [1, 1, 2]);
+          expect(queue.currentIndex, 0);
+          expect(original.indexMappingTo(queue), {0: 0, 1: 2});
+          final moved = queue.move(0, 2);
+          expect(queue.indexMappingTo(moved), {0: 2, 1: 0, 2: 1});
+        },
+      );
+
+      test('same id with different type is a separate song', () {
+        final queue = PlayQueue(
+          songs: [_makeSong(1)],
+          currentIndex: 0,
+        ).playNext(_makeSong(1, type: 'radio'));
+        expect(queue.length, 2);
+        expect(queue.songs[1].type, 'radio');
+      });
+
+      test('empty and unstarted queues insert at the beginning', () {
+        expect(PlayQueue.empty.playNext(_makeSong(1)).songs.single.id, 1);
+        final queue = PlayQueue(
+          songs: [_makeSong(1), _makeSong(2)],
+          currentIndex: -1,
+        ).playNext(_makeSong(2));
+        expect(queue.songs.map((s) => s.id), [2, 1]);
+        expect(queue.currentIndex, -1);
+      });
+
+      test('deleted songs have no mapping; new songs do not steal history', () {
+        final old = PlayQueue(
+          songs: [_makeSong(1), _makeSong(2)],
+          currentIndex: 1,
+        );
+        final updated = old.removeAt(0).queue.insert(0, _makeSong(3));
+        expect(old.indexMappingTo(updated), {1: 1});
+      });
+    });
+
     group('removeAt', () {
       test('removes song after current does not change currentIndex', () {
         final result = PlayQueue(

@@ -93,6 +93,7 @@ class PlayerState {
   final Song? currentSong;
   final List<Song> playlist;
   final int currentIndex;
+  final bool hasPriorityNext; // 手动指定的下一首
   final bool isPlaying;
   final double volume; // 0-100
   final Duration currentTime;
@@ -121,6 +122,7 @@ class PlayerState {
     this.currentSong,
     this.playlist = const [],
     this.currentIndex = -1,
+    this.hasPriorityNext = false,
     this.isPlaying = false,
     this.volume = 50,
     this.currentTime = Duration.zero,
@@ -153,6 +155,7 @@ class PlayerState {
   /// 是否有下一首
   bool get hasNext {
     if (playlist.isEmpty) return false;
+    if (hasPriorityNext) return true;
     if (playMode == PlayMode.loop || playMode == PlayMode.random) return true;
     // singlePlay 和 order 模式下，判断是否还有下一首
     return currentIndex < playlist.length - 1;
@@ -198,6 +201,7 @@ class PlayerState {
     Song? currentSong,
     List<Song>? playlist,
     int? currentIndex,
+    bool? hasPriorityNext,
     bool? isPlaying,
     double? volume,
     Duration? currentTime,
@@ -225,6 +229,7 @@ class PlayerState {
       currentSong: clearCurrentSong ? null : (currentSong ?? this.currentSong),
       playlist: playlist ?? this.playlist,
       currentIndex: currentIndex ?? this.currentIndex,
+      hasPriorityNext: hasPriorityNext ?? this.hasPriorityNext,
       isPlaying: isPlaying ?? this.isPlaying,
       volume: volume ?? this.volume,
       currentTime: currentTime ?? this.currentTime,

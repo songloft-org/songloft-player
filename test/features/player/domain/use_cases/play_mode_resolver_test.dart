@@ -41,11 +41,14 @@ void main() {
         );
 
         const length = 5;
-        final played = <int>{};
+        final played = <int>{0};
+        resolver.markPlayed(0);
+        int current = 0;
 
-        // Play through all songs - should not repeat
-        for (var i = 0; i < length; i++) {
-          final next = resolver.nextIndex(currentIndex: i, length: length)!;
+        // Play through all remaining songs - should not repeat.
+        for (var i = 1; i < length; i++) {
+          final next =
+              resolver.nextIndex(currentIndex: current, length: length)!;
           expect(
             played.contains(next),
             isFalse,
@@ -53,6 +56,7 @@ void main() {
           );
           played.add(next);
           resolver.markPlayed(next);
+          current = next;
         }
 
         expect(played.length, length);
@@ -190,7 +194,7 @@ void main() {
         expect(result, 2);
       });
 
-      test('random mode: returns a random index', () {
+      test('random mode: returns null without playback history', () {
         final resolver = PlayModeResolver(
           mode: PlayMode.random,
           random: Random(42),
@@ -200,8 +204,7 @@ void main() {
           length: 5,
           currentPosition: Duration.zero,
         );
-        expect(result, isNotNull);
-        expect(result, inInclusiveRange(0, 4));
+        expect(result, isNull);
       });
 
       test('empty list (length=0) returns null', () {
@@ -352,8 +355,187 @@ void main() {
       });
     });
 
+    group('random playback history', () {
+      late PlayModeResolver resolver;
+      setUp(() {
+        resolver = PlayModeResolver(mode: PlayMode.random, random: Random(42));
+        for (final index in [0, 3, 1]) {
+          resolver.markPlayed(index);
+        }
+      });
+
+      int? previous(int current) => resolver.prevIndex(
+        currentIndex: current,
+        length: 5,
+        currentPosition: const Duration(seconds: 90),
+      );
+
+      test('previous follows actual order even after three seconds', () {
+        expect(previous(1), 3);
+        resolver.markPlayed(3);
+        expect(previous(3), 0);
+        resolver.markPlayed(0);
+        expect(previous(0), isNull);
+      });
+
+      test('rapid previous/next use the in-flight history cursor', () {
+        expect(previous(1), 3);
+        expect(previous(3), 0); // Previous load has not finished yet.
+        resolver.markPlayed(0); // Only the final request succeeds.
+        expect(resolver.nextIndex(currentIndex: 0, length: 5), 3);
+        expect(resolver.nextIndex(currentIndex: 3, length: 5), 1);
+        resolver.markPlayed(1);
+        expect(previous(1), 3);
+      });
+
+      test(
+        'scheduling while going back does not overwrite the navigation cursor',
+        () {
+          expect(previous(1), 3);
+          resolver.prioritizeNext(4);
+          resolver.markPlayed(3);
+          expect(previous(3), 0);
+          resolver.markPlayed(0);
+          expect(resolver.nextIndex(currentIndex: 0, length: 5), 4);
+        },
+      );
+
+      test(
+        'previous during a new load returns the last actually played song',
+        () {
+          resolver.prioritizeNext(4);
+          expect(resolver.nextIndex(currentIndex: 1, length: 5), 4);
+          expect(previous(4), 1);
+          resolver.markPlayed(1);
+          expect(previous(1), 3);
+        },
+      );
+
+      test('next retraces history before choosing another random song', () {
+        expect(previous(1), 3);
+        resolver.markPlayed(3);
+        expect(previous(3), 0);
+        resolver.markPlayed(0);
+        expect(resolver.preSelectNext(currentIndex: 0, length: 5), 3);
+        expect(resolver.nextIndex(currentIndex: 0, length: 5), 3);
+        resolver.markPlayed(3);
+        expect(resolver.nextIndex(currentIndex: 3, length: 5), 1);
+        resolver.markPlayed(1);
+        expect(resolver.nextIndex(currentIndex: 1, length: 5), anyOf(2, 4));
+      });
+
+      test('preselection and retries do not add phantom history entries', () {
+        resolver.preSelectNext(currentIndex: 1, length: 5);
+        resolver.preSelectNext(currentIndex: 1, length: 5);
+        resolver.markPlayed(1);
+        resolver.markPlayed(1);
+        expect(previous(1), 3);
+      });
+
+      test('manual next overrides forward history and starts a new branch', () {
+        previous(1);
+        resolver.markPlayed(3);
+        resolver.prioritizeNext(4);
+        expect(resolver.preSelectNext(currentIndex: 3, length: 5), 4);
+        expect(resolver.nextIndex(currentIndex: 3, length: 5), 4);
+        resolver.markPlayed(4);
+        expect(previous(4), 3);
+        resolver.markPlayed(3);
+        expect(resolver.nextIndex(currentIndex: 3, length: 5), 4);
+      });
+
+      test('queue reorder remaps history and manual next by song identity', () {
+        resolver.prioritizeNext(4);
+        resolver.remapQueue({0: 4, 1: 3, 2: 2, 3: 1, 4: 0});
+        expect(previous(3), 1);
+        resolver.markPlayed(1);
+        expect(resolver.nextIndex(currentIndex: 1, length: 5), 0);
+      });
+
+      test(
+        'deleting a history song skips it, without clearing older history',
+        () {
+          resolver.remapQueue({0: 0, 1: 1, 2: 2, 4: 3});
+          expect(
+            resolver.prevIndex(
+              currentIndex: 1,
+              length: 4,
+              currentPosition: Duration.zero,
+            ),
+            0,
+          );
+        },
+      );
+
+      test(
+        'failed forward-history song is skipped without becoming current history',
+        () {
+          previous(1);
+          resolver.markPlayed(3);
+          expect(resolver.nextIndex(currentIndex: 3, length: 5), 1);
+          resolver.markFailed(1);
+          expect(resolver.nextIndex(currentIndex: 1, length: 5), anyOf(2, 4));
+        },
+      );
+
+      test(
+        'replacing or clearing the queue resets history and manual choices',
+        () {
+          resolver.prioritizeNext(4);
+          resolver.onQueueChanged();
+          expect(resolver.hasPriorityNext, isFalse);
+          expect(previous(1), isNull);
+          expect(resolver.preSelectedIndex, isNull);
+        },
+      );
+    });
+
+    group('priority next', () {
+      for (final mode in PlayMode.values) {
+        test('manual choices override ${mode.name} once, latest first', () {
+          final resolver = PlayModeResolver(mode: mode, random: Random(42));
+          resolver.markPlayed(0);
+          resolver.prioritizeNext(1);
+          resolver.prioritizeNext(3);
+          resolver.prioritizeNext(3); // same request is not added twice.
+          expect(resolver.preSelectNext(currentIndex: 0, length: 5), 3);
+          expect(resolver.nextIndex(currentIndex: 0, length: 5), 3);
+          resolver.markPlayed(3);
+          expect(resolver.nextIndex(currentIndex: 3, length: 5), 1);
+          resolver.markPlayed(1);
+          expect(resolver.hasPriorityNext, isFalse);
+          expect(resolver.mode, mode);
+          if (mode == PlayMode.single || mode == PlayMode.singlePlay) {
+            expect(resolver.nextIndex(currentIndex: 1, length: 5), 1);
+          }
+        });
+      }
+
+      test(
+        'deleting a pending next removes the priority and cached selection',
+        () {
+          final resolver = PlayModeResolver(mode: PlayMode.random);
+          resolver.prioritizeNext(2);
+          resolver.preSelectNext(currentIndex: 0, length: 3);
+          resolver.remapQueue({0: 0, 1: 1});
+          expect(resolver.hasPriorityNext, isFalse);
+          expect(resolver.preSelectedIndex, isNull);
+          expect(resolver.nextIndex(currentIndex: 0, length: 2), 1);
+        },
+      );
+
+      test('mode changes preserve manual choices but reset random history', () {
+        final resolver = PlayModeResolver(mode: PlayMode.random);
+        resolver.markPlayed(0);
+        resolver.markPlayed(1);
+        resolver.prioritizeNext(2);
+        resolver.onModeChanged(PlayMode.single);
+        expect(resolver.nextIndex(currentIndex: 1, length: 3), 2);
+      });
+    });
+
     group('edge cases', () {
-      test('single song in random mode prevIndex returns 0', () {
+      test('single song in random mode has no previous history', () {
         final resolver = PlayModeResolver(
           mode: PlayMode.random,
           random: Random(42),
@@ -363,7 +545,7 @@ void main() {
           length: 1,
           currentPosition: Duration.zero,
         );
-        expect(result, 0);
+        expect(result, isNull);
       });
 
       test('preSelectNext called twice, second overwrites first', () {

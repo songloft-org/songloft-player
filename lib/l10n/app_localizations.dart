@@ -2043,6 +2043,12 @@ abstract class AppLocalizations {
   /// **'未知专辑'**
   String get libraryUnknownAlbum;
 
+  /// No description provided for @libraryPlayNext.
+  ///
+  /// In zh, this message translates to:
+  /// **'下一首播放'**
+  String get libraryPlayNext;
+
   /// No description provided for @libraryPlay.
   ///
   /// In zh, this message translates to:

@@ -591,6 +591,7 @@
   },
   "libraryUnknownArtist": "Unknown artist",
   "libraryUnknownAlbum": "Unknown album",
+  "libraryPlayNext": "Play next",
   "libraryPlay": "Play",
   "libraryEdit": "Edit",
   "libraryCustomizeViews": "Customize views",

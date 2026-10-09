@@ -1134,6 +1134,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get libraryUnknownAlbum => 'Unknown album';
 
   @override
+  String get libraryPlayNext => 'Play next';
+
+  @override
   String get libraryPlay => 'Play';
 
   @override

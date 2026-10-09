@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import '../../../../shared/models/song.dart';
 
 /// 播放队列操作结果
@@ -68,6 +70,51 @@ class PlayQueue {
     }
 
     return PlayQueue(songs: updatedSongs, currentIndex: newCurrentIndex);
+  }
+
+  /// 安排歌曲紧接当前曲播放；已有歌曲移位，当前曲允许额外安排一次重播。
+  PlayQueue playNext(Song song) {
+    int existingIndex = -1;
+    for (int i = 0; i < songs.length; i++) {
+      if (i != currentIndex &&
+          songs[i].id == song.id &&
+          songs[i].type == song.type) {
+        existingIndex = i;
+        break;
+      }
+    }
+    if (existingIndex < 0) return insert(currentIndex + 1, song);
+    final target =
+        existingIndex <= currentIndex ? currentIndex : currentIndex + 1;
+    return move(existingIndex, target.clamp(0, songs.length - 1));
+  }
+
+  /// 根据歌曲身份映射编辑前后的索引，优先保留当前曲的对应关系。
+  /// 重复歌曲按出现顺序匹配，复杂度 O(n)。
+  Map<int, int> indexMappingTo(PlayQueue updated) {
+    final mapping = <int, int>{};
+    final positions = <(int, String), ListQueue<int>>{};
+    final current = currentSong;
+    final nextCurrent = updated.currentSong;
+    final preservesCurrent =
+        current != null &&
+        nextCurrent != null &&
+        current.id == nextCurrent.id &&
+        current.type == nextCurrent.type;
+    if (preservesCurrent) mapping[currentIndex] = updated.currentIndex;
+    for (int i = 0; i < updated.songs.length; i++) {
+      if (preservesCurrent && i == updated.currentIndex) continue;
+      final song = updated.songs[i];
+      (positions[(song.id, song.type)] ??= ListQueue<int>()).add(i);
+    }
+    for (int i = 0; i < songs.length; i++) {
+      if (preservesCurrent && i == currentIndex) continue;
+      final candidates = positions[(songs[i].id, songs[i].type)];
+      if (candidates != null && candidates.isNotEmpty) {
+        mapping[i] = candidates.removeFirst();
+      }
+    }
+    return mapping;
   }
 
   /// 删除指定位置的歌曲，返回操作结果（包含新队列、是否应停止、新的当前歌曲）

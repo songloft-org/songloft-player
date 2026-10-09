@@ -1168,6 +1168,8 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
           },
           onDelete: () => _showDeleteConfirmDialog(context, song.id),
           onEdit: () => _navigateToEditSong(context, song),
+          onPlayNext:
+              () => ref.read(playerStateProvider.notifier).playSongNext(song),
           onAddToPlaylist: () => _showAddToPlaylistDialog(context, [song.id]),
           onManageTags: () => ManageTagsModal.show(context, songIds: [song.id]),
         );
@@ -1318,6 +1320,10 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
                         onDelete:
                             () => _showDeleteConfirmDialog(context, song.id),
                         onEdit: () => _navigateToEditSong(context, song),
+                        onPlayNext:
+                            () => ref
+                                .read(playerStateProvider.notifier)
+                                .playSongNext(song),
                         onAddToPlaylist:
                             () => _showAddToPlaylistDialog(context, [song.id]),
                         onManageTags:

@@ -396,6 +396,10 @@ class _CategorySongsPageState extends ConsumerState<CategorySongsPage>
                 onSelect: () => _toggleSelection(song.id),
                 onDelete: () => _deleteSong(song.id),
                 onEdit: () => _navigateToEditSong(song),
+                onPlayNext:
+                    () => ref
+                        .read(playerStateProvider.notifier)
+                        .playSongNext(song),
                 onAddToPlaylist:
                     () => AddToPlaylistModal.show(context, songIds: [song.id]),
                 onManageTags:

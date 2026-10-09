@@ -31,7 +31,7 @@ class PrefetchStrategy {
   ///
   /// 决策规则：
   /// - 歌单为空或只有 1 首 → skip
-  /// - single/singlePlay 模式 → skip（重播自己不需要 prefetch）
+  /// - single/singlePlay 模式且没有手动下一首 → skip
   /// - preSelectedNextIndex 为 null 或越界 → skip
   /// - 下一首歌 url 为空或非后端相对路径 → skip
   /// - 下一首歌是本地歌曲 → skip（无需网络预热）
@@ -40,14 +40,16 @@ class PrefetchStrategy {
     required int currentIndex,
     required int? preSelectedNextIndex,
     required PlayMode playMode,
+    bool hasPriorityNext = false,
   }) {
     // 歌单为空或只有 1 首
     if (playlist.isEmpty || playlist.length <= 1) {
       return const PrefetchDecision.skip();
     }
 
-    // single/singlePlay 模式：重播自己，无需 prefetch
-    if (playMode == PlayMode.single || playMode == PlayMode.singlePlay) {
+    // 单曲模式只有手动指定下一首时才预加载。
+    if (!hasPriorityNext &&
+        (playMode == PlayMode.single || playMode == PlayMode.singlePlay)) {
       return const PrefetchDecision.skip();
     }
 
@@ -97,6 +99,7 @@ class PrefetchStrategy {
     required int currentIndex,
     required int? preSelectedNextIndex,
     required PlayMode playMode,
+    bool hasPriorityNext = false,
   }) {
     // 已经触发过
     if (_lateStageFired) {
@@ -127,6 +130,7 @@ class PrefetchStrategy {
       currentIndex: currentIndex,
       preSelectedNextIndex: preSelectedNextIndex,
       playMode: playMode,
+      hasPriorityNext: hasPriorityNext,
     );
   }
 

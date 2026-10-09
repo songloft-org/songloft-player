@@ -619,6 +619,7 @@
   },
   "libraryUnknownArtist": "Artista desconocido",
   "libraryUnknownAlbum": "Álbum desconocido",
+  "libraryPlayNext": "Reproducir a continuación",
   "libraryPlay": "Reproducir",
   "libraryEdit": "Editar",
   "libraryCustomizeViews": "Personalizar vistas",

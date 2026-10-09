@@ -285,6 +285,21 @@ void main() {
       });
     });
 
+    test('manual next is prefetched in single and singlePlay modes', () {
+      final playlist = _makePlaylist(3);
+      for (final mode in [PlayMode.single, PlayMode.singlePlay]) {
+        final decision = strategy.evaluateAfterPlay(
+          playlist: playlist,
+          currentIndex: 0,
+          preSelectedNextIndex: 2,
+          playMode: mode,
+          hasPriorityNext: true,
+        );
+        expect(decision.songToPrefetch, playlist[2]);
+        expect(decision.shouldPrefetch, isTrue);
+      }
+    });
+
     group('onSongChanged', () {
       test('resets lateStageFired so it can trigger again', () {
         final playlist = _makePlaylist(3);

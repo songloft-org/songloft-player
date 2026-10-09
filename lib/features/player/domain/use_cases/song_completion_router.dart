@@ -28,7 +28,9 @@ class SongCompletionRouter {
     required PlayMode mode,
     required int currentIndex,
     required int playlistLength,
+    bool hasPriorityNext = false,
   }) {
+    if (hasPriorityNext && playlistLength > 0) return CompletionAction.playNext;
     switch (mode) {
       case PlayMode.single:
         return CompletionAction.replayCurrent;

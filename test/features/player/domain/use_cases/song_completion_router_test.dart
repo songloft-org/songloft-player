@@ -125,6 +125,20 @@ void main() {
     });
   });
 
+  test('manual next overrides natural completion in every playback mode', () {
+    for (final mode in PlayMode.values) {
+      expect(
+        router.resolve(
+          mode: mode,
+          currentIndex: 2,
+          playlistLength: 3,
+          hasPriorityNext: true,
+        ),
+        CompletionAction.playNext,
+      );
+    }
+  });
+
   group('edge cases', () {
     test('currentIndex = -1 in order mode returns playNext', () {
       // -1 >= playlistLength - 1 is false for length >= 1

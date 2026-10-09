@@ -13,9 +13,9 @@ import '../../../../shared/widgets/scrolling_text.dart';
 import '../../../../shared/widgets/song_tile.dart';
 
 /// 桌面端「操作按钮」列宽度。tile 内的按钮区与列表表头占位需保持一致，
-/// 否则表头与行的操作列对不齐；宽度需容纳 6 个紧凑按钮
-/// （play/收藏/编辑/加歌单/管理标签/删除）。
-const double kDesktopActionsWidth = 208;
+/// 否则表头与行的操作列对不齐；宽度需容纳 7 个紧凑按钮
+/// （play/下一首播放/收藏/编辑/加歌单/管理标签/删除）。
+const double kDesktopActionsWidth = 240;
 
 /// 曲库歌曲列表项：窄屏复用通用 [SongTile]，宽屏为库特有的多列表格行。
 class SongListTile extends StatelessWidget {
@@ -31,6 +31,7 @@ class SongListTile extends StatelessWidget {
   final VoidCallback? onDelete;
   final VoidCallback? onEdit;
   final VoidCallback? onAddToPlaylist;
+  final VoidCallback? onPlayNext;
   final VoidCallback? onManageTags;
 
   const SongListTile({
@@ -47,6 +48,7 @@ class SongListTile extends StatelessWidget {
     this.onDelete,
     this.onEdit,
     this.onAddToPlaylist,
+    this.onPlayNext,
     this.onManageTags,
   });
 
@@ -77,6 +79,13 @@ class SongListTile extends StatelessWidget {
                   icon: Icons.play_arrow,
                   label: l10n.libraryPlay,
                   onTap: onTap!,
+                ),
+              if (onPlayNext != null)
+                BrowseCardAction(
+                  value: 'play_next',
+                  icon: Icons.playlist_play,
+                  label: l10n.libraryPlayNext,
+                  onTap: onPlayNext!,
                 ),
               if (onEdit != null)
                 BrowseCardAction(
@@ -298,7 +307,7 @@ class SongListTile extends StatelessWidget {
 
     final l10n = AppLocalizations.of(context);
 
-    // 紧凑化：默认 IconButton 触摸目标 48px，6 个按钮会撑破操作列导致右侧按钮
+    // 紧凑化：默认 IconButton 触摸目标 48px，7 个按钮会撑破操作列导致右侧按钮
     // （编辑/添加/标签/删除）被裁剪不可见。shrinkWrap + compact 让按钮回落到 minWidth。
     const constraints = BoxConstraints(minWidth: 28, minHeight: 28);
 
@@ -329,6 +338,12 @@ class SongListTile extends StatelessWidget {
           tooltip: l10n.libraryPlay,
           onPressed: onTap,
         ),
+        if (onPlayNext != null)
+          actionButton(
+            icon: Icons.playlist_play,
+            tooltip: l10n.libraryPlayNext,
+            onPressed: onPlayNext,
+          ),
         FavoriteButton(songId: song.id, songType: song.type, size: 20),
         actionButton(
           icon: Icons.edit,

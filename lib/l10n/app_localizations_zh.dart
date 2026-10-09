@@ -1105,6 +1105,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get libraryUnknownAlbum => '未知专辑';
 
   @override
+  String get libraryPlayNext => '下一首播放';
+
+  @override
   String get libraryPlay => '播放';
 
   @override

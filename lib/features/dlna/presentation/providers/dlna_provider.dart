@@ -220,6 +220,7 @@ class DlnaNotifier extends Notifier<DlnaState> {
         position: Duration.zero,
         duration: Duration(milliseconds: (song.duration * 1000).round()),
       );
+      ref.read(playerStateProvider.notifier).recordCastingPlayback(song);
     } catch (e) {
       if (generation != _generation) return;
       dlnaLog('castToDevice failed device=${device.id} song=${song.id}: $e');
@@ -252,9 +253,11 @@ class DlnaNotifier extends Notifier<DlnaState> {
         duration: Duration(milliseconds: (song.duration * 1000).round()),
         error: () => null,
       );
+      ref.read(playerStateProvider.notifier).recordCastingPlayback(song);
     } catch (e) {
       if (generation != _generation) return;
       dlnaLog('castSong failed device=${device.id} song=${song.id}: $e');
+      ref.read(playerStateProvider.notifier).recordCastingFailure(song);
       state = state.copyWith(error: () => e.toString());
     } finally {
       if (generation == _generation) _isChangingSong = false;
@@ -268,6 +271,12 @@ class DlnaNotifier extends Notifier<DlnaState> {
     if (!state.isCasting || _isChangingSong) return;
     final playerNotifier = ref.read(playerStateProvider.notifier);
     final playerState = ref.read(playerStateProvider);
+
+    if (playerState.hasPriorityNext) {
+      final next = playerNotifier.advanceForCasting();
+      if (next != null) unawaited(castSong(next));
+      return;
+    }
 
     switch (playerState.playMode) {
       case PlayMode.singlePlay:
