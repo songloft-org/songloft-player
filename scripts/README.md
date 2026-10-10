@@ -46,6 +46,8 @@
 
 推送 tag 后由 `.github/workflows/build-and-release.yml` 自动完成多平台构建和 GitHub Release。
 
+Release 正文使用 `.github/release-notes.md` 中的中英双语安装说明，并追加分类提交记录。版本 tag 发布成功后，独立 job 基于最新 `main` 更新根目录的中文 `CHANGELOG.md` 并提交回仓库；滚动 dev 不写入该文件。不同版本的日志更新串行执行，不触发新一轮构建。
+
 **安全机制**：
 - 检查 Git 仓库环境
 - 未提交更改时提示确认

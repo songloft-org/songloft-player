@@ -481,6 +481,8 @@ jobs:
       - build-android
       - build-ios
     runs-on: ubuntu-latest
+    outputs:
+      previous_tag: ${{ steps.prev-tag.outputs.previous_tag }}
     steps:
       - name: Check all builds succeeded (required for non-dev releases)
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
@@ -586,29 +588,30 @@ jobs:
       - name: Create Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CHANGELOG_BODY: ${{ steps.changelog.outputs.changes }}
         run: |
           TAG="${{ steps.release_info.outputs.tag }}"
           TITLE="${{ steps.release_info.outputs.name }}"
           IS_PRERELEASE="${{ steps.release_info.outputs.prerelease }}"
           MAKE_LATEST="${{ steps.release_info.outputs.make_latest }}"
 
-          # 通过环境变量获取 changelog，避免反引号等特殊字符被 shell 解释
-          RELEASE_NOTES="${CHANGELOG_BODY}"
-
-          # 如果 changelog 为空，使用默认内容
-          if [ -z "$RELEASE_NOTES" ] || [ "$RELEASE_NOTES" = "" ]; then
-            if [[ "${IS_PRERELEASE}" == "true" ]]; then
-              RELEASE_NOTES="Development build from branch: ${{ github.ref_name }}"
-            else
-              RELEASE_NOTES="Release ${TAG}"
-            fi
+          # JSON 字符串通过带引号的 heredoc 写入文件，避免 shell 展开和环境变量长度限制。
+          python3 -c 'import json, sys; from pathlib import Path; Path(sys.argv[1]).write_text(json.load(sys.stdin) or "", encoding="utf-8")' "$RUNNER_TEMP/changelog.md" <<'CHANGELOG_JSON'
+          ${{ toJSON(steps.changelog.outputs.changes) }}
+          CHANGELOG_JSON
+          NOTES_FILE="$RUNNER_TEMP/release-notes.md"
+          printf 'Songloft Player (Flutter) %s\n\n' "$TAG" > "$NOTES_FILE"
+          cat .github/release-notes.md >> "$NOTES_FILE"
+          # 保留 Markdown，并用文件传给 gh。
+          if [ -s "$RUNNER_TEMP/changelog.md" ]; then
+            printf '\n## 更新记录 / Changelog\n\n' >> "$NOTES_FILE"
+            cat "$RUNNER_TEMP/changelog.md" >> "$NOTES_FILE"
+            printf '\n' >> "$NOTES_FILE"
           fi
 
           ARGS=(
             "${TAG}"
             --title "${TITLE}"
-            --notes "${RELEASE_NOTES}"
+            --notes-file "$NOTES_FILE"
           )
 
           if [[ "${IS_PRERELEASE}" == "true" ]]; then
@@ -630,3 +633,60 @@ jobs:
           else
             gh release create "${ARGS[@]}"
           fi
+
+  update-changelog:
+    name: Save versioned changelog
+    needs: release
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    concurrency:
+      group: flutter-changelog-main
+      cancel-in-progress: false
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Write versioned changelog
+        uses: requarks/changelog-action@v1
+        with:
+          token: ${{ github.token }}
+          fromTag: ${{ github.ref_name }}
+          toTag: ${{ needs.release.outputs.previous_tag }}
+          writeToFile: true
+          changelogFilePath: CHANGELOG.md
+          useGitmojis: true
+          includeRefIssues: false
+          includeInvalidCommits: false
+          restrictToTypes: feat,fix,docs,style,refactor,perf,test,build,ci,chore,revert
+      - name: Localize and commit changelog
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          sed -i \
+            -e 's/^### :boom: BREAKING CHANGES$/### :boom: 不兼容变更/' \
+            -e 's/^### :sparkles: New Features$/### :sparkles: 新增功能/' \
+            -e 's/^### :bug: Bug Fixes$/### :bug: 问题修复/' \
+            -e 's/^### :zap: Performance Improvements$/### :zap: 性能优化/' \
+            -e 's/^### :recycle: Refactors$/### :recycle: 重构/' \
+            -e 's/^### :white_check_mark: Tests$/### :white_check_mark: 测试/' \
+            -e 's/^### :construction_worker: Build System$/### :construction_worker: 构建与 CI/' \
+            -e 's/^### :memo: Documentation Changes$/### :memo: 文档更新/' \
+            -e 's/^### :art: Code Style Changes$/### :art: 代码风格/' \
+            -e 's/^### :wrench: Chores$/### :wrench: 维护工作/' \
+            -e 's/^### :flying_saucer: Other Changes$/### :flying_saucer: 其他变更/' \
+            -e 's/ \*(commit by / *(提交者 /g' \
+            CHANGELOG.md
+          git add CHANGELOG.md
+          if git diff --cached --quiet; then
+            echo "CHANGELOG.md 无变更，跳过提交"
+            exit 0
+          fi
+          git diff --cached --check
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "docs(changelog): 更新 $TAG 变更记录"
+          git push origin main

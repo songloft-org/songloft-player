@@ -27,6 +27,8 @@ https://github.com/songloft-org/songloft/issues/6
 
 Download the latest version from [GitHub Releases](https://github.com/songloft-org/songloft-player/releases/latest):
 
+Each release includes Chinese and English installation notes. Version history is maintained in the Chinese-only [CHANGELOG.md](CHANGELOG.md), updated automatically after a versioned release succeeds.
+
 | Platform | Download | Notes |
 |----------|----------|-------|
 | 🌐 **Web (standalone)** | [songloft-web-standalone.tar.gz](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-web-standalone.tar.gz) | Self-hosted, configurable backend URL |

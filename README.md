@@ -27,6 +27,8 @@ https://github.com/songloft-org/songloft/issues/6
 
 从 [GitHub Releases](https://github.com/songloft-org/songloft-player/releases/latest) 下载最新版本：
 
+每次 Release 提供中英双语安装说明；版本变更保存在中文 [CHANGELOG.md](CHANGELOG.md)，在版本发布成功后自动更新。
+
 | 平台 | 下载链接 | 说明 |
 |------|----------|------|
 | 🌐 **Web (standalone)** | [songloft-web-standalone.tar.gz](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-web-standalone.tar.gz) | 独立部署版，支持配置后端地址 |

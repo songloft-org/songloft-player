@@ -46,6 +46,8 @@ Automates the Flutter frontend version release process.
 
 After the tag is pushed, `.github/workflows/build-and-release.yml` automatically handles multi-platform builds and GitHub Release creation.
 
+Release bodies use the Chinese and English installation notes in `.github/release-notes.md`, followed by categorized commits. After a version-tag release succeeds, a separate job updates the Chinese-only root `CHANGELOG.md` from the latest `main` and commits it back to the repository. Rolling dev builds do not write this file. Changelog updates for different versions run serially and do not trigger another build.
+
 **Safety features**:
 - Validates Git repository environment
 - Prompts for confirmation on uncommitted changes
