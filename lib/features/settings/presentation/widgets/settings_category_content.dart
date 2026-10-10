@@ -27,11 +27,9 @@ import '../../../desktop_lyric/desktop_lyric_font_size.dart';
 import '../../../player/domain/mini_player_controls.dart';
 import '../../../player/presentation/providers/mini_player_controls_provider.dart';
 import '../../../playlist/presentation/providers/playlist_provider.dart';
-import '../../../jsplugin/presentation/providers/jsplugin_provider.dart';
 import '../../../jsplugin/presentation/widgets/jsplugin_manager.dart';
 import '../../../../core/backend/run_mode_provider.dart';
 import '../../data/log_export_service.dart';
-import '../../data/settings_api.dart';
 import '../../data/upgrade_api.dart';
 import 'cache_manager.dart';
 import 'home_grid_selector.dart';
@@ -216,9 +214,6 @@ class SettingsCategoryContent extends ConsumerStatefulWidget {
 
 class _SettingsCategoryContentState
     extends ConsumerState<SettingsCategoryContent> {
-  static const int _maxTabs = 12;
-  static const int _fixedTabs = 2;
-
   bool _exportingLogs = false;
 
   /// 「检查客户端更新」正在查热更补丁（查完才可能弹对话框，期间 tile 显示 spinner）。
@@ -266,16 +261,6 @@ class _SettingsCategoryContentState
   // ── 外观设置 ──
 
   List<Widget> _buildAppearanceItems() {
-    final tabConfigAsync = ref.watch(tabConfigProvider);
-    final pluginsAsync = ref.watch(jsPluginsProvider);
-    final config = tabConfigAsync.value ?? TabConfig.defaultConfig();
-    final plugins = pluginsAsync.value ?? [];
-    // 计数与限额基于「实际会渲染的条目」：孤儿条目（插件已卸载）与禁用插件
-    // 不占名额，保证显示数量与首页可见 Tab 严格一致（#416）。
-    final effectiveTabs = config.activeEntries(plugins);
-    final usedCount =
-        _fixedTabs + (config.showLibrary ? 1 : 0) + effectiveTabs.length;
-    final atLimit = usedCount >= _maxTabs;
     final l10n = AppLocalizations.of(context);
 
     return [
@@ -346,66 +331,7 @@ class _SettingsCategoryContentState
           ),
         ],
       ),
-      SectionCard(
-        title: l10n.settingsMenuTitle,
-        icon: Icons.tab_outlined,
-        children: [
-          // 歌单已并入曲库，不再作为独立底部 tab；此处仅保留「曲库」开关。
-          SwitchListTile(
-            secondary: const Icon(Icons.library_music_outlined),
-            title: Text(l10n.settingsMenuLibrary),
-            value: config.showLibrary,
-            onChanged:
-                ref.watch(tabConfigSavingProvider) ||
-                        tabConfigAsync.isLoading ||
-                        tabConfigAsync.hasError ||
-                        pluginsAsync.isLoading ||
-                        pluginsAsync.hasError ||
-                        !tabConfigAsync.hasValue ||
-                        (atLimit && !config.showLibrary)
-                    ? null
-                    : (value) => _updateTabConfig(
-                      config.copyWith(showLibrary: value),
-                      atLimit && value,
-                    ),
-          ),
-          const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.sm),
-            child: Center(
-              child: Text(
-                l10n.settingsTabsEnabledCount(usedCount) +
-                    (usedCount > 5 ? '\n${l10n.settingsTabsCollapseHint}' : ''),
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
     ];
-  }
-
-  Future<void> _updateTabConfig(TabConfig config, bool wouldExceedLimit) async {
-    final l10n = AppLocalizations.of(context);
-    if (wouldExceedLimit) {
-      ResponsiveSnackBar.showError(
-        context,
-        message: l10n.settingsMaxTabsLimit(_maxTabs),
-      );
-      return;
-    }
-    try {
-      await ref.read(tabConfigProvider.notifier).updateConfig(config);
-    } catch (e) {
-      if (!mounted) return;
-      ResponsiveSnackBar.showError(
-        context,
-        message: l10n.settingsSaveFailed(e.toString()),
-      );
-    }
   }
 
   // ── 播放设置 ──

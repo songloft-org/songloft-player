@@ -569,10 +569,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get coreVersionDev => '开发版本';
 
   @override
-  String get jspluginManagerTitle => 'JS 插件管理';
+  String get jspluginManagerTitle => '导航与插件';
 
   @override
-  String get jspluginManagerSubtitle => '管理已安装的 JS 插件';
+  String get jspluginManagerSubtitle => '管理插件和导航入口';
+
+  @override
+  String get jspluginManagementSection => '插件管理';
+
+  @override
+  String get jspluginBuiltInNavigation => '内置导航';
+
+  @override
+  String get jspluginShowLibraryInNavigation => '显示曲库入口';
+
+  @override
+  String get jspluginLibraryNavigationHint => '隐藏入口不影响音乐数据。';
 
   @override
   String get jspluginUploadPlugin => '上传插件';
@@ -3328,7 +3340,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsCategoryAppearanceTitle => '外观设置';
 
   @override
-  String get settingsCategoryAppearanceSubtitle => '主题、菜单和显示';
+  String get settingsCategoryAppearanceSubtitle => '主题和显示';
 
   @override
   String get settingsCategoryPlaybackTitle => '播放设置';

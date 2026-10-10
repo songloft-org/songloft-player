@@ -68,6 +68,7 @@ class _JSPluginManagerState extends ConsumerState<JSPluginManager> {
         if (expanded) ref.invalidate(jsPluginsProvider);
       },
       children: [
+        ListTile(title: Text(l10n.jspluginManagementSection)),
         // 顶部操作栏
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -130,7 +131,9 @@ class _JSPluginManagerState extends ConsumerState<JSPluginManager> {
                 ),
               ),
         ),
+        const BuiltInNavigationSettings(),
         const PluginNavigationOrder(),
+        const NavigationSummary(),
       ],
     );
   }

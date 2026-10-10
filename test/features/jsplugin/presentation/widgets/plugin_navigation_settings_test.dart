@@ -106,7 +106,9 @@ void main() {
                         children: [
                           for (final plugin in plugins)
                             PluginNavigationToggle(plugin: plugin),
+                          const BuiltInNavigationSettings(),
                           const PluginNavigationOrder(),
+                          const NavigationSummary(),
                         ],
                       ),
             ),
@@ -124,6 +126,73 @@ void main() {
 
   SwitchListTile toggle(WidgetTester tester, int id) =>
       tester.widget(find.byKey(ValueKey('plugin-navigation-$id')));
+
+  testWidgets('内置导航位于插件管理下方，保存曲库开关保留全部插件偏好', (tester) async {
+    final api = _SettingsApi(
+      TabConfig(
+        showLibrary: true,
+        showPlaylists: false,
+        pluginTabs: [_entry(2), _entry(1)],
+      ),
+    );
+    await pump(tester, api, [
+      _plugin(1),
+      _plugin(2, status: 'inactive'),
+    ], manager: true);
+    final children =
+        tester.widget<ExpansionTile>(find.byType(ExpansionTile).first).children;
+    expect(
+      children.indexWhere((w) => w is BuiltInNavigationSettings),
+      lessThan(children.indexWhere((w) => w is PluginNavigationOrder)),
+    );
+    expect(children.last, isA<NavigationSummary>());
+    final library = find.byKey(const ValueKey('tab-toggle-library'));
+    await tester.ensureVisible(library);
+    await tester.tap(library);
+    await tester.pumpAndSettle();
+    expect(api.saved.showLibrary, isFalse);
+    expect(api.saved.showPlaylists, isFalse);
+    expect(api.saved.pluginTabs.map((e) => e.entryPath), [
+      'plugin2',
+      'plugin1',
+    ]);
+  });
+
+  testWidgets('无插件时仍可修改曲库入口，页尾显示固定入口说明', (tester) async {
+    final api = _SettingsApi(TabConfig.defaultConfig());
+    await pump(tester, api, [], manager: true);
+    expect(find.text('内置导航'), findsOneWidget);
+    expect(find.textContaining('首页和设置固定显示'), findsOneWidget);
+    final library = find.byKey(const ValueKey('tab-toggle-library'));
+    await tester.ensureVisible(library);
+    await tester.tap(library);
+    await tester.pumpAndSettle();
+    expect(api.saved.showLibrary, isFalse);
+    expect(api.saved.pluginTabs, isEmpty);
+  });
+
+  testWidgets('导航满额时不能添加曲库入口，移除插件后可以添加', (tester) async {
+    final api = _SettingsApi(
+      TabConfig(
+        showLibrary: false,
+        showPlaylists: false,
+        pluginTabs: [for (var i = 1; i <= 10; i++) _entry(i)],
+      ),
+    );
+    await pump(tester, api, [for (var i = 1; i <= 10; i++) _plugin(i)]);
+    final library = find.byKey(const ValueKey('tab-toggle-library'));
+    expect(tester.widget<SwitchListTile>(library).onChanged, isNull);
+    await tester.tap(find.byKey(const ValueKey('plugin-navigation-1')));
+    await tester.pumpAndSettle();
+    expect(tester.widget<SwitchListTile>(library).onChanged, isNotNull);
+    await tester.ensureVisible(library);
+    await tester.tap(library);
+    await tester.pumpAndSettle();
+    expect(api.saved.showLibrary, isTrue);
+    expect(api.saved.pluginTabs.map((e) => e.pluginId), [
+      for (var i = 2; i <= 10; i++) i,
+    ]);
+  });
 
   testWidgets('显示开关只修改当前插件，保留停用插件及曲库偏好', (tester) async {
     final api = _SettingsApi(

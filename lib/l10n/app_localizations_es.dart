@@ -594,10 +594,25 @@ class AppLocalizationsEs extends AppLocalizations {
   String get coreVersionDev => 'Compilación de desarrollo';
 
   @override
-  String get jspluginManagerTitle => 'Gestión de plugins JS';
+  String get jspluginManagerTitle => 'Navegación y plugins';
 
   @override
-  String get jspluginManagerSubtitle => 'Administra los plugins JS instalados';
+  String get jspluginManagerSubtitle =>
+      'Administra plugins y entradas de navegación';
+
+  @override
+  String get jspluginManagementSection => 'Gestión de plugins';
+
+  @override
+  String get jspluginBuiltInNavigation => 'Navegación integrada';
+
+  @override
+  String get jspluginShowLibraryInNavigation =>
+      'Mostrar Biblioteca en la navegación';
+
+  @override
+  String get jspluginLibraryNavigationHint =>
+      'Ocultar esta entrada no afecta a tus datos musicales.';
 
   @override
   String get jspluginUploadPlugin => 'Subir plugin';
@@ -3522,7 +3537,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsCategoryAppearanceTitle => 'Apariencia';
 
   @override
-  String get settingsCategoryAppearanceSubtitle => 'Tema, menú y pantalla';
+  String get settingsCategoryAppearanceSubtitle => 'Tema y pantalla';
 
   @override
   String get settingsCategoryPlaybackTitle => 'Reproducción';

@@ -1,5 +1,13 @@
 # Development Guide
 
+## Navigation and plugins
+
+Entry: Settings → Extensions → Navigation & plugins. Sections appear as Plugin management → Built-in navigation → Plugin navigation order. The Library switch sits below the plugin list; Appearance no longer repeats it. The count, fixed Home/Settings explanation and mobile overflow hint share the footer.
+
+“Show Library in navigation” only changes navigation visibility and does not affect music data. It reuses `/settings/tab-config` and the existing shared save state. Changing Library preserves every plugin preference and its order; disabled plugins consume no navigation slots. Library remains configurable without plugins. Read errors, in-flight saves and additions beyond the twelve-item limit disable the relevant operations.
+
+Validation: `flutter analyze`, all 656 tests and the embedded Web build pass. Docker Chromium exercises Chinese 1280px/390px and English wide layouts, with screenshots visually reviewed. The isolated real backend confirms that Library only changes navigation visibility, preserving every plugin preference and its order; Appearance has no duplicate switch. Chinese, English and Spanish strings and generated output are updated. Self-review also changes the Appearance category description to “Theme and display” so it no longer points to the relocated menu settings. Evidence is in `/tmp/issue-501-navigation-flutter-{zh,en}.json` and matching PNGs. Native Flutter devices have not been tested.
+
 ## GitHub community plugin discovery
 
 Entry: Settings → Extensions → Plugin Store → source menu → GitHub discovery. This separate page is not saved as a subscription source. Returning preserves the store source and search; source settings still manage subscriptions.

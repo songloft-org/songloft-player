@@ -1098,14 +1098,38 @@ abstract class AppLocalizations {
   /// No description provided for @jspluginManagerTitle.
   ///
   /// In zh, this message translates to:
-  /// **'JS 插件管理'**
+  /// **'导航与插件'**
   String get jspluginManagerTitle;
 
   /// No description provided for @jspluginManagerSubtitle.
   ///
   /// In zh, this message translates to:
-  /// **'管理已安装的 JS 插件'**
+  /// **'管理插件和导航入口'**
   String get jspluginManagerSubtitle;
+
+  /// No description provided for @jspluginManagementSection.
+  ///
+  /// In zh, this message translates to:
+  /// **'插件管理'**
+  String get jspluginManagementSection;
+
+  /// No description provided for @jspluginBuiltInNavigation.
+  ///
+  /// In zh, this message translates to:
+  /// **'内置导航'**
+  String get jspluginBuiltInNavigation;
+
+  /// No description provided for @jspluginShowLibraryInNavigation.
+  ///
+  /// In zh, this message translates to:
+  /// **'显示曲库入口'**
+  String get jspluginShowLibraryInNavigation;
+
+  /// No description provided for @jspluginLibraryNavigationHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'隐藏入口不影响音乐数据。'**
+  String get jspluginLibraryNavigationHint;
 
   /// No description provided for @jspluginUploadPlugin.
   ///
@@ -6018,7 +6042,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsCategoryAppearanceSubtitle.
   ///
   /// In zh, this message translates to:
-  /// **'主题、菜单和显示'**
+  /// **'主题和显示'**
   String get settingsCategoryAppearanceSubtitle;
 
   /// No description provided for @settingsCategoryPlaybackTitle.
