@@ -20,6 +20,7 @@ import '../../shared/models/song.dart';
 import '../storage/song_cache_service.dart';
 import '../utils/audio_format_helper.dart';
 import '../utils/url_helper.dart';
+import 'live_stream_headers.dart';
 import 'media_browse_data_source.dart';
 
 /// Songloft 音频处理器 - 集成 audio_service 实现通知栏控制
@@ -762,6 +763,9 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
       }
 
       debugPrint('[Player] SongloftAudioHandler: song url: $songUrl');
+      // 桌面直播的 UA/Referer 不放进 AudioSource.uri 的 headers（会触发 just_audio
+      // 回环代理并踩中其 m3u8 子资源 key 缺陷），改由 tag 旁路直达 libmpv，
+      // 详见 [_buildLiveSource] 与 [LiveStreamHeaders]。
       final liveHeaders = _buildLiveStreamHeaders(song);
 
       // Web HLS 视频主控模式：video 元素接管音视频播放，不加载 just_audio。
@@ -874,11 +878,13 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
           // 拉取——后者继承 HttpOverrides.global 的 trust-all，从而让 SSL 忽略覆盖到播放路径。
           // （HLS 由上面的自研代理处理，此处的单资源代理对切片无能为力。）
           // 关闭该开关时行为不变（不多一跳代理）。web 不走原生代理，浏览器自行处理 TLS。
-          final headers =
-              (!kIsWeb && AppConfig.insecureTls)
-                  ? <String, String>{'Accept': '*/*', ...?liveHeaders}
-                  : liveHeaders;
-          source = ja.AudioSource.uri(Uri.parse(songUrl), headers: headers);
+          // 桌面 HLS 直播是例外：它不走这层代理（会踩 m3u8 子资源 key 缺陷），详见
+          // [_buildLiveSource]。
+          source = _buildLiveSource(
+            songUrl: songUrl,
+            liveHeaders: liveHeaders,
+            isDesktopLive: isDesktopLive,
+          );
         }
         _normCacheFile = null;
       } else {
@@ -1027,6 +1033,57 @@ class SongloftAudioHandler extends BaseAudioHandler with SeekHandler {
       rethrow;
     }
   }
+
+  /// 构建直播流的 [ja.AudioSource]（`useLiveSource` 分支的公共出口）。
+  ///
+  /// 桌面直播（[isDesktopLive]，即 [_buildLiveStreamHeaders] 命中）**不传 headers**：
+  /// just_audio 见到非空 headers 就会启用本机回环代理，而该代理对 m3u8 子资源的
+  /// key 注册有缺陷（根因见 [LiveStreamHeaders]），导致桌面 HLS 电台全部切片打不开。
+  /// 防盗链头改由 [LiveStreamHeaders] 走 `tag` 直达 libmpv；`insecureTls` 打开时
+  /// 桌面直播的证书校验由 SongloftMediaKitPlayer 的 mpv `tls-verify=no` 兜底。
+  ///
+  /// 非桌面直播（移动端 / Web）保持原样：`insecureTls` 打开时附一个占位 header 触发
+  /// 代理，让上游 HTTPS 走 Dart trust-all HttpClient（songloft-org/songloft#272）。
+  @visibleForTesting
+  ja.UriAudioSource buildLiveSourceForTest({
+    required String songUrl,
+    required Map<String, String>? liveHeaders,
+    required bool isDesktopLive,
+  }) => _buildLiveSource(
+    songUrl: songUrl,
+    liveHeaders: liveHeaders,
+    isDesktopLive: isDesktopLive,
+  );
+
+  ja.UriAudioSource _buildLiveSource({
+    required String songUrl,
+    required Map<String, String>? liveHeaders,
+    required bool isDesktopLive,
+  }) {
+    if (isDesktopLive) {
+      // 请求头只走 tag，headers 保持 null：just_audio 的 UriAudioSource._onLoad
+      // 只在 headers（或 player 级 userAgent）非空时才启用回环代理。
+      return ja.AudioSource.uri(
+        Uri.parse(songUrl),
+        tag: LiveStreamHeaders(liveHeaders ?? const <String, String>{}),
+      );
+    }
+    final headers =
+        (!kIsWeb && AppConfig.insecureTls)
+            ? <String, String>{'Accept': '*/*', ...?liveHeaders}
+            : liveHeaders;
+    return ja.AudioSource.uri(Uri.parse(songUrl), headers: headers);
+  }
+
+  /// 桌面直播的防盗链请求头（UA / Referer / Icy-MetaData）。
+  ///
+  /// 返回值**不要**直接塞进 [ja.AudioSource.uri] 的 `headers`：那会让 just_audio
+  /// 启用本机回环代理并踩中 HLS 子资源 key 不匹配的缺陷（根因见 [LiveStreamHeaders]）。
+  /// 播放路径会把结果包成 [LiveStreamHeaders] 挂到 `tag` 上，由
+  /// [SongloftMediaKitPlayer] 转成 `Media(httpHeaders:)` 交给 libmpv。
+  @visibleForTesting
+  Map<String, String>? buildLiveStreamHeadersForTest(Song song) =>
+      _buildLiveStreamHeaders(song);
 
   Map<String, String>? _buildLiveStreamHeaders(Song song) {
     final isDesktop =

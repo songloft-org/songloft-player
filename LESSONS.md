@@ -10,6 +10,15 @@
 
 ## 条目
 
+### AUDIO-002：just_audio 的 headers 会无条件启用回环代理，HLS 子资源 key 与之不匹配
+
+- 范围：桌面（Win/Linux/macOS）HLS 电台播放，libmpv 后端与 just_audio 0.10.6，songloft-org/songloft-player，基线 `a9e5dda70b61e313ee9902b9bfc26691c16230c6`。
+- 证据：`UriAudioSource._onLoad` 只在 `headers`（或 player 级 userAgent）非空时启用 `_ProxyHttpServer`；该代理对 m3u8 的相对子资源用**入口 URL** 的 query 注册 key（`uri.replace(path: ...)` 不换 query），而 libmpv 以代理入口为 base 解析切片，实际请求 query 是切片自带的 `u=...`。注册 key 与请求 key 不同 → `_handlerMap[uriPath]!` 空指针 → 所有切片 `Failed to open segment` → 18s 超时重试。用户日志中 `_ProxyHttpServer.start.<anonymous closure>` 的空指针即此。
+- 规则：**不要把发往源站的请求头塞进 `AudioSource.uri(headers:)`**，除非确认该源不需要子资源（非 HLS）。也不要全局 `useProxyForRequestHeaders: false`：`insecureTls` 路径依赖该代理把上游 HTTPS 交给 Dart trust-all HttpClient（#272）。
+- Done right：桌面直播把 UA/Referer/`Icy-MetaData` 包成 `LiveStreamHeaders` 挂到 just_audio 的 `tag`，`SongloftMediaKitPlayer` 转成 `Media(httpHeaders:)`（media_kit → mpv `http-header-fields`）直达 libmpv；`headers` 保持 null 不启用代理。新增 10 项单测覆盖「桌面 live headers 为空且头在 tag」「tag 到达 Media.httpHeaders」「非桌面行为不变」；`flutter analyze` 仅余 2 个既存 warning，新增测试全通过。
+- Not run：真实 Windows 客户端 + 用户内网电台的实际播放验收；也未向上游 just_audio 提 issue（`uri.replace` 丢 query + `_handlerMap[...]!` 无兜底）。
+- Seen 1× (2026-10-19)。状态：经验；修复提交以 Git 为准。
+
 ### LYRIC-003：文字对比度与封面色差必须分别验收
 
 - 范围：Flutter 封面取色、手机/桌面全屏背景，songloft-org/songloft#523 的 2026-10-17 反馈。

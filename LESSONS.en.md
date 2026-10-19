@@ -10,6 +10,15 @@ Include rule, scope, full owner/repo#number, failure/fix commit SHAs, actual val
 
 ## Entries
 
+### AUDIO-002: just_audio headers always enable its loopback proxy, whose HLS child keys do not match
+
+- Scope: desktop (Win/Linux/macOS) HLS radio playback with the libmpv backend and just_audio 0.10.6, songloft-org/songloft-player, baseline `a9e5dda70b61e313ee9902b9bfc26691c16230c6`.
+- Evidence: `UriAudioSource._onLoad` starts `_ProxyHttpServer` whenever `headers` (or a player-level userAgent) is non-null. For relative m3u8 children it registers the handler key from the **entry URL's** query (`uri.replace(path: ...)` keeps the query), while libmpv resolves segments against the proxy entry URL and requests the segment's own query (`u=...`). Keys differ → `_handlerMap[uriPath]!` throws on null → every segment fails with `Failed to open segment` → 18s timeout and retry. The user log's `_ProxyHttpServer.start.<anonymous closure>` null check is exactly this.
+- Rule: **do not pass origin-facing request headers via `AudioSource.uri(headers:)`** unless the source has no child resources (non-HLS). Do not globally set `useProxyForRequestHeaders: false` either: the `insecureTls` path relies on that proxy to route upstream HTTPS through Dart's trust-all HttpClient (#272).
+- Done right: desktop live now wraps UA/Referer/`Icy-MetaData` in `LiveStreamHeaders` attached to just_audio's `tag`; `SongloftMediaKitPlayer` turns it into `Media(httpHeaders:)` (media_kit → mpv `http-header-fields`) straight to libmpv, leaving `headers` null so the proxy never starts. 10 new unit tests cover "desktop live has no headers and keeps them on the tag", "tag reaches Media.httpHeaders", and unchanged non-desktop behavior. `flutter analyze` shows only the 2 pre-existing warnings; the new tests pass.
+- Not run: real Windows client playback against the reporter's LAN radio, and no upstream just_audio issue filed yet (`uri.replace` dropping query plus an unchecked `_handlerMap[...]!`).
+- Seen 1× (2026-10-19). Status: lesson; Git provides the fix commit.
+
 ### LYRIC-003: Verify cover color separation independently of text contrast
 
 - Scope: Flutter cover extraction and mobile/desktop player backgrounds, songloft-org/songloft#523 feedback on 2026-10-17.

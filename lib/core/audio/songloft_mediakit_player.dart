@@ -7,6 +7,7 @@ import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
 import 'audio_backend.dart';
+import 'live_stream_headers.dart';
 import '../../config/app_config.dart';
 
 /// [MediaKitPlayer] 的本地重新实现，唯一区别是 [player] 字段为 public。
@@ -640,10 +641,23 @@ class SongloftMediaKitPlayer extends AudioPlayerPlatform {
     PlaylistMode.loop => LoopModeMessage.all,
   };
 
-  Media _convertAudioSource(AudioSourceMessage source) => switch (source) {
-    UriAudioSourceMessage(:final uri, :final headers) => Media(
+  /// 把 just_audio 的源消息转成 media_kit 的 [Media]。
+  ///
+  /// 桌面直播的请求头由 [LiveStreamHeaders] 经 `tag` 传来（不进 `headers`，
+  /// 避免 just_audio 启用本机回环代理，根因见 [LiveStreamHeaders]）；
+  /// `Media.httpHeaders` 会被 media_kit 转成 mpv 的 `http-header-fields`，
+  /// 因此 UA/Referer 仍能到达源站。两者同时存在时（理论上不会）以 headers 为准，
+  /// 保持原有行为。
+  @visibleForTesting
+  static Media convertAudioSourceForTest(AudioSourceMessage source) =>
+      _convertAudioSource(source);
+
+  static Media _convertAudioSource(
+    AudioSourceMessage source,
+  ) => switch (source) {
+    UriAudioSourceMessage(:final uri, :final headers, :final tag) => Media(
       uri,
-      httpHeaders: headers,
+      httpHeaders: headers ?? (tag is LiveStreamHeaders ? tag.values : null),
     ),
     ClippingAudioSourceMessage(:final child, :final start, :final end) => Media(
       child.uri,
