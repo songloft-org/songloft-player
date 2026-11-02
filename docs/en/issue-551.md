@@ -1,5 +1,18 @@
 # Manual ordering under other view sorts (songloft-org/songloft#551)
 
+## 2026-11-02 follow-up: edge dragging across screens
+
+Comment `6576318751` reports that manual dragging stays within the viewport. The old sorting view nested a non-scrollable, shrink-wrapped `ReorderableListView` inside the page's `CustomScrollView`; its auto-scroller owned the inner viewport. Use `SliverReorderableList` in the page instead, retaining a Material drag proxy, Done/Cancel and full-order persistence. No pinning feature is added.
+
+Flutter baseline: `feb97bb0c46f5d9e4de3ff5049ebdd07c3a9f605` plus this uncommitted worktree; parent `e204855590bdf4c38483ff87ee19769ba91df1fc`. Linux amd64; the install directory says 3.41.5, but the actual tools report Flutter 3.44.8 / Dart 3.12.2.
+
+- Four real-page gesture cases with 80 songs, widths 500/1440 and both directions pass: holding at an edge scrolls over 200px and persists the changed order without losing members. An isolated old page fails all four with zero movement; `/tmp/songloft-551-scroll-negative-clean.log`. Earlier missing-asset/dependency and resource-contention failures are not negative evidence.
+- `flutter analyze`, all 20 focused tests, all 813 tests and the embedded release Web build pass. WASM dry run passes; the CupertinoIcons font notice remains.
+- Docker Chrome at 1440×1000: a scanned playlist of 140 synthetic songs moves its first song to position 25 in one edge drag. Done persists that position through the real API, retaining all 140 members; no page exceptions. Evidence: `/tmp/songloft-551-scroll/flutter-ui.json`, `flutter-drag.png`, `flutter-saved.png`.
+- `dart format lib/ test/` and diff checks pass. Logs: `/tmp/songloft-551-scroll-{focused,analyze,all,build}.log`.
+
+Lynx also lacked a scroll boundary; its companion record is `docs/project/issue-551-scroll.md` in that repository. No commit, push, parent pointer update, release or comment in this batch. Not run: Windows and other native devices; browser/Widget checks do not replace the reporter's Windows acceptance. Backend source is unchanged and backend tests were not rerun.
+
 Date: 2026-11-02. Issue: [songloft-org/songloft#551](https://github.com/songloft-org/songloft/issues/551).
 
 ## Cause and behavior

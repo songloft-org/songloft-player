@@ -10,6 +10,13 @@ Include rule, scope, full owner/repo#number, failure/fix commit SHAs, actual val
 
 ## Entries
 
+### SORT-002: edge dragging must use the actual page viewport
+
+- Scope: playlist manual ordering, songloft-org/songloft#551 comment `6576318751`; baseline `feb97bb0c46f5d9e4de3ff5049ebdd07c3a9f605`.
+- Rule: use a Sliver sharing the page Scrollable instead of a disabled shrink-wrapped inner viewport. Its drag proxy still needs Material. Short-list reordering does not prove cross-screen dragging works.
+- Evidence / Done right: four real gesture cases with 80 songs, narrow/wide layouts and both directions fail with zero movement on the old page, then scroll over 200px and persist the order after the fix. All 20 focused tests, 813 full tests, analysis and Web build pass. A real browser moves song 1 to position 25 in a 140-song playlist and verifies the API. See [#551](docs/en/issue-551.md).
+- Seen 1× (2026-11-02). Status: local fix; native Windows acceptance not run. No commit, push or release.
+
 ### SORT-001: manual ordering must remain accessible under other view sort fields
 
 - Scope: Flutter playlist details, songloft-org/songloft#551; baseline `5be710cd57227fd60d16396b198be10f700ae91e`.

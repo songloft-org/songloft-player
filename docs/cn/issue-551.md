@@ -1,5 +1,18 @@
 # 其他视图排序下的手动排序入口（songloft-org/songloft#551）
 
+## 2026-11-02 后续：跨屏拖动自动滚动
+
+评论 `6576318751` 反馈手动排序只能在当前视口内移动。排序模式原先将禁止滚动、shrink-wrap 的 `ReorderableListView` 嵌在页面 `CustomScrollView` 中，拖动自动滚动绑定到内层而不是页面。改用同一页面中的 `SliverReorderableList`，保留拖动浮层的 Material、原有完成/取消和完整顺序保存语义。不新增置顶功能。
+
+本批 Flutter 基线 `feb97bb0c46f5d9e4de3ff5049ebdd07c3a9f605` + 未提交工作树；主仓库 `e204855590bdf4c38483ff87ee19769ba91df1fc`。Linux amd64，Flutter 安装路径标作 3.41.5，但当前工具实际报告 Flutter 3.44.8 / Dart 3.12.2，不能用路径名当版本。
+
+- 80 首实际页面手势回归：500/1440px 宽、向上/向下，拖到边缘停住仍自动滚动超过 200px，保存顺序且成员不丢失，四项通过。隔离旧页面四项均因滚动为 0 失败，最终日志 `/tmp/songloft-551-scroll-negative-clean.log`；前期隔离副本缺资源/依赖及资源竞争造成的失败不作为反向证据。
+- `flutter analyze` 无问题；定向 20 项和全量 813 项通过；嵌入 Web release 构建通过，WASM dry run 通过，保留 CupertinoIcons 字体提示。
+- Docker Chrome 1440×1000，通过真实扫描生成的 140 首合成音乐歌单，从首曲拖到下边缘并停留，一次拖到第 25 位；点击完成后真实 API 返回 140 首且位置符合操作，页面异常为 0。证据 `/tmp/songloft-551-scroll/flutter-ui.json`、`flutter-drag.png`、`flutter-saved.png`。
+- `dart format lib/ test/` 及 diff 检查通过。日志 `/tmp/songloft-551-scroll-{focused,analyze,all,build}.log`。
+
+Lynx 也发现未配置滚动边界，配套修复记录在其 `docs/project/issue-551-scroll.md`。本批未提交、推送、更新父指针、发布或评论。Not run：Windows 和其他原生设备；浏览器/Widget 测试不替代报告人 Windows 验收。后端源码未变，未重跑后端测试。
+
 日期：2026-11-02。Issue：[songloft-org/songloft#551](https://github.com/songloft-org/songloft/issues/551)。
 
 ## 原因与行为

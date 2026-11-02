@@ -87,9 +87,10 @@ class _PlaylistServer {
 
 Future<ProviderContainer> _open(
   WidgetTester tester,
-  _PlaylistServer server,
-) async {
-  tester.view.physicalSize = const Size(1200, 1000);
+  _PlaylistServer server, {
+  Size size = const Size(1200, 1000),
+}) async {
+  tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   final container = ProviderContainer(
@@ -126,6 +127,82 @@ List<int> _visibleIds(WidgetTester tester) =>
         .toList();
 
 void main() {
+  for (final width in [500.0, 1440.0]) {
+    for (final upward in [false, true]) {
+      testWidgets(
+        'edge drag scrolls ${upward ? 'up' : 'down'} at width $width',
+        (tester) async {
+          final server = _PlaylistServer('position', 'asc')
+            ..positions = List.generate(80, (i) => i + 1);
+          await _open(tester, server, size: Size(width, 700));
+          await _menu(tester);
+          await tester.ensureVisible(find.text('手动排序'));
+          await tester.tap(find.text('手动排序'));
+          await tester.pumpAndSettle();
+          final scrollable =
+              find
+                  .descendant(
+                    of: find.byType(CustomScrollView),
+                    matching: find.byType(Scrollable),
+                  )
+                  .first;
+          final position = tester.state<ScrollableState>(scrollable).position;
+          position.jumpTo(upward ? 1800 : 700);
+          await tester.pumpAndSettle();
+          final viewport = tester.getRect(find.byType(CustomScrollView).first);
+          final handles =
+              find
+                  .byType(ReorderableDragStartListener)
+                  .evaluate()
+                  .map((e) => find.byWidget(e.widget))
+                  .where(
+                    (f) =>
+                        tester.getCenter(f).dy > viewport.top + 90 &&
+                        tester.getCenter(f).dy < viewport.bottom - 90,
+                  )
+                  .toList();
+          expect(handles, isNotEmpty);
+          final handle = upward ? handles.first : handles.last;
+          final tile = tester.widget<PlaylistSongTile>(
+            find
+                .ancestor(of: handle, matching: find.byType(PlaylistSongTile))
+                .first,
+          );
+          final movedId = tile.song.id;
+          final start = tester.getCenter(handle);
+          final before = position.pixels;
+          final gesture = await tester.startGesture(start);
+          await gesture.moveBy(const Offset(0, 5));
+          await tester.pump();
+          await gesture.moveTo(
+            Offset(start.dx, upward ? viewport.top + 12 : viewport.bottom - 12),
+          );
+          for (var i = 0; i < 60; i++) {
+            await tester.pump(const Duration(milliseconds: 16));
+          }
+          expect(
+            upward ? before - position.pixels : position.pixels - before,
+            greaterThan(200),
+          );
+          await gesture.up();
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('完成'));
+          await tester.pumpAndSettle();
+          expect(
+            server.positions.toSet(),
+            List.generate(80, (i) => i + 1).toSet(),
+          );
+          expect(
+            upward
+                ? server.positions.indexOf(movedId) < movedId - 1
+                : server.positions.indexOf(movedId) > movedId - 1,
+            isTrue,
+          );
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+  }
   for (final field in [
     'position',
     'added_at',
@@ -146,7 +223,7 @@ void main() {
         await tester.ensureVisible(find.text('手动排序'));
         await tester.tap(find.text('手动排序'));
         await tester.pumpAndSettle();
-        expect(find.byType(ReorderableListView), findsOneWidget);
+        expect(find.byType(SliverReorderableList), findsOneWidget);
         expect(_visibleIds(tester), before);
         expect(tester.takeException(), isNull);
       });
@@ -162,8 +239,8 @@ void main() {
       await tester.ensureVisible(find.text('手动排序'));
       await tester.tap(find.text('手动排序'));
       await tester.pumpAndSettle();
-      final list = tester.widget<ReorderableListView>(
-        find.byType(ReorderableListView),
+      final list = tester.widget<SliverReorderableList>(
+        find.byType(SliverReorderableList),
       );
       list.onReorderItem!(0, 3);
       await tester.pump();
@@ -201,7 +278,7 @@ void main() {
       await tester.tap(find.text('手动排序'));
       await tester.pumpAndSettle();
       tester
-          .widget<ReorderableListView>(find.byType(ReorderableListView))
+          .widget<SliverReorderableList>(find.byType(SliverReorderableList))
           .onReorderItem!(0, 3);
       await tester.pump();
       await tester.tap(find.text('取消'));

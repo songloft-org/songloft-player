@@ -1451,27 +1451,25 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
       return SliverToBoxAdapter(child: _buildEmptySongs(context, isBuiltIn));
     }
 
-    // 排序模式：使用 ReorderableListView
+    // 与页面共用滚动容器，拖到视口边缘时由 Sliver 自动滚动。
     if (_isSortMode) {
-      return SliverToBoxAdapter(
-        child: ReorderableListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: _sortableSongs.length,
-          onReorderItem: _onReorder,
-          itemBuilder: (context, index) {
-            final song = _sortableSongs[index];
-            return PlaylistSongTile(
-              key: ValueKey(song.id),
-              song: song,
-              index: index + 1,
-              onTap: () {},
-              onRemove: () {},
-              showDragHandle: true,
-              showTrailing: false,
-            );
-          },
-        ),
+      return SliverReorderableList(
+        proxyDecorator:
+            (child, index, animation) => Material(elevation: 6, child: child),
+        itemCount: _sortableSongs.length,
+        onReorderItem: _onReorder,
+        itemBuilder: (context, index) {
+          final song = _sortableSongs[index];
+          return PlaylistSongTile(
+            key: ValueKey(song.id),
+            song: song,
+            index: index + 1,
+            onTap: () {},
+            onRemove: () {},
+            showDragHandle: true,
+            showTrailing: false,
+          );
+        },
       );
     }
 
