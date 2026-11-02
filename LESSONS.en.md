@@ -10,6 +10,14 @@ Include rule, scope, full owner/repo#number, failure/fix commit SHAs, actual val
 
 ## Entries
 
+### SORT-001: manual ordering must remain accessible under other view sort fields
+
+- Scope: Flutter playlist details, songloft-org/songloft#551; baseline `5be710cd57227fd60d16396b198be10f700ae91e`.
+- Evidence: the reported screenshot selects ascending file time. The old menu only shows manual ordering when `currentSort == 'position'`, independently of `auto_created` labels or scanning mode. New actual-page regressions fail 14 cases and pass 2 on the old implementation; 12 failures directly assert the missing entry under other sort fields.
+- Rule and fix: a view preference should not hide permanent ordering. Flutter starts dragging from the displayed order, submits all member IDs, then switches to custom ascending order. Cancel writes nothing; search results still exclude permanent sorting.
+- Done right: cover ascending/descending views for seven fields, saving a drag, cancellation and search restrictions. All 809 tests and static analysis pass. See the [#551 record](docs/en/issue-551.md) for both browser checks, source identity and platform boundaries. Lynx already exposes its entry independently of the field; 29 related tests and actual drag persistence pass.
+- Seen 1× (2026-11-02). Status: implementation and local checks pass; commits, pushes and CI follow this delivery. The native Windows package has not been accepted.
+
 ### AUDIO-005: duplicate interruption listeners alone do not prove failed recovery
 
 - Scope: Flutter audio_session / just_audio interruptions, user cancellation and live recovery, songloft-org/songloft-player#52; baseline `538c228677350fa7c87f74bb5fe12e6e71b7ef56`.

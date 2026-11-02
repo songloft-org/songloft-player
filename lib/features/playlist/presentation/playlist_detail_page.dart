@@ -1233,16 +1233,15 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),
-                  if (currentSort == 'position')
-                    PopupMenuItem(
-                      value: 'manual',
-                      child: ListTile(
-                        leading: const Icon(Icons.drag_handle),
-                        title: Text(l10n.playlistSortManual),
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                      ),
+                  PopupMenuItem(
+                    value: 'manual',
+                    child: ListTile(
+                      leading: const Icon(Icons.drag_handle),
+                      title: Text(l10n.playlistSortManual),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
                     ),
+                  ),
                 ],
               ],
         ),
