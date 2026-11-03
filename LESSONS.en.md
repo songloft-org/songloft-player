@@ -10,6 +10,13 @@ Include rule, scope, full owner/repo#number, failure/fix commit SHAs, actual val
 
 ## Entries
 
+### LYRIC-005: Old queues without a lyric URL must still read saved lyrics
+
+- Scope: lyric provider, playback restoration and cache, songloft-org/songloft#555; baseline `32339c748af046a30a28744e2af10e533400d95a`.
+- Rule: temporarily supplying an endpoint during manual re-fetch does not update persisted queues. Normal restoration must share endpoint resolution and distinguish song changes by the effective endpoint. Web memory cache is not persistence across page loads.
+- Evidence and Done right: old code fails four new cases and passes one guard; fixed code passes all five and all 818 tests. A real temporary backend and Chrome verify two full page loads reading saved lyrics with no forced scraping. Objects, logs and device boundaries: [record](docs/en/issue-555.md).
+- Seen 1× (2026-11-03). Status: local companion fix, no commit/push/release; reporter environment untested.
+
 ### SORT-002: edge dragging must use the actual page viewport
 
 - Scope: playlist manual ordering, songloft-org/songloft#551 comment `6576318751`; baseline `feb97bb0c46f5d9e4de3ff5049ebdd07c3a9f605`.

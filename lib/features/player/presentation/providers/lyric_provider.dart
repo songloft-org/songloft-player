@@ -9,6 +9,7 @@ import '../../../../core/storage/lyric_cache_service.dart';
 import '../../../../core/utils/url_helper.dart';
 import '../../../../features/settings/presentation/providers/settings_provider.dart';
 import '../../../../main.dart';
+import '../../../../shared/models/song.dart';
 import '../../domain/lyric_parser.dart';
 import 'player_provider.dart';
 
@@ -87,13 +88,24 @@ class LyricNotifier extends Notifier<LyricState> {
   int _loadGeneration = 0;
   CancelToken? _cancelToken;
 
+  // 队列快照可能早于歌词刮削；缺少地址不代表服务端或缓存没有歌词。
+  // 使用普通端点恢复已保存内容，不强制重新刮削。
+  static String? _lyricUrlForSong(Song? song) {
+    if (song == null) return null;
+    if (song.lyricUrl?.isNotEmpty == true) return song.lyricUrl;
+    if (song.type == 'local' && song.id > 0) {
+      return '/api/v1/songs/${song.id}/lyric';
+    }
+    return null;
+  }
+
   @override
   LyricState build() {
     // 同时监听 lyricUrl 与 song.updatedAt：服务端更新内嵌歌词后 updatedAt 会变化，
     // 此时即使 URL 不变也应重新加载并旁路歌词缓存（songloft-org/songloft#477）。
     final key = ref.watch(
       playerStateProvider.select(
-        (s) => (s.currentSong?.lyricUrl, s.currentSong?.updatedAt),
+        (s) => (_lyricUrlForSong(s.currentSong), s.currentSong?.updatedAt),
       ),
     );
     final lyricUrl = key.$1;
@@ -230,8 +242,12 @@ class LyricNotifier extends Notifier<LyricState> {
       _lastLoadedUpdatedAt = songUpdatedAt;
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) return;
-      debugPrint('[LyricProvider] Failed to load lyric: $e');
       if (generation != _loadGeneration) return;
+      if (e.response?.statusCode == 404) {
+        state = const LyricState();
+        return;
+      }
+      debugPrint('[LyricProvider] Failed to load lyric: $e');
       state = state.copyWith(isLoading: false, loadFailed: true);
     } catch (e) {
       debugPrint('[LyricProvider] Failed to load lyric: $e');
@@ -328,7 +344,7 @@ class LyricNotifier extends Notifier<LyricState> {
     _lastLoadedUrl = null;
     _lastLoadedUpdatedAt = null;
     final song = ref.read(playerStateProvider).currentSong;
-    _loadLyrics(song?.lyricUrl, song?.updatedAt.toIso8601String());
+    _loadLyrics(_lyricUrlForSong(song), song?.updatedAt.toIso8601String());
   }
 
   /// 用户手动触发的强制重新抓取当前歌曲歌词。
@@ -339,10 +355,7 @@ class LyricNotifier extends Notifier<LyricState> {
   Future<void> refetch() async {
     final song = ref.read(playerStateProvider).currentSong;
     if (song == null) return;
-    var lyricUrl = song.lyricUrl;
-    if ((lyricUrl == null || lyricUrl.isEmpty) && song.type == 'local') {
-      lyricUrl = '/api/v1/songs/${song.id}/lyric';
-    }
+    final lyricUrl = _lyricUrlForSong(song);
     if (lyricUrl == null || lyricUrl.isEmpty) return;
     await LyricCacheService().remove(lyricUrl);
     _lastLoadedUrl = null;
