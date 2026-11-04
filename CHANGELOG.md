@@ -2,6 +2,19 @@
 
 此文件记录 Songloft Flutter 客户端的版本变更，仅提供中文版本。版本 tag 的 Release 发布成功后，由 CI 根据 Conventional Commits 分类追加记录并提交到 `main`；滚动 dev 记录见 [GitHub Releases](https://github.com/songloft-org/songloft-player/releases/tag/dev)。
 
+## [v2.13.8] - 2026-11-04
+### :bug: 问题修复
+- [`feb97bb`](https://github.com/songloft-org/songloft-player/commit/feb97bb0c46f5d9e4de3ff5049ebdd07c3a9f605) - **playlist**: 保留其他视图排序下的手动排序入口 *(提交者 [@hanxi](https://github.com/hanxi))*
+- [`32339c7`](https://github.com/songloft-org/songloft-player/commit/32339c748af046a30a28744e2af10e533400d95a) - **playlist**: 修复拖动排序跨屏自动滚动 *(提交者 [@hanxi](https://github.com/hanxi))*
+- [`f5079b5`](https://github.com/songloft-org/songloft-player/commit/f5079b55ef3c6a04ee842cd12d323e7d150ab3ad) - **lyrics**: 恢复旧播放队列中的已保存歌词 *(提交者 [@hanxi](https://github.com/hanxi))*
+
+### :memo: 文档更新
+- [`5be710c`](https://github.com/songloft-org/songloft-player/commit/5be710cd57227fd60d16396b198be10f700ae91e) - **playlist**: 记录内置收藏排序双端验证 *(提交者 [@hanxi](https://github.com/hanxi))*
+
+### :wrench: 维护工作
+- [`59bc9c7`](https://github.com/songloft-org/songloft-player/commit/59bc9c7def13e73ced81df045cf77e3ce32f0426) - release version 2.13.8 *(提交者 [@hanxi](https://github.com/hanxi))*
+
+
 ## [v2.13.6] - 2026-10-23
 ### :sparkles: 新增功能
 - [`d7c2f4a`](https://github.com/songloft-org/songloft-player/commit/d7c2f4a643336a7ad93e25bc781dbd6ce4db8edb) - **home**: 支持首页收藏歌单显示设置 *(提交者 [@hanxi](https://github.com/hanxi))*
@@ -110,3 +123,4 @@
 [v2.13.4]: https://github.com/songloft-org/songloft-player/compare/v2.13.3...v2.13.4
 [v2.13.5]: https://github.com/songloft-org/songloft-player/compare/v2.13.4...v2.13.5
 [v2.13.6]: https://github.com/songloft-org/songloft-player/compare/v2.13.5...v2.13.6
+[v2.13.8]: https://github.com/songloft-org/songloft-player/compare/v2.13.7...v2.13.8
