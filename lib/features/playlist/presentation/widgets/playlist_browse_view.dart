@@ -19,6 +19,7 @@ import '../../domain/playlist.dart';
 import '../../domain/use_cases/playlist_sort.dart';
 import '../providers/playlist_provider.dart';
 import '../providers/playlist_view_provider.dart';
+import '../../../library/presentation/providers/song_tag_provider.dart';
 import 'playlist_card.dart';
 import 'playlist_list_item.dart';
 import 'playlist_form_dialog.dart';
@@ -34,6 +35,7 @@ import 'playlist_form_dialog.dart';
 class PlaylistBrowseView extends ConsumerStatefulWidget {
   final String? typeFilter;
   final String? songSourceFilter;
+  final int? tagIdFilter;
 
   /// 多选/排序等模式或选中数变化时回调，供父级(曲库页)重建顶部 AppBar。
   final VoidCallback? onModeChanged;
@@ -42,6 +44,7 @@ class PlaylistBrowseView extends ConsumerStatefulWidget {
     super.key,
     this.typeFilter,
     this.songSourceFilter,
+    this.tagIdFilter,
     this.onModeChanged,
   });
 
@@ -69,6 +72,7 @@ class PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
   PlaylistListQuery get _query => PlaylistListQuery(
     type: widget.typeFilter,
     songSource: widget.songSourceFilter,
+    tagId: widget.tagIdFilter,
   );
 
   // ---------- 供父级 AppBar 读取的状态 ----------
@@ -95,7 +99,8 @@ class PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
     // 导致同一 GlobalKey 组件瞬时并存报错。父级切视图时已自行 setState 重建 AppBar，
     // 此处仅重置本地字段即可（紧随其后的 build 会用到新值）。
     if (oldWidget.typeFilter != widget.typeFilter ||
-        oldWidget.songSourceFilter != widget.songSourceFilter) {
+        oldWidget.songSourceFilter != widget.songSourceFilter ||
+        oldWidget.tagIdFilter != widget.tagIdFilter) {
       _searchDebounce?.cancel();
       _searchController.clear();
       _searchKeyword = '';
@@ -225,7 +230,10 @@ class PlaylistBrowseViewState extends ConsumerState<PlaylistBrowseView> {
       itemCount: state.items.length,
       scrollController: _scrollController,
       isLoadingMore: state.isLoadingMore,
-      onRefresh: () async => ref.invalidate(playlistListProvider(_query)),
+      onRefresh: () async {
+        ref.invalidate(allSongTagsProvider);
+        ref.invalidate(playlistListProvider(_query));
+      },
       cardBuilder: (context, index) {
         final playlist = state.items[index];
         void onTap() => context.push('/playlists/${playlist.id}');

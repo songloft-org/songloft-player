@@ -8,6 +8,36 @@ class SongTagsApi {
 
   SongTagsApi(this.dio);
 
+  Future<List<SongTag>> all() async {
+    final tags = <SongTag>[];
+    while (true) {
+      final page = await list(
+        sort: 'id',
+        order: 'asc',
+        limit: 200,
+        offset: tags.length,
+      );
+      tags.addAll(page.tags);
+      if (page.tags.isEmpty || tags.length >= page.total) return tags;
+    }
+  }
+
+  Future<List<SongTag>> getPlaylistTags(int playlistId) async {
+    final response = await dio.get<List<dynamic>>(
+      '${AppConfig.apiPrefix}/playlists/$playlistId/tags',
+    );
+    return response.data!
+        .map((e) => SongTag.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<void> setPlaylistTags(int playlistId, List<int> tagIds) async {
+    await dio.put(
+      '${AppConfig.apiPrefix}/playlists/$playlistId/tags',
+      data: {'tag_ids': tagIds},
+    );
+  }
+
   /// 获取标签列表
   Future<SongTagListResponse> list({
     String? keyword,
@@ -113,6 +143,7 @@ class SongTag {
   final String name;
   final String color;
   final int songCount;
+  final int playlistCount;
   final String coverUrl;
   final String createdAt;
 
@@ -121,6 +152,7 @@ class SongTag {
     required this.name,
     this.color = '',
     this.songCount = 0,
+    this.playlistCount = 0,
     this.coverUrl = '',
     this.createdAt = '',
   });
@@ -131,6 +163,7 @@ class SongTag {
       name: json['name'] as String,
       color: (json['color'] as String?) ?? '',
       songCount: (json['song_count'] as int?) ?? 0,
+      playlistCount: (json['playlist_count'] as int?) ?? 0,
       coverUrl: (json['cover_url'] as String?) ?? '',
       createdAt: (json['created_at'] as String?) ?? '',
     );

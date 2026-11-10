@@ -2,6 +2,15 @@ import 'dart:convert';
 
 /// 歌单实体模型
 class Playlist {
+  String? get displayDescription {
+    final value = description;
+    if (value != null &&
+        RegExp(r'^\[navidrome:[^:\]\s]+:[^\]\s]+\]$').hasMatch(value.trim())) {
+      return null;
+    }
+    return value;
+  }
+
   final int id;
   final String type; // 'normal' 或 'radio'
   final String name;

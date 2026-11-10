@@ -1,3 +1,5 @@
+import 'package:songloft_flutter/features/library/data/song_tags_api.dart';
+import 'package:songloft_flutter/features/library/presentation/providers/song_tag_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -45,6 +47,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          allSongTagsProvider.overrideWith(
+            (ref) async => [const SongTag(id: 1, name: 'Navidrome')],
+          ),
           homeFavoritesScopeProvider.overrideWithValue('home-page-test'),
           playlistListProvider(
             const PlaylistListQuery(type: 'normal'),
@@ -332,6 +337,21 @@ void main() {
     expect(find.byType(GridView), findsNothing);
   });
 
+  for (final width in [390.0, 1600.0]) {
+    testWidgets('source labels fit the home playlist layout at $width', (
+      tester,
+    ) async {
+      useWideViewport(tester, width: width);
+      await pumpHome(
+        tester,
+        normalNotifier: () => _FakePlaylistsNotifier('normal', 3, true),
+        radioCount: 0,
+      );
+      expect(find.text('Navidrome'), findsWidgets);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   testWidgets('正在播放来自某歌单时，AppBar 出现定位按钮（#464）', (tester) async {
     useWideViewport(tester);
     await pumpHome(tester, normalCount: 5, radioCount: 0, sourcePlaylistId: 3);
@@ -358,10 +378,11 @@ class _FixedGridConfig extends HomeGridConfigNotifier {
 }
 
 class _FakePlaylistsNotifier extends PaginatedPlaylistsNotifier {
-  _FakePlaylistsNotifier(String type, this._count)
+  _FakePlaylistsNotifier(String type, this._count, [this.withSource = false])
     : _type = type,
       super(PlaylistListQuery(type: type));
 
+  final bool withSource;
   final String _type;
   final int _count;
 
@@ -377,8 +398,8 @@ class _FakePlaylistsNotifier extends PaginatedPlaylistsNotifier {
           type: _type,
           labels:
               (_type == 'normal' && i == 0) || (_type == 'radio' && i == 1)
-                  ? ['built_in']
-                  : [],
+                  ? ['built_in', if (withSource) 'tag:1']
+                  : [if (withSource) 'tag:1'],
           songCount: i,
           createdAt: now,
           updatedAt: now,

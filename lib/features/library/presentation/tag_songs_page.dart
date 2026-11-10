@@ -17,6 +17,7 @@ import '../../player/domain/playback_context.dart';
 import '../../player/presentation/providers/player_provider.dart';
 import '../../playlist/presentation/providers/playlist_provider.dart'
     show PaginatedSongsState;
+import '../../playlist/presentation/widgets/playlist_browse_view.dart';
 import 'providers/song_tag_provider.dart';
 import 'providers/songs_provider.dart';
 import 'song_edit_page.dart';
@@ -26,12 +27,14 @@ class TagSongsPage extends ConsumerStatefulWidget {
   final int tagId;
   final String tagName;
   final String? coverUrl;
+  final bool showPlaylists;
 
   const TagSongsPage({
     super.key,
     required this.tagId,
     required this.tagName,
     this.coverUrl,
+    this.showPlaylists = false,
   });
 
   @override
@@ -43,6 +46,7 @@ class _TagSongsPageState extends ConsumerState<TagSongsPage>
   final _scrollController = ScrollController();
 
   bool _isSelectMode = false;
+  late bool _showPlaylists = widget.showPlaylists;
   final Set<int> _selectedIds = {};
 
   PlaybackContext get _playbackContext =>
@@ -223,6 +227,17 @@ class _TagSongsPageState extends ConsumerState<TagSongsPage>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    if (_showPlaylists) {
+      return Scaffold(
+        appBar: AppBar(title: Text(widget.tagName)),
+        body: Column(
+          children: [
+            _collectionTabs(context),
+            Expanded(child: PlaylistBrowseView(tagIdFilter: widget.tagId)),
+          ],
+        ),
+      );
+    }
     final songsAsync = ref.watch(tagSongsProvider(widget.tagId));
     final state = songsAsync.value;
     final songCount = state?.items.length ?? 0;
@@ -305,7 +320,34 @@ class _TagSongsPageState extends ConsumerState<TagSongsPage>
                   ],
                 ),
               ),
-      bodySlivers: _buildBodySlivers(context, songsAsync),
+      bodySlivers: [
+        if (!_isSelectMode) SliverToBoxAdapter(child: _collectionTabs(context)),
+        ..._buildBodySlivers(context, songsAsync),
+      ],
+    );
+  }
+
+  Widget _collectionTabs(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: SegmentedButton<bool>(
+        segments: [
+          ButtonSegment(
+            value: false,
+            label: Text(l10n.tagSongs),
+            icon: const Icon(Icons.music_note),
+          ),
+          ButtonSegment(
+            value: true,
+            label: Text(l10n.tagPlaylists),
+            icon: const Icon(Icons.queue_music),
+          ),
+        ],
+        selected: {_showPlaylists},
+        onSelectionChanged:
+            (values) => setState(() => _showPlaylists = values.first),
+      ),
     );
   }
 

@@ -250,7 +250,12 @@ final routerProvider = Provider<GoRouter>((ref) {
                   int.tryParse(state.pathParameters['tagId'] ?? '') ?? 0;
               final name = state.uri.queryParameters['name'] ?? '';
               final cover = state.uri.queryParameters['cover'];
-              return TagSongsPage(tagId: tagId, tagName: name, coverUrl: cover);
+              return TagSongsPage(
+                tagId: tagId,
+                tagName: name,
+                coverUrl: cover,
+                showPlaylists: state.uri.queryParameters['view'] == 'playlists',
+              );
             },
           ),
 

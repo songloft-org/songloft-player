@@ -2937,7 +2937,7 @@
   "tagDeleted": "Etiqueta eliminada",
   "tagRenamed": "Etiqueta renombrada",
   "renameTag": "Renombrar etiqueta",
-  "deleteTagConfirm": "¿Eliminar la etiqueta \"{name}\"? Las canciones de esta etiqueta no se eliminarán.",
+  "deleteTagConfirm": "¿Eliminar la etiqueta \"{name}\"? Las canciones y listas vinculadas no se eliminarán.",
   "@deleteTagConfirm": {
     "placeholders": {
       "name": {
@@ -2983,5 +2983,15 @@
   "settingsHomeShowRadioFavorites": "Mostrar Radios favoritas en inicio",
   "settingsHomeShowRadioFavoritesDesc": "Solo controla la tarjeta de inicio cuando se muestra la sección de radios. Se guarda en este dispositivo para este servidor y cuenta.",
   "settingsHomeShowRadios": "Mostrar sección de radios",
-  "settingsHomeShowRadiosDesc": "Mostrar Mis radios en inicio. Esta opción se guarda en este dispositivo."
+  "settingsHomeShowRadiosDesc": "Mostrar Mis radios en inicio. Esta opción se guarda en este dispositivo.",
+  "tagSongs": "Canciones",
+  "tagPlaylists": "Listas",
+  "tagPlaylistCount": "{count} listas",
+  "@tagPlaylistCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -2859,7 +2859,7 @@
   "tagDeleted": "Tag deleted",
   "tagRenamed": "Tag renamed",
   "renameTag": "Rename tag",
-  "deleteTagConfirm": "Delete tag \"{name}\"? Songs under this tag will not be deleted.",
+  "deleteTagConfirm": "Delete tag \"{name}\"? Linked songs and playlists will not be deleted.",
   "@deleteTagConfirm": {
     "placeholders": {
       "name": {"type": "String"}
@@ -2903,5 +2903,15 @@
   "settingsHomeShowRadioFavorites": "Show Radio favorites on home",
   "settingsHomeShowRadioFavoritesDesc": "Only controls the home card when the radio section is shown. Saved on this device for this server and account.",
   "settingsHomeShowRadios": "Show radio section",
-  "settingsHomeShowRadiosDesc": "Show My Radios on the home page. This choice stays on this device."
+  "settingsHomeShowRadiosDesc": "Show My Radios on the home page. This choice stays on this device.",
+  "tagSongs": "Songs",
+  "tagPlaylists": "Playlists",
+  "tagPlaylistCount": "{count} playlists",
+  "@tagPlaylistCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -1,3 +1,6 @@
+import '../../../../shared/widgets/scrolling_text.dart';
+import '../../../playlist/presentation/widgets/playlist_browse_adapters.dart'
+    show PlaylistCustomTags;
 import '../../../../shared/widgets/network_cover_image.dart';
 import 'package:flutter/material.dart';
 
@@ -141,16 +144,15 @@ class _PlaylistCarouselItem extends StatelessWidget {
               const SizedBox(height: 8),
               // 歌单名称
               Expanded(
-                child: Text(
-                  playlist.name,
+                child: ScrollingText(
+                  text: playlist.name,
                   style: textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w500,
                     color: isCurrentPlaylist ? colorScheme.primary : null,
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ),
+              PlaylistCustomTags(labels: playlist.labels),
               Text(
                 AppLocalizations.of(
                   context,

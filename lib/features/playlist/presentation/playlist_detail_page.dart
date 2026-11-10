@@ -1,3 +1,6 @@
+import '../../../shared/widgets/scrolling_text.dart';
+import '../../../shared/widgets/manage_tags_modal.dart';
+import 'widgets/playlist_browse_adapters.dart' show PlaylistCustomTags;
 import 'dart:async';
 
 import '../../../shared/widgets/network_cover_image.dart';
@@ -525,7 +528,7 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
           pinned: true,
           backgroundColor: colorScheme.surface,
           foregroundColor: colorScheme.onSurface,
-          title: Text(playlist.name),
+          title: ScrollingText(text: playlist.name),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             tooltip: AppLocalizations.of(context).playlistBack,
@@ -609,7 +612,7 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
         AppBar(
           backgroundColor: colorScheme.surface,
           foregroundColor: colorScheme.onSurface,
-          title: Text(playlist.name),
+          title: ScrollingText(text: playlist.name),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             tooltip: AppLocalizations.of(context).playlistBack,
@@ -675,7 +678,9 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
     final infoParts = <String>[];
     final l10n = AppLocalizations.of(context);
     if (playlist.type == 'radio') infoParts.add(l10n.songTypeRadio);
-    for (final label in playlist.labels) {
+    for (final label in playlist.labels.where(
+      (label) => !label.startsWith('tag:'),
+    )) {
       infoParts.add(_getLabelName(label));
     }
     infoParts.add(l10n.songsCount(songCount));
@@ -721,20 +726,17 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
           ),
           const SizedBox(height: AppSpacing.lg),
           // 歌单名称
-          Text(
-            playlist.name,
+          ScrollingText(
+            text: playlist.name,
             style: textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
           ),
           // 描述
-          if (playlist.description?.isNotEmpty == true) ...[
+          if (playlist.displayDescription?.isNotEmpty == true) ...[
             const SizedBox(height: AppSpacing.sm),
             Text(
-              playlist.description!,
+              playlist.displayDescription!,
               style: textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -744,10 +746,11 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
             ),
           ],
           const SizedBox(height: AppSpacing.sm),
+          PlaylistCustomTags(labels: playlist.labels),
           // 标签 / 歌曲数
           Text(
             subtitle,
-            style: textTheme.bodySmall?.copyWith(
+            style: textTheme.bodyLarge?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
             textAlign: TextAlign.center,
@@ -884,7 +887,7 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
     final paletteAsync = ref.watch(coverColorsProvider(coverUrl));
     final palette = paletteAsync.value;
 
-    final coverSize = isWide ? 180.0 : 140.0;
+    final coverSize = isWide ? 180.0 : 96.0;
     final bgColor =
         palette?.darkMutedColor ?? colorScheme.surfaceContainerHighest;
 
@@ -898,7 +901,7 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
         ),
       ),
       padding: EdgeInsets.symmetric(
-        vertical: isWide ? AppSpacing.lg : AppSpacing.md,
+        vertical: isWide ? AppSpacing.lg : AppSpacing.sm,
       ),
       child: Center(
         child: Container(
@@ -958,7 +961,9 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
     final infoParts = <String>[];
     final l10n = AppLocalizations.of(context);
     if (playlist.type == 'radio') infoParts.add(l10n.songTypeRadio);
-    for (final label in playlist.labels) {
+    for (final label in playlist.labels.where(
+      (label) => !label.startsWith('tag:'),
+    )) {
       infoParts.add(_getLabelName(label));
     }
     infoParts.add(l10n.songsCount(songCount));
@@ -970,19 +975,20 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 描述（如果有）
-          if (playlist.description?.isNotEmpty == true) ...[
+          if (playlist.displayDescription?.isNotEmpty == true) ...[
             Text(
-              playlist.description!,
+              playlist.displayDescription!,
               style: textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
           ],
+          PlaylistCustomTags(labels: playlist.labels),
           // 聚合副标题
           Text(
             subtitle,
-            style: textTheme.bodySmall?.copyWith(
+            style: textTheme.bodyLarge?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
           ),
@@ -1249,6 +1255,9 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
         icon: const Icon(Icons.more_vert),
         onSelected: (value) {
           switch (value) {
+            case 'manage_tags':
+              ManageTagsModal.show(context, playlistIds: [playlist.id]);
+              break;
             case 'add_songs':
               _addSongs();
               break;
@@ -1272,6 +1281,15 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
         },
         itemBuilder:
             (context) => [
+              PopupMenuItem(
+                value: 'manage_tags',
+                child: ListTile(
+                  leading: const Icon(Icons.label_outline),
+                  title: Text(l10n.manageTags),
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
               PopupMenuItem(
                 value: 'add_songs',
                 child: ListTile(

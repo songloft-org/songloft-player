@@ -79,6 +79,9 @@ class SongTile extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     return ListTile(
+      contentPadding: const EdgeInsets.only(left: 8, right: 4),
+      minLeadingWidth: 24,
+      horizontalTitleGap: 8,
       onTap: onTap,
       onLongPress: onLongPress,
       tileColor: isCurrentSong ? colorScheme.secondaryContainer : null,
@@ -109,8 +112,11 @@ class SongTile extends StatelessWidget {
 
   String _subtitleText(AppLocalizations l10n) {
     final artist = song.artist ?? l10n.libraryUnknownArtist;
-    final suffix = subtitleSuffix;
-    if (suffix == null || suffix.isEmpty) return artist;
+    final suffix = [
+      if (showDuration) Formatters.formatDuration(song.duration),
+      if (subtitleSuffix?.isNotEmpty == true) subtitleSuffix!,
+    ].join(' · ');
+    if (suffix.isEmpty) return artist;
     // artist 可能是空串而非 null（后端该列 NOT NULL DEFAULT ''），
     // 此时不能拼分隔符，否则副标题变成前导的 " · 07-30 01:23"。
     if (artist.isEmpty) return suffix;
@@ -139,7 +145,7 @@ class SongTile extends StatelessWidget {
     } else if (showIndex) {
       prefix.add(
         SizedBox(
-          width: 32,
+          width: 24,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -153,6 +159,9 @@ class SongTile extends StatelessWidget {
                 ),
               Text(
                 '$index',
+                maxLines: 1,
+                softWrap: false,
+                overflow: TextOverflow.clip,
                 style: (indexLabel == null
                         ? textTheme.bodyMedium
                         : textTheme.labelSmall)
@@ -186,20 +195,21 @@ class SongTile extends StatelessWidget {
 
   Widget? _buildTrailing(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
     final children = <Widget>[
       if (showFavorite)
-        FavoriteButton(songId: song.id, songType: song.type, size: 20),
-      if (showDuration)
-        Text(
-          Formatters.formatDuration(song.duration),
-          style: textTheme.bodySmall?.copyWith(
-            color: colorScheme.onSurfaceVariant,
-          ),
+        SizedBox(
+          width: 44,
+          height: 44,
+          child: FavoriteButton(songId: song.id, songType: song.type, size: 20),
         ),
       if (menuActions.isNotEmpty)
         PopupMenuButton<String>(
+          padding: EdgeInsets.zero,
+          style: IconButton.styleFrom(
+            minimumSize: const Size(44, 44),
+            fixedSize: const Size(44, 44),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
           icon: Icon(Icons.more_vert, color: colorScheme.onSurfaceVariant),
           onSelected: (value) {
             for (final a in menuActions) {

@@ -4937,7 +4937,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String deleteTagConfirm(String name) {
-    return 'Delete tag \"$name\"? Songs under this tag will not be deleted.';
+    return 'Delete tag \"$name\"? Linked songs and playlists will not be deleted.';
   }
 
   @override
@@ -5039,4 +5039,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsHomeShowRadiosDesc =>
       'Show My Radios on the home page. This choice stays on this device.';
+
+  @override
+  String get tagSongs => 'Songs';
+
+  @override
+  String get tagPlaylists => 'Playlists';
+
+  @override
+  String tagPlaylistCount(int count) {
+    return '$count playlists';
+  }
 }

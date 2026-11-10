@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/async_retry.dart';
 import '../../../../features/library/presentation/providers/songs_provider.dart';
+import '../../../library/presentation/providers/song_tag_provider.dart'
+    show allSongTagsProvider, songTagListProvider;
 import '../../../../shared/models/song.dart';
 import '../../data/playlist_api.dart';
 import '../../data/playlist_repository.dart';
@@ -139,16 +141,19 @@ class PlaylistListQuery {
   /// 歌单内歌曲来源过滤：'remote'（网络歌单）/ 'local'（本地歌单），null 表示不过滤。
   final String? songSource;
 
-  const PlaylistListQuery({this.type, this.songSource});
+  final int? tagId;
+
+  const PlaylistListQuery({this.type, this.songSource, this.tagId});
 
   @override
   bool operator ==(Object other) =>
       other is PlaylistListQuery &&
       other.type == type &&
-      other.songSource == songSource;
+      other.songSource == songSource &&
+      other.tagId == tagId;
 
   @override
-  int get hashCode => Object.hash(type, songSource);
+  int get hashCode => Object.hash(type, songSource, tagId);
 
   @override
   String toString() =>
@@ -189,6 +194,7 @@ class PaginatedPlaylistsNotifier
         () => repository.getPlaylists(
           type: _query.type,
           songSource: _query.songSource,
+          tagId: _query.tagId,
           excludeLabels: _excludeLabels,
           keyword: _keyword,
           limit: pageLimit,
@@ -249,6 +255,7 @@ class PaginatedPlaylistsNotifier
       final response = await repository.getPlaylists(
         type: _query.type,
         songSource: _query.songSource,
+        tagId: _query.tagId,
         excludeLabels: _excludeLabels,
         keyword: _keyword,
         limit: pageLimit,
@@ -566,6 +573,7 @@ class PlaylistNotifier extends Notifier<AsyncValue<void>> {
       state = const AsyncValue.data(null);
       // 刷新歌单列表
       ref.invalidate(playlistListProvider);
+      _invalidateTagCounts();
       // 连带删除了曲库歌曲时，刷新曲库列表以移除已删歌曲
       if (deleteSongs) ref.invalidate(songsListProvider);
       return true;
@@ -684,6 +692,7 @@ class PlaylistNotifier extends Notifier<AsyncValue<void>> {
       state = const AsyncValue.data(null);
       // 刷新歌单列表
       ref.invalidate(playlistListProvider);
+      _invalidateTagCounts();
       // 连带删除了曲库歌曲时，刷新曲库列表以移除已删歌曲
       if (deleteSongs) ref.invalidate(songsListProvider);
       return deleted;
@@ -701,11 +710,18 @@ class PlaylistNotifier extends Notifier<AsyncValue<void>> {
       state = const AsyncValue.data(null);
       ref.invalidate(playlistListProvider);
       ref.invalidate(playlistDetailProvider(id));
+      _invalidateTagCounts();
       return true;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
       return false;
     }
+  }
+
+  /// 删除或显隐操作会改变共享标签的可见歌单数。
+  void _invalidateTagCounts() {
+    ref.invalidate(songTagListProvider);
+    ref.invalidate(allSongTagsProvider);
   }
 
   /// 设置歌单置顶状态

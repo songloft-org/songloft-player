@@ -3,21 +3,29 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/library/data/song_tags_api.dart';
 import '../../features/library/presentation/providers/song_tag_provider.dart';
+import '../../features/playlist/presentation/providers/playlist_provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../utils/responsive_snackbar.dart';
 
 /// 管理歌曲标签的模态框
 class ManageTagsModal extends ConsumerStatefulWidget {
   final List<int> songIds;
+  final List<int>? playlistIds;
 
-  const ManageTagsModal({super.key, required this.songIds});
+  const ManageTagsModal({super.key, this.songIds = const [], this.playlistIds});
 
-  static Future<void> show(BuildContext context, {required List<int> songIds}) {
+  static Future<void> show(
+    BuildContext context, {
+    List<int> songIds = const [],
+    List<int>? playlistIds,
+  }) {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (context) => ManageTagsModal(songIds: songIds),
+      builder:
+          (context) =>
+              ManageTagsModal(songIds: songIds, playlistIds: playlistIds),
     );
   }
 
@@ -27,6 +35,9 @@ class ManageTagsModal extends ConsumerStatefulWidget {
 
 class _ManageTagsModalState extends ConsumerState<ManageTagsModal> {
   bool _isLoading = true;
+  bool _loadFailed = false;
+  Set<int> _initialTagIds = {};
+  List<int> get _targetIds => widget.playlistIds ?? widget.songIds;
   bool _isSaving = false;
   List<SongTag> _allTags = [];
   Set<int> _selectedTagIds = {};
@@ -47,21 +58,34 @@ class _ManageTagsModalState extends ConsumerState<ManageTagsModal> {
   Future<void> _loadData() async {
     try {
       final api = ref.read(songTagsApiProvider);
-      final resp = await api.list(limit: 200);
-      final songTags =
-          widget.songIds.length == 1
-              ? await api.getSongTags(widget.songIds.first)
-              : <SongTag>[];
+      final tags = await api.all();
+      final bindings = await Future.wait(
+        _targetIds.map(
+          (id) =>
+              widget.playlistIds != null
+                  ? api.getPlaylistTags(id)
+                  : api.getSongTags(id),
+        ),
+      );
+      final selected =
+          bindings.isEmpty ? <int>{} : bindings.first.map((t) => t.id).toSet();
+      for (final binding in bindings.skip(1)) {
+        selected.retainAll(binding.map((t) => t.id));
+      }
 
       if (!mounted) return;
       setState(() {
-        _allTags = resp.tags;
-        _selectedTagIds = songTags.map((t) => t.id).toSet();
+        _allTags = tags;
+        _selectedTagIds = selected;
+        _initialTagIds = Set.of(selected);
         _isLoading = false;
       });
     } catch (e) {
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() {
+          _isLoading = false;
+          _loadFailed = true;
+        });
         ResponsiveSnackBar.showError(context, message: '$e');
       }
     }
@@ -91,15 +115,32 @@ class _ManageTagsModalState extends ConsumerState<ManageTagsModal> {
     setState(() => _isSaving = true);
     try {
       final api = ref.read(songTagsApiProvider);
-      if (widget.songIds.length == 1) {
-        await api.setSongTags(widget.songIds.first, _selectedTagIds.toList());
+      final added = _selectedTagIds.difference(_initialTagIds);
+      final removed = _initialTagIds.difference(_selectedTagIds);
+      if (widget.playlistIds != null) {
+        for (final id in _targetIds) {
+          final current =
+              (await api.getPlaylistTags(id)).map((t) => t.id).toSet();
+          current.removeAll(removed);
+          current.addAll(added);
+          await api.setPlaylistTags(id, current.toList());
+        }
+      } else if (_targetIds.length == 1) {
+        await api.setSongTags(_targetIds.first, _selectedTagIds.toList());
       } else {
-        for (final tagId in _selectedTagIds) {
-          await api.batchBind(tagId, widget.songIds);
+        for (final tagId in added) {
+          await api.batchBind(tagId, _targetIds);
+        }
+        for (final tagId in removed) {
+          await api.batchUnbind(tagId, _targetIds);
         }
       }
       if (!mounted) return;
       ref.invalidate(songTagListProvider);
+      ref.invalidate(allSongTagsProvider);
+      ref.invalidate(songTagsForPlaylistProvider);
+      ref.invalidate(playlistDetailProvider);
+      ref.invalidate(playlistListProvider);
       for (final songId in widget.songIds) {
         ref.invalidate(songTagsForSongProvider(songId));
       }
@@ -145,7 +186,13 @@ class _ManageTagsModalState extends ConsumerState<ManageTagsModal> {
                       ),
                     )
                   else
-                    TextButton(onPressed: _save, child: Text(l10n.librarySave)),
+                    TextButton(
+                      onPressed:
+                          _isLoading || _loadFailed || _targetIds.isEmpty
+                              ? null
+                              : _save,
+                      child: Text(l10n.librarySave),
+                    ),
                 ],
               ),
             ),
@@ -212,7 +259,9 @@ class _ManageTagsModalState extends ConsumerState<ManageTagsModal> {
                             },
                             title: Text(tag.name),
                             subtitle: Text(
-                              '${tag.songCount} ${l10n.songCountUnit}',
+                              widget.playlistIds != null
+                                  ? l10n.tagPlaylistCount(tag.playlistCount)
+                                  : '${tag.songCount} ${l10n.songCountUnit}',
                               style: theme.textTheme.bodySmall,
                             ),
                             secondary:

@@ -13,6 +13,17 @@ final songTagsApiProvider = Provider<SongTagsApi>((ref) {
   return SongTagsApi(dio);
 });
 
+final allSongTagsProvider = FutureProvider<List<SongTag>>((ref) {
+  return ref.watch(songTagsApiProvider).all();
+});
+
+final songTagsForPlaylistProvider = FutureProvider.family<List<SongTag>, int>((
+  ref,
+  id,
+) {
+  return ref.watch(songTagsApiProvider).getPlaylistTags(id);
+});
+
 // ---------------------------------------------------------------------------
 // 标签列表（网格浏览）
 // ---------------------------------------------------------------------------

@@ -20,6 +20,7 @@ class PlaylistApi {
   Future<PlaylistListResponse> getPlaylists({
     String? type,
     String? songSource,
+    int? tagId,
     String? excludeLabels,
     String? keyword,
     int limit = 20,
@@ -32,6 +33,7 @@ class PlaylistApi {
     if (songSource != null) {
       queryParams['song_source'] = songSource;
     }
+    if (tagId != null) queryParams['tag_id'] = tagId;
     if (excludeLabels != null) {
       queryParams['exclude_labels'] = excludeLabels;
     }

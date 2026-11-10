@@ -2,6 +2,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:songloft_flutter/features/playlist/domain/playlist.dart';
 
 void main() {
+  test('machine ownership is hidden without discarding user descriptions', () {
+    Playlist make(String description) =>
+        Playlist.fromJson({'id': 1, 'description': description});
+    expect(make('[navidrome:connection:starred]').displayDescription, isNull);
+    expect(
+      make('说明 [navidrome:connection:starred]').displayDescription,
+      '说明 [navidrome:connection:starred]',
+    );
+    expect(
+      make('[another:plugin:value]').displayDescription,
+      '[another:plugin:value]',
+    );
+  });
   group('Playlist.fromJson', () {
     test('parses backend playlist response', () {
       final playlist = Playlist.fromJson({

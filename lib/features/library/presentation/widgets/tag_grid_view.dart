@@ -13,6 +13,7 @@ import '../../../../shared/widgets/browse_collection_view.dart';
 import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/error_view.dart';
 import '../../../playlist/presentation/providers/playlist_view_provider.dart';
+import '../../../playlist/presentation/providers/playlist_provider.dart';
 import '../../data/song_tags_api.dart';
 import '../providers/song_tag_provider.dart';
 
@@ -89,6 +90,7 @@ class _TagGridViewState extends ConsumerState<TagGridView> {
       final api = ref.read(songTagsApiProvider);
       await api.update(tag.id, name: newName);
       ref.invalidate(songTagListProvider);
+      ref.invalidate(allSongTagsProvider);
       if (mounted) {
         ResponsiveSnackBar.showSuccess(context, message: l10n.tagRenamed);
       }
@@ -127,6 +129,10 @@ class _TagGridViewState extends ConsumerState<TagGridView> {
       final api = ref.read(songTagsApiProvider);
       await api.delete(tag.id);
       ref.invalidate(songTagListProvider);
+      ref.invalidate(allSongTagsProvider);
+      ref.invalidate(songTagsForPlaylistProvider);
+      ref.invalidate(playlistListProvider);
+      ref.invalidate(playlistDetailProvider);
       if (mounted) {
         ResponsiveSnackBar.showSuccess(context, message: l10n.tagDeleted);
       }
@@ -235,7 +241,8 @@ class _TagGridViewState extends ConsumerState<TagGridView> {
           coverUrl: tag.coverUrl.isNotEmpty ? tag.coverUrl : null,
           placeholderIcon: Icons.label_outline,
           title: tag.name,
-          subtitle: l10n.categorySongCount(tag.songCount),
+          subtitle:
+              '${l10n.categorySongCount(tag.songCount)} · ${l10n.tagPlaylistCount(tag.playlistCount)}',
           menuActions: [
             BrowseCardAction(
               value: 'rename',
@@ -257,6 +264,7 @@ class _TagGridViewState extends ConsumerState<TagGridView> {
                 path: '/library/tags/${tag.id}',
                 queryParameters: {
                   'name': tag.name,
+                  if (tag.playlistCount > 0) 'view': 'playlists',
                   if (tag.coverUrl.isNotEmpty) 'cover': tag.coverUrl,
                 },
               ).toString(),

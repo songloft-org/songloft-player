@@ -1,3 +1,4 @@
+import 'scrolling_text.dart';
 import 'network_cover_image.dart';
 import 'package:flutter/material.dart';
 
@@ -232,15 +233,13 @@ class BrowseCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            title,
+                          ScrollingText(
+                            text: title,
                             style: textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.w600,
                               color:
                                   highlightTitle ? colorScheme.primary : null,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
                           if (subtitle != null) ...[
                             const SizedBox(height: 2),
@@ -321,15 +320,13 @@ class BrowseCard extends StatelessWidget {
                     Row(
                       children: [
                         Flexible(
-                          child: Text(
-                            title,
+                          child: ScrollingText(
+                            text: title,
                             style: textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.bold,
                               color:
                                   highlightTitle ? colorScheme.primary : null,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         if (typeBadge != null) ...[

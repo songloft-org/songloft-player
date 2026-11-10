@@ -8559,7 +8559,7 @@ abstract class AppLocalizations {
   /// No description provided for @deleteTagConfirm.
   ///
   /// In zh, this message translates to:
-  /// **'确定删除标签「{name}」？该标签下的歌曲不会被删除。'**
+  /// **'确定删除标签「{name}」？关联歌曲和歌单不会被删除。'**
   String deleteTagConfirm(String name);
 
   /// No description provided for @collapseSidebar.
@@ -8735,6 +8735,24 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'在首页显示「我的电台」，选择保存在本机。'**
   String get settingsHomeShowRadiosDesc;
+
+  /// No description provided for @tagSongs.
+  ///
+  /// In zh, this message translates to:
+  /// **'歌曲'**
+  String get tagSongs;
+
+  /// No description provided for @tagPlaylists.
+  ///
+  /// In zh, this message translates to:
+  /// **'歌单'**
+  String get tagPlaylists;
+
+  /// No description provided for @tagPlaylistCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 个歌单'**
+  String tagPlaylistCount(int count);
 }
 
 class _AppLocalizationsDelegate

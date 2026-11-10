@@ -11,6 +11,7 @@ abstract class IPlaylistRepository {
   Future<PlaylistListResponse> getPlaylists({
     String? type,
     String? songSource,
+    int? tagId,
     String? excludeLabels,
     String? keyword,
     int limit = 20,

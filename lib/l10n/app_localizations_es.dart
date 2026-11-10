@@ -5020,7 +5020,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String deleteTagConfirm(String name) {
-    return '¿Eliminar la etiqueta \"$name\"? Las canciones de esta etiqueta no se eliminarán.';
+    return '¿Eliminar la etiqueta \"$name\"? Las canciones y listas vinculadas no se eliminarán.';
   }
 
   @override
@@ -5126,4 +5126,15 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settingsHomeShowRadiosDesc =>
       'Mostrar Mis radios en inicio. Esta opción se guarda en este dispositivo.';
+
+  @override
+  String get tagSongs => 'Canciones';
+
+  @override
+  String get tagPlaylists => 'Listas';
+
+  @override
+  String tagPlaylistCount(int count) {
+    return '$count listas';
+  }
 }

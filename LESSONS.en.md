@@ -10,6 +10,13 @@ Include rule, scope, full owner/repo#number, failure/fix commit SHAs, actual val
 
 ## Entries
 
+### LAYOUT-006: Bound index lines when narrowing the column
+
+- Scope: playlist song rows, songloft-org/songloft#562.
+- Rule: narrowing index space must keep three-digit numbers and initial hints on separate single lines. Check longer indices, hit areas and large text alongside title width.
+- Evidence and correct implementation: changing 32px to 24px triggered an existing row test with 4px bottom overflow. Bounding index text to one line fixes both regressions. See [record](docs/en/issue-562.md).
+- Seen 1× (2026-11-11). Found and fixed locally; uncommitted and unreleased.
+
 ### LYRIC-005: Old queues without a lyric URL must still read saved lyrics
 
 - Scope: lyric provider, playback restoration and cache, songloft-org/songloft#555; baseline `32339c748af046a30a28744e2af10e533400d95a`.

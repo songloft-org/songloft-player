@@ -1,3 +1,6 @@
+import '../../../../shared/widgets/scrolling_text.dart';
+import '../../../playlist/presentation/widgets/playlist_browse_adapters.dart'
+    show PlaylistCustomTags;
 import '../../../../shared/widgets/network_cover_image.dart';
 import 'package:flutter/material.dart';
 
@@ -137,8 +140,8 @@ class HeroCard extends StatelessWidget {
                         ),
                       ),
                       // 歌单标题
-                      Text(
-                        playlist.name,
+                      ScrollingText(
+                        text: playlist.name,
                         style: textTheme.headlineSmall?.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -148,8 +151,12 @@ class HeroCard extends StatelessWidget {
                             desktop: 32,
                           ),
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      ),
+                      PlaylistCustomTags(
+                        labels: playlist.labels,
+                        style: textTheme.labelMedium?.copyWith(
+                          color: Colors.white,
+                        ),
                       ),
                       SizedBox(
                         height: context.responsive<double>(

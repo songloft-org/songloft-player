@@ -4728,7 +4728,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String deleteTagConfirm(String name) {
-    return '确定删除标签「$name」？该标签下的歌曲不会被删除。';
+    return '确定删除标签「$name」？关联歌曲和歌单不会被删除。';
   }
 
   @override
@@ -4825,4 +4825,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settingsHomeShowRadiosDesc => '在首页显示「我的电台」，选择保存在本机。';
+
+  @override
+  String get tagSongs => '歌曲';
+
+  @override
+  String get tagPlaylists => '歌单';
+
+  @override
+  String tagPlaylistCount(int count) {
+    return '$count 个歌单';
+  }
 }

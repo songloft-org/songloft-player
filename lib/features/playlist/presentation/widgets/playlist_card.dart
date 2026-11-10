@@ -48,7 +48,7 @@ class PlaylistCard extends StatelessWidget {
           playlist.type == 'radio' ? Icons.radio : Icons.queue_music,
       title: playlist.name,
       subtitle: l10n.songsCount(playlist.songCount),
-      detail: playlist.description,
+      detail: playlist.displayDescription,
       chips: playlistLabelChips(context, playlist),
       typeBadge: playlistTypeBadge(context, playlist),
       highlighted: (isSelectionMode && isSelected) || isCurrentPlaylist,

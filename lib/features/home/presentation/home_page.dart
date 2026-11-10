@@ -1,3 +1,6 @@
+import '../../../shared/widgets/scrolling_text.dart';
+import '../../playlist/presentation/widgets/playlist_browse_adapters.dart'
+    show PlaylistCustomTags;
 import 'dart:async';
 
 import '../../../shared/widgets/network_cover_image.dart';
@@ -369,6 +372,10 @@ class _HomePageState extends ConsumerState<HomePage> {
             BrowseCard(
               layout: BrowseCardLayout.list,
               title: playlist.name,
+              chips: [
+                if (playlist.labels.any((label) => label.startsWith('tag:')))
+                  PlaylistCustomTags(labels: playlist.labels),
+              ],
               subtitle: AppLocalizations.of(
                 context,
               ).homeSongCountShort(playlist.songCount),
@@ -479,7 +486,15 @@ class _PlaylistGrid extends ConsumerWidget {
     // 走 textScalerOf 让系统大字号下封面自动让位，而不是把文字挤出溢出。
     final textScaler = MediaQuery.textScalerOf(context);
     final textBlockHeight =
-        AppSpacing.sm + textScaler.scale(20) + textScaler.scale(16);
+        AppSpacing.sm +
+        textScaler.scale(20) +
+        textScaler.scale(16) +
+        (playlists.any(
+              (playlist) =>
+                  playlist.labels.any((label) => label.startsWith('tag:')),
+            )
+            ? textScaler.scale(16)
+            : 0);
 
     return Padding(
       padding: EdgeInsets.symmetric(
@@ -620,15 +635,14 @@ class _GridPlaylistCard extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.sm),
               // 歌单名称
-              Text(
-                playlist.name,
+              ScrollingText(
+                text: playlist.name,
                 style: textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w500,
                   color: isCurrent ? colorScheme.primary : null,
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
+              PlaylistCustomTags(labels: playlist.labels),
               // 歌曲数
               Text(
                 l10n.homeSongCountShort(playlist.songCount),

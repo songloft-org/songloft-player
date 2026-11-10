@@ -75,8 +75,8 @@ class PlaylistListItem extends StatelessWidget {
   /// 副标题：歌曲数量 · 描述。
   String _subtitle(AppLocalizations l10n) {
     final parts = <String>[l10n.songsCount(playlist.songCount)];
-    if (playlist.description?.isNotEmpty == true) {
-      parts.add(playlist.description!);
+    if (playlist.displayDescription?.isNotEmpty == true) {
+      parts.add(playlist.displayDescription!);
     }
     return parts.join(' · ');
   }

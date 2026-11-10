@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../library/presentation/providers/song_tag_provider.dart';
 
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -38,7 +40,11 @@ List<Widget> playlistLabelChips(BuildContext context, Playlist playlist) {
     if (playlist.isPinned) _pinnedChip(context),
     if (playlist.type != 'radio' && playlist.hasRemoteSongs)
       _remoteChip(context),
-    ...playlist.labels.map((label) => _labelChip(context, label)),
+    ...playlist.labels
+        .where((label) => !label.startsWith('tag:'))
+        .map((label) => _labelChip(context, label)),
+    if (playlist.labels.any((label) => label.startsWith('tag:')))
+      PlaylistCustomTags(labels: playlist.labels),
   ];
 }
 
@@ -161,4 +167,29 @@ List<BrowseCardAction> playlistMenuActions({
         destructive: true,
       ),
   ];
+}
+
+/// One shared catalog request serves every visible playlist card.
+class PlaylistCustomTags extends ConsumerWidget {
+  final List<String> labels;
+  final TextStyle? style;
+  const PlaylistCustomTags({super.key, required this.labels, this.style});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (!labels.any((label) => label.startsWith('tag:'))) {
+      return const SizedBox.shrink();
+    }
+    final tags = ref.watch(allSongTagsProvider).value ?? [];
+    final names = tags
+        .where((tag) => labels.contains('tag:${tag.id}'))
+        .map((tag) => tag.name)
+        .join(' · ');
+    return Text(
+      names,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: style ?? Theme.of(context).textTheme.labelMedium,
+    );
+  }
 }
