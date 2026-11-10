@@ -10,6 +10,13 @@ Include rule, scope, full owner/repo#number, failure/fix commit SHAs, actual val
 
 ## Entries
 
+### FAVORITE-001: Session reset must reject old favorite initialization
+
+- Scope: favorite initialization and server change subscriptions, songloft-org/songloft#563.
+- Rule: stopping subscriptions only blocks future events. In-flight domain initialization also needs a session generation; after reset it must not restore old IDs or clear the new initialization state.
+- Evidence and Done right: loading the old FavoriteService in isolation fails the new-session id=2 assertion because a late response restores 1. Generation checks pass. All 831 Flutter tests and analysis passed; `/tmp/songloft-563-extra/flutter-{negative-init,tests,analyze-delivery}.log`.
+- Seen 1× (2026-11-11). Status: new subscription mechanism validation, pre-commit validation; delivery status is tracked in the batch record; [record](docs/en/issue-563.md).
+
 ### LAYOUT-006: Bound index lines when narrowing the column
 
 - Scope: playlist song rows, songloft-org/songloft#562.

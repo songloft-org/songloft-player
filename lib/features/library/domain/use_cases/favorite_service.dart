@@ -27,6 +27,7 @@ class FavoriteService {
   final Set<int> _favoriteIds = {};
   int? _playlistId;
   bool _initializing = false;
+  int _generation = 0;
 
   /// Whether this service has been successfully initialized.
   bool get isInitialized => _playlistId != null;
@@ -54,15 +55,18 @@ class FavoriteService {
   }) async {
     if (_playlistId != null || _initializing) return;
     _initializing = true;
+    final generation = _generation;
     try {
       final id = await findOrCreatePlaylist();
+      if (generation != _generation) return;
       final ids = await loadSongIds(id);
+      if (generation != _generation) return;
       _playlistId = id;
       _favoriteIds
         ..clear()
         ..addAll(ids);
     } finally {
-      _initializing = false;
+      if (generation == _generation) _initializing = false;
     }
   }
 
@@ -122,6 +126,7 @@ class FavoriteService {
 
   /// Reset internal state (useful when user logs out).
   void reset() {
+    _generation++;
     _favoriteIds.clear();
     _playlistId = null;
     _initializing = false;

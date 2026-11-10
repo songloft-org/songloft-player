@@ -10,6 +10,13 @@
 
 ## 条目
 
+### FAVORITE-001：会话重置必须拒绝旧收藏初始化
+
+- 范围：收藏初始化与服务端变更订阅，songloft-org/songloft#563。
+- 规则：停止订阅只能阻止后续事件；正在初始化的异步服务也要带会话代数，reset 后不得恢复旧 ID 或清除新初始化状态。
+- 证据与 Done right：隔离加载旧 FavoriteService 的新回归在新会话 id=2 断言失败，旧响应将其写回 1；加入代数检查后通过。831 项完整 Flutter 测试和静态分析通过；日志 `/tmp/songloft-563-extra/flutter-{negative-init,tests,analyze-delivery}.log`。
+- Seen 1× (2026-11-11)。状态：新增订阅机制验证，提交前验证；交付状态见本批记录，详见 [记录](docs/cn/issue-563.md)。
+
 ### LAYOUT-006：收窄序号时同时固定文字行数
 
 - 范围：歌单歌曲行，songloft-org/songloft#562。

@@ -1,4 +1,5 @@
-import 'package:flutter/foundation.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/api_client.dart';
@@ -8,6 +9,9 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../playlist/data/playlist_api.dart';
 import '../../../playlist/domain/playlist.dart';
 import '../../domain/use_cases/favorite_service.dart';
+import '../../domain/use_cases/favorite_change_watcher.dart';
+import '../../data/favorite_changes_api.dart';
+import '../../../playlist/presentation/providers/playlist_provider.dart';
 
 /// 内置收藏歌单名称
 const String _favoriteSongPlaylistName = '收藏';
@@ -61,6 +65,7 @@ class FavoriteState {
 class FavoriteNotifier extends Notifier<FavoriteState> {
   late PlaylistApi _playlistApi;
   bool _disposed = false;
+  int _generation = 0;
 
   final FavoriteService _songFavoriteService = FavoriteService();
   final FavoriteService _radioFavoriteService = FavoriteService();
@@ -69,17 +74,68 @@ class FavoriteNotifier extends Notifier<FavoriteState> {
   FavoriteState build() {
     _playlistApi = ref.watch(favoritePlaylistApiProvider);
     _disposed = false;
+    final generation = ++_generation;
+    FavoriteChangeWatcher? watcher;
+    AppLifecycleListener? lifecycle;
+    final initialLifecycle = WidgetsBinding.instance.lifecycleState;
+    var visible =
+        initialLifecycle == null ||
+        initialLifecycle == AppLifecycleState.resumed ||
+        initialLifecycle == AppLifecycleState.inactive;
 
     ref.onDispose(() {
       _disposed = true;
+      _generation++;
+      watcher?.stop();
+      lifecycle?.dispose();
       _songFavoriteService.reset();
       _radioFavoriteService.reset();
     });
 
     // 仅在已认证时自动调度初始化，避免在 auth unknown 阶段发起无效 API 请求
-    final authStatus = ref.watch(authStateProvider.select((s) => s.status));
-    if (authStatus == AuthStatus.authenticated) {
-      Future.microtask(() => initialize());
+    final auth = ref.watch(
+      authStateProvider.select((s) => (s.status, s.isLoading)),
+    );
+    if (auth.$1 == AuthStatus.authenticated && !auth.$2) {
+      void startWatcher() {
+        if (_generation != generation || !visible) return;
+        watcher?.stop();
+        final api = FavoriteChangesApi(ref.read(dioProvider));
+        late final FavoriteChangeWatcher instance;
+        instance = FavoriteChangeWatcher(
+          poll: api.poll,
+          refresh:
+              () => _refreshFromServer(
+                generation,
+                () => identical(watcher, instance) && visible,
+              ),
+          cancelPoll: () => api.cancelToken.cancel(),
+          unsupported:
+              (error) =>
+                  error is DioException && error.response?.statusCode == 404,
+        );
+        watcher = instance;
+        instance.run();
+      }
+
+      lifecycle = AppLifecycleListener(
+        onStateChange: (value) {
+          if (value == AppLifecycleState.resumed) {
+            visible = true;
+            startWatcher();
+          } else if (value == AppLifecycleState.paused ||
+              value == AppLifecycleState.hidden ||
+              value == AppLifecycleState.detached) {
+            visible = false;
+            watcher?.stop();
+          }
+        },
+      );
+      Future.microtask(() async {
+        if (_generation != generation) return;
+        await initialize();
+        startWatcher();
+      });
     }
 
     return const FavoriteState();
@@ -88,6 +144,7 @@ class FavoriteNotifier extends Notifier<FavoriteState> {
   /// 初始化：查找或创建内置收藏歌单
   /// 幂等操作，多次调用不会重复创建歌单
   Future<void> initialize() async {
+    final generation = _generation;
     // 如果已经初始化或正在加载，直接返回
     if (state.initialized || state.isLoading) return;
 
@@ -104,7 +161,7 @@ class FavoriteNotifier extends Notifier<FavoriteState> {
             ),
         loadSongIds: _loadPlaylistSongIds,
       );
-      if (_disposed) return;
+      if (_disposed || _generation != generation) return;
 
       // 初始化电台收藏服务
       await _radioFavoriteService.initialize(
@@ -116,7 +173,7 @@ class FavoriteNotifier extends Notifier<FavoriteState> {
             ),
         loadSongIds: _loadPlaylistSongIds,
       );
-      if (_disposed) return;
+      if (_disposed || _generation != generation) return;
 
       state = state.copyWith(
         favoriteSongPlaylistId: _songFavoriteService.playlistId,
@@ -127,7 +184,7 @@ class FavoriteNotifier extends Notifier<FavoriteState> {
         isLoading: false,
       );
     } catch (e) {
-      if (_disposed) return;
+      if (_disposed || _generation != generation) return;
       debugPrint('[Favorite] initialize error: $e');
       state = state.copyWith(isLoading: false, error: e.toString());
     }
@@ -139,19 +196,21 @@ class FavoriteNotifier extends Notifier<FavoriteState> {
     String type,
     String description,
   ) async {
-    final response = await _playlistApi.getPlaylists(limit: 1000);
-    if (_disposed) throw StateError('disposed');
+    final generation = _generation;
+    final api = _playlistApi;
+    final response = await api.getPlaylists(limit: 1000);
+    if (_disposed || generation != _generation) throw StateError('disposed');
     final playlists = response.playlists;
 
     Playlist? found = _findPlaylist(playlists, name, type);
 
     if (found == null) {
-      found = await _playlistApi.createPlaylist(
+      found = await api.createPlaylist(
         type: type,
         name: name,
         description: description,
       );
-      if (_disposed) throw StateError('disposed');
+      if (_disposed || generation != _generation) throw StateError('disposed');
     }
 
     return found.id;
@@ -176,12 +235,13 @@ class FavoriteNotifier extends Notifier<FavoriteState> {
 
   /// 加载歌单中的所有歌曲 ID（分页加载，确保大歌单也能完整加载）
   Future<Set<int>> _loadPlaylistSongIds(int playlistId) async {
+    final api = _playlistApi;
     const pageLimit = 500;
     final allIds = <int>{};
     int offset = 0;
     try {
       while (true) {
-        final response = await _playlistApi.getPlaylistSongs(
+        final response = await api.getPlaylistSongs(
           playlistId,
           limit: pageLimit,
           offset: offset,
@@ -195,6 +255,32 @@ class FavoriteNotifier extends Notifier<FavoriteState> {
       // 返回已加载的部分
     }
     return allIds;
+  }
+
+  Future<void> _refreshFromServer(
+    int generation,
+    bool Function() current,
+  ) async {
+    await initialize();
+    if (_generation != generation || _disposed || !current()) return;
+    if (!state.initialized) throw StateError('Favorites are not initialized');
+    final songId = state.favoriteSongPlaylistId!;
+    final radioId = state.favoriteRadioPlaylistId!;
+    final api = _playlistApi;
+    final lists = await Future.wait([
+      api.getPlaylistSongIds(songId),
+      api.getPlaylistSongIds(radioId),
+    ]);
+    final ids = lists.map((items) => items.toSet()).toList();
+    if (_generation != generation || _disposed || !current()) return;
+    _songFavoriteService.updateIds(ids[0]);
+    _radioFavoriteService.updateIds(ids[1]);
+    state = state.copyWith(favoriteSongIds: ids[0], favoriteRadioIds: ids[1]);
+    for (final id in [songId, radioId]) {
+      ref.invalidate(playlistSongsProvider(id));
+      ref.invalidate(playlistDetailProvider(id));
+    }
+    ref.invalidate(playlistListProvider);
   }
 
   /// 切换歌曲收藏状态
