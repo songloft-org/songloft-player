@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import '../../data/playlist_progress_sync.dart';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -110,6 +111,21 @@ class PlayerNotifier extends Notifier<PlayerState> {
 
   @override
   PlayerState build() {
+    _playlistProgress = PlaylistProgressSync(
+      ref.read(dioProvider),
+      onConflict: () {
+        if (!_disposed) {
+          state = state.copyWith(
+            infoMessage: l10nOrNull?.playlistProgressConflict,
+          );
+        }
+      },
+    );
+    listenSelf((previous, next) => _playlistProgress.observe(previous, next));
+    final progressLifecycle = AppLifecycleListener(
+      onInactive: () => _playlistProgress.save(state),
+    );
+    ref.onDispose(progressLifecycle.dispose);
     _audioHandler = ref.watch(audioHandlerProvider);
     _secureStorage = ref.watch(secureStorageProvider);
 
@@ -520,6 +536,10 @@ class PlayerNotifier extends Notifier<PlayerState> {
   /// finish 是同一首歌的重复信息；skip 上报的是**上一首**歌，那时 state 里的上下文
   /// 可能已经切到新歌单了，带上会把上一首错记到新上下文名下。
   void _notifyPlayEvent(int songId, String type, {PlaybackContext? context}) {
+    if (type == 'play' && context?.playlistId == _playlistProgress.id) {
+      _playlistProgress.ready = true;
+      _playlistProgress.save(state, completed: false);
+    }
     ref
         .read(songsApiProvider)
         .songPlayed(songId, type: type, context: context)
@@ -530,6 +550,10 @@ class PlayerNotifier extends Notifier<PlayerState> {
 
   /// 歌曲播放完成处理
   void _onSongCompleted() {
+    if (_playlistQueueLoading) {
+      _playlistCompletionPending = true;
+      return;
+    }
     if (ref.read(dlnaStateProvider).isCasting) return;
     if (state.currentSong?.isLive ?? false) {
       _reconnectLiveStream();
@@ -597,6 +621,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
         debugPrint('[Player] Order mode: reached end of playlist, stopping');
         state = state.copyWith(isPlaying: false);
         _audioHandler.stop();
+        _playlistProgress.save(state, completed: true);
         break;
       case CompletionAction.playNext:
         debugPrint('[Player] Playing next song');
@@ -1171,6 +1196,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
     _modeResolver.onModeChanged(mode);
     if (state.currentSong != null) _modeResolver.markPlayed(state.currentIndex);
     state = state.copyWith(playMode: mode);
+    _playlistProgress.save(state, modeOnly: true);
 
     // 保存到本地存储
     try {
@@ -1321,6 +1347,11 @@ class PlayerNotifier extends Notifier<PlayerState> {
   /// 返回用于展示的总歌曲数（-1 表示失败）
   Future<int> playPlaylistById(int playlistId) async {
     final playlistApi = ref.read(playlistApiProvider);
+    final metadata = await playlistApi.getPlaylist(playlistId);
+    if (metadata.type == 'normal') {
+      await playPlaylistTarget(playlistId: playlistId);
+      return metadata.songCount;
+    }
     const firstPageLimit = 10;
 
     debugPrint('[Player] playPlaylistById: start, playlistId=$playlistId');
@@ -1447,6 +1478,129 @@ class PlayerNotifier extends Notifier<PlayerState> {
     }
   }
 
+  late PlaylistProgressSync _playlistProgress;
+  int _playlistTargetGeneration = 0;
+  bool _playlistQueueLoading = false;
+  bool _playlistCompletionPending = false;
+
+  Future<void> playPlaylistTarget({
+    required int playlistId,
+    Song? song,
+    bool resume = false,
+  }) async {
+    _playlistProgress.save(state);
+    final run = ++_playlistTargetGeneration;
+    final saved = await _playlistProgress.begin(playlistId);
+    final api = ref.read(playlistApiProvider);
+    final playlist = await api.getPlaylist(playlistId);
+    if (run != _playlistTargetGeneration) return;
+    if (resume &&
+        saved?['completed'] != true &&
+        state.playbackContext?.playlistId == playlistId &&
+        state.currentSong?.id == saved?['song']?['id']) {
+      if (!state.isPlaying) await togglePlay();
+      return;
+    }
+    final mode = saved?['play_mode'] as String? ?? '';
+    _modeResolver.onModeChanged(
+      mode.isNotEmpty
+          ? PlayMode.fromString(mode)
+          : playlist.labels.contains('audiobook')
+          ? PlayMode.order
+          : state.playMode,
+    );
+    state = state.copyWith(playMode: _modeResolver.mode);
+    final continuing =
+        resume &&
+        saved?['song'] != null &&
+        saved?['completed'] != true &&
+        saved?['invalid'] != true;
+    if (continuing) {
+      song = Song.fromJson(Map<String, dynamic>.from(saved!['song'] as Map));
+    }
+    final first = await api.getPlaylistSongs(
+      playlistId,
+      sort: playlist.sortBy,
+      order: playlist.sortOrder,
+      limit: 100,
+    );
+    if (run != _playlistTargetGeneration) return;
+    song ??= first.songs.isEmpty ? null : first.songs.first;
+    if (song == null) return;
+    final ids = await api.getPlaylistSongIds(playlistId);
+    if (run != _playlistTargetGeneration) return;
+    if (!ids.contains(song.id)) {
+      throw StateError(l10nOrNull?.playlistProgressInvalid ?? 'Track removed');
+    }
+    final target = song;
+    _playlistQueueLoading = true;
+    _playlistCompletionPending = false;
+    _playlistProgress.restoring = continuing;
+    final playing = playPlaylist([
+      target,
+    ], context: PlaybackContext.playlist(playlistId)).then((_) async {
+      if (run != _playlistTargetGeneration) return;
+      if (continuing) {
+        await seek(Duration(milliseconds: saved!['position_ms'] as int? ?? 0));
+      }
+      _playlistProgress.restoring = false;
+    });
+    unawaited(playing.catchError((Object e, StackTrace st) {}));
+    final generation = _loadGeneration;
+    var hydrated = false;
+    try {
+      final queue = [...first.songs];
+      for (
+        var offset = queue.length;
+        offset < first.total;
+        offset = queue.length
+      ) {
+        final page = await api.getPlaylistSongs(
+          playlistId,
+          sort: playlist.sortBy,
+          order: playlist.sortOrder,
+          limit: 100,
+          offset: offset,
+        );
+        if (run != _playlistTargetGeneration || generation != _loadGeneration) {
+          return;
+        }
+        if (page.songs.isEmpty) throw StateError('Incomplete playlist');
+        queue.addAll(page.songs);
+      }
+      if (run != _playlistTargetGeneration || generation != _loadGeneration) {
+        return;
+      }
+      final index = queue.indexWhere((s) => s.id == target.id);
+      if (index < 0) {
+        throw StateError(
+          l10nOrNull?.playlistProgressInvalid ?? 'Track removed',
+        );
+      }
+      _modeResolver.onModeChanged(state.playMode);
+      _modeResolver.markPlayed(index);
+      state = state.copyWith(playlist: queue, currentIndex: index);
+      hydrated = true;
+      _savePlaybackState();
+      await playing;
+      if (run != _playlistTargetGeneration || generation != _loadGeneration) {
+        return;
+      }
+      _playlistProgress.save(state);
+    } finally {
+      if (run == _playlistTargetGeneration) {
+        _playlistQueueLoading = false;
+        _playlistProgress.restoring = false;
+        if (hydrated &&
+            _playlistCompletionPending &&
+            generation == _loadGeneration) {
+          _playlistCompletionPending = false;
+          _onSongCompleted();
+        }
+      }
+    }
+  }
+
   /// 从播放历史条目起播。
   ///
   /// 历史条目自带完整 Song，所以先用这一首当队列立即出声（**零额外请求**），
@@ -1461,6 +1615,9 @@ class PlayerNotifier extends Notifier<PlayerState> {
     required PlaybackContext context,
     required Song song,
   }) async {
+    if (context.playlistId != null) {
+      return playPlaylistTarget(playlistId: context.playlistId!, song: song);
+    }
     // 刻意不 await 起播就启动补齐：playPlaylist 会一路 await 到音频真正加载完成，
     // 首曲加载慢或播放失败重试（网络歌曲最多 7 次指数退避，可达数十秒）时，
     // 队列补齐会被整段推迟 —— 用户看到队列里只有这一首、切不了歌。
@@ -2063,6 +2220,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
 
   /// 播放当前歌曲（带自动重试）
   Future<void> _playCurrent(int gen, {bool reconnectLive = false}) async {
+    _playlistProgress.ready = false;
     if (_isSuperseded(gen, 'start')) return;
     final song = state.currentSong;
     if (song == null) {

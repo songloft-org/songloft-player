@@ -37,6 +37,7 @@ abstract class IPlaylistRepository {
     String? coverPath,
     String? coverUrl,
     int? coverSongId,
+    bool? audiobook,
   });
 
   /// 上传歌单封面图片

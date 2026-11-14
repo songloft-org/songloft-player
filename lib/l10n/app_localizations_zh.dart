@@ -9,6 +9,30 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
+  String get playlistAudiobook => '有声书';
+
+  @override
+  String get playlistContinue => '继续播放';
+
+  @override
+  String get playlistContinueBook => '继续收听';
+
+  @override
+  String get playlistFinished => '已听完 · 从头播放';
+
+  @override
+  String get playlistPlayWhole => '播放整个歌单';
+
+  @override
+  String get playlistProgressInvalid => '上次收听的歌曲已不在歌单中';
+
+  @override
+  String get playlistProgressConflict => '进度已在其他设备更新';
+
+  @override
+  String get playlistLocateResume => '定位上次收听';
+
+  @override
   String get personalTokenTitle => '永久访问 Token';
 
   @override

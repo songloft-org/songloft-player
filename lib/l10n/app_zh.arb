@@ -1,4 +1,12 @@
 {
+  "playlistAudiobook": "有声书",
+  "playlistContinue": "继续播放",
+  "playlistContinueBook": "继续收听",
+  "playlistFinished": "已听完 · 从头播放",
+  "playlistPlayWhole": "播放整个歌单",
+  "playlistProgressInvalid": "上次收听的歌曲已不在歌单中",
+  "playlistProgressConflict": "进度已在其他设备更新",
+  "playlistLocateResume": "定位上次收听",
 "personalTokenTitle": "永久访问 Token",
 "personalTokenHelp": "永久有效，直到手动撤销。拥有管理员业务 API 权限，不能管理 Token。",
 "personalTokenCreate": "创建 Token",

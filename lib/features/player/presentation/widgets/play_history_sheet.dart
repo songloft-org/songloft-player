@@ -11,6 +11,7 @@ import '../../domain/play_history_entry.dart';
 import '../../domain/playback_context.dart';
 import '../providers/play_history_provider.dart';
 import '../providers/player_provider.dart';
+import 'playlist_resume_card.dart';
 
 /// 播放历史面板：展示某个播放上下文（歌单 / 歌手 / 专辑 / 其余分面维度）内
 /// 最近播放过的歌曲，点任一首从该首接着往下播。
@@ -59,6 +60,11 @@ class PlayHistorySheet extends ConsumerWidget {
             children: [
               _buildDragHandle(colorScheme),
               _buildHeader(context, ref, historyAsync.value ?? const []),
+              if (playbackContext.playlistId != null)
+                PlaylistResumeCard(
+                  id: playbackContext.playlistId!,
+                  audiobook: false,
+                ),
               const Divider(height: 1),
               Expanded(
                 child: historyAsync.when(

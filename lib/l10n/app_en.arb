@@ -1,4 +1,12 @@
 {
+  "playlistAudiobook": "Audiobook",
+  "playlistContinue": "Continue playing",
+  "playlistContinueBook": "Continue listening",
+  "playlistFinished": "Finished · Play from beginning",
+  "playlistPlayWhole": "Play entire playlist",
+  "playlistProgressInvalid": "The last track is no longer in this playlist",
+  "playlistProgressConflict": "Progress changed on another device",
+  "playlistLocateResume": "Locate last listened track",
 "personalTokenTitle": "Permanent access tokens",
 "personalTokenHelp": "Valid until revoked. Grants administrator access to business APIs, excluding token management.",
 "personalTokenCreate": "Create token",

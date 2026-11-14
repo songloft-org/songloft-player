@@ -87,8 +87,10 @@ class PlaylistApi {
     String? coverPath,
     String? coverUrl,
     int? coverSongId,
+    bool? audiobook,
   }) async {
     final data = <String, dynamic>{};
+    if (audiobook != null) data['audiobook'] = audiobook;
     if (name != null) {
       data['name'] = name;
     }

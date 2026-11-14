@@ -100,6 +100,54 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
+  /// No description provided for @playlistAudiobook.
+  ///
+  /// In zh, this message translates to:
+  /// **'有声书'**
+  String get playlistAudiobook;
+
+  /// No description provided for @playlistContinue.
+  ///
+  /// In zh, this message translates to:
+  /// **'继续播放'**
+  String get playlistContinue;
+
+  /// No description provided for @playlistContinueBook.
+  ///
+  /// In zh, this message translates to:
+  /// **'继续收听'**
+  String get playlistContinueBook;
+
+  /// No description provided for @playlistFinished.
+  ///
+  /// In zh, this message translates to:
+  /// **'已听完 · 从头播放'**
+  String get playlistFinished;
+
+  /// No description provided for @playlistPlayWhole.
+  ///
+  /// In zh, this message translates to:
+  /// **'播放整个歌单'**
+  String get playlistPlayWhole;
+
+  /// No description provided for @playlistProgressInvalid.
+  ///
+  /// In zh, this message translates to:
+  /// **'上次收听的歌曲已不在歌单中'**
+  String get playlistProgressInvalid;
+
+  /// No description provided for @playlistProgressConflict.
+  ///
+  /// In zh, this message translates to:
+  /// **'进度已在其他设备更新'**
+  String get playlistProgressConflict;
+
+  /// No description provided for @playlistLocateResume.
+  ///
+  /// In zh, this message translates to:
+  /// **'定位上次收听'**
+  String get playlistLocateResume;
+
   /// No description provided for @personalTokenTitle.
   ///
   /// In zh, this message translates to:

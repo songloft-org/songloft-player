@@ -30,6 +30,7 @@ import '../../library/presentation/song_edit_page.dart';
 import '../../player/domain/playback_context.dart';
 import '../../player/presentation/providers/player_provider.dart';
 import '../../player/presentation/widgets/play_history_sheet.dart';
+import '../../player/presentation/widgets/playlist_resume_card.dart';
 import '../../settings/presentation/providers/cache_download_provider.dart';
 import '../../settings/presentation/providers/song_cache_provider.dart';
 import '../domain/playlist.dart';
@@ -214,12 +215,20 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
   }
 
   /// 定位到当前正在播放的歌曲
-  Future<void> _scrollToCurrentSong(List<Song> songs) async {
+  Future<void> _locateResume(int songId) async {
+    _searchController.clear();
+    await ref.read(playlistSongsProvider(_playlistIdInt).notifier).search('');
+    if (!mounted) return;
+    await _scrollToCurrentSong([], songId: songId);
+  }
+
+  Future<void> _scrollToCurrentSong(List<Song> songs, {int? songId}) async {
     final playerState = ref.read(playerStateProvider);
     final currentSong = playerState.currentSong;
-    if (currentSong == null) return;
+    final targetId = songId ?? currentSong?.id;
+    if (targetId == null) return;
 
-    var index = songs.indexWhere((s) => s.id == currentSong.id);
+    var index = songs.indexWhere((s) => s.id == targetId);
 
     if (index < 0) {
       await ref.read(playlistSongsProvider(_playlistIdInt).notifier).loadAll();
@@ -229,7 +238,7 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
       if (!mounted) return;
       final fullSongs =
           ref.read(playlistSongsProvider(_playlistIdInt)).value?.items ?? songs;
-      index = fullSongs.indexWhere((s) => s.id == currentSong.id);
+      index = fullSongs.indexWhere((s) => s.id == targetId);
       if (index < 0) {
         if (mounted) {
           ResponsiveSnackBar.show(
@@ -550,6 +559,14 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
 
         // 封面 header 区域（独立于顶栏）
         SliverToBoxAdapter(child: _buildCoverHeader(context, playlist)),
+        if (playlist.type == 'normal')
+          SliverToBoxAdapter(
+            child: PlaylistResumeCard(
+              id: playlist.id,
+              audiobook: playlist.labels.contains('audiobook'),
+              onLocate: _locateResume,
+            ),
+          ),
 
         // 歌单信息
         SliverToBoxAdapter(
@@ -733,6 +750,12 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
             ),
           ),
           // 描述
+          if (playlist.type == 'normal')
+            PlaylistResumeCard(
+              id: playlist.id,
+              audiobook: playlist.labels.contains('audiobook'),
+              onLocate: _locateResume,
+            ),
           if (playlist.displayDescription?.isNotEmpty == true) ...[
             const SizedBox(height: AppSpacing.sm),
             Text(
@@ -764,7 +787,11 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
                 onPressed:
                     songs.isEmpty ? null : () => _playAll(playlist, songs),
                 icon: const Icon(Icons.play_arrow),
-                label: Text(l10n.playlistPlayAll),
+                label: Text(
+                  _searchController.text.isEmpty
+                      ? l10n.playlistPlayAll
+                      : l10n.playlistPlayWhole,
+                ),
                 style: FilledButton.styleFrom(
                   minimumSize: const Size(double.infinity, 48),
                 ),
@@ -1434,7 +1461,11 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
                 onPressed:
                     songs.isEmpty ? null : () => _playAll(playlist, songs),
                 icon: const Icon(Icons.play_arrow),
-                label: Text(l10n.playlistPlayAll),
+                label: Text(
+                  _searchController.text.isEmpty
+                      ? l10n.playlistPlayAll
+                      : l10n.playlistPlayWhole,
+                ),
                 style: FilledButton.styleFrom(
                   minimumSize: context.responsiveButtonMinSize,
                 ),
@@ -1565,6 +1596,8 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
   String _getLabelName(String label) {
     final l10n = AppLocalizations.of(context);
     switch (label) {
+      case 'audiobook':
+        return l10n.playlistAudiobook;
       case 'built_in':
         return l10n.playlistLabelBuiltIn;
       case 'auto_created':
@@ -1747,15 +1780,7 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
     final total = state?.total ?? songs.length;
     await ref
         .read(playerStateProvider.notifier)
-        .playPlaylistFromLoaded(
-          loadedSongs: songs,
-          startIndex: 0,
-          playlistId: playlist.id,
-          total: total,
-          sort: state?.sort ?? 'position',
-          order: state?.order ?? 'asc',
-          keyword: state?.keyword ?? '',
-        );
+        .playPlaylistTarget(playlistId: playlist.id);
     if (!mounted) return;
     ResponsiveSnackBar.show(context, message: l10n.playlistPlayingCount(total));
   }
@@ -1774,18 +1799,9 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
     debugPrint('[Player] Play song: ${song.title} at index $index');
     // 从已加载分页开始播放并后台补齐整个歌单队列，避免队列被截断到已加载页
     // （songloft-org/songloft#299）。
-    final state = ref.read(playlistSongsProvider(_playlistIdInt)).value;
     ref
         .read(playerStateProvider.notifier)
-        .playPlaylistFromLoaded(
-          loadedSongs: songs,
-          startIndex: index,
-          playlistId: _playlistIdInt,
-          total: state?.total ?? songs.length,
-          sort: state?.sort ?? 'position',
-          order: state?.order ?? 'asc',
-          keyword: state?.keyword ?? '',
-        );
+        .playPlaylistTarget(playlistId: _playlistIdInt, song: song);
     ResponsiveSnackBar.show(
       context,
       message: AppLocalizations.of(context).playlistPlayingSong(song.title),

@@ -9,6 +9,31 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get playlistAudiobook => 'Audiobook';
+
+  @override
+  String get playlistContinue => 'Continue playing';
+
+  @override
+  String get playlistContinueBook => 'Continue listening';
+
+  @override
+  String get playlistFinished => 'Finished · Play from beginning';
+
+  @override
+  String get playlistPlayWhole => 'Play entire playlist';
+
+  @override
+  String get playlistProgressInvalid =>
+      'The last track is no longer in this playlist';
+
+  @override
+  String get playlistProgressConflict => 'Progress changed on another device';
+
+  @override
+  String get playlistLocateResume => 'Locate last listened track';
+
+  @override
   String get personalTokenTitle => 'Permanent access tokens';
 
   @override

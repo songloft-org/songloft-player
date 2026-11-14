@@ -32,6 +32,7 @@ class PlaylistEditDialogState extends ConsumerState<PlaylistEditDialog>
 
   /// 是否正在保存
   bool _isSaving = false;
+  late bool _audiobook;
 
   @override
   String? get coverInitialUrl => widget.playlist.coverUrl;
@@ -42,6 +43,7 @@ class PlaylistEditDialogState extends ConsumerState<PlaylistEditDialog>
   @override
   void initState() {
     super.initState();
+    _audiobook = widget.playlist.labels.contains('audiobook');
     _nameController = TextEditingController(text: widget.playlist.name);
     _descController = TextEditingController(text: widget.playlist.description);
   }
@@ -87,6 +89,7 @@ class PlaylistEditDialogState extends ConsumerState<PlaylistEditDialog>
         await notifier.updatePlaylist(
           widget.playlistId,
           name: name,
+          audiobook: _audiobook,
           description: description.isEmpty ? null : description,
         );
       } else if (coverMode == 'song' && coverSelectedSongId != null) {
@@ -94,6 +97,7 @@ class PlaylistEditDialogState extends ConsumerState<PlaylistEditDialog>
         await notifier.updatePlaylist(
           widget.playlistId,
           name: name,
+          audiobook: _audiobook,
           description: description.isEmpty ? null : description,
           coverSongId: coverSelectedSongId,
         );
@@ -102,6 +106,7 @@ class PlaylistEditDialogState extends ConsumerState<PlaylistEditDialog>
         await notifier.updatePlaylist(
           widget.playlistId,
           name: name,
+          audiobook: _audiobook,
           description: description.isEmpty ? null : description,
           coverPath: '',
         );
@@ -110,6 +115,7 @@ class PlaylistEditDialogState extends ConsumerState<PlaylistEditDialog>
         await notifier.updatePlaylist(
           widget.playlistId,
           name: name,
+          audiobook: _audiobook,
           description: description.isEmpty ? null : description,
         );
       }
@@ -208,6 +214,16 @@ class PlaylistEditDialogState extends ConsumerState<PlaylistEditDialog>
                   ),
                   const SizedBox(height: 16),
                   // 歌单名称
+                  if (widget.playlist.type == 'normal' &&
+                      !widget.playlist.isBuiltIn)
+                    SwitchListTile(
+                      title: Text(l10n.playlistAudiobook),
+                      value: _audiobook,
+                      onChanged:
+                          _isSaving
+                              ? null
+                              : (value) => setState(() => _audiobook = value),
+                    ),
                   TextField(
                     controller: _nameController,
                     decoration: InputDecoration(

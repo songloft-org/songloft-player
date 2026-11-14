@@ -76,6 +76,7 @@ class PlaylistRepository implements IPlaylistRepository {
     String? coverPath,
     String? coverUrl,
     int? coverSongId,
+    bool? audiobook,
   }) async {
     try {
       return await playlistApi.updatePlaylist(
@@ -85,6 +86,7 @@ class PlaylistRepository implements IPlaylistRepository {
         coverPath: coverPath,
         coverUrl: coverUrl,
         coverSongId: coverSongId,
+        audiobook: audiobook,
       );
     } on DioException catch (e) {
       throw _handleError(e);
