@@ -9,6 +9,10 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get playlistQueueLoadFailed =>
+      'Queue loading is incomplete. Loaded tracks are kept; tap Continue to retry.';
+
+  @override
   String get playlistAudiobook => 'Audiobook';
 
   @override

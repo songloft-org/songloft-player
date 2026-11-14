@@ -41,6 +41,7 @@ import '../../domain/use_cases/play_mode_resolver.dart';
 import '../../domain/use_cases/play_queue.dart';
 import '../../domain/use_cases/playback_resume_state.dart';
 import '../../domain/use_cases/queue_loader.dart';
+import '../../domain/use_cases/playlist_window_loader.dart';
 import '../../domain/use_cases/sleep_timer_logic.dart';
 import '../../domain/use_cases/playback_retry_policy.dart';
 import '../../domain/use_cases/prefetch_strategy.dart';
@@ -550,7 +551,8 @@ class PlayerNotifier extends Notifier<PlayerState> {
 
   /// 歌曲播放完成处理
   void _onSongCompleted() {
-    if (_playlistQueueLoading) {
+    if (_playlistQueueLoading &&
+        state.currentIndex >= state.playlist.length - 1) {
       _playlistCompletionPending = true;
       return;
     }
@@ -816,6 +818,8 @@ class PlayerNotifier extends Notifier<PlayerState> {
     _playbackResumeState.clear();
 
     // 取消之前的预加载
+    _playlistQueueLoading = false;
+    _playlistCompletionPending = false;
     _prefetchCancelToken?.cancel('operation changed');
 
     // 切换上下文前，保存离开的上下文的最后播放歌曲
@@ -1483,24 +1487,54 @@ class PlayerNotifier extends Notifier<PlayerState> {
   bool _playlistQueueLoading = false;
   bool _playlistCompletionPending = false;
 
+  void _hydratePlaylistWindow(List<Song> songs, {required bool complete}) {
+    final current = state.currentSong;
+    if (current == null) return;
+    final index = songs.indexWhere((song) => song.id == current.id);
+    if (index < 0) return;
+    final previous = PlayQueue(
+      songs: state.playlist,
+      currentIndex: state.currentIndex,
+    );
+    final ordered = [...songs];
+    ordered[index] = current;
+    state = state.copyWith(playlist: ordered, currentIndex: index);
+    _onQueueEdited(previous);
+    _playlistQueueLoading = !complete;
+    _savePlaybackState();
+    if (_playlistCompletionPending &&
+        (complete || index < ordered.length - 1)) {
+      _playlistCompletionPending = false;
+      _onSongCompleted();
+    }
+  }
+
   Future<void> playPlaylistTarget({
     required int playlistId,
     Song? song,
     bool resume = false,
   }) async {
+    final wasReady = _playlistProgress.ready;
     _playlistProgress.save(state);
     final run = ++_playlistTargetGeneration;
+    var expectedGeneration = _loadGeneration;
+    bool isCurrent() =>
+        run == _playlistTargetGeneration &&
+        expectedGeneration == _loadGeneration;
     final saved = await _playlistProgress.begin(playlistId);
     final api = ref.read(playlistApiProvider);
     final playlist = await api.getPlaylist(playlistId);
-    if (run != _playlistTargetGeneration) return;
-    if (resume &&
+    if (!isCurrent()) return;
+    final continuing =
+        resume &&
+        saved?['song'] != null &&
         saved?['completed'] != true &&
+        saved?['invalid'] != true;
+    final reuseAudio =
+        continuing &&
         state.playbackContext?.playlistId == playlistId &&
-        state.currentSong?.id == saved?['song']?['id']) {
-      if (!state.isPlaying) await togglePlay();
-      return;
-    }
+        state.currentSong?.id == saved?['song']?['id'];
+    if (reuseAudio) _playlistProgress.ready = wasReady;
     final mode = saved?['play_mode'] as String? ?? '';
     _modeResolver.onModeChanged(
       mode.isNotEmpty
@@ -1510,93 +1544,94 @@ class PlayerNotifier extends Notifier<PlayerState> {
           : state.playMode,
     );
     state = state.copyWith(playMode: _modeResolver.mode);
-    final continuing =
-        resume &&
-        saved?['song'] != null &&
-        saved?['completed'] != true &&
-        saved?['invalid'] != true;
-    if (continuing) {
-      song = Song.fromJson(Map<String, dynamic>.from(saved!['song'] as Map));
-    }
-    final first = await api.getPlaylistSongs(
+    final ids = await api.getPlaylistSongIds(
       playlistId,
       sort: playlist.sortBy,
       order: playlist.sortOrder,
-      limit: 100,
     );
-    if (run != _playlistTargetGeneration) return;
-    song ??= first.songs.isEmpty ? null : first.songs.first;
-    if (song == null) return;
-    final ids = await api.getPlaylistSongIds(playlistId);
-    if (run != _playlistTargetGeneration) return;
-    if (!ids.contains(song.id)) {
+    if (!isCurrent() || ids.isEmpty) return;
+    if (reuseAudio) {
+      song = state.currentSong;
+    } else if (continuing) {
+      song = Song.fromJson(Map<String, dynamic>.from(saved!['song'] as Map));
+    }
+    final targetId = song?.id ?? ids.first;
+    final index = ids.indexOf(targetId);
+    if (index < 0) {
       throw StateError(l10nOrNull?.playlistProgressInvalid ?? 'Track removed');
     }
-    final target = song;
-    _playlistQueueLoading = true;
-    _playlistCompletionPending = false;
-    _playlistProgress.restoring = continuing;
-    final playing = playPlaylist([
-      target,
-    ], context: PlaybackContext.playlist(playlistId)).then((_) async {
-      if (run != _playlistTargetGeneration) return;
-      if (continuing) {
-        await seek(Duration(milliseconds: saved!['position_ms'] as int? ?? 0));
-      }
-      _playlistProgress.restoring = false;
-    });
-    unawaited(playing.catchError((Object e, StackTrace st) {}));
-    final generation = _loadGeneration;
-    var hydrated = false;
+    if (reuseAudio &&
+        state.playlist.length == ids.length &&
+        state.playlist.indexed.every((entry) => entry.$2.id == ids[entry.$1])) {
+      if (!state.isPlaying) await togglePlay();
+      return;
+    }
+    var playing = Future<void>.value();
+    _playlistProgress.restoring = continuing && !reuseAudio;
     try {
-      final queue = [...first.songs];
-      for (
-        var offset = queue.length;
-        offset < first.total;
-        offset = queue.length
-      ) {
-        final page = await api.getPlaylistSongs(
-          playlistId,
-          sort: playlist.sortBy,
-          order: playlist.sortOrder,
-          limit: 100,
-          offset: offset,
-        );
-        if (run != _playlistTargetGeneration || generation != _loadGeneration) {
-          return;
-        }
-        if (page.songs.isEmpty) throw StateError('Incomplete playlist');
-        queue.addAll(page.songs);
-      }
-      if (run != _playlistTargetGeneration || generation != _loadGeneration) {
-        return;
-      }
-      final index = queue.indexWhere((s) => s.id == target.id);
-      if (index < 0) {
-        throw StateError(
-          l10nOrNull?.playlistProgressInvalid ?? 'Track removed',
-        );
-      }
-      _modeResolver.onModeChanged(state.playMode);
-      _modeResolver.markPlayed(index);
-      state = state.copyWith(playlist: queue, currentIndex: index);
-      hydrated = true;
-      _savePlaybackState();
+      final complete = await loadPlaylistWindow(
+        targetIndex: index,
+        total: ids.length,
+        fetch:
+            (offset, limit) async =>
+                (await api.getPlaylistSongs(
+                  playlistId,
+                  sort: playlist.sortBy,
+                  order: playlist.sortOrder,
+                  limit: limit,
+                  offset: offset,
+                )).songs,
+        isCurrent: isCurrent,
+        onWindow: (songs, {required initial, required complete}) {
+          if (initial && !reuseAudio) {
+            final localIndex = songs.indexWhere((song) => song.id == targetId);
+            if (localIndex < 0) {
+              throw StateError(
+                l10nOrNull?.playlistProgressInvalid ?? 'Track removed',
+              );
+            }
+            playing = playPlaylist(
+              songs,
+              startIndex: localIndex,
+              context: PlaybackContext.playlist(playlistId),
+            ).then((_) async {
+              if (!isCurrent()) return;
+              if (continuing && state.currentSong?.id == targetId) {
+                await seek(
+                  Duration(milliseconds: saved!['position_ms'] as int? ?? 0),
+                );
+              }
+              _playlistProgress.restoring = false;
+            });
+            expectedGeneration = _loadGeneration;
+            _playlistQueueLoading = !complete;
+          } else {
+            if (initial) {
+              _loadGeneration = _queueLoader.invalidate();
+              expectedGeneration = _loadGeneration;
+            }
+            _hydratePlaylistWindow(songs, complete: complete);
+            if (initial && !state.isPlaying) playing = togglePlay();
+          }
+          if (initial) {
+            unawaited(playing.catchError((Object error, StackTrace trace) {}));
+          }
+        },
+      );
+      if (!complete || !isCurrent()) return;
       await playing;
-      if (run != _playlistTargetGeneration || generation != _loadGeneration) {
-        return;
+      if (isCurrent()) _playlistProgress.save(state);
+    } catch (error, trace) {
+      if (isCurrent()) {
+        debugPrint('[Player] playlist queue loading failed: $error\n$trace');
+        state = state.copyWith(
+          infoMessage: l10nOrNull?.playlistQueueLoadFailed,
+        );
       }
-      _playlistProgress.save(state);
     } finally {
-      if (run == _playlistTargetGeneration) {
+      if (isCurrent()) {
         _playlistQueueLoading = false;
         _playlistProgress.restoring = false;
-        if (hydrated &&
-            _playlistCompletionPending &&
-            generation == _loadGeneration) {
-          _playlistCompletionPending = false;
-          _onSongCompleted();
-        }
       }
     }
   }

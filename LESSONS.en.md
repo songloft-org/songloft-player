@@ -10,6 +10,13 @@ Include rule, scope, full owner/repo#number, failure/fix commit SHAs, actual val
 
 ## Entries
 
+### RESUME-002: Publish large queues before all pages finish
+
+- Scope: playlist resume and paginated queues; baseline 4708c64 plus this working tree.
+- Evidence: the previous implementation retained one temporary track until a full replacement. With a thousand tracks and delayed browser pages, the repair showed 100 tracks first, played the next episode before completion, and finally showed 1000. See the [record](docs/en/playlist-resume-queue.md).
+- Rule and Done right: load neighbours first, publish contiguous windows and remap indices/navigation by song identity. Reusing the current audio must not bypass incomplete queue repair. Hold later requests and assert intermediate queue state, rather than only the final length.
+- Seen 1× (2026-11-14). Local tests and Web passed; native devices Not run, delivery follows this batch's record.
+
 ### FAVORITE-001: Session reset must reject old favorite initialization
 
 - Scope: favorite initialization and server change subscriptions, songloft-org/songloft#563.

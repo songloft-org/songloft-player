@@ -9,6 +9,9 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
+  String get playlistQueueLoadFailed => '播放队列加载未完成，已保留已加载的歌曲；请点继续播放重试。';
+
+  @override
   String get playlistAudiobook => '有声书';
 
   @override

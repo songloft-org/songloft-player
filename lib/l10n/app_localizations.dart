@@ -100,6 +100,12 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
+  /// No description provided for @playlistQueueLoadFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'播放队列加载未完成，已保留已加载的歌曲；请点继续播放重试。'**
+  String get playlistQueueLoadFailed;
+
   /// No description provided for @playlistAudiobook.
   ///
   /// In zh, this message translates to:
