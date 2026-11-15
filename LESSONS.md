@@ -16,7 +16,8 @@
 - 证据：[v2.13.10 Linux job](https://github.com/songloft-org/songloft-player/actions/runs/43669474220/job/132676079255) 的 AppImage 日志实际退出 1，提示自动检测到多种架构、要求设置 `ARCH=x86_64`。`continue-on-error` 让 job 显示成功，Release 只有 20 项资产，较上个正式版缺少 `songloft-linux-x64.AppImage`。
 - 规则：固定 x64 job 的 AppImage 工具架构；正式 tag 的 AppImage 失败必须阻止发布，收集前检查文件存在且非空。验收实际 Release 的文件清单及版本/提交，不能只看绿色 job。补发资产使用原发布 bundle，校验 GitHub 提供的 SHA-256，不更换已有版本标签。
 - 验证：actionlint v1.7.12 通过；原始日志 `/tmp/songloft-release-20261115-flutter-linux.log`。本次仅调整打包配置，补包结果及新配置的远端 CI 随本批交付记录；Not run：桌面实际播放和安装体验。
-- Seen 1× (2026-11-15)。状态：架构及正式版缺包闸门已修复，资产补齐仍待验收。
+- Done right：修复 `968148149781f3869cde11bfa8329393cdf18f67` 的 [Linux job](https://github.com/songloft-org/songloft-player/actions/runs/43671029622/job/132680883591) 实际打包成功并上传 4 个 Linux 文件，日志 `/tmp/songloft-release-20261115-appimage-ci-fixed.log`。本次稳定版补包使用 Ubuntu 24.04 和原 release bundle（GitHub SHA-256 `5801480917b0765ef2128c1294ce5b5476576c635393c921a00aa7cc860af72f`）；解包后 35 个原文件逐一哈希一致，18 个 ELF 均为 x86_64。补发 AppImage 为 33,412,288 字节，GitHub 回读摘要与本地 `71fb1c786ebced7750ffe1fd9aab4b87896d4fbefb0f174e5e65b32fe048cb51` 一致，Release 恢复为 21 项资产；证据 `/tmp/songloft-release-20261115/appimage-repair/verification.json`。
+- Seen 1× (2026-11-15)。状态：配置修复、远端 Linux 打包和同版本资产补齐均已验收；未更换原发布标签。
 
 ### CI-001：JNI 发布校验必须使用本次依赖生成的签名
 
