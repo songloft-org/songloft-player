@@ -10,6 +10,14 @@ Include rule, scope, full owner/repo#number, failure/fix commit SHAs, actual val
 
 ## Entries
 
+### CI-001: Validate JNI releases against this build's generated signatures
+
+- Scope: APK validation for standalone Android and the parent repository's Bundle builds; baseline `b1a1a6f6b0efebb6aeae6910afc70fd8f619d2a7`.
+- Evidence: all three ABI APKs compiled in the [failed CI run](https://github.com/songloft-org/songloft-player/actions/runs/43571666848), but the first JNI check failed. The run resolved `shared_preferences_android 2.5.5`, whose generated `getAll` argument changed from `java.util.List` to `byte[]`; the checker still required the 2.5.1 descriptor.
+- Rule and Done right: locate the resolved dependency through `.dart_tool/package_config.json`, read the generated binding's actual descriptor, and compare it exactly with release DEX. Fail when parsing is unsuccessful; do not accept either historical signature or remove coroutine runtime checks. The old checker failed 4 new cases, including incorrectly accepting a new Dart binding paired with an old APK. The fix passes 8 JNI regressions and 1 native contract regression. Parsing was also checked against the actual 2.5.1 and 2.5.5 bindings, using fixture DEX output.
+- Validation: Linux amd64 / Python 3.12.11, `python3 -m unittest discover -s scripts/tests -p '*_test.py'`; logs `/tmp/songloft-flutter-jni-{before,after}.log`. Not run: full local Android compilation and device startup. Actual release checks for all three ABIs are tracked separately in CI for the repair SHA; fixtures are not real APK acceptance.
+- Seen 1× (2026-11-15). Script repair and local regressions complete; remote CI and publication follow this delivery.
+
 ### RESUME-002: Publish large queues before all pages finish
 
 - Scope: playlist resume and paginated queues; baseline 4708c64 plus this working tree.

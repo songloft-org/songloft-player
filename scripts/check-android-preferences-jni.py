@@ -4,11 +4,11 @@
 import argparse
 import json
 import os
-from pathlib import Path
 import re
 import shutil
 import subprocess
-from urllib.parse import urljoin, urlparse, unquote
+from pathlib import Path
+from urllib.parse import unquote, urljoin, urlparse
 
 
 def main():
@@ -30,6 +30,20 @@ def main():
         print("SharedPreferences uses the legacy channel; no JNI descriptor to check.")
         return
 
+    # Pigeon may change the bridge's argument encoding between plugin releases.
+    # Compare the APK to the binding that this build actually compiles, rather
+    # than accepting a historical descriptor (which can also hide an old APK).
+    get_all = re.search(
+        r"SharedPreferencesApiRegistrar\._class\.instanceMethodId\(\s*"
+        r"r?'getAll',\s*r?'(\([^'\n]+)',?\s*\)",
+        binding.read_text(encoding="utf-8"),
+    )
+    if not get_all:
+        raise SystemExit(
+            "Cannot read SharedPreferences getAll JNI descriptor: " + str(binding)
+        )
+    get_all_descriptor = "getAll" + get_all.group(1)
+
     analyzer = args.apkanalyzer or shutil.which("apkanalyzer")
     if not analyzer:
         for key in ("ANDROID_HOME", "ANDROID_SDK_ROOT"):
@@ -46,15 +60,19 @@ def main():
     # lib/src/kotlin.dart. Checking only getAll misses runtime helper lookups.
     requirements = {
         "io.flutter.plugins.sharedpreferences.SharedPreferencesApiRegistrar": [
-            ("method", "getAll(Ljava/lang/String;Ljava/util/List;"
-             "Lkotlin/coroutines/Continuation;)Ljava/lang/Object;"),
+            ("method", get_all_descriptor),
         ],
         "kotlin.coroutines.Continuation": [
             ("method", "resumeWith(Ljava/lang/Object;)V"),
         ],
         "kotlin.coroutines.intrinsics.CoroutineSingletons": [
-            ("field", "COROUTINE_SUSPENDED:"
-             "Lkotlin/coroutines/intrinsics/CoroutineSingletons;"),
+            (
+                "field",
+                (
+                    "COROUTINE_SUSPENDED:"
+                    "Lkotlin/coroutines/intrinsics/CoroutineSingletons;"
+                ),
+            ),
         ],
         "kotlin.coroutines.intrinsics.IntrinsicsKt": [],
         "kotlin.coroutines.intrinsics.IntrinsicsKt__IntrinsicsKt": [
@@ -69,9 +87,10 @@ def main():
     }
     for class_name, members in requirements.items():
         result = subprocess.run(
-            [analyzer, "dex", "code", "--class", class_name,
-             str(args.apk.resolve())],
-            capture_output=True, text=True,
+            [analyzer, "dex", "code", "--class", class_name, str(args.apk.resolve())],
+            capture_output=True,
+            text=True,
+            check=False,
         )
         if result.returncode != 0 or ".class " not in result.stdout:
             raise SystemExit("Missing JNI runtime class in release APK: " + class_name)
@@ -80,7 +99,9 @@ def main():
             if not re.search(pattern, result.stdout, re.MULTILINE):
                 raise SystemExit(
                     "Broken JNI runtime descriptor in release APK: "
-                    + class_name + "." + descriptor
+                    + class_name
+                    + "."
+                    + descriptor
                     + ". Check release ProGuard keep rules."
                 )
     print("SharedPreferences JNI bridge and Kotlin runtime verified in release APK.")

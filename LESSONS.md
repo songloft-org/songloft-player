@@ -10,6 +10,14 @@
 
 ## 条目
 
+### CI-001：JNI 发布校验必须使用本次依赖生成的签名
+
+- 范围：Android 标准版及父仓库 Bundle 的 APK 校验脚本；基线 `b1a1a6f6b0efebb6aeae6910afc70fd8f619d2a7`。
+- 证据：[失败 CI](https://github.com/songloft-org/songloft-player/actions/runs/43571666848) 的三种 ABI APK 已编译成功，但首个 JNI 校验失败。该次解析 `shared_preferences_android 2.5.5`，生成的 `getAll` 参数已由 `java.util.List` 改为 `byte[]`，脚本仍要求 2.5.1 的旧描述符。
+- 规则与 Done right：从 `.dart_tool/package_config.json` 定位本次依赖，读取生成绑定的实际描述符，再与 release DEX 精确比较；解析失败必须中止，不能用新旧签名任选其一，也不能删掉协程运行时校验。旧脚本在新增回归下有 4 项失败，包括错误接受「新 Dart 绑定配旧 APK」；修复后 8 项 JNI 回归与 1 项原生契约回归通过。实际 2.5.1 / 2.5.5 绑定均补验解析，DEX 输出使用夹具。
+- 验证：Linux amd64 / Python 3.12.11，`python3 -m unittest discover -s scripts/tests -p '*_test.py'`；日志 `/tmp/songloft-flutter-jni-{before,after}.log`。Not run：本地完整 Android 编译及真机启动；三种 ABI 的正式构建校验由本次修复 SHA 的 CI 单独验收，不把夹具当成真实 APK。
+- Seen 1× (2026-11-15)。状态：脚本修复与本地回归完成，远端 CI 和发布随本批交付核对。
+
 ### RESUME-002：大歌单不能等全部分页成功才公布队列
 
 - 范围：歌单续播与分页队列，基线 4708c64 + 本批工作树。
