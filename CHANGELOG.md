@@ -2,6 +2,24 @@
 
 此文件记录 Songloft Flutter 客户端的版本变更，仅提供中文版本。版本 tag 的 Release 发布成功后，由 CI 根据 Conventional Commits 分类追加记录并提交到 `main`；滚动 dev 记录见 [GitHub Releases](https://github.com/songloft-org/songloft-player/releases/tag/dev)。
 
+## [v2.13.10] - 2026-11-15
+### :sparkles: 新增功能
+- [`87a7699`](https://github.com/songloft-org/songloft-player/commit/87a7699d2580b8c4463fa43e159d7bff18f6df29) - **playlist**: 共享来源标签并优化手机歌单布局 *(提交者 [@hanxi](https://github.com/hanxi))*
+- [`c0cfa70`](https://github.com/songloft-org/songloft-player/commit/c0cfa70d4f5d85edc969dc71b258dc56308fb9e9) - **favorite**: 订阅服务端收藏变更并刷新红心缓存 *(提交者 [@hanxi](https://github.com/hanxi))*
+- [`4708c64`](https://github.com/songloft-org/songloft-player/commit/4708c64a4a6c46a2b88b4f9588e190652cf0f8fd) - **player**: 支持歌单续播与有声书模式记忆 *(提交者 [@hanxi](https://github.com/hanxi))*
+
+### :bug: 问题修复
+- [`b1a1a6f`](https://github.com/songloft-org/songloft-player/commit/b1a1a6f6b0efebb6aeae6910afc70fd8f619d2a7) - **player**: 大歌单续播按批补齐队列并保留当前音频 *(提交者 [@hanxi](https://github.com/hanxi))*
+- [`2bc0b44`](https://github.com/songloft-org/songloft-player/commit/2bc0b44b8120f01bb2b4c50b0c8b55b9a1f79d95) - **ci**: 按实际依赖校验 SharedPreferences JNI 签名 *(提交者 [@hanxi](https://github.com/hanxi))*
+
+### :memo: 文档更新
+- [`65b7145`](https://github.com/songloft-org/songloft-player/commit/65b7145cb3444d7399aab928539177f41242b089) - **changelog**: 更新 v2.13.8 变更记录 *(提交者 [@github-actions[bot]](https://github.com/apps/github-actions))*
+- [`d9ad49f`](https://github.com/songloft-org/songloft-player/commit/d9ad49fdc3b0cfb79814b49d3858f11e2cee80a7) - **ci**: 记录三种 ABI 的 JNI 校验结果 *(提交者 [@hanxi](https://github.com/hanxi))*
+
+### :wrench: 维护工作
+- [`65dc1d9`](https://github.com/songloft-org/songloft-player/commit/65dc1d978705a0f83ae6f8bbc226c489f48c946e) - release version 2.13.10 *(提交者 [@hanxi](https://github.com/hanxi))*
+
+
 ## [v2.13.8] - 2026-11-04
 ### :bug: 问题修复
 - [`feb97bb`](https://github.com/songloft-org/songloft-player/commit/feb97bb0c46f5d9e4de3ff5049ebdd07c3a9f605) - **playlist**: 保留其他视图排序下的手动排序入口 *(提交者 [@hanxi](https://github.com/hanxi))*
@@ -124,3 +142,4 @@
 [v2.13.5]: https://github.com/songloft-org/songloft-player/compare/v2.13.4...v2.13.5
 [v2.13.6]: https://github.com/songloft-org/songloft-player/compare/v2.13.5...v2.13.6
 [v2.13.8]: https://github.com/songloft-org/songloft-player/compare/v2.13.7...v2.13.8
+[v2.13.10]: https://github.com/songloft-org/songloft-player/compare/v2.13.8...v2.13.10
