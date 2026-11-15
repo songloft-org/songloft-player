@@ -10,6 +10,14 @@
 
 ## 条目
 
+### CI-002：发布验收必须核对资产，AppImage 显式指定架构
+
+- 范围：Linux AppImage 打包和正式 Release；发布源码 `65dc1d978705a0f83ae6f8bbc226c489f48c946e`。
+- 证据：[v2.13.10 Linux job](https://github.com/songloft-org/songloft-player/actions/runs/43669474220/job/132676079255) 的 AppImage 日志实际退出 1，提示自动检测到多种架构、要求设置 `ARCH=x86_64`。`continue-on-error` 让 job 显示成功，Release 只有 20 项资产，较上个正式版缺少 `songloft-linux-x64.AppImage`。
+- 规则：固定 x64 job 的 AppImage 工具架构；正式 tag 的 AppImage 失败必须阻止发布，收集前检查文件存在且非空。验收实际 Release 的文件清单及版本/提交，不能只看绿色 job。补发资产使用原发布 bundle，校验 GitHub 提供的 SHA-256，不更换已有版本标签。
+- 验证：actionlint v1.7.12 通过；原始日志 `/tmp/songloft-release-20261115-flutter-linux.log`。本次仅调整打包配置，补包结果及新配置的远端 CI 随本批交付记录；Not run：桌面实际播放和安装体验。
+- Seen 1× (2026-11-15)。状态：架构及正式版缺包闸门已修复，资产补齐仍待验收。
+
 ### CI-001：JNI 发布校验必须使用本次依赖生成的签名
 
 - 范围：Android 标准版及父仓库 Bundle 的 APK 校验脚本；基线 `b1a1a6f6b0efebb6aeae6910afc70fd8f619d2a7`。

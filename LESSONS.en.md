@@ -10,6 +10,14 @@ Include rule, scope, full owner/repo#number, failure/fix commit SHAs, actual val
 
 ## Entries
 
+### CI-002: Inspect release assets and specify the AppImage architecture
+
+- Scope: Linux AppImage packaging and stable Releases; released source `65dc1d978705a0f83ae6f8bbc226c489f48c946e`.
+- Evidence: the [v2.13.10 Linux job](https://github.com/songloft-org/songloft-player/actions/runs/43669474220/job/132676079255) exited 1 during AppImage packaging, reporting multiple detected architectures and requesting `ARCH=x86_64`. `continue-on-error` left the job green. The Release had only 20 assets, missing `songloft-linux-x64.AppImage` compared with the previous stable release.
+- Rule: explicitly set the AppImage tool architecture for the x64 job. AppImage failure must block stable tag publication; require an existing nonempty file before collection. Verify actual release filenames and version/commit metadata rather than relying on green jobs. Supplement missing assets from the original published bundle, verify GitHub's SHA-256, and preserve existing version tags.
+- Validation: actionlint v1.7.12 passed; original log `/tmp/songloft-release-20261115-flutter-linux.log`. Only packaging configuration changed; repackaging and CI acceptance follow this delivery. Not run: desktop playback and installation experience.
+- Seen 1× (2026-11-15). Architecture and stable missing-file guards repaired; supplementary asset acceptance pending.
+
 ### CI-001: Validate JNI releases against this build's generated signatures
 
 - Scope: APK validation for standalone Android and the parent repository's Bundle builds; baseline `b1a1a6f6b0efebb6aeae6910afc70fd8f619d2a7`.

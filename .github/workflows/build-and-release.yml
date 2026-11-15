@@ -163,13 +163,15 @@ jobs:
             cp "$RPM_FILE" ./songloft-linux-x64.rpm
           fi
       - name: Build AppImage
-        continue-on-error: true
+        continue-on-error: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        env:
+          ARCH: x86_64
         run: |
           fastforge package --platform linux --targets appimage
           APPIMAGE_FILE=$(find dist -maxdepth 2 -name "*.AppImage" -print -quit 2>/dev/null)
-          if [ -n "$APPIMAGE_FILE" ]; then
-            cp "$APPIMAGE_FILE" ./songloft-linux-x64.AppImage
-          fi
+          test -n "$APPIMAGE_FILE"
+          test -s "$APPIMAGE_FILE"
+          cp "$APPIMAGE_FILE" ./songloft-linux-x64.AppImage
       - uses: actions/upload-artifact@v4
         with:
           name: songloft-linux-x64
