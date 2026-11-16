@@ -2,6 +2,19 @@
 
 此文件记录 Songloft Flutter 客户端的版本变更，仅提供中文版本。版本 tag 的 Release 发布成功后，由 CI 根据 Conventional Commits 分类追加记录并提交到 `main`；滚动 dev 记录见 [GitHub Releases](https://github.com/songloft-org/songloft-player/releases/tag/dev)。
 
+## [v2.13.11] - 2026-11-16
+### :bug: 问题修复
+- [`9681481`](https://github.com/songloft-org/songloft-player/commit/968148149781f3869cde11bfa8329393cdf18f67) - **ci**: 固定 AppImage 架构并阻止正式版缺包 *(提交者 [@hanxi](https://github.com/hanxi))*
+- [`d8d19fd`](https://github.com/songloft-org/songloft-player/commit/d8d19fdd649bda8f5fe9b95a55c4683e41e65cec) - **ci**: 固定 Linux 发布环境为 Ubuntu 24.04 *(提交者 [@hanxi](https://github.com/hanxi))*
+
+### :memo: 文档更新
+- [`65c7a93`](https://github.com/songloft-org/songloft-player/commit/65c7a93bc362814a3a8a423996ab571ef2695997) - **changelog**: 更新 v2.13.10 变更记录 *(提交者 [@github-actions[bot]](https://github.com/apps/github-actions))*
+- [`cebc894`](https://github.com/songloft-org/songloft-player/commit/cebc894cde359a0d366c23d9a3acc75ade7832f2) - **ci**: 记录 AppImage 补包与远端验证 *(提交者 [@hanxi](https://github.com/hanxi))*
+
+### :wrench: 维护工作
+- [`7fc5a04`](https://github.com/songloft-org/songloft-player/commit/7fc5a04e4c65dfe54b0df299671bbecd2b4f8478) - release version 2.13.11 *(提交者 [@hanxi](https://github.com/hanxi))*
+
+
 ## [v2.13.10] - 2026-11-15
 ### :sparkles: 新增功能
 - [`87a7699`](https://github.com/songloft-org/songloft-player/commit/87a7699d2580b8c4463fa43e159d7bff18f6df29) - **playlist**: 共享来源标签并优化手机歌单布局 *(提交者 [@hanxi](https://github.com/hanxi))*
@@ -143,3 +156,4 @@
 [v2.13.6]: https://github.com/songloft-org/songloft-player/compare/v2.13.5...v2.13.6
 [v2.13.8]: https://github.com/songloft-org/songloft-player/compare/v2.13.7...v2.13.8
 [v2.13.10]: https://github.com/songloft-org/songloft-player/compare/v2.13.8...v2.13.10
+[v2.13.11]: https://github.com/songloft-org/songloft-player/compare/v2.13.10...v2.13.11
