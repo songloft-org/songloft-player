@@ -2,6 +2,14 @@
 
 此文件记录 Songloft Flutter 客户端的版本变更，仅提供中文版本。版本 tag 的 Release 发布成功后，由 CI 根据 Conventional Commits 分类追加记录并提交到 `main`；滚动 dev 记录见 [GitHub Releases](https://github.com/songloft-org/songloft-player/releases/tag/dev)。
 
+## [v2.13.12] - 2026-11-17
+### :memo: 文档更新
+- [`6f0b395`](https://github.com/songloft-org/songloft-player/commit/6f0b395d1df02eb7d0e1360d672e864cb8bcc8c6) - **changelog**: 更新 v2.13.11 变更记录 *(提交者 [@github-actions[bot]](https://github.com/apps/github-actions))*
+
+### :wrench: 维护工作
+- [`0427678`](https://github.com/songloft-org/songloft-player/commit/0427678e9f6aa0977dada8653325a2e0844e7e4e) - release version 2.13.12 *(提交者 [@hanxi](https://github.com/hanxi))*
+
+
 ## [v2.13.11] - 2026-11-16
 ### :bug: 问题修复
 - [`9681481`](https://github.com/songloft-org/songloft-player/commit/968148149781f3869cde11bfa8329393cdf18f67) - **ci**: 固定 AppImage 架构并阻止正式版缺包 *(提交者 [@hanxi](https://github.com/hanxi))*
@@ -157,3 +165,4 @@
 [v2.13.8]: https://github.com/songloft-org/songloft-player/compare/v2.13.7...v2.13.8
 [v2.13.10]: https://github.com/songloft-org/songloft-player/compare/v2.13.8...v2.13.10
 [v2.13.11]: https://github.com/songloft-org/songloft-player/compare/v2.13.10...v2.13.11
+[v2.13.12]: https://github.com/songloft-org/songloft-player/compare/v2.13.11...v2.13.12
