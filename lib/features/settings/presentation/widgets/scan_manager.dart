@@ -27,13 +27,40 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
   bool _showTargetDirs = false; // 是否展开"指定目录"定向扫描
   // 定向扫描选中的目录（为空=全库扫描）。Issue songloft-org/songloft#262
   final List<String> _selectedPaths = [];
+  ScanValidation? _validation;
+  String? _validationError;
+  int _validationGeneration = 0;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(scanProgressProvider.notifier).refreshProgress();
+      _validateSelection();
     });
+  }
+
+  Future<void> _validateSelection() async {
+    final generation = ++_validationGeneration;
+    setState(() {
+      _validation = null;
+      _validationError = null;
+      _error = null;
+    });
+    try {
+      final result = await ref
+          .read(scanApiProvider)
+          .validateScan(paths: List.of(_selectedPaths));
+      if (!mounted || generation != _validationGeneration) return;
+      setState(() => _validation = result);
+    } catch (_) {
+      if (!mounted || generation != _validationGeneration) return;
+      setState(
+        () =>
+            _validationError =
+                AppLocalizations.of(context).settingsScanValidationFailed,
+      );
+    }
   }
 
   Future<void> _startScan() async {
@@ -43,21 +70,46 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
     });
 
     try {
+      final generation = ++_validationGeneration;
+      final paths = List<String>.of(_selectedPaths);
+      final validation = await ref
+          .read(scanApiProvider)
+          .validateScan(paths: paths);
+      if (!mounted || generation != _validationGeneration) return;
+      setState(() {
+        _validation = validation;
+        _validationError = null;
+      });
+      if (validation.paths.isEmpty) {
+        setState(
+          () => _error = AppLocalizations.of(context).settingsScanAllExcluded,
+        );
+        return;
+      }
+      if (validation.excludedDirectories.isNotEmpty) {
+        ResponsiveSnackBar.show(
+          context,
+          message: AppLocalizations.of(
+            context,
+          ).settingsScanExcludedSummary(validation.excludedDirectories.length),
+        );
+      }
       await ref
           .read(scanProgressProvider.notifier)
           .startScan(
             reimport: _scanMode == 'reimport',
-            paths: _selectedPaths.isEmpty ? null : List.of(_selectedPaths),
+            paths: paths.isEmpty ? null : paths,
           );
     } on ApiException catch (e) {
-      setState(() => _error = e.message);
+      if (mounted) setState(() => _error = e.message);
     } catch (e) {
+      if (!mounted) return;
       setState(
         () =>
             _error = AppLocalizations.of(context).settingsScanScanFailed('$e'),
       );
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -186,14 +238,14 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
                 },
               ),
               if (_showExcludeDirs)
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
                     AppSpacing.md,
                     0,
                     AppSpacing.md,
                     AppSpacing.md,
                   ),
-                  child: ExcludeDirManager(),
+                  child: ExcludeDirManager(onSaved: _validateSelection),
                 ),
             ],
           ),
@@ -202,10 +254,15 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
 
         // 根据状态显示不同内容
         if (progress.isIdle) _buildIdleState(),
+        if (progress.isIdle && _validationError != null)
+          Text(_validationError!),
+        if (progress.isIdle && _validation != null)
+          _buildExclusions(_validation!.excludedDirectories),
         if (progress.isScanning) _buildScanningState(progress),
         if (progress.isCompleted) _buildCompletedState(progress),
         if (progress.isCancelled) _buildCancelledState(progress),
         if (progress.isError) _buildErrorState(progress),
+        if (!progress.isIdle) _buildExclusions(progress.excludedDirectories),
       ],
     );
   }
@@ -366,6 +423,7 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
                                 _selectedPaths.remove(path);
                               }
                             });
+                            _validateSelection();
                           },
                         ),
                       ),
@@ -385,8 +443,10 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
                           ),
                         ),
                         TextButton(
-                          onPressed:
-                              () => setState(() => _selectedPaths.clear()),
+                          onPressed: () {
+                            setState(() => _selectedPaths.clear());
+                            _validateSelection();
+                          },
                           child: Text(l10n.settingsScanClear),
                         ),
                       ],
@@ -403,10 +463,10 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
                                 Icons.folder_outlined,
                                 size: 18,
                               ),
-                              onDeleted:
-                                  () => setState(
-                                    () => _selectedPaths.remove(path),
-                                  ),
+                              onDeleted: () {
+                                setState(() => _selectedPaths.remove(path));
+                                _validateSelection();
+                              },
                               deleteIconColor: colorScheme.onSurfaceVariant,
                             );
                           }).toList(),
@@ -415,6 +475,27 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
                 ],
               ),
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExclusions(List<ExcludedDirectory> directories) {
+    if (directories.isEmpty) return const SizedBox.shrink();
+    final l10n = AppLocalizations.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.settingsScanExcludedSummary(directories.length)),
+          for (final dir in directories)
+            Text(
+              dir.ruleType == 'name'
+                  ? l10n.settingsScanExcludedByName(dir.path, dir.rule)
+                  : l10n.settingsScanExcludedByPath(dir.path, dir.rule),
+            ),
+          Text(l10n.settingsScanExcludedHelp),
         ],
       ),
     );

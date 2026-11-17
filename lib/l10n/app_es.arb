@@ -1,4 +1,11 @@
 {
+  "settingsScanValidationFailed": "No se pudieron comprobar las exclusiones. Inténtalo de nuevo antes de escanear.",
+  "settingsScanAllExcluded": "Todos los directorios están excluidos. Ajusta primero las exclusiones.",
+  "settingsScanExcludedSummary": "Se omiten {count} directorios por las reglas de exclusión",
+  "settingsScanExcludedByPath": "{path} — excluido por ruta: {rule}",
+  "settingsScanExcludedByName": "{path} — excluido por nombre de carpeta: {rule}",
+  "settingsScanExcludedHelp": "Estos directorios no se escanearán. Ajusta las exclusiones para incluirlos.",
+  "settingsExcludeDirHelp": "Las exclusiones por nombre o ruta omiten el escaneo y pueden eliminar registros de la biblioteca al guardar. Para escanear canciones sin crear listas por carpeta, usa las exclusiones de listas.",
 "personalTokenTitle": "Tokens de acceso permanentes",
 "personalTokenHelp": "Válido hasta su revocación. Acceso de administrador a las API de negocio, excepto la gestión de tokens.",
 "personalTokenCreate": "Crear token",

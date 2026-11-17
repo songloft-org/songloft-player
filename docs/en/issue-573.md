@@ -1,0 +1,9 @@
+# #573 scan exclusion notices
+
+2026-11-17, baseline `c333cf80a035020e38672f9c041fd907e4f65c67` plus this uncommitted worktree; related to songloft-org/songloft#573.
+
+The scan widget calls `POST /scan/validate` to show paths and matching rules after selection and refreshes validation before starting. All-excluded roots or failed validation prevent the scan request; mixed roots show skipped directories. Terminal progress retains backend exclusion diagnostics. A rejected start no longer writes the unrenderable `status=error`, preserving the directory controls. Settings explain scan versus playlist exclusions; no temporary bypass is provided.
+
+Linux amd64, Flutter 3.44.8 / Dart 3.12.2: all 853 tests, 4 final focused tests, analysis and embedded Web build pass. With the original scan page restored in isolation, the new regression fails because exclusion diagnostics are absent. Initial isolated resource/dependency errors do not count as negative verification. Logs: `/tmp/songloft-573-exclusions/flutter-{tests,targeted-final,analyze-delivery,web-build}.log`, `negative-flutter-final.log`; final source hashes in `source-identities.json` in the same directory.
+
+Real browser mouse interaction passes: login, settings navigation, directory selection, all-excluded refusal, mixed scanning and result rendering. Two start clicks produce exactly one backend scan request. `ui-flutter-results.json`, `ui-flutter.js`, `flutter-{blocked,result}-desktop.png`. Backend contract and HTTP verification: [parent record](https://github.com/songloft-org/songloft/blob/main/docs/issue-573-scan-exclusions.md). Web testing does not establish Windows or mobile-native acceptance. Not run: Windows/Android/iOS devices and the reporter's Docker/private library. The user subsequently authorized commits, pushes and a parent Issue reply. Actual commits/CI are in the evidence directory's `delivery.json`; no stable release is created.

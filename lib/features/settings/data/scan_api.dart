@@ -3,6 +3,31 @@ import 'package:dio/dio.dart';
 import '../../../config/app_config.dart';
 import '../../../core/network/api_exceptions.dart';
 
+class ExcludedDirectory {
+  final String path;
+  final String ruleType;
+  final String rule;
+
+  ExcludedDirectory.fromJson(Map<String, dynamic> json)
+    : path = json['path'] as String,
+      ruleType = json['rule_type'] as String,
+      rule = json['rule'] as String;
+}
+
+List<ExcludedDirectory> _excludedDirectories(dynamic value) =>
+    (value as List<dynamic>? ?? [])
+        .map((e) => ExcludedDirectory.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+class ScanValidation {
+  final List<String> paths;
+  final List<ExcludedDirectory> excludedDirectories;
+
+  ScanValidation.fromJson(Map<String, dynamic> json)
+    : paths = (json['paths'] as List<dynamic>).cast<String>(),
+      excludedDirectories = _excludedDirectories(json['excluded_directories']);
+}
+
 /// 扫描进度模型
 class ScanProgress {
   final String
@@ -16,6 +41,7 @@ class ScanProgress {
   final int failedFiles;
   final int cueSplitSources;
   final int localSongCount;
+  final List<ExcludedDirectory> excludedDirectories;
 
   ScanProgress({
     required this.status,
@@ -28,6 +54,7 @@ class ScanProgress {
     required this.failedFiles,
     this.cueSplitSources = 0,
     this.localSongCount = 0,
+    this.excludedDirectories = const [],
   });
 
   factory ScanProgress.fromJson(Map<String, dynamic> json) {
@@ -42,6 +69,7 @@ class ScanProgress {
       failedFiles: json['failed_files'] as int? ?? 0,
       cueSplitSources: json['cue_split_sources'] as int? ?? 0,
       localSongCount: json['local_song_count'] as int? ?? 0,
+      excludedDirectories: _excludedDirectories(json['excluded_directories']),
     );
   }
 
@@ -94,6 +122,18 @@ class ScanApi {
   final Dio dio;
 
   ScanApi({required this.dio});
+
+  Future<ScanValidation> validateScan({List<String>? paths}) async {
+    try {
+      final response = await dio.post(
+        '${AppConfig.apiPrefix}/scan/validate',
+        data: {'paths': paths ?? <String>[]},
+      );
+      return ScanValidation.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
 
   /// 开始扫描
   /// POST /api/v1/scan

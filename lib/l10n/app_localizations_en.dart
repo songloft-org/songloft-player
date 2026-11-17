@@ -9,6 +9,37 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get settingsScanValidationFailed =>
+      'Could not check directory exclusions. Please try again before scanning.';
+
+  @override
+  String get settingsScanAllExcluded =>
+      'All scan directories are excluded. Adjust the exclusion settings first.';
+
+  @override
+  String settingsScanExcludedSummary(int count) {
+    return '$count directories skipped by exclusion rules';
+  }
+
+  @override
+  String settingsScanExcludedByPath(String path, String rule) {
+    return '$path — excluded by path: $rule';
+  }
+
+  @override
+  String settingsScanExcludedByName(String path, String rule) {
+    return '$path — excluded by folder name: $rule';
+  }
+
+  @override
+  String get settingsScanExcludedHelp =>
+      'These directories will not be scanned. Adjust the exclusion settings to include them.';
+
+  @override
+  String get settingsExcludeDirHelp =>
+      'Name/path exclusions skip scanning and can remove existing library records when saved. To scan songs without creating folder playlists, use Playlist exclude instead.';
+
+  @override
   String get playlistQueueLoadFailed =>
       'Queue loading is incomplete. Loaded tracks are kept; tap Continue to retry.';
 
@@ -3111,7 +3142,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsScanExcludeDirSubtitle =>
-      'Configure directories to ignore during scan';
+      'Choose which directories to skip scanning or exclude from automatic playlists';
 
   @override
   String get settingsScanModeSkip => 'Skip existing';

@@ -9,6 +9,34 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
+  String get settingsScanValidationFailed => '无法检查目录排除规则，请重试后再扫描。';
+
+  @override
+  String get settingsScanAllExcluded => '所有扫描目录均被排除，请先调整排除设置。';
+
+  @override
+  String settingsScanExcludedSummary(int count) {
+    return '因排除规则跳过 $count 个目录';
+  }
+
+  @override
+  String settingsScanExcludedByPath(String path, String rule) {
+    return '$path — 命中排除路径：$rule';
+  }
+
+  @override
+  String settingsScanExcludedByName(String path, String rule) {
+    return '$path — 命中排除目录名：$rule';
+  }
+
+  @override
+  String get settingsScanExcludedHelp => '这些目录不会被扫描。如需扫描，请调整排除设置。';
+
+  @override
+  String get settingsExcludeDirHelp =>
+      '名称/路径排除会跳过扫描，保存时也可能移除已入库记录。如果只想扫描歌曲而不自动创建目录歌单，请使用“歌单排除”。';
+
+  @override
   String get playlistQueueLoadFailed => '播放队列加载未完成，已保留已加载的歌曲；请点继续播放重试。';
 
   @override
@@ -2969,7 +2997,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsScanExcludeDirTitle => '排除目录设置';
 
   @override
-  String get settingsScanExcludeDirSubtitle => '配置扫描时需要忽略的目录';
+  String get settingsScanExcludeDirSubtitle => '分别设置不扫描的目录、不自动创建歌单的目录';
 
   @override
   String get settingsScanModeSkip => '跳过已存在';

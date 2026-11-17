@@ -12,7 +12,8 @@ import '../providers/settings_provider.dart';
 /// 排除目录管理组件
 /// 包含两个 Tab：名称匹配排除（Autocomplete + InputChip）和路径精确排除（目录树）
 class ExcludeDirManager extends ConsumerStatefulWidget {
-  const ExcludeDirManager({super.key});
+  const ExcludeDirManager({super.key, this.onSaved});
+  final VoidCallback? onSaved;
 
   @override
   ConsumerState<ExcludeDirManager> createState() => _ExcludeDirManagerState();
@@ -171,6 +172,7 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
       );
 
       if (mounted) {
+        widget.onSaved?.call();
         ResponsiveSnackBar.showSuccess(
           context,
           message: AppLocalizations.of(context).settingsExcludeDirSaved,
@@ -247,6 +249,8 @@ class _ExcludeDirManagerState extends ConsumerState<ExcludeDirManager> {
         const SizedBox(height: AppSpacing.md),
 
         // Tab 内容
+        Text(l10n.settingsExcludeDirHelp),
+        const SizedBox(height: AppSpacing.sm),
         if (_selectedTab == 0) _buildNameExcludeTab(theme, colorScheme),
         if (_selectedTab == 1) _buildPathExcludeTab(theme, colorScheme),
         if (_selectedTab == 2) _buildAutoCreateExcludeTab(theme, colorScheme),

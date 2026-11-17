@@ -302,21 +302,9 @@ class ScanProgressNotifier extends Notifier<ScanProgress> {
   ///
   /// [paths] 非空时只扫描给定目录（目录级定向扫描），为空/null 时全库扫描。
   Future<void> startScan({bool reimport = false, List<String>? paths}) async {
-    try {
-      await _scanApi.startScan(reimport: reimport, paths: paths);
-      // 开始轮询进度
-      _startPolling();
-    } catch (e) {
-      state = ScanProgress(
-        status: 'error',
-        totalFiles: 0,
-        scannedFiles: 0,
-        importedFiles: 0,
-        skippedFiles: 0,
-        failedFiles: 0,
-      );
-      rethrow;
-    }
+    // 启动被拒绝时保留原状态，让用户仍能调整目录与配置。
+    await _scanApi.startScan(reimport: reimport, paths: paths);
+    _startPolling();
   }
 
   /// 取消扫描
@@ -326,6 +314,7 @@ class ScanProgressNotifier extends Notifier<ScanProgress> {
       _stopPolling();
       state = ScanProgress(
         status: 'cancelled',
+        excludedDirectories: state.excludedDirectories,
         totalFiles: state.totalFiles,
         scannedFiles: state.scannedFiles,
         importedFiles: state.importedFiles,

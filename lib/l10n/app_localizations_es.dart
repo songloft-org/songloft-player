@@ -9,6 +9,37 @@ class AppLocalizationsEs extends AppLocalizations {
   AppLocalizationsEs([String locale = 'es']) : super(locale);
 
   @override
+  String get settingsScanValidationFailed =>
+      'No se pudieron comprobar las exclusiones. Inténtalo de nuevo antes de escanear.';
+
+  @override
+  String get settingsScanAllExcluded =>
+      'Todos los directorios están excluidos. Ajusta primero las exclusiones.';
+
+  @override
+  String settingsScanExcludedSummary(int count) {
+    return 'Se omiten $count directorios por las reglas de exclusión';
+  }
+
+  @override
+  String settingsScanExcludedByPath(String path, String rule) {
+    return '$path — excluido por ruta: $rule';
+  }
+
+  @override
+  String settingsScanExcludedByName(String path, String rule) {
+    return '$path — excluido por nombre de carpeta: $rule';
+  }
+
+  @override
+  String get settingsScanExcludedHelp =>
+      'Estos directorios no se escanearán. Ajusta las exclusiones para incluirlos.';
+
+  @override
+  String get settingsExcludeDirHelp =>
+      'Las exclusiones por nombre o ruta omiten el escaneo y pueden eliminar registros de la biblioteca al guardar. Para escanear canciones sin crear listas por carpeta, usa las exclusiones de listas.';
+
+  @override
   String get playlistQueueLoadFailed => '播放队列加载未完成，已保留已加载的歌曲；请点继续播放重试。';
 
   @override

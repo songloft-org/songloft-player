@@ -100,6 +100,48 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
+  /// No description provided for @settingsScanValidationFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'无法检查目录排除规则，请重试后再扫描。'**
+  String get settingsScanValidationFailed;
+
+  /// No description provided for @settingsScanAllExcluded.
+  ///
+  /// In zh, this message translates to:
+  /// **'所有扫描目录均被排除，请先调整排除设置。'**
+  String get settingsScanAllExcluded;
+
+  /// No description provided for @settingsScanExcludedSummary.
+  ///
+  /// In zh, this message translates to:
+  /// **'因排除规则跳过 {count} 个目录'**
+  String settingsScanExcludedSummary(int count);
+
+  /// No description provided for @settingsScanExcludedByPath.
+  ///
+  /// In zh, this message translates to:
+  /// **'{path} — 命中排除路径：{rule}'**
+  String settingsScanExcludedByPath(String path, String rule);
+
+  /// No description provided for @settingsScanExcludedByName.
+  ///
+  /// In zh, this message translates to:
+  /// **'{path} — 命中排除目录名：{rule}'**
+  String settingsScanExcludedByName(String path, String rule);
+
+  /// No description provided for @settingsScanExcludedHelp.
+  ///
+  /// In zh, this message translates to:
+  /// **'这些目录不会被扫描。如需扫描，请调整排除设置。'**
+  String get settingsScanExcludedHelp;
+
+  /// No description provided for @settingsExcludeDirHelp.
+  ///
+  /// In zh, this message translates to:
+  /// **'名称/路径排除会跳过扫描，保存时也可能移除已入库记录。如果只想扫描歌曲而不自动创建目录歌单，请使用“歌单排除”。'**
+  String get settingsExcludeDirHelp;
+
   /// No description provided for @playlistQueueLoadFailed.
   ///
   /// In zh, this message translates to:
@@ -5448,7 +5490,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsScanExcludeDirSubtitle.
   ///
   /// In zh, this message translates to:
-  /// **'配置扫描时需要忽略的目录'**
+  /// **'分别设置不扫描的目录、不自动创建歌单的目录'**
   String get settingsScanExcludeDirSubtitle;
 
   /// No description provided for @settingsScanModeSkip.
