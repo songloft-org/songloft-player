@@ -10,6 +10,14 @@ Include rule, scope, full owner/repo#number, failure/fix commit SHAs, actual val
 
 ## Entries
 
+### LICENSE-001: Check the bundled login agreement copies when verifying license declarations
+
+- Scope: Flutter login assets `assets/legal/TERMS{,.en}.md`; baseline `0427678e9f6aa0977dada8653325a2e0844e7e4e`.
+- Evidence: `LICENSE`, README, `pubspec.yaml`, and the parent agreements declare Apache-2.0, but the two language assets loaded by the login page still declared GPL-3.0 four times across Service Description and Intellectual Property. Checking root declarations alone misses the copies users actually see.
+- Rule and Done right: trace the loaded asset paths and pubspec registration when updating license declarations; synchronize both declarations and update dates in Chinese and English. Preserve third-party LGPL/GPL declarations according to their actual licenses. This change only corrects text.
+- Validation: Linux, Python static checks of loaded paths, registration, the four Apache-2.0 declarations, and corresponding parent agreement lines; `git diff --check`. Record and worktree diff SHA-256: `/tmp/songloft-flutter-terms-20261117.json`. Not run: App build, tests, and actual dialog interaction; only Markdown assets changed.
+- Seen 1× (2026-11-17). Local text correction, not committed or released.
+
 ### CI-002: Inspect release assets and specify the AppImage architecture
 
 - Scope: Linux AppImage packaging and stable Releases; released source `65dc1d978705a0f83ae6f8bbc226c489f48c946e`.

@@ -10,6 +10,14 @@
 
 ## 条目
 
+### LICENSE-001：许可证核对必须覆盖登录页打包的协议副本
+
+- 范围：Flutter 登录页 `assets/legal/TERMS{,.en}.md`；基线 `0427678e9f6aa0977dada8653325a2e0844e7e4e`。
+- 证据：`LICENSE`、README、`pubspec.yaml` 与父仓库协议均为 Apache-2.0，但登录页按语言加载的两份资源在「服务说明」「知识产权」仍共四处写 GPL-3.0；只检查仓库根声明会漏掉用户实际看到的副本。
+- 规则与 Done right：变更许可证声明时检查实际资源加载路径及 pubspec 登记，同步中英文的两处声明与更新日期；第三方组件的 LGPL/GPL 声明按其真实许可证保留。本次仅修正文案。
+- 验证：Linux，Python 静态核对资源路径、登记、四处 Apache-2.0 声明及父协议对应行，`git diff --check`；记录及工作树差异 SHA-256 见 `/tmp/songloft-flutter-terms-20261117.json`。Not run：App 构建、测试与实际弹窗操作，仅修改 Markdown 资源。
+- Seen 1× (2026-11-17)。状态：本地文案修正，未提交或发布。
+
 ### CI-002：发布验收必须核对资产，AppImage 显式指定架构
 
 - 范围：Linux AppImage 打包和正式 Release；发布源码 `65dc1d978705a0f83ae6f8bbc226c489f48c946e`。

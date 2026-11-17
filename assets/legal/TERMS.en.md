@@ -1,12 +1,12 @@
 # Terms of Service & Privacy Policy
 
-> Last updated: 2026-08-12
+> Last updated: 2026-11-17
 
 Welcome to Songloft. Please read the following agreement carefully before using this software. By using this software, you acknowledge that you have read, understood, and agreed to be bound by this agreement.
 
 ## 1. Service Description
 
-Songloft is an open-source, self-hosted local music server software released under the GPL-3.0 license. It allows users to deploy a music management and playback service on their own devices.
+Songloft is an open-source, self-hosted local music server software released under the Apache-2.0 license. It allows users to deploy a music management and playback service on their own devices.
 
 - **Self-hosted mode**: Users deploy the server themselves; all data is stored entirely on the user's own devices.
 - **Local mode (Bundle)**: The Go backend runs embedded within the client; all data is stored locally.
@@ -59,7 +59,7 @@ JS plugins may access external services through host network capabilities. Data 
 
 ## 4. Intellectual Property
 
-- The Songloft software itself is open-sourced under the GPL-3.0 license.
+- The Songloft software itself is open-sourced under the Apache-2.0 license.
 - Copyright of music content managed through this software belongs to the original copyright holders.
 - This software makes no guarantees regarding the legality of user-stored content.
 
