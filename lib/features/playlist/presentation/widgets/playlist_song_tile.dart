@@ -5,13 +5,14 @@ import '../../../../shared/models/song.dart';
 import '../../../../shared/widgets/browse_card.dart' show BrowseCardAction;
 import '../../../../shared/widgets/song_tile.dart';
 
-/// 歌单详情歌曲行：通用 [SongTile] 的歌单适配封装（序号/拖拽/复选 + 编辑/移除/删除菜单）。
+/// 歌单详情歌曲行：通用 [SongTile] 的歌单适配封装（序号/拖拽/复选 + 下一首播放/编辑/移除/删除菜单）。
 class PlaylistSongTile extends StatelessWidget {
   final Song song;
   final int index;
   final String? titleInitial;
   final VoidCallback onTap;
   final VoidCallback onRemove;
+  final VoidCallback? onPlayNext;
   final VoidCallback? onDeleteFromLibrary;
   final VoidCallback? onEdit;
   final VoidCallback? onLongPress;
@@ -38,6 +39,7 @@ class PlaylistSongTile extends StatelessWidget {
     this.titleInitial,
     required this.onTap,
     required this.onRemove,
+    this.onPlayNext,
     this.onDeleteFromLibrary,
     this.onEdit,
     this.onLongPress,
@@ -53,6 +55,13 @@ class PlaylistSongTile extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     final actions = <BrowseCardAction>[
+      if (showTrailing && onPlayNext != null)
+        BrowseCardAction(
+          value: 'play_next',
+          icon: Icons.playlist_play,
+          label: l10n.libraryPlayNext,
+          onTap: onPlayNext!,
+        ),
       if (showTrailing && onEdit != null)
         BrowseCardAction(
           value: 'edit',

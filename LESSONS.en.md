@@ -10,6 +10,13 @@ Include rule, scope, full owner/repo#number, failure/fix commit SHAs, actual val
 
 ## Entries
 
+### MENU-001: Verify each song-row adapter exposes shared queue capabilities
+
+- Scope: playlist and favorites menus, songloft-org/songloft#572; baseline `e8ccdcc4a765356c0bd6dc0c64fc04c0d94aa521`.
+- Evidence: library rows already used `playSongNext`, but the separate playlist/favorites adapter lacked its callback and menu entry. All 12 page regressions fail for the missing entry against isolated old source.
+- Rule and Done right: trace page → row adapter → menu → existing queue command. Assert that only the selected song is scheduled, without fetching/replacing the source playlist; combine page checks with existing queue-rule tests. Results and native boundaries: [#572 record](docs/en/issue-572.md).
+- Seen 1× (2026-11-17). Local implementation and validation complete; task records track authorized delivery commits and CI. No stable version created.
+
 ### LICENSE-001: Check the bundled login agreement copies when verifying license declarations
 
 - Scope: Flutter login assets `assets/legal/TERMS{,.en}.md`; baseline `0427678e9f6aa0977dada8653325a2e0844e7e4e`.

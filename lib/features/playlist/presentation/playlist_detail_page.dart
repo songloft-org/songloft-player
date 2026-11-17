@@ -1558,6 +1558,8 @@ class _PlaylistDetailPageState extends ConsumerState<PlaylistDetailPage>
                   ? initial
                   : null,
           onTap: () => _playSong(song, songs, index),
+          onPlayNext:
+              () => ref.read(playerStateProvider.notifier).playSongNext(song),
           onRemove: () => _removeSong(playlist.id, song),
           onDeleteFromLibrary: () => _deleteSongFromLibrary(song),
           onEdit: () => _navigateToEditSong(song),

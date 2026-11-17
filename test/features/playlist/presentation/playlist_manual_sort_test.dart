@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:songloft_flutter/core/network/api_client.dart';
 import 'package:songloft_flutter/features/player/domain/player_state.dart';
 import 'package:songloft_flutter/features/player/presentation/providers/player_provider.dart';
+import 'package:songloft_flutter/features/player/presentation/widgets/playlist_resume_card.dart';
 import 'package:songloft_flutter/features/playlist/presentation/playlist_detail_page.dart';
 import 'package:songloft_flutter/features/playlist/presentation/providers/playlist_provider.dart';
 import 'package:songloft_flutter/features/playlist/presentation/widgets/playlist_song_tile.dart';
@@ -97,6 +98,7 @@ Future<ProviderContainer> _open(
     overrides: [
       dioProvider.overrideWithValue(server.dio),
       playerStateProvider.overrideWith(_IdlePlayer.new),
+      playlistProgressProvider.overrideWith((ref, id) async => null),
     ],
   );
   addTearDown(container.dispose);
