@@ -2619,6 +2619,24 @@ abstract class AppLocalizations {
   /// **'视频内容'**
   String get libraryVideoToggleTitle;
 
+  /// No description provided for @libraryRadioMode.
+  ///
+  /// In zh, this message translates to:
+  /// **'电台播放模式'**
+  String get libraryRadioMode;
+
+  /// No description provided for @libraryRadioModeAuto.
+  ///
+  /// In zh, this message translates to:
+  /// **'自动'**
+  String get libraryRadioModeAuto;
+
+  /// No description provided for @libraryRadioModeAudioOnly.
+  ///
+  /// In zh, this message translates to:
+  /// **'仅音频'**
+  String get libraryRadioModeAudioOnly;
+
   /// No description provided for @libraryVideoToggleSubtitle.
   ///
   /// In zh, this message translates to:

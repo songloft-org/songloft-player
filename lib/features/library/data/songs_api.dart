@@ -348,6 +348,7 @@ class SongsApi {
     required String url,
     String? coverUrl,
     bool isVideo = false,
+    RadioMode radioMode = RadioMode.automatic,
   }) async {
     final songs = await createRadioSongs([
       {
@@ -356,6 +357,7 @@ class SongsApi {
         'url': url,
         'cover_url': coverUrl,
         'is_video': isVideo,
+        if (radioMode != RadioMode.automatic) 'radio_mode': radioMode.value,
       },
     ]);
     return songs.first;
@@ -372,6 +374,7 @@ class SongsApi {
     double? duration,
     bool? isLive,
     bool? isVideo,
+    RadioMode? radioMode,
   }) async {
     final data = <String, dynamic>{};
     if (title != null) data['title'] = title;
@@ -382,6 +385,7 @@ class SongsApi {
     if (duration != null) data['duration'] = duration;
     if (isLive != null) data['is_live'] = isLive;
     if (isVideo != null) data['is_video'] = isVideo;
+    if (radioMode != null) data['radio_mode'] = radioMode.value;
 
     final response = await dio.put<Map<String, dynamic>>(
       '${AppConfig.apiPrefix}/songs/$id',

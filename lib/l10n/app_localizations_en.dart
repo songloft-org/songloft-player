@@ -1453,6 +1453,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get libraryVideoToggleTitle => 'Video content';
 
   @override
+  String get libraryRadioMode => 'Radio playback mode';
+
+  @override
+  String get libraryRadioModeAuto => 'Automatic';
+
+  @override
+  String get libraryRadioModeAudioOnly => 'Audio only';
+
+  @override
   String get libraryVideoToggleSubtitle =>
       'This link contains video; when on, the player renders the picture and casting streams it as video';
 

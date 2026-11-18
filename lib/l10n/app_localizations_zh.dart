@@ -1401,6 +1401,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get libraryVideoToggleTitle => '视频内容';
 
   @override
+  String get libraryRadioMode => '电台播放模式';
+
+  @override
+  String get libraryRadioModeAuto => '自动';
+
+  @override
+  String get libraryRadioModeAudioOnly => '仅音频';
+
+  @override
   String get libraryVideoToggleSubtitle => '此链接含视频画面，开启后播放页渲染画面、投屏按视频推送';
 
   @override

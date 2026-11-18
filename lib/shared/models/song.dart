@@ -1,4 +1,19 @@
 /// 歌曲模型
+enum RadioMode {
+  automatic(''),
+  hls('hls'),
+  audioOnly('audio_only');
+
+  const RadioMode(this.value);
+
+  final String value;
+
+  static RadioMode fromJson(Object? value) => RadioMode.values.firstWhere(
+    (mode) => mode.value == value,
+    orElse: () => RadioMode.automatic,
+  );
+}
+
 class Song {
   final int id;
   final String type; // 'local', 'remote', 'radio'
@@ -23,6 +38,7 @@ class Song {
   final String? sourceCoverUrl;
   final bool isLive;
   final bool isVideo; // 是否含真实视频轨（后端 ffprobe 探测），据此渲染画面/选择投屏 mime
+  final RadioMode radioMode;
   final DateTime addedAt;
   final DateTime updatedAt;
 
@@ -50,6 +66,7 @@ class Song {
     this.sourceCoverUrl,
     this.isLive = false,
     this.isVideo = false,
+    this.radioMode = RadioMode.automatic,
     required this.addedAt,
     required this.updatedAt,
   });
@@ -79,6 +96,7 @@ class Song {
       sourceCoverUrl: json['source_cover_url'] as String?,
       isLive: json['is_live'] as bool? ?? false,
       isVideo: json['is_video'] as bool? ?? false,
+      radioMode: RadioMode.fromJson(json['radio_mode']),
       addedAt:
           json['added_at'] != null
               ? DateTime.parse(json['added_at'] as String)
@@ -115,6 +133,7 @@ class Song {
       'source_cover_url': sourceCoverUrl,
       'is_live': isLive,
       'is_video': isVideo,
+      if (radioMode != RadioMode.automatic) 'radio_mode': radioMode.value,
       'added_at': addedAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
@@ -144,6 +163,7 @@ class Song {
     String? sourceCoverUrl,
     bool? isLive,
     bool? isVideo,
+    RadioMode? radioMode,
     DateTime? addedAt,
     DateTime? updatedAt,
   }) {
@@ -171,6 +191,7 @@ class Song {
       sourceCoverUrl: sourceCoverUrl ?? this.sourceCoverUrl,
       isLive: isLive ?? this.isLive,
       isVideo: isVideo ?? this.isVideo,
+      radioMode: radioMode ?? this.radioMode,
       addedAt: addedAt ?? this.addedAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

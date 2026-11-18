@@ -33,6 +33,7 @@ class _SongEditPageState extends ConsumerState<SongEditPage> {
   bool _isSubmitting = false;
   bool _renameFile = true; // 本地歌曲：改标题时同步重命名文件，默认开启
   bool _isVideo = false; // 网络歌曲/电台：是否含视频画面（不走扫描 ffprobe，需手动声明）
+  RadioMode _radioMode = RadioMode.automatic;
 
   bool get isEditMode => widget.song != null;
   bool get isRadio => widget.songType == AppConstants.songTypeRadio;
@@ -69,6 +70,7 @@ class _SongEditPageState extends ConsumerState<SongEditPage> {
       text: widget.song?.lyricRemoteUrl ?? '',
     );
     _isVideo = widget.song?.isVideo ?? false;
+    _radioMode = widget.song?.radioMode ?? RadioMode.automatic;
     if (isEditMode) {
       _loadSongArtists();
     }
@@ -322,14 +324,39 @@ class _SongEditPageState extends ConsumerState<SongEditPage> {
                   const SizedBox(height: 16),
                 ],
 
-                // 是否视频内容（网络歌曲/电台通用；不走扫描 ffprobe，需手动声明）
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  value: _isVideo,
-                  onChanged: (v) => setState(() => _isVideo = v),
-                  title: Text(l10n.libraryVideoToggleTitle),
-                  subtitle: Text(l10n.libraryVideoToggleSubtitle),
-                ),
+                if (isRadio)
+                  DropdownButtonFormField<RadioMode>(
+                    initialValue: _radioMode,
+                    decoration: InputDecoration(
+                      labelText: l10n.libraryRadioMode,
+                      border: const OutlineInputBorder(),
+                    ),
+                    items: [
+                      DropdownMenuItem(
+                        value: RadioMode.automatic,
+                        child: Text(l10n.libraryRadioModeAuto),
+                      ),
+                      const DropdownMenuItem(
+                        value: RadioMode.hls,
+                        child: Text('HLS'),
+                      ),
+                      DropdownMenuItem(
+                        value: RadioMode.audioOnly,
+                        child: Text(l10n.libraryRadioModeAudioOnly),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) setState(() => _radioMode = value);
+                    },
+                  ),
+                if (!isRadio || _radioMode != RadioMode.audioOnly)
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    value: _isVideo,
+                    onChanged: (v) => setState(() => _isVideo = v),
+                    title: Text(l10n.libraryVideoToggleTitle),
+                    subtitle: Text(l10n.libraryVideoToggleSubtitle),
+                  ),
                 const SizedBox(height: 8),
               ],
 
@@ -551,7 +578,11 @@ class _SongEditPageState extends ConsumerState<SongEditPage> {
           duration:
               isRadio ? null : (double.tryParse(_durationController.text)),
           isLive: null,
-          isVideo: _isVideo,
+          isVideo: _isVideo && _radioMode != RadioMode.audioOnly,
+          radioMode:
+              isRadio && _radioMode != widget.song!.radioMode
+                  ? _radioMode
+                  : null,
         );
         // 同步结构化参与歌手（song_artists）。
         await repository.setSongArtists(widget.song!.id, artistInputs);
@@ -586,7 +617,8 @@ class _SongEditPageState extends ConsumerState<SongEditPage> {
               _coverUrlController.text.trim().isEmpty
                   ? null
                   : _coverUrlController.text.trim(),
-          isVideo: _isVideo,
+          isVideo: _isVideo && _radioMode != RadioMode.audioOnly,
+          radioMode: _radioMode,
         );
       } else {
         // 创建网络歌曲

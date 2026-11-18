@@ -105,6 +105,7 @@ class SongsRepository implements ISongsRepository {
     required String url,
     String? coverUrl,
     bool isVideo = false,
+    RadioMode radioMode = RadioMode.automatic,
   }) async {
     try {
       return await songsApi.createRadioSong(
@@ -113,6 +114,7 @@ class SongsRepository implements ISongsRepository {
         url: url,
         coverUrl: coverUrl,
         isVideo: isVideo,
+        radioMode: radioMode,
       );
     } on DioException catch (e) {
       throw _handleError(e);
@@ -130,6 +132,7 @@ class SongsRepository implements ISongsRepository {
     double? duration,
     bool? isLive,
     bool? isVideo,
+    RadioMode? radioMode,
   }) async {
     try {
       return await songsApi.updateSong(
@@ -142,6 +145,7 @@ class SongsRepository implements ISongsRepository {
         duration: duration,
         isLive: isLive,
         isVideo: isVideo,
+        radioMode: radioMode,
       );
     } on DioException catch (e) {
       throw _handleError(e);

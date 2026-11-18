@@ -49,6 +49,7 @@ abstract class ISongsRepository {
     required String url,
     String? coverUrl,
     bool isVideo = false,
+    RadioMode radioMode = RadioMode.automatic,
   });
 
   /// 更新歌曲
@@ -62,6 +63,7 @@ abstract class ISongsRepository {
     double? duration,
     bool? isLive,
     bool? isVideo,
+    RadioMode? radioMode,
   });
 
   /// 更新歌曲歌词
