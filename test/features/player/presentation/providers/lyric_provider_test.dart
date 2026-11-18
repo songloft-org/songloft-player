@@ -56,6 +56,7 @@ void main() {
   late HttpServer server;
   final requests = <Uri>[];
   var status = 200;
+  Map<String, String>? payload;
   late String oldBaseUrl;
   late String oldResolvedBaseUrl;
 
@@ -80,6 +81,7 @@ void main() {
     await LyricCacheService().clear();
     requests.clear();
     status = 200;
+    payload = null;
     oldBaseUrl = AppConfig.baseUrl;
     oldResolvedBaseUrl = AppConfig.resolvedBaseUrl;
     server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
@@ -90,10 +92,13 @@ void main() {
       request.response.statusCode = status;
       request.response.headers.contentType = ContentType.json;
       request.response.write(
-        jsonEncode({
-          'lyric': '[00:00.00]saved ${request.uri.pathSegments[3]}',
-          'tlyric': '[00:00.00]translation',
-        }),
+        jsonEncode(
+          payload ??
+              {
+                'lyric': '[00:00.00]saved ${request.uri.pathSegments[3]}',
+                'tlyric': '[00:00.00]translation',
+              },
+        ),
       );
       await request.response.close();
     });
@@ -139,6 +144,26 @@ void main() {
       ),
     );
   }
+
+  httpTest(
+    'plays inline word timing even when lxlyric has no word timing',
+    () async {
+      payload = {
+        'lyric': '[00:00.000]今[00:00.250]天[00:00.750]\n[00:01.000]明天',
+        'lxlyric': '[00:00.000]今天',
+        'tlyric': '[00:00.000]Today',
+      };
+      final song = _song(54);
+      final state = await loaded(createContainer(song));
+      expect(state.lyrics.map((line) => line.text), ['今天', '明天']);
+      expect(state.currentLine!.words!.last.start.inMilliseconds, 250);
+      expect(state.currentLine!.translation, 'Today');
+
+      final cached = await loaded(createContainer(song));
+      expect(cached.currentLine!.words!.last.end.inMilliseconds, 750);
+      expect(requests, hasLength(1));
+    },
+  );
 
   httpTest(
     'restored Web queue without lyric URL reads saved server lyrics',

@@ -10,6 +10,13 @@ Include rule, scope, full owner/repo#number, failure/fix commit SHAs, actual val
 
 ## Entries
 
+### LYRIC-006 Distinguish inline timestamps from standard LRC line repeats
+
+- Validation covers word-timed lyrics and the playback provider at baseline `f05d80448a99c128e520a258555e339caf639bf4`. [songloft-org/songloft-player#54](https://github.com/songloft-org/songloft-player/issues/54)
+- The old playback entry point produced two identical lines from `[00:01.000]今[00:01.250]天`, reproducing the screenshot symptom. The old word parser also dropped text before the first angle tag, and a line-timed `lxlyric` could override word timing in the main lyric. All three new regressions failed on the old implementation. The reporter did not supply the original lyric.
+- Treat single brackets separated by lyric text as word timing and keep consecutive leading tags for repeated lines such as choruses. Check mixed formats, explicit final word ends, translations, and cache reloads through the playback entry point.
+- Seen 1× (2026-11-18).
+
 ### MENU-001: Verify each song-row adapter exposes shared queue capabilities
 
 - Scope: playlist and favorites menus, songloft-org/songloft#572; baseline `e8ccdcc4a765356c0bd6dc0c64fc04c0d94aa521`.

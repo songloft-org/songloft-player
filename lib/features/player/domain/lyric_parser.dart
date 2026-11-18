@@ -58,6 +58,11 @@ class LyricLine {
 
 /// LRC 歌词解析器
 class LyricParser {
+  static final _timeRegex = RegExp(r'\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\]');
+  static final _leadingTimes = RegExp(
+    r'^\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\](?:[ \t]*\[\d{1,2}:\d{2}(?:\.\d{1,3})?\])*',
+  );
+
   /// 解析 LRC 格式歌词
   ///
   /// 支持标准 LRC 格式：[mm:ss.xx]歌词文本
@@ -66,15 +71,12 @@ class LyricParser {
     final List<LyricLine> lyrics = [];
     final lines = lrcContent.split('\n');
 
-    // 匹配时间标签的正则表达式：[mm:ss.xx] 或 [mm:ss]
-    final timeRegex = RegExp(r'\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\]');
-
     for (final line in lines) {
       final trimmedLine = line.trim();
       if (trimmedLine.isEmpty) continue;
 
       // 查找所有时间标签
-      final matches = timeRegex.allMatches(trimmedLine).toList();
+      final matches = _timeRegex.allMatches(trimmedLine).toList();
       if (matches.isEmpty) continue;
 
       // 提取歌词文本（去除所有时间标签后的内容）
@@ -84,28 +86,9 @@ class LyricParser {
       }
       text = text.trim();
 
-      // 跳过空歌词行（保留空行不影响功能，但可以选择跳过）
       // 为每个时间标签创建一个歌词行
       for (final match in matches) {
-        final minutes = int.parse(match.group(1)!);
-        final seconds = int.parse(match.group(2)!);
-        final millisecondsStr = match.group(3);
-
-        // 处理毫秒：可能是 1-3 位数字
-        int milliseconds = 0;
-        if (millisecondsStr != null) {
-          // 补齐到 3 位数字
-          final padded = millisecondsStr.padRight(3, '0');
-          milliseconds = int.parse(padded);
-        }
-
-        final time = Duration(
-          minutes: minutes,
-          seconds: seconds,
-          milliseconds: milliseconds,
-        );
-
-        lyrics.add(LyricLine(time: time, text: text));
+        lyrics.add(LyricLine(time: _tagTime(match), text: text));
       }
     }
 
@@ -130,45 +113,20 @@ class LyricParser {
     return lines;
   }
 
-  /// 行首（单括号）时间标签，锚定行首，天然不会误匹配逐字用的 `[[...]]`。
-  static final RegExp _lineTimeRegex = RegExp(
-    r'^\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\]',
-  );
-
   /// 洛雪相对偏移逐字标记：`<起始ms,持续ms>` + 其后文本（到下一个 `<` 为止）。
   static final RegExp _lxWordRegex = RegExp(r'<(\d+),(\d+)>([^<]*)');
 
-  /// 绝对时间戳逐字标记：`[[mm:ss.xx]]` + 其后文本（到下一个 `[` 为止）。
+  /// 绝对时间戳逐字标记：`[[mm:ss.xx]]` 或 `<mm:ss.xx>`。
   static final RegExp _absWordRegex = RegExp(
-    r'\[\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\]\]([^\[]*)',
+    r'\[\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\]\]',
   );
-
-  /// 绝对时间戳逐字标记（单尖括号）：`<mm:ss.xx>` + 其后文本（到下一个 `<` 为止）。
-  ///
-  /// 即常见逐字 LRC 格式（songloft-org/songloft#483）：每字标签为绝对时间，
-  /// 字 i 的高亮区间为 [tag_i, tag_{i+1})；空文本占位标签（如 `<00:00.000>`）
-  /// 在解析时跳过。
   static final RegExp _absAngleWordRegex = RegExp(
-    r'<(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?>([^<]*)',
+    r'<(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?>',
   );
 
-  /// 判断一段歌词文本是否包含逐字标记（洛雪相对、绝对双括号或绝对单尖括号）。
-  ///
-  /// 供 Provider 决定：`lyric` 字段本身是否已内嵌逐字信息。
-  static bool containsWordByWord(String content) {
-    return content.contains('[[') ||
-        _lxWordRegex.hasMatch(content) ||
-        _absAngleWordRegex.hasMatch(content);
-  }
-
-  /// 解析逐字歌词，兼容三种格式：
-  /// - 洛雪相对偏移：`[mm:ss.xxx]<off,dur>字<off,dur>字...`（off/dur 为相对该行的毫秒）
-  /// - 绝对时间戳双括号：`[mm:ss.xx][[mm:ss.xx]]字 [[mm:ss.xx]]字...`（每字双括号绝对时间）
-  /// - 绝对时间戳单尖括号：`[mm:ss.xx]<mm:ss.xx>字<mm:ss.xx>字...`（每字单尖括号绝对时间，songloft-org/songloft#483）
-  ///
-  /// 无逐字标记的行降级为普通 [LyricLine]（words 为 null）。
-  /// 绝对格式中每字的 end 取下一字的 start；行内最后一字的 end 在跨行阶段
-  /// 用下一行的行首时间补齐，末行兜底为 start + 4s。
+  /// 解析混合歌词，支持洛雪相对偏移、绝对双括号、尖括号及行内单方括号。
+  /// 连续的行首单方括号时间戳沿用普通 LRC 的重复行语义。
+  /// 绝对时间格式中若无显式末字结束时间，用下一行行首时间补齐，末行兜底为 start + 4s。
   static List<LyricLine> parseWordByWord(String content) {
     final List<LyricLine> lyrics = [];
     for (final raw in content.split('\n')) {
@@ -176,28 +134,12 @@ class LyricParser {
       if (line.isEmpty) continue;
 
       // 提取行首时间（若以 `[[` 开头则无独立行时间，后续用首字时间兜底）
-      final ltMatch = _lineTimeRegex.firstMatch(line);
-      Duration? lineTime;
-      String body = line;
-      if (ltMatch != null) {
-        lineTime = _durationFrom(
-          ltMatch.group(1)!,
-          ltMatch.group(2)!,
-          ltMatch.group(3),
-        );
-        body = line.substring(ltMatch.end);
-      }
+      final lineTag = _leadingTimes.firstMatch(line);
+      final lineTime = lineTag == null ? null : _tagTime(lineTag);
+      final body = line.substring(lineTag?.end ?? 0);
+      final words = _parseWords(line, body, lineTime);
 
-      List<LyricWord>? words;
-      if (_lxWordRegex.hasMatch(body)) {
-        words = _parseLxWords(body, lineTime ?? Duration.zero);
-      } else if (body.contains('[[')) {
-        words = _parseAbsWords(body);
-      } else if (_absAngleWordRegex.hasMatch(body)) {
-        words = _parseAbsAngleWords(body);
-      }
-
-      if (words != null && words.isNotEmpty) {
+      if (words.isNotEmpty) {
         lyrics.add(
           LyricLine(
             time: lineTime ?? words.first.start,
@@ -205,11 +147,9 @@ class LyricParser {
             words: words,
           ),
         );
-      } else if (ltMatch != null) {
-        // 有行首时间但无逐字标记 → 普通行
-        lyrics.add(LyricLine(time: lineTime!, text: body.trim()));
+      } else {
+        lyrics.addAll(parse(line));
       }
-      // 既无行时间又无逐字标记的行（元数据/空行）直接跳过
     }
 
     lyrics.sort((a, b) => a.time.compareTo(b.time));
@@ -235,14 +175,41 @@ class LyricParser {
     return lyrics;
   }
 
+  static List<LyricWord> _parseWords(
+    String line,
+    String body,
+    Duration? lineTime,
+  ) {
+    if (_lxWordRegex.hasMatch(body)) {
+      return _parseLxWords(body, lineTime ?? Duration.zero);
+    }
+    final absoluteTags = _absWordRegex.allMatches(body).toList();
+    if (absoluteTags.isNotEmpty) {
+      return _parseAbsoluteWords(body, absoluteTags, leadingTime: lineTime);
+    }
+    final angleTags = _absAngleWordRegex.allMatches(body).toList();
+    if (angleTags.isNotEmpty) {
+      return _parseAbsoluteWords(body, angleTags, leadingTime: lineTime);
+    }
+    if (lineTime != null) {
+      final tags = _timeRegex.allMatches(line).toList();
+      for (var i = 1; i < tags.length; i++) {
+        if (line.substring(tags[i - 1].end, tags[i].start).trim().isNotEmpty) {
+          return _parseAbsoluteWords(line, tags);
+        }
+      }
+    }
+    return const [];
+  }
+
   /// 解析洛雪相对偏移逐字：`<off,dur>text`，时间叠加行首时间。
   static List<LyricWord> _parseLxWords(String body, Duration lineTime) {
     final words = <LyricWord>[];
     for (final m in _lxWordRegex.allMatches(body)) {
-      final off = int.parse(m.group(1)!);
-      final dur = int.parse(m.group(2)!);
       final text = m.group(3) ?? '';
-      if (text.isEmpty) continue;
+      final off = int.tryParse(m.group(1)!);
+      final dur = int.tryParse(m.group(2)!);
+      if (text.isEmpty || off == null || dur == null) continue;
       final start = lineTime + Duration(milliseconds: off);
       words.add(
         LyricWord(
@@ -255,51 +222,37 @@ class LyricParser {
     return words;
   }
 
-  /// 解析绝对时间戳双括号逐字：`[[mm:ss.xx]]text`。
-  static List<LyricWord> _parseAbsWords(String body) {
-    final starts = <Duration>[];
-    final texts = <String>[];
-    for (final m in _absWordRegex.allMatches(body)) {
-      final text = m.group(4) ?? '';
-      if (text.isEmpty) continue;
-      starts.add(_durationFrom(m.group(1)!, m.group(2)!, m.group(3)));
-      texts.add(text);
-    }
-    return _wordsFromStarts(starts, texts);
-  }
-
-  /// 解析绝对时间戳单尖括号逐字：`<mm:ss.xx>text`（见 [_absAngleWordRegex]）。
-  static List<LyricWord> _parseAbsAngleWords(String body) {
-    final starts = <Duration>[];
-    final texts = <String>[];
-    for (final m in _absAngleWordRegex.allMatches(body)) {
-      final text = m.group(4) ?? '';
-      if (text.isEmpty) continue;
-      starts.add(_durationFrom(m.group(1)!, m.group(2)!, m.group(3)));
-      texts.add(text);
-    }
-    return _wordsFromStarts(starts, texts);
-  }
-
-  /// 由（起始时间, 文本）序列构造逐字数据：非末字 end 取下一字 start；
-  /// 末字 end 暂置为 start（标记「待补齐」），跨行阶段补齐。
-  static List<LyricWord> _wordsFromStarts(
-    List<Duration> starts,
-    List<String> texts,
-  ) {
+  static List<LyricWord> _parseAbsoluteWords(
+    String body,
+    List<RegExpMatch> tags, {
+    Duration? leadingTime,
+  }) {
     final words = <LyricWord>[];
-    for (var i = 0; i < starts.length; i++) {
-      final isLast = i == starts.length - 1;
+    var start = leadingTime;
+    var textStart = 0;
+    for (final tag in tags) {
+      final time = _tagTime(tag);
+      final text = body.substring(textStart, tag.start);
+      if (start != null &&
+          text.isNotEmpty &&
+          (textStart > 0 || text.trim().isNotEmpty)) {
+        words.add(
+          LyricWord(start: start, end: time < start ? start : time, text: text),
+        );
+      }
+      start = time;
+      textStart = tag.end;
+    }
+    if (start != null && textStart < body.length) {
       words.add(
-        LyricWord(
-          start: starts[i],
-          end: isLast ? starts[i] : starts[i + 1],
-          text: texts[i],
-        ),
+        LyricWord(start: start, end: start, text: body.substring(textStart)),
       );
     }
     return words;
   }
+
+  static Duration _tagTime(RegExpMatch tag) =>
+      _durationFrom(tag.group(1)!, tag.group(2)!, tag.group(3));
 
   /// 把翻译（tlyric）与罗马音（rlyric）按时间对齐挂到主歌词行上。
   ///

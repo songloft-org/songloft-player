@@ -167,16 +167,33 @@ void main() {
       expect(lines[1].hasWords, isTrue);
     });
 
-    test('containsWordByWord detects all word markups', () {
-      expect(LyricParser.containsWordByWord('[00:00.00]<0,10>字'), isTrue);
-      expect(LyricParser.containsWordByWord('[00:00.00][[00:00.00]]字'), isTrue);
-      expect(
-        LyricParser.containsWordByWord('[01:42.555]<01:42.555>一<01:42.795>眼'),
-        isTrue,
+    test('distinguishes inline square timestamps from repeated LRC lines', () {
+      final lines = LyricParser.parseWordByWord(
+        '[00:01.000]今[00:01.250]天 [00:01.700]好[00:02.100]\n'
+        '[00:03.000][00:06.000]副歌 [合唱]',
       );
-      expect(LyricParser.containsWordByWord('[00:00.00]普通歌词'), isFalse);
-      // 非时间形态的尖括号文本不误判为逐字标记
-      expect(LyricParser.containsWordByWord('[00:00.00]普通歌词<hello>'), isFalse);
+      expect(lines.map((line) => line.text), ['今天 好', '副歌 [合唱]', '副歌 [合唱]']);
+      expect(lines.map((line) => line.time.inMilliseconds), [1000, 3000, 6000]);
+      final words = lines.first.words!;
+      expect(words.map((word) => word.text), ['今', '天 ', '好']);
+      expect(words.map((word) => word.start.inMilliseconds), [
+        1000,
+        1250,
+        1700,
+      ]);
+      expect(words.map((word) => word.end.inMilliseconds), [1250, 1700, 2100]);
+      expect(lines.skip(1).every((line) => !line.hasWords), isTrue);
+    });
+
+    test('keeps text before the first angle tag and uses an explicit end', () {
+      final line =
+          LyricParser.parseWordByWord(
+            '[00:01.000][00:01.125]Hello <00:01.500>world<00:02.000>',
+          ).single;
+      expect(line.text, 'Hello world');
+      expect(line.words!.first.start.inMilliseconds, 1000);
+      expect(line.words!.first.end.inMilliseconds, 1500);
+      expect(line.words!.last.end.inMilliseconds, 2000);
     });
   });
 

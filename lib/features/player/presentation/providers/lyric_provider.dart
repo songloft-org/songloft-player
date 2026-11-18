@@ -261,30 +261,19 @@ class LyricNotifier extends Notifier<LyricState> {
     final main = _stringField(body, 'lyric');
     final lx = _stringField(body, 'lxlyric');
 
-    // 逐字源：优先 lxlyric；否则若主歌词本身内嵌逐字标记则用主歌词
-    String wbwSource = '';
-    if (lx.isNotEmpty) {
-      wbwSource = lx;
-    } else if (main.isNotEmpty && LyricParser.containsWordByWord(main)) {
-      wbwSource = main;
-    }
-
+    final enhanced = LyricParser.parseWordByWord(lx);
+    final hasMain = main.trim().isNotEmpty;
+    final text = hasMain ? main : lx;
     var lyrics =
-        wbwSource.isNotEmpty
-            ? LyricParser.parseWordByWord(wbwSource)
-            : LyricParser.parse(main);
-
-    // 逐字解析失败但主歌词是带时间轴的普通 LRC → 退回普通 LRC 解析，
-    // 避免把含 [mm:ss] 的正常歌词误判为纯文本（否则会把方括号当正文显示）。
-    if (lyrics.isEmpty && wbwSource.isNotEmpty && main.isNotEmpty) {
-      lyrics = LyricParser.parse(main);
-    }
+        enhanced.any((line) => line.hasWords) || !hasMain
+            ? enhanced
+            : LyricParser.parseWordByWord(main);
 
     // 无任何时间戳但主歌词非空 → 纯文本歌词（如 lrclib 仅有 plainLyrics），
     // 降级为静态展示：按行拆行、不做逐行高亮 / 自动滚动 / 翻译对齐。
     var synced = true;
-    if (lyrics.isEmpty && main.trim().isNotEmpty) {
-      lyrics = LyricParser.parsePlain(main);
+    if (lyrics.isEmpty && text.trim().isNotEmpty) {
+      lyrics = LyricParser.parsePlain(text);
       synced = false;
     } else {
       lyrics = LyricParser.mergeTranslations(
