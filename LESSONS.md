@@ -10,6 +10,12 @@
 
 ## 条目
 
+### CI-003：发布接口校验使用 Git 中提交的清单
+
+- Windows Bundle 已成功检出公开后端，接口比对仍因工作树清单被转换为 CRLF 而退出。日志中四个接口的签名完全一致。[Windows CI](https://github.com/songloft-org/songloft-player/actions/runs/44479533779/job/135408165785)
+- 用 `git show HEAD:mobile/export_surface.txt` 读取构建提交中的清单。用 `core.autocrlf=true` 检出同一后端提交 `1861c33` 后执行实际 composite action 脚本，旧比对失败，修复后通过。
+- Seen 1× (2026-11-19)。
+
 ### LYRIC-006 区分行内时间戳与普通 LRC 重复行
 
 - 逐字歌词解析与播放 Provider 使用基线 `f05d80448a99c128e520a258555e339caf639bf4` 验证。[songloft-org/songloft-player#54](https://github.com/songloft-org/songloft-player/issues/54)

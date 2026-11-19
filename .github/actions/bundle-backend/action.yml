@@ -27,5 +27,6 @@ runs:
         printf 'SONGLOFT_BACKEND_COMMIT=%s\n' "$BACKEND_COMMIT" >> "$GITHUB_ENV"
         GIT_TERMINAL_PROMPT=0 git submodule update --init --depth 1 pkg/tag
         go doc ./mobile | sed -n '/^func /p' | sort > "$RUNNER_TEMP/mobile-export-surface.txt"
-        sort mobile/export_surface.txt > "$RUNNER_TEMP/mobile-export-surface.expected"
+        # Read the committed manifest with its original line endings on Windows.
+        git show HEAD:mobile/export_surface.txt | sort > "$RUNNER_TEMP/mobile-export-surface.expected"
         diff -u "$RUNNER_TEMP/mobile-export-surface.expected" "$RUNNER_TEMP/mobile-export-surface.txt"

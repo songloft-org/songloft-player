@@ -10,6 +10,12 @@ Include rule, scope, full owner/repo#number, failure/fix commit SHAs, actual val
 
 ## Entries
 
+### CI-003: Read the committed manifest when verifying release interfaces
+
+- Windows Bundle checked out the public backend successfully. Its interface check then failed because the manifest in the working tree had CRLF line endings. All four signatures in the diff were identical. [Windows CI](https://github.com/songloft-org/songloft-player/actions/runs/44479533779/job/135408165785)
+- Use `git show HEAD:mobile/export_surface.txt` to read the manifest from the build commit. The actual composite script failed with the old comparison and passed with the fix on the same backend checkout `1861c33` with `core.autocrlf=true`.
+- Seen 1× (2026-11-19).
+
 ### LYRIC-006 Distinguish inline timestamps from standard LRC line repeats
 
 - Validation covers word-timed lyrics and the playback provider at baseline `f05d80448a99c128e520a258555e339caf639bf4`. [songloft-org/songloft-player#54](https://github.com/songloft-org/songloft-player/issues/54)
