@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../config/constants.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/models/song.dart';
 import '../../../playlist/presentation/providers/playlist_provider.dart'
@@ -111,6 +112,7 @@ class FacetListNotifier extends AsyncNotifier<FacetListState> {
     final api = ref.read(songsApiProvider);
     return api.getFacets(
       _field,
+      type: AppConstants.songTypeMusic,
       keyword: _keyword,
       limit: pageLimit,
       offset: offset,
@@ -228,6 +230,7 @@ class CategorySongsNotifier extends AsyncNotifier<PaginatedSongsState> {
   Future<SongListResponse> _fetch(SongsApi api, {required int offset}) {
     final f = categorySongsFilter(_key);
     return api.getSongs(
+      type: AppConstants.songTypeMusic,
       genre: f.genre,
       artist: f.artist,
       album: f.album,

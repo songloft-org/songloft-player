@@ -11,6 +11,7 @@ class AppConstants {
   static const String playModeRandom = 'random';
 
   // 歌曲类型
+  static const String songTypeMusic = 'music';
   static const String songTypeLocal = 'local';
   static const String songTypeRemote = 'remote';
   static const String songTypeRadio = 'radio';

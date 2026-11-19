@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../config/constants.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../shared/models/song.dart';
 import '../../../playlist/presentation/providers/playlist_provider.dart'
@@ -153,7 +154,12 @@ class TagSongsNotifier extends AsyncNotifier<PaginatedSongsState> {
 
   Future<SongListResponse> _fetch({required int offset}) {
     final api = ref.read(songsApiProvider);
-    return api.getSongs(tagId: _tagId, limit: pageLimit, offset: offset);
+    return api.getSongs(
+      type: AppConstants.songTypeMusic,
+      tagId: _tagId,
+      limit: pageLimit,
+      offset: offset,
+    );
   }
 
   @override
@@ -171,6 +177,7 @@ class TagSongsNotifier extends AsyncNotifier<PaginatedSongsState> {
     final api = ref.read(songsApiProvider);
     while (current.hasMore) {
       final resp = await api.getSongs(
+        type: AppConstants.songTypeMusic,
         tagId: _tagId,
         limit: pageLimit,
         offset: current.items.length,

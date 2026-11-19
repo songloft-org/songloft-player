@@ -33,7 +33,7 @@ bool isFlatLibraryView(String key) => flatLibraryViewKeys.contains(key);
 /// 判断某视图是否为歌单视图。
 bool isPlaylistLibraryView(String key) => playlistLibraryViewKeys.contains(key);
 
-/// 扁平视图对应的歌曲 type 过滤值；all 返回 null（不过滤）。
+/// 扁平视图对应的歌曲 type 过滤值；all 选择普通音乐（排除电台和有声书）。
 String? flatViewType(String key) {
   switch (key) {
     case 'local':
@@ -42,8 +42,10 @@ String? flatViewType(String key) {
       return AppConstants.songTypeRemote;
     case 'radio':
       return AppConstants.songTypeRadio;
+    case 'all':
+      return AppConstants.songTypeMusic;
     default:
-      return null; // all
+      return null;
   }
 }
 
