@@ -36,12 +36,12 @@
 
 ## 托管与 URL 约定
 
-补丁作为资产随对应 Release 上传;仓库由 `AppConfig.frontendUpdateRepo` 决定(标准版 = `songloft-org/songloft-player`;Bundle 版 = 父仓库 `songloft-org/songloft`),客户端按渠道自动切换、无需改代码。
+补丁作为资产随 songloft-player 对应渠道 Release 上传;标准版使用 `manifest-<abi>.json` / `patch-*`,Bundle 版使用 `bundle-manifest-<abi>.json` / `bundle-patch-*`,客户端根据 `HAS_BACKEND` 与渠道选择资产。
 
-- manifest:`https://github.com/<repo>/releases/download/<tag>/manifest-<abi>.json`
+- 标准版 manifest:`https://github.com/songloft-org/songloft-player/releases/download/<tag>/manifest-<abi>.json`;Bundle 版使用 `bundle-manifest-<abi>.json`
   - stable:`<tag>` = `v<version>`(经 `/releases/latest` 解析);dev:`<tag>` = `dev`
   - 内容为 `PatchCheckResult` 形状:`{"hasUpdate":true,"patch":{"version","semanticVersion","gitCommit","flutterBinding","targetVersionCode","patchUrl","md5"}}`(其中 `version` 是 `<semver>-<gitCommit>` 形式的补丁标签)
-- patch 包:同 Release 的 `patch-<abi>-<commit>.zip`(md5 取 zip 的)
+- patch 包:标准版为 `patch-<abi>-<commit>.zip`,Bundle 版为 `bundle-patch-<abi>-<commit>.zip`(md5 取 zip 的)
 - **向后兼容**:老式 manifest 无 `semanticVersion` / `gitCommit` / `flutterBinding` 时,客户端退回「`hasUpdate` + versionCode 绑定 + 已应用守卫」旧行为。
 
 ## 发布(`build-and-release.yml` 的 `build-android`,自动)

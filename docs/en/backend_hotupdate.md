@@ -1,13 +1,13 @@
 # Bundle Android Hot Update (frontend libapp.so + backend libgojni.so)
 
-This doc describes songloft-player's **self-hosted Android hot update** in Bundle local mode: **baseline-free** — any non-latest dev updates to the latest dev, any non-latest stable to the latest stable. **Every release auto-publishes** the latest patches as Release assets; the client checks on startup, downloads once, and restarts once: a single real cold restart makes both the frontend `libapp.so` (flutter_patcher) and the backend `libgojni.so` (gomobile) take effect.
+This doc describes songloft-player's **self-hosted Android hot update** in Bundle local mode: **baseline-free** — any non-latest dev updates to the latest dev, any non-latest stable to the latest stable. Standard and Bundle packages share this repository's Release, with distinct Bundle manifest and patch prefixes. **Every release auto-publishes** the latest patches as Release assets; the client checks on startup, downloads once, and restarts once: a single real cold restart makes both the frontend `libapp.so` (flutter_patcher) and the backend `libgojni.so` (gomobile) take effect.
 
 > Bilingual: any change here must be mirrored in `docs/cn/backend_hotupdate.md`.
 
 ## Core model: baseline-free + auto-publish + toolchain compatibility key
 
 - **Baseline-free**: the client fetches the **latest of its channel** — dev → rolling tag `dev`; stable → GitHub `/releases/latest` (dev is a prerelease, so latest returns the newest stable). Resolved by `lib/core/updater/channel_release_resolver.dart`, reusing `FrontendVersionApi`'s approach.
-- **Auto-publish**: `release.yml`'s `build-bundled-android` job produces and uploads on every release: frontend `patch-<abi>-<commit>.zip`+`manifest-<abi>.json` and backend `libgojni-<abi>-<commit>.so`+`backend-manifest-<abi>.json` (arm64-v8a / armeabi-v7a / x86_64; gomobile bind includes the android/amd64 target). **No manual workflow, no versionCode binding.**
+- **Auto-publish**: this repository's `build-and-release.yml` Android job produces and uploads Bundle frontend `bundle-patch-<abi>-<commit>.zip`+`bundle-manifest-<abi>.json` and backend `bundle-libgojni-<abi>-<backend-sha>.so`+`bundle-backend-manifest-<abi>.json` on every release (arm64-v8a / armeabi-v7a / x86_64; gomobile bind includes android/amd64). **No manual workflow, no versionCode binding.**
 - **Compatibility key instead of versionCode** (automatic, not hand-edited):
   - **Frontend libapp.so**: flutter_patcher inherently binds by **versionCode** (libapp.so ↔ engine). With `--split-per-abi` gradle rewrites each ABI APK's versionCode to "ABI offset × 1000 + pubspec base" (e.g. arm64-v8a = 2001), so CI reads the **real value** from the per-ABI APK via aapt and writes it into the manifest/patch; this project's pubspec `+N` is **constant** (CI does not bump it per build), so old and new builds of the same ABI share the same versionCode and natural binding already allows cross-version hot update — versionCode is an **automatic compatibility proxy, not a hand-picked baseline**. The client additionally compares `AppConfig.flutterBinding` (= CI `FLUTTER_VERSION`) with the manifest's `flutterBinding`: different → not hot-patchable (guards against same versionCode but a changed Flutter engine crashing) → full-APK branch. Only a deliberate pubspec `+N` bump (usually alongside engine/native changes) forces the frontend to full APK.
   - **Backend libgojni.so**: the boundary is the gomobile export surface (`mobile/export_surface.txt` + the `release.yml` guard, automatic). **versionCode dropped**; safety comes from "frozen export surface + crash rollback/blacklist", so any old build updates to the latest.
@@ -94,15 +94,16 @@ Once the gates pass:
 
 State in a plain file `filesDir/backend_patch/state.json` (readable before the Dart engine). `preloadIfStaged`: no active / blacklisted → don't preload (roll back to bundled); `confirmed` → `System.load` directly; `staged/pending` → `bootAttempts++`, over threshold (>1) means boot-crash → blacklist (gitCommit+md5) + clear active + roll back; `System.load` throws → blacklist + roll back immediately, never crash the process. Confirm timing: after the backend is healthy in the new process (`startup_gate` cold start / `backend_lifecycle` resume), `BackendPatchService.confirmIfHealthy()` verifies `/api/v1/version` git_commit matches → `confirmBackendPatch()`.
 
-## Manifest convention (Release assets, per ABI)
+## Manifest convention (songloft-player Release assets, per ABI)
 
-- Frontend `manifest-<abi>.json`: `{hasUpdate, patch:{version(patchLabel), semanticVersion, gitCommit, flutterBinding, patchUrl, md5}}`
-- Backend `backend-manifest-<abi>.json`: `{hasUpdate, backend:{abi, version, gitCommit, buildTime, soUrl, md5, size}}` (no targetVersionCode)
-- Both auto-uploaded with the `release.yml` release (tag = dev / v<x.y.z>); the client resolves the latest of its channel.
+- Standard frontend uses `manifest-<abi>.json`; Bundle uses `bundle-manifest-<abi>.json`. Both contain `{hasUpdate, patch:{version(patchLabel), semanticVersion, gitCommit, flutterBinding, contractHash, targetVersionCode, patchUrl, md5}}`.
+- Bundle backend uses `bundle-backend-manifest-<abi>.json` with `{hasUpdate, backend:{abi, version, gitCommit, buildTime, soUrl, md5, contractHash, size}}` (no `targetVersionCode`).
+- The Flutter client repository builds Bundle assets. `mobile-backend.lock.json` pins both the root SHA and its backend semantic version; the gomobile version is read from that SHA's `go.mod`.
+- Assets are uploaded with this repository's release (tag = dev / v<x.y.z>); the client resolves the latest of its channel.
 
 ## Release discipline
 
-- Every release ships patches automatically, no extra steps; the **export-surface guard** (`go doc ./mobile` vs `mobile/export_surface.txt`) in `release.yml` fails on drift (must go full APK).
+- Every release ships patches automatically, no extra steps; the **export-surface guard** (`go doc ./mobile` vs `mobile/export_surface.txt`) in the client build workflow fails on drift (must go full APK).
 - Changing the Flutter version → old frontend builds auto-fall to full APK (engine key mismatch); changing mobile.go's export surface / adding native plugins → full APK.
 - **Native contract hash is fully automatic**: `scripts/compute_native_contract.sh` recomputes the asset + manifest on every build, with no hand-maintained version number or descriptor. Changing a `com.songloft/*` channel method set / adding-removing a native plugin → the dart hash changes automatically, and old builds reading a mismatch auto-fall to full APK; an export-surface change → the go hash changes automatically. **No constant needs bumping.**
 

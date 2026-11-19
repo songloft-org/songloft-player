@@ -65,7 +65,7 @@ class ReleaseAsset {
 class FrontendVersionApi {
   final Dio _dio;
 
-  /// GitHub API 地址（bundle 版指向父仓库，标准版指向 player 仓库）
+  /// GitHub API 地址（标准版与 Bundle 版均指向 player 仓库中的对应 Release）
   static const String _latestReleaseApiUrl =
       'https://api.github.com/repos/${AppConfig.frontendUpdateRepo}/releases/latest';
   static const String _devReleaseApiUrl =

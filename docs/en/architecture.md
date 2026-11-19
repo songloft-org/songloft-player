@@ -62,7 +62,7 @@ The Notifier itself retains:
 Startup flow (`StartupGate`):
 
 1. Load persisted `RunMode` (local / remote)
-2. **Local mode (Bundle)**: request storage permission → start embedded backend (`EmbeddedBackendService.start()`) → health check polling (up to 10 × 300ms) → set `baseUrlProvider` to `127.0.0.1:<port>` → auto-login with `admin/admin`
+2. **Local mode (Bundle)**: request required storage access → start the embedded backend (`EmbeddedBackendService.start()`) on a dynamic port → after its health check, set `baseUrlProvider` to `127.0.0.1:<port>` → read the local backend-generated administrator credentials and sign in automatically; do not use the server's default `admin/admin`
 3. **Remote mode**: load persisted server list → single server: use directly; multiple servers: probe reachability in parallel (max 2.5s) → write the highest-priority successful result to `baseUrlProvider`; fall back to the first item if all fail
 4. Set `probeOutcomeProvider` for the home screen SnackBar
 5. In embedded mode, skip probing and use `Uri.base` directly

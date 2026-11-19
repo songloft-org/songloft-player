@@ -51,7 +51,7 @@ env:
   FLUTTER_VERSION: '3.44.6'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   # ============================================================
@@ -182,6 +182,28 @@ jobs:
             songloft-linux-x64.rpm
             songloft-linux-x64.AppImage
           retention-days: 1
+      - uses: ./.github/actions/pinned-backend
+      - name: Build pinned Go backend for Linux Bundle
+        env:
+          BUILD_TIME: ${{ steps.version.outputs.build_time }}
+        run: bash scripts/build-pinned-backend.sh linux
+      - name: Build and package Linux Bundle
+        run: |
+          flutter build linux --release --dart-define=HAS_BACKEND=true \
+            --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }} \
+            --dart-define=FRONTEND_BUILD_TIME=${{ steps.version.outputs.build_time }} \
+            --dart-define=FRONTEND_GIT_COMMIT=$(git rev-parse --short HEAD) \
+            --dart-define=FLUTTER_BINDING=${{ env.FLUTTER_VERSION }}
+          cp linux/runner/songloft-server build/linux/x64/release/bundle/songloft-server
+          chmod +x build/linux/x64/release/bundle/songloft-server
+          cd build/linux/x64/release/bundle
+          tar czf "$GITHUB_WORKSPACE/songloft-bundled-linux-x64.tar.gz" .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: songloft-bundled-linux-x64
+          path: songloft-bundled-linux-x64.tar.gz
+          if-no-files-found: error
+          retention-days: 1
 
   build-windows:
     name: Windows (x64)
@@ -212,8 +234,10 @@ jobs:
             $version = 'dev'
           }
           $buildTime = (Get-Date).ToUniversalTime().ToString('yyyy-MM-dd_HH:mm:ss')
+          $gitCommit = (git rev-parse --short HEAD).Trim()
           echo "version=$version" >> $env:GITHUB_OUTPUT
           echo "build_time=$buildTime" >> $env:GITHUB_OUTPUT
+          echo "git_commit=$gitCommit" >> $env:GITHUB_OUTPUT
       - name: Setup NuGet
         uses: nuget/setup-nuget@v2
       - name: Test Windows WebView window synchronization
@@ -246,6 +270,32 @@ jobs:
           path: |
             songloft-windows-x64.zip
             songloft-windows-x64.msix
+          retention-days: 1
+      - uses: ./.github/actions/pinned-backend
+      - name: Build pinned Go backend for Windows Bundle
+        shell: bash
+        env:
+          BUILD_TIME: ${{ steps.version.outputs.build_time }}
+        run: bash scripts/build-pinned-backend.sh windows
+      - name: Build and package Windows Bundle
+        shell: pwsh
+        run: |
+          flutter build windows --release --dart-define=HAS_BACKEND=true `
+            --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }} `
+            --dart-define=FRONTEND_BUILD_TIME=${{ steps.version.outputs.build_time }} `
+            --dart-define=FRONTEND_GIT_COMMIT=${{ steps.version.outputs.git_commit }} `
+            --dart-define=FLUTTER_BINDING=${{ env.FLUTTER_VERSION }}
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (!(Test-Path build\windows\x64\runner\Release\songloft-server.exe -PathType Leaf)) {
+            throw "The Bundle release is missing the embedded Go backend"
+          }
+          Copy-Item build\native-webview-tests\Release\webview_hit_test.exe -Destination build\windows\x64\runner\Release\ -ErrorAction Stop
+          Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath songloft-bundled-windows-x64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: songloft-bundled-windows-x64
+          path: songloft-bundled-windows-x64.zip
+          if-no-files-found: error
           retention-days: 1
 
   build-macos:
@@ -298,17 +348,49 @@ jobs:
             songloft-macos.zip
             songloft-macos.dmg
           retention-days: 1
+      - uses: ./.github/actions/pinned-backend
+      - name: Build pinned universal Go backend for macOS Bundle
+        env:
+          BUILD_TIME: ${{ steps.version.outputs.build_time }}
+        run: bash scripts/build-pinned-backend.sh macos-universal
+      - name: Build and package macOS Bundle
+        run: |
+          flutter build macos --release --dart-define=HAS_BACKEND=true \
+            --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }} \
+            --dart-define=FRONTEND_BUILD_TIME=${{ steps.version.outputs.build_time }} \
+            --dart-define=FRONTEND_GIT_COMMIT=$(git rev-parse --short HEAD) \
+            --dart-define=FLUTTER_BINDING=${{ env.FLUTTER_VERSION }}
+          APP=$(find build/macos/Build/Products/Release -maxdepth 1 -name '*.app' -print -quit)
+          test -n "$APP"
+          BACKEND="$APP/Contents/MacOS/songloft-server"
+          test -x "$BACKEND"
+          lipo -verify_arch arm64 x86_64 "$BACKEND"
+          codesign --verify --deep --strict --verbose=2 "$APP"
+          ditto -c -k --sequesterRsrc --keepParent "$APP" "$GITHUB_WORKSPACE/songloft-bundled-macos.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: songloft-bundled-macos
+          path: songloft-bundled-macos.zip
+          if-no-files-found: error
+          retention-days: 1
 
   build-android:
     name: Android (APK)
     runs-on: ubuntu-latest
     if: ${{ github.event_name != 'workflow_dispatch' || inputs.build_android }}
     steps:
+      - name: Free disk space for Go and Flutter builds
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/.ghcup /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: platform-tools platforms;android-35 build-tools;35.0.0 ndk;27.2.12479018
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
@@ -439,6 +521,87 @@ jobs:
           }
           EOF
           cat apk-output/version.json
+      - uses: ./.github/actions/pinned-backend
+        id: pinned-backend
+      - name: Build pinned Go backend Android library
+        env:
+          BUILD_TIME: ${{ steps.version.outputs.build_time }}
+        run: |
+          if [ ! -f backend-source/internal/database/sqlite_android.go ]; then
+            echo "::error::Advance mobile-backend.lock.json to the backend commit with Android SQLite support."
+            exit 1
+          fi
+          bash scripts/build-pinned-backend.sh android
+      - name: Release Go build cache before Flutter Bundle packaging
+        run: |
+          test -s android/app/libs/songloft.aar
+          go clean -cache -testcache
+          df -h /
+      - name: Compute Bundle native contract hash
+        run: |
+          HASHES=$(./scripts/compute_native_contract.sh \
+            --export-surface backend-source/mobile/export_surface.txt \
+            --write-asset android/app/src/main/assets/native_contract.json)
+          echo "native_contract.json = $HASHES"
+          echo "BUNDLE_DART_CONTRACT_HASH=$(printf '%s' "$HASHES" | sed -n 's/.*"dart":"\([a-f0-9]*\)".*/\1/p')" >> "$GITHUB_ENV"
+          echo "BUNDLE_GO_CONTRACT_HASH=$(printf '%s' "$HASHES" | sed -n 's/.*"go":"\([a-f0-9]*\)".*/\1/p')" >> "$GITHUB_ENV"
+      - name: Build Flutter Android Bundle APKs
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          flutter build apk --release --split-per-abi \
+            --dart-define=HAS_BACKEND=true \
+            --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }} \
+            --dart-define=FRONTEND_BUILD_TIME=${{ steps.version.outputs.build_time }} \
+            --dart-define=FRONTEND_GIT_COMMIT=$GIT_COMMIT \
+            --dart-define=FLUTTER_BINDING=${{ env.FLUTTER_VERSION }} \
+            --dart-define=TRACELY_APP_ID=${{ secrets.TRACELY_APP_ID }} \
+            --dart-define=TRACELY_APP_SECRET=${{ secrets.TRACELY_APP_SECRET }} \
+            --dart-define=TRACELY_HOST=${{ secrets.TRACELY_HOST }}
+      - name: Verify and collect Android Bundle APKs
+        env:
+          SEMVER: ${{ steps.version.outputs.version }}
+          BACKEND_VERSION: ${{ steps.pinned-backend.outputs.version }}
+          BUILD_TIME: ${{ steps.version.outputs.build_time }}
+          FLUTTER_BINDING: ${{ env.FLUTTER_VERSION }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'dev' }}
+          BACKEND_COMMIT: ${{ steps.pinned-backend.outputs.commit }}
+        run: |
+          set -euo pipefail
+          BUILD_TOOLS_DIR=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          for abi in arm64-v8a armeabi-v7a x86_64; do
+            apk="build/app/outputs/flutter-apk/app-${abi}-release.apk"
+            python3 scripts/check-android-preferences-jni.py "$apk"
+            cp "$apk" "apk-output/songloft-bundled-android-${abi}.apk"
+            ABI_VC=$("$BUILD_TOOLS_DIR/aapt" dump badging "$apk" | sed -n "s/^package:.*versionCode='\([0-9]*\)'.*/\1/p")
+            test -n "$ABI_VC"
+            LABEL="${SEMVER}-${GIT_COMMIT}"
+            rm -rf dist
+            dart run flutter_patcher:pack --apk "$apk" --version "$LABEL" \
+              --target-version-code "$ABI_VC" --abi "$abi"
+            cp dist/patch.zip "apk-output/bundle-patch-${abi}-${GIT_COMMIT}.zip"
+            ZIP_MD5=$(md5sum "apk-output/bundle-patch-${abi}-${GIT_COMMIT}.zip" | cut -d' ' -f1)
+            cat > "apk-output/bundle-manifest-${abi}.json" <<EOF
+          {"hasUpdate":true,"patch":{"version":"${LABEL}","semanticVersion":"${SEMVER}","gitCommit":"${GIT_COMMIT}","flutterBinding":"${FLUTTER_BINDING}","contractHash":"${BUNDLE_DART_CONTRACT_HASH}","targetVersionCode":${ABI_VC},"patchUrl":"https://github.com/${REPO}/releases/download/${TAG}/bundle-patch-${abi}-${GIT_COMMIT}.zip","md5":"${ZIP_MD5}"}}
+          EOF
+            so="apk-output/bundle-libgojni-${abi}-${BACKEND_COMMIT}.so"
+            unzip -p "$apk" "lib/${abi}/libgojni.so" > "$so"
+            test -s "$so"
+            grep -aF "$BACKEND_COMMIT" "$so" > /dev/null
+            SONAME=$(readelf -d "$so" | sed -n 's/.*SONAME.*\[\(.*\)\].*/\1/p')
+            if [ -n "$SONAME" ] && [ "$SONAME" != "libgojni.so" ]; then
+              echo "::error::unexpected libgojni SONAME: $SONAME"
+              exit 1
+            fi
+            SO_MD5=$(md5sum "$so" | cut -d' ' -f1)
+            SO_SIZE=$(stat -c%s "$so")
+            cat > "apk-output/bundle-backend-manifest-${abi}.json" <<EOF
+          {"hasUpdate":true,"backend":{"abi":"${abi}","version":"${BACKEND_VERSION}","gitCommit":"${BACKEND_COMMIT}","buildTime":"${BUILD_TIME}","soUrl":"https://github.com/${REPO}/releases/download/${TAG}/bundle-libgojni-${abi}-${BACKEND_COMMIT}.so","md5":"${SO_MD5}","contractHash":"${BUNDLE_GO_CONTRACT_HASH}","size":${SO_SIZE}}}
+          EOF
+          done
       - uses: actions/upload-artifact@v4
         with:
           name: songloft-android-apk
@@ -446,7 +609,11 @@ jobs:
             apk-output/*.apk
             apk-output/patch-*.zip
             apk-output/manifest-*.json
+            apk-output/bundle-*.zip
+            apk-output/bundle-*.json
+            apk-output/bundle-libgojni-*.so
             apk-output/version.json
+          if-no-files-found: error
           retention-days: 1
 
   build-ios:
@@ -485,12 +652,39 @@ jobs:
           name: songloft-ios
           path: songloft-ios-nosign.ipa
           retention-days: 1
+      - uses: ./.github/actions/pinned-backend
+      - name: Build pinned Go backend iOS framework
+        env:
+          BUILD_TIME: ${{ steps.version.outputs.build_time }}
+        run: bash scripts/build-pinned-backend.sh ios
+      - name: Build and package iOS Bundle IPA
+        run: |
+          flutter build ios --release --no-codesign --dart-define=HAS_BACKEND=true \
+            --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }} \
+            --dart-define=FRONTEND_BUILD_TIME=${{ steps.version.outputs.build_time }} \
+            --dart-define=FRONTEND_GIT_COMMIT=$(git rev-parse --short HEAD) \
+            --dart-define=FLUTTER_BINDING=${{ env.FLUTTER_VERSION }}
+          test ! -e build/ios/iphoneos/Runner.app/Frameworks/Songloft.framework
+          nm build/ios/iphoneos/Runner.app/Runner | grep -E ' [Tt] _MobileStart$'
+          rm -rf Payload
+          mkdir -p Payload
+          cp -R build/ios/iphoneos/Runner.app Payload/
+          zip -r -y songloft-bundled-ios-nosign.ipa Payload
+          rm -rf Payload
+      - uses: actions/upload-artifact@v4
+        with:
+          name: songloft-bundled-ios
+          path: songloft-bundled-ios-nosign.ipa
+          if-no-files-found: error
+          retention-days: 1
 
   # ============================================================
   # 发布 Release
   # ============================================================
   release:
     name: Create Release
+    permissions:
+      contents: write
     if: ${{ always() }}
     needs:
       - build-web
@@ -586,13 +780,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: release-assets
-        continue-on-error: true
 
       - name: Flatten artifacts
         run: |
           mkdir -p final-assets
           if [ -d release-assets ]; then
-            find release-assets -type f \( -name '*.tar.gz' -o -name '*.zip' -o -name '*.apk' -o -name '*.ipa' -o -name '*.deb' -o -name '*.rpm' -o -name '*.AppImage' -o -name '*.dmg' -o -name '*.msix' -o -name 'manifest-*.json' -o -name 'version.json' \) -exec cp {} final-assets/ \;
+            find release-assets -type f \( -name '*.tar.gz' -o -name '*.zip' -o -name '*.apk' -o -name '*.ipa' -o -name '*.deb' -o -name '*.rpm' -o -name '*.AppImage' -o -name '*.dmg' -o -name '*.msix' -o -name '*.so' -o -name 'manifest-*.json' -o -name 'bundle-*.json' -o -name 'version.json' \) -exec cp {} final-assets/ \;
           fi
           echo "=== Release Assets ==="
           ls -lh final-assets/ || echo "(no assets)"

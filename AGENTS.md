@@ -180,25 +180,25 @@ dart format lib/ test/
 
 Bundle 版通过 `--dart-define=HAS_BACKEND=true` 注入（`AppConfig.hasEmbeddedBackend`），在设备上内嵌 Go 后端运行，**与 embedded（`DEPLOY_MODE`）正交**：bundle 版并不设 `DEPLOY_MODE=embedded`，故 `isEmbedded=false`，设置页的「检查客户端更新」tile 照常显示。
 
-**关键：两类客户端发布在不同仓库，更新检查必须区分。**
+**标准版与 Bundle 版由本仓库同一 Release 发布，更新检查使用相同仓库，但资产名称分开。**
 
 | 版本 | 发布仓库 | 产物名 | 由谁构建 |
 |------|---------|--------|---------|
 | 标准版 | `songloft-org/songloft-player` | `songloft-*.apk` 等 | 本仓库 `build-and-release.yml` |
-| Bundle 版 | 父仓库 `songloft-org/songloft` | `songloft-bundled-*` | 父仓库 `release.yml` |
+| Bundle 版 | `songloft-org/songloft-player` | `songloft-bundled-*` | 本仓库 `build-and-release.yml`，从 `mobile-backend.lock.json` 固定的主仓库 SHA 构建 Go 后端 |
 
 - `FrontendVersionApi` 的更新检查仓库由 `AppConfig.frontendUpdateRepo`（`hasEmbeddedBackend ? frontendBundleRepo : frontendRepo`，编译期固定）决定；`frontendUpdateReleasesUrl` 同理。
-- **不要**在更新流程里硬编码 `songloft-org/songloft-player`：bundle 版注入的 `FRONTEND_VERSION` 是父仓库 tag，若仍查 player 仓库，版本比较口径错配、且用户会下载到丢失内嵌后端的标准版覆盖安装。
+- Bundle 更新检查仍走本仓库 Release；安装入口必须区分 `songloft-bundled-*`，不能让 Bundle 用户下载标准版覆盖安装。
 - `frontendRepo` / `frontendReleasesUrl` 保留原义，仅供 Web 端 `client_download_page.dart` 的「标准版下载」区使用（该页 web-only）。
 
 ### 热更新（前端 libapp.so + Bundle 版 Android 后端 libgojni.so）
 
 详见 [docs/cn/backend_hotupdate.md](docs/cn/backend_hotupdate.md)（Bundle 统一模型,权威）。要点:
 
-- **无基线 + 自动发布**:客户端查**本渠道最新**（dev→`dev` tag;stable→`/releases/latest`,`channel_release_resolver.dart`）；`release.yml` 的 `build-bundled-android` 每次发版**自动**产出并上传前端 `patch-<abi>-<commit>.zip`+`manifest`、后端 `libgojni-<abi>-<commit>.so`+`backend-manifest`（无手动 workflow）。
+- **无基线 + 自动发布**:客户端查**本渠道最新**（dev→`dev` tag;stable→`/releases/latest`,`channel_release_resolver.dart`）；本仓库 `build-and-release.yml` 的 Android job 同时构建标准版和 Bundle 版，并为 Bundle 上传 `bundle-patch-<abi>-<commit>.zip`、`bundle-manifest-<abi>.json`、`bundle-libgojni-<abi>-<backend-sha>.so` 与 `bundle-backend-manifest-<abi>.json`。
 - **合并为一次体验**:`PatchUpdateDialog.maybeShow`（`lib/core/updater/`）每会话并行检查两类补丁,一个对话框列出、一起下载、**只重启一次**（`EmbeddedBackendService.restartProcess` 真进程冷启 —— libapp.so 生效 + `SongloftApplication` 预加载 libgojni.so）。
 - **启动检查的三道闸 + 手动入口**（不要退回「首帧就打网络」）:触发点在 `ShellLayout`（**不是** HomePage —— Shell 全会话常驻,且 TvHomePage 也在它下面,TV 因此一并覆盖）,顺序是**先 `ref.listenManual(authStateProvider)` 等 `authenticated`、再排 `kPatchCheckStartupDelay`(4s) 的可取消 `Timer`**（只判 `mounted` 是竞态:认证慢于延迟时,登录前那次短命挂载会吃掉本会话唯一的检查名额、写掉节流窗口,还带无 token 的 dio 去查;`Timer` 而非 `Future.delayed` 是为了能在 `dispose` 取消）。受「启动时自动检查更新」开关（`autoUpdateCheckProvider`,prefs `auto_update_check_enabled`,缺省开）与 `kPatchCheckThrottle`(6h,prefs `last_patch_check_at`) 节流约束;检查阶段套 45s 整体超时（代理失败会降级直连，单请求最坏翻倍）;节流判定必须带 `elapsed >= 0`（时钟被往回调过时未来时间戳会把检查挡死到真实时间追上）。**查到补丁但 `context` 已卸载时要回滚节流时间戳**,且单独打日志别复用「无可热更补丁」那条。手动入口合并在「设置 → 关于与更新 → 检查客户端更新」,走 `maybeShow(manual: true)`:跳过两道闸、**绕过（非清除）「忽略此版本」名单**、不写节流时间戳,无补丁时落回 `FrontendUpgradeDialog`（它自带三态,故不额外 snackbar）。闸门语义由 `test/core/updater/patch_update_dialog_gates_test.dart` 覆盖。
-- **兼容键取代 versionCode**（自动、非手改）:前端用 **Flutter 引擎版本**（`AppConfig.flutterBinding` = CI `FLUTTER_VERSION`,manifest 带 `flutterBinding`;相同即兼容并 `targetVersionCode=null` 跨 versionCode 放行,不同→整包）;后端用**导出面冻结**（`mobile/export_surface.txt` + `release.yml` 守卫）,无 versionCode。
+- **兼容键取代 versionCode**（自动、非手改）:前端用 **Flutter 引擎版本**（`AppConfig.flutterBinding` = CI `FLUTTER_VERSION`,manifest 带 `flutterBinding`;相同即兼容并 `targetVersionCode=null` 跨 versionCode 放行,不同→整包）;后端用**导出面冻结**（固定 SHA 的 `mobile/export_surface.txt` 由本仓库 Android 构建守卫校验）,无 versionCode。
 - **原生契约哈希闸**（Dart↔原生 MethodChannel / Go 导出面运行时校验,拦「热更 Dart 调旧 APK 不存在的原生方法」）:原生 channel `com.songloft/contract` 的 `getHash` 返回 `{dart,go}`（值由 CI `scripts/compute_native_contract.sh` 构建期算出、同时烧进 APK asset 与 manifest `contractHash`）。`checkPatch` 用 `contractHashBlocks` 比对,不等落整包,任一空则降级不拦。全自动无需 bump 常量。标准版 + bundle 通用（iOS 不参与）。见 `docs/cn/backend_hotupdate.md`。
 - 比较分渠道:**dev 比 git commit hash、stable 比版本号**（`version_compare.dart`）;崩溃回滚由原生 `BackendPatchManager`（pending→confirmed + 黑名单）负责。
 - 标准版（非 bundle）也无基线:本仓库 `build-and-release.yml` 的 `build-android` 每次发版自动产出前端 `patch-<abi>-<commit>.zip`+`manifest`（无后端）；手动 `patch-release.yml` 已删。前端跨版本靠**恒定 versionCode**（pubspec `+N` 不 bump）+ 引擎键(`flutterBinding`)兜底,非手挑基线。客户端对老式 manifest 向后兼容。

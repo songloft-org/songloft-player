@@ -179,25 +179,25 @@ Paths are defined by `AppRoutes` in `core/router/app_router.dart`:
 
 `--dart-define=HAS_BACKEND=true` enables `AppConfig.hasEmbeddedBackend` and a local Go backend. This is **orthogonal** to embedded `DEPLOY_MODE`: Bundle does not set embedded, so `isEmbedded=false` and the client-update settings tile remains visible.
 
-**Standard and Bundle editions use different release repositories.**
+**Standard and Bundle editions are published in the same repository Release, with distinct asset names.**
 
 | Edition | Release repository | Artifact | Builder |
 |---|---|---|---|
 | Standard | `songloft-org/songloft-player` | `songloft-*.apk`, etc. | Local `build-and-release.yml` |
-| Bundle | Parent `songloft-org/songloft` | `songloft-bundled-*` | Parent `release.yml` |
+| Bundle | `songloft-org/songloft-player` | `songloft-bundled-*` | This repository's `build-and-release.yml`, building the Go backend from the root SHA pinned in `mobile-backend.lock.json` |
 
 - `FrontendVersionApi` uses compile-time `AppConfig.frontendUpdateRepo` (`hasEmbeddedBackend ? frontendBundleRepo : frontendRepo`), as does `frontendUpdateReleasesUrl`.
-- Never hardcode `songloft-org/songloft-player` in updates: Bundle's injected `FRONTEND_VERSION` is a parent tag; the wrong repository mismatches comparison and installs the standard edition without the local backend.
+- Bundle update checks use this repository's Release. Installation links must still distinguish `songloft-bundled-*` so Bundle users do not replace their app with the standard edition.
 - `frontendRepo` / `frontendReleasesUrl` retain their standard-edition meaning only for the Web-only download section in `client_download_page.dart`.
 
 ### Hot Updates (libapp.so and Bundle Android libgojni.so)
 
 The authoritative unified Bundle model is [docs/en/backend_hotupdate.md](docs/en/backend_hotupdate.md).
 
-- **No manually selected baseline, automatic publication**: check the latest release in the current channel (`dev` tag or stable `/releases/latest`, `channel_release_resolver.dart`). Each parent `build-bundled-android` run uploads frontend `patch-<abi>-<commit>.zip` + manifest and backend `libgojni-<abi>-<commit>.so` + backend manifest; no manual workflow.
+- **No manually selected baseline, automatic publication**: check the latest release in the current channel (`dev` tag or stable `/releases/latest`, `channel_release_resolver.dart`). This repository's Android job builds standard and Bundle editions and publishes `bundle-patch-<abi>-<commit>.zip`, `bundle-manifest-<abi>.json`, `bundle-libgojni-<abi>-<backend-sha>.so`, and `bundle-backend-manifest-<abi>.json` for Bundle; no manual workflow.
 - **One combined experience**: `PatchUpdateDialog.maybeShow` in `lib/core/updater/` checks both patches concurrently per session, lists/downloads them together, and restarts once via a real `EmbeddedBackendService.restartProcess` cold start. This applies libapp.so and lets `SongloftApplication` preload libgojni.so.
 - **Startup gates and manual entry**: use session-persistent `ShellLayout`, not HomePage, so TV is included. First wait for authenticated via `ref.listenManual(authStateProvider)`, then schedule a cancellable 4-second `kPatchCheckStartupDelay` Timer. Checking mounted alone can let slow authentication consume the once-per-session opportunity and throttle window before login with an unauthenticated Dio. Dispose cancels the Timer rather than using Future.delayed. Respect `autoUpdateCheckProvider` (preference `auto_update_check_enabled`, default on) and the 6-hour `kPatchCheckThrottle` (`last_patch_check_at`). Bound the whole check to 45 seconds because proxy fallback can double request latency. Require `elapsed >= 0` so clock rollback cannot indefinitely suppress checks. If a patch is found after context disposal, roll back the throttle timestamp and log separately from “no patch”. The manual Settings → About & updates → Check client updates calls `maybeShow(manual: true)`, bypasses delay/throttling and the ignored-version list without clearing it, and does not write the throttle timestamp. Without a patch, fall back to `FrontendUpgradeDialog`'s existing three-state UI without an extra snackbar. Tests: `test/core/updater/patch_update_dialog_gates_test.dart`.
-- **Compatibility keys replace versionCode** automatically: frontend uses the Flutter engine version (`AppConfig.flutterBinding` = CI `FLUTTER_VERSION`, manifest `flutterBinding`). Equal keys allow compatibility with `targetVersionCode=null` across versionCodes; mismatch needs a full package. Backend freezes the exported surface in parent `mobile/export_surface.txt` and release guards without versionCode.
+- **Compatibility keys replace versionCode** automatically: frontend uses the Flutter engine version (`AppConfig.flutterBinding` = CI `FLUTTER_VERSION`, manifest `flutterBinding`). Equal keys allow compatibility with `targetVersionCode=null` across versionCodes; mismatch needs a full package. The Android build validates the exported surface in the pinned root SHA's `mobile/export_surface.txt`; backend updates do not bind to versionCode.
 - **Native contract hashes** prevent patched Dart calling methods missing in the installed APK. `com.songloft/contract` `getHash` returns `{dart,go}` computed by `scripts/compute_native_contract.sh`, embedded in APK assets and manifest `contractHash`. `contractHashBlocks` sends mismatches to full-package updates; either empty hash degrades without blocking. No manual constant bump; standard/Bundle Android use this, iOS does not.
 - **Channel comparisons**: dev compares commit hashes, stable compares versions via `version_compare.dart`; native `BackendPatchManager` handles pending→confirmed rollback and blacklisting.
 - Standard Android also has no manual baseline: local `build-and-release.yml` `build-android` publishes frontend patches/manifests automatically, without backend patches; `patch-release.yml` was removed. Constant pubspec `+N` versionCode and `flutterBinding` support cross-version compatibility. Old manifest formats remain supported.

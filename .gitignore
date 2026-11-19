@@ -54,6 +54,7 @@ pubspec.lock
 /linux/runner/songloft-server
 /ios/Songloft.xcframework
 /android/app/libs/*.aar
+/backend-source/
 
 
 # Xcode / Swift Package Manager 本地状态

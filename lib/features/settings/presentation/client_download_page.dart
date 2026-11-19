@@ -15,7 +15,7 @@ import 'widgets/section_card.dart';
 ///
 /// 按浏览器 User-Agent 推荐匹配当前设备的原生客户端，并列出全部平台：
 /// - 标准版：连接当前服务器（`songloft-org/songloft-player` releases）
-/// - Bundle 版：内嵌后端、无需服务器（`songloft-org/songloft` releases）
+/// - Bundle 版：内嵌后端、无需服务器（在同一 Release 中按文件名选择）
 ///
 /// 下载链接自动套用「设置 → 网络设置」配置的 GitHub 加速代理（[githubProxyProvider]）。
 class ClientDownloadPage extends ConsumerWidget {
@@ -24,13 +24,12 @@ class ClientDownloadPage extends ConsumerWidget {
   // release 资产直链前缀
   static const String _standardBase =
       'https://github.com/songloft-org/songloft-player/releases/latest/download/';
-  static const String _bundleBase =
-      'https://github.com/songloft-org/songloft/releases/latest/download/';
+  static const String _bundleBase = '$_bundleReleases/download/';
 
   // releases 页（兜底：直链资产名变动时仍可手动挑选）
   static const String _standardReleases = AppConfig.frontendReleasesUrl;
   static const String _bundleReleases =
-      'https://github.com/songloft-org/songloft/releases/latest';
+      'https://github.com/${AppConfig.frontendBundleRepo}/releases/latest';
 
   static const List<_ClientAsset> _standardAssets = [
     _ClientAsset(

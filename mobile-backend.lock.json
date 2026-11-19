@@ -1,0 +1,7 @@
+{
+  "repository": "https://github.com/songloft-org/songloft.git",
+  "commit": "35b1e33d8a1f8466530973a2b7b5d1115f39a395",
+  "version": "2.13.12",
+  "package": "mobile",
+  "note": "Pinned source and backend version for Flutter Bundle builds; update together only with an explicitly reviewed backend change."
+}

@@ -31,7 +31,7 @@ https://github.com/songloft-org/songloft/issues/6
 
 Release 正文展示版本变更，并保留本节的安装说明链接；历史记录保存在中文 [CHANGELOG.md](CHANGELOG.md)，在版本发布成功后自动更新。各平台安装说明见下表。
 
-本仓库发布的是需要连接 [Songloft 服务器](https://github.com/songloft-org/songloft)的标准 Flutter 客户端，安装后填写服务器地址并登录。需要内嵌后端的本地模式，请从[主工程 Releases](https://github.com/songloft-org/songloft/releases) 下载 `songloft-bundled-*` 文件。
+本仓库发布标准 Flutter 客户端和 Bundle 本地模式客户端。标准版连接独立的 [Songloft 服务器](https://github.com/songloft-org/songloft)；Bundle 版在本机启动随包内嵌的 Go 后端，可在登录页或设置页切换本地/远程模式。Bundle 构建从 `mobile-backend.lock.json` 指定的主仓库提交编译后端，并由本仓库 workflow 打包。
 
 在 Release 页的 **Assets** 中选择适合设备的文件；部分安装格式可能未提供，以实际附件为准。
 
@@ -53,6 +53,7 @@ Release 正文展示版本变更，并保留本节的安装说明链接；历史
 | 📱 **iOS** | [songloft-ios-nosign.ipa](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-ios-nosign.ipa) | 未签名设备包，需使用自己的开发者证书和适用于目标设备的 provisioning profile 重签后安装 |
 
 > 开发版可在 [dev 分支 Release](https://github.com/songloft-org/songloft-player/releases/tag/dev) 获取。
+> 下载内嵌后端的客户端时，请按 [Bundle 选包说明](#bundle-本地模式)中的文件名选择。
 
 `patch-*.zip`、`manifest-*.json` 和 `version.json` 供客户端检查更新使用，无需手动安装。
 
@@ -199,19 +200,27 @@ Bundle 版将 Go 后端嵌入到客户端中，用户无需单独部署服务器
 - **桌面端（macOS/Windows/Linux）**：Go 后端编译为 `songloft-server` 可执行文件，启动时作为子进程运行
 - **Web**：不支持 Bundle 模式
 
-构建步骤（以 Android 为例）：
+本地构建步骤（以 Android 为例，需要先准备锁定版本的主仓库源码）：
 
 ```bash
-# 1. 在父仓库编译 Go 后端为 Android .aar
-make build-go-mobile-android
+# 1. 检出 mobile-backend.lock.json 中的主仓库 SHA，并初始化 pkg/tag
+# 2. 在主仓库源码中编译 Android .aar，放到 android/app/libs/songloft.aar
 
-# 2. 构建 Flutter APK（启用 Bundle 模式）
+# 3. 构建 Flutter APK（启用 Bundle 模式）
 flutter build apk --dart-define=HAS_BACKEND=true
 ```
 
-使用方式：首次启动在登录页点击「使用本地模式」→ 选择音乐目录 → 自动完成。可在设置页随时切换本地/远程模式。
+Android、iOS、Linux、Windows、macOS 的 Bundle 包由本仓库 `.github/workflows/build-and-release.yml` 与标准客户端一起发布。Go 后端提交由 `mobile-backend.lock.json` 固定；更新锁文件必须经过兼容性审查。
 
-Bundle 版预编译安装包在 [songloft 主仓库 Releases](https://github.com/songloft-org/songloft/releases/latest) 下载（`songloft-bundled-*` 文件）。
+Android 和桌面端首次启用本地模式时选择音乐目录，iOS 使用应用 Documents 目录；无需在首次启动时通过独立弹窗选择运行模式。Bundle 资产在[本仓库 Releases](https://github.com/songloft-org/songloft-player/releases/latest)中，文件名以 `songloft-bundled-` 开头：
+
+| 平台 | Bundle 下载 |
+|---|---|
+| Android ARM64 / ARMv7 / x86_64 | [Release Assets](https://github.com/songloft-org/songloft-player/releases/latest) 中的 `songloft-bundled-android-*.apk` |
+| iOS | `songloft-bundled-ios-nosign.ipa`（未签名，需自行重签） |
+| Linux x86_64 | `songloft-bundled-linux-x64.tar.gz` |
+| macOS Universal | `songloft-bundled-macos.zip` |
+| Windows x86_64 | `songloft-bundled-windows-x64.zip` |
 
 ## 版本发布
 
@@ -238,7 +247,7 @@ Bundle 版预编译安装包在 [songloft 主仓库 Releases](https://github.com
 
 **标准版**需要配合 [Songloft 后端](https://github.com/songloft-org/songloft) 服务运行。默认连接 `http://localhost:58091`，可在登录页中修改 API 地址。
 
-**Bundle 版**内嵌 Go 后端，无需单独部署服务器，启动后自动使用 admin/admin 登录。
+**Bundle 版**内嵌 Go 后端，无需单独部署服务器；客户端使用本地后端生成并保存在应用数据目录中的管理员凭据自动登录。
 
 默认账号：admin / admin
 

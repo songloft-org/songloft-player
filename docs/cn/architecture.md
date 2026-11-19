@@ -62,7 +62,7 @@ Notifier 本身保留的职责：
 启动流程（`StartupGate`）：
 
 1. 读取持久化的 `RunMode`（local / remote）
-2. **本地模式（Bundle）**：申请存储权限 → 启动嵌入后端（`EmbeddedBackendService.start()`）→ 健康检查轮询（最多 10 次 × 300ms）→ 设置 `baseUrlProvider` 为 `127.0.0.1:<port>` → 自动使用 `admin/admin` 登录
+2. **本地模式（Bundle）**：申请所需存储权限 → 启动嵌入后端（`EmbeddedBackendService.start()`）取得动态端口 → 健康检查通过后设置 `baseUrlProvider` 为 `127.0.0.1:<port>` → 读取本地后端生成的管理员凭据自动登录，不使用服务器默认 `admin/admin`
 3. **远程模式**：读取持久化的服务器列表 → 单服务器直接使用；多服务器并行探测可达性（最长 2.5s）→ 选优先级最高的成功项写入 `baseUrlProvider`；全失败则 fallback 到列表首项
 4. 设置 `probeOutcomeProvider` 供首屏 SnackBar 提示
 5. embedded 模式跳过探测，直接使用 `Uri.base`

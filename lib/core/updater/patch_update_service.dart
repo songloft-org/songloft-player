@@ -64,12 +64,14 @@ class PatchUpdateService {
     try {
       final abi = await FlutterPatcher.deviceAbi;
       if (abi.isEmpty) return null;
+      final manifestName =
+          '${AppConfig.hasEmbeddedBackend ? 'bundle-manifest' : 'manifest'}-$abi.json';
       final rawUrl = await _resolver.assetUrl(
-        'manifest-$abi.json',
+        manifestName,
         githubProxy: githubProxy,
       );
       if (rawUrl == null) {
-        debugPrint('[Patcher] checkPatch: 渠道 release 无 manifest-$abi.json,跳过');
+        debugPrint('[Patcher] checkPatch: 渠道 release 无 $manifestName,跳过');
         return null;
       }
 

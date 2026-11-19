@@ -1,13 +1,13 @@
 # Bundle 版 Android 热更新(前端 libapp.so + 后端 libgojni.so)
 
-本文描述 Bundle 本地模式下 songloft-player 的 **Android 自托管热更新**:**无基线**——任何非最新 dev 更新到最新 dev、任何非最新 stable 更新到最新 stable。**每次发版自动**把最新补丁挂到 Release,客户端启动检查、一次下载、只重启一次:一次真进程冷启同时让前端 `libapp.so`(flutter_patcher)与后端 `libgojni.so`(gomobile)生效。
+本文描述 Bundle 本地模式下 songloft-player 的 **Android 自托管热更新**:**无基线**——任何非最新 dev 更新到最新 dev、任何非最新 stable 更新到最新 stable。标准版和 Bundle 包由本仓库同一 Release 发布；Bundle 使用独立 manifest 与补丁文件名前缀。**每次发版自动**把最新补丁挂到 Release,客户端启动检查、一次下载、只重启一次:一次真进程冷启同时让前端 `libapp.so`(flutter_patcher)与后端 `libgojni.so`(gomobile)生效。
 
 > 中英双语并存,改一版需同步 `docs/en/backend_hotupdate.md`。
 
 ## 核心模型:无基线 + 自动发布 + 工具链兼容键
 
 - **无基线**:客户端查**本渠道最新**——dev→滚动 tag `dev`;stable→GitHub `/releases/latest`(dev 是 prerelease,latest 天然返回最新正式版)。由 `lib/core/updater/channel_release_resolver.dart` 解析,复用 `FrontendVersionApi` 思路。
-- **自动发布**:`release.yml` 的 `build-bundled-android` job 每次发版自动产出并上传:前端 `patch-<abi>-<commit>.zip`+`manifest-<abi>.json`、后端 `libgojni-<abi>-<commit>.so`+`backend-manifest-<abi>.json`(arm64-v8a / armeabi-v7a / x86_64,gomobile bind 含 android/amd64 目标)。**无手动 workflow、无 versionCode 绑定**。
+- **自动发布**:本仓库 `build-and-release.yml` 的 Android job 每次发版自动产出并上传 Bundle 前端 `bundle-patch-<abi>-<commit>.zip`+`bundle-manifest-<abi>.json`、后端 `bundle-libgojni-<abi>-<backend-sha>.so`+`bundle-backend-manifest-<abi>.json`(arm64-v8a / armeabi-v7a / x86_64,gomobile bind 含 android/amd64 目标)。**无手动 workflow、无 versionCode 绑定**。
 - **兼容键取代 versionCode**(自动、非手改):
   - **前端 libapp.so**:flutter_patcher 天然按 **versionCode** 绑定(libapp.so ↔ 引擎)。`--split-per-abi` 下 gradle 会把各 ABI APK 的 versionCode 改写为「ABI偏移×1000+pubspec基础值」(如 arm64-v8a=2001),CI 用 aapt 从分 ABI APK 读**真实值**写入 manifest/补丁;本项目 pubspec 的 `+N` **恒定**(CI 不随构建 bump),同 ABI 的新旧构建 versionCode 相同,自然绑定即可跨版本热更——versionCode 是**自动的兼容代理**,不是手挑的基线。客户端额外比对 `AppConfig.flutterBinding`(= CI `FLUTTER_VERSION`)与 manifest 的 `flutterBinding`:不同 → 不热更(防同 versionCode 但换了 Flutter 引擎导致崩溃),交「整包不兼容」分支下 APK。仅当有意 bump pubspec `+N`(通常伴随引擎/原生变更)时前端才走整包。
   - **后端 libgojni.so**:兼容边界是 gomobile 导出面(`mobile/export_surface.txt` + `release.yml` 导出面守卫,自动)。**去掉 versionCode**,靠「导出面冻结 + 崩溃回滚黑名单」保证任意老包热更到最新。
@@ -94,15 +94,16 @@
 
 状态存纯文件 `filesDir/backend_patch/state.json`(需在 Dart 引擎前可读)。`preloadIfStaged`:无 active / 在黑名单 → 不预加载(回滚随包版);`confirmed` → 直接 `System.load`;`staged/pending` → `bootAttempts++`,超阈值(>1)判定启动即崩 → 拉黑(gitCommit+md5)+ 清 active + 回滚;`System.load` 抛异常 → 立即拉黑回滚,绝不让进程崩。confirm 时机:新进程后端健康后(`startup_gate` 冷启 / `backend_lifecycle` resume)`BackendPatchService.confirmIfHealthy()` 校验 `/api/v1/version` git_commit 一致 → `confirmBackendPatch()`。
 
-## Manifest 约定(父仓库 Release 资产,按 ABI)
+## Manifest 约定(songloft-player Release 资产,按 ABI)
 
-- 前端 `manifest-<abi>.json`:`{hasUpdate, patch:{version(patchLabel), semanticVersion, gitCommit, flutterBinding, patchUrl, md5}}`
-- 后端 `backend-manifest-<abi>.json`:`{hasUpdate, backend:{abi, version, gitCommit, buildTime, soUrl, md5, size}}`(无 targetVersionCode)
-- 都随 `release.yml` 的 release(tag=dev / v<x.y.z>)自动上传;客户端按渠道解析最新。
+- 标准版前端使用 `manifest-<abi>.json`;Bundle 前端使用 `bundle-manifest-<abi>.json`，两者结构为 `{hasUpdate, patch:{version(patchLabel), semanticVersion, gitCommit, flutterBinding, contractHash, targetVersionCode, patchUrl, md5}}`。
+- Bundle 后端使用 `bundle-backend-manifest-<abi>.json`:`{hasUpdate, backend:{abi, version, gitCommit, buildTime, soUrl, md5, contractHash, size}}`(无 targetVersionCode)。
+- Bundle 资产由 Flutter 客户端仓库构建；`mobile-backend.lock.json` 同时固定主仓库 SHA 与该提交对应的后端语义版本，gomobile 版本从该 SHA 的 `go.mod` 读取。
+- 都随本仓库 release(tag=dev / v<x.y.z>)自动上传;客户端按渠道解析最新。
 
 ## 发布纪律
 
-- 每次发版自动带补丁,无需额外操作;**导出面守卫**(`go doc ./mobile` 比对 `mobile/export_surface.txt`)在 `release.yml` 里,导出面漂移即 fail(须整包)。
+- 每次发版自动带补丁,无需额外操作;**导出面守卫**(`go doc ./mobile` 比对 `mobile/export_surface.txt`)在客户端构建 workflow 里,导出面漂移即 fail(须整包)。
 - 改 Flutter 版本 → 前端老包自动走整包(引擎键不匹配);改 mobile.go 导出面 / 加原生插件 → 整包。
 - **原生契约哈希全自动**:`scripts/compute_native_contract.sh` 每次构建重算 asset + manifest,无需手维护版本号或清单。改 `com.songloft/*` channel 方法集 / 增删原生插件 → dart 哈希自动变,老包读到不匹配自动走整包;导出面变 → go 哈希自动变。**无需 bump 任何常量**。
 

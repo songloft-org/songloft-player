@@ -36,12 +36,12 @@ Entry: `ShellLayout.initState` calls `PatchUpdateDialog.maybeShow` once per sess
 
 ## Hosting & URL convention
 
-Patches are uploaded as assets with the corresponding Release; the repo is decided by `AppConfig.frontendUpdateRepo` (standard = `songloft-org/songloft-player`; Bundle = parent repo `songloft-org/songloft`), and the client switches by channel automatically, no code change.
+Patches are uploaded to the corresponding channel Release in songloft-player. Standard uses `manifest-<abi>.json` / `patch-*`; Bundle uses `bundle-manifest-<abi>.json` / `bundle-patch-*`. The client selects assets by `HAS_BACKEND` and channel.
 
-- manifest: `https://github.com/<repo>/releases/download/<tag>/manifest-<abi>.json`
+- Standard manifest: `https://github.com/songloft-org/songloft-player/releases/download/<tag>/manifest-<abi>.json`; Bundle uses `bundle-manifest-<abi>.json`.
   - stable: `<tag>` = `v<version>` (resolved via `/releases/latest`); dev: `<tag>` = `dev`
   - content is `PatchCheckResult` shaped: `{"hasUpdate":true,"patch":{"version","semanticVersion","gitCommit","flutterBinding","targetVersionCode","patchUrl","md5"}}` (`version` is the patch label in the form `<semver>-<gitCommit>`)
-- patch package: `patch-<abi>-<commit>.zip` in the same Release (md5 over the zip)
+- Patch package: `patch-<abi>-<commit>.zip` for standard and `bundle-patch-<abi>-<commit>.zip` for Bundle (md5 over the zip)
 - **Backward compatibility**: when a legacy manifest lacks `semanticVersion` / `gitCommit` / `flutterBinding`, the client falls back to the old "`hasUpdate` + versionCode binding + already-applied guard" behavior.
 
 ## Publishing (`build-and-release.yml`'s `build-android`, automatic)

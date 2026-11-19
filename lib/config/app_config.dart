@@ -106,11 +106,10 @@ class AppConfig {
   static const String frontendReleasesUrl =
       'https://github.com/songloft-org/songloft-player/releases/latest';
 
-  /// Bundle 版（内嵌后端）发布在父仓库 songloft-org/songloft，产物名 songloft-bundled-*，
-  /// 与标准版仓库/版本号相互独立。
-  static const String frontendBundleRepo = 'songloft-org/songloft';
+  /// Bundle 与标准版均由本客户端仓库发版；资产名不同，版本号共享。
+  static const String frontendBundleRepo = 'songloft-org/songloft-player';
 
-  /// 「客户端更新」流程实际使用的检查仓库：bundle 版查父仓库，标准版查 player 仓库。
+  /// 「客户端更新」流程实际使用的检查仓库：标准版和 Bundle 版均查本客户端仓库。
   /// hasEmbeddedBackend 为编译时常量，tree-shaking 会固定此值。
   static const String frontendUpdateRepo =
       hasEmbeddedBackend ? frontendBundleRepo : frontendRepo;
