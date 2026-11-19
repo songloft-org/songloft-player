@@ -457,7 +457,7 @@ jobs:
         run: |
           GIT_COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo unknown)
           echo "GIT_COMMIT=$GIT_COMMIT" >> "$GITHUB_ENV"
-          flutter build apk --release --split-per-abi \
+          flutter build apk --release \
             --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }} \
             --dart-define=FRONTEND_BUILD_TIME=${{ steps.version.outputs.build_time }} \
             --dart-define=FRONTEND_GIT_COMMIT=$GIT_COMMIT \
@@ -465,17 +465,12 @@ jobs:
             --dart-define=TRACELY_APP_ID=${{ secrets.TRACELY_APP_ID }} \
             --dart-define=TRACELY_APP_SECRET=${{ secrets.TRACELY_APP_SECRET }} \
             --dart-define=TRACELY_HOST=${{ secrets.TRACELY_HOST }}
-      - name: Verify release SharedPreferences JNI runtime for all ABIs
+      - name: Verify and collect Android APK
         run: |
-          for abi in arm64-v8a armeabi-v7a x86_64; do
-            python3 scripts/check-android-preferences-jni.py "build/app/outputs/flutter-apk/app-$abi-release.apk"
-          done
-      - name: Collect APKs
-        run: |
+          apk="build/app/outputs/flutter-apk/app-release.apk"
+          python3 scripts/check-android-preferences-jni.py "$apk"
           mkdir -p apk-output
-          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk apk-output/songloft-arm64-v8a.apk
-          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk apk-output/songloft-armeabi-v7a.apk
-          cp build/app/outputs/flutter-apk/app-x86_64-release.apk apk-output/songloft-x86_64.apk
+          cp "$apk" apk-output/songloft-android.apk
       # 无基线前端热更:每次发版自动产出本渠道最新的 libapp.so 补丁,随 release 上传;
       # 客户端查本渠道最新即更新(arm64-v8a/armeabi-v7a/x86_64)。标准版无内嵌后端,故只有前端补丁。
       - name: Produce frontend hot-update patch assets
@@ -491,20 +486,18 @@ jobs:
           else
             TAG="dev"
           fi
-          # --split-per-abi 时 gradle 会把各 ABI APK 的 versionCode 改写为
-          # 「ABI偏移×1000+pubspec基础值」(如 arm64-v8a=2001),flutter_patcher 按
-          # versionCode 严格绑定,manifest/补丁必须写 APK 的**真实值**(用 aapt 读),
-          # 写 pubspec 裸值会让客户端 versionCode 闸恒不通过。
+          # 三种 ABI 的补丁都绑定到通用 APK 的实际 versionCode。
+          apk="apk-output/songloft-android.apk"
           BUILD_TOOLS_DIR=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          APK_VC=$("$BUILD_TOOLS_DIR/aapt" dump badging "$apk" | sed -n "s/^package:.*versionCode='\([0-9]*\)'.*/\1/p")
+          test "$APK_VC" -ge 4002
+          LABEL="${SEMVER}-${GIT_COMMIT}"
           for abi in arm64-v8a armeabi-v7a x86_64; do
-            apk="build/app/outputs/flutter-apk/app-${abi}-release.apk"
-            [ -f "$apk" ] || { echo "跳过 $abi(无 APK)"; continue; }
-            ABI_VC=$("$BUILD_TOOLS_DIR/aapt" dump badging "$apk" | sed -n "s/.*versionCode='\([0-9]*\)'.*/\1/p" | head -1)
-            [ -n "$ABI_VC" ] || { echo "::error::无法从 $apk 读取 versionCode"; exit 1; }
-            LABEL="${SEMVER}-${GIT_COMMIT}"
+            unzip -l "$apk" "lib/$abi/libflutter.so" > /dev/null
+            unzip -l "$apk" "lib/$abi/libapp.so" > /dev/null
             rm -rf dist
             dart run flutter_patcher:pack --apk "$apk" --version "$LABEL" \
-              --target-version-code "$ABI_VC" --abi "$abi"
+              --target-version-code "$APK_VC" --abi "$abi"
             # 补丁包文件名带 commit(不可变 URL):滚动 tag 下 manifest 与 zip 是两次独立
             # 请求,代理/CDN 缓存住旧 manifest 时,固定文件名会让旧 md5 对上新 zip → 永远
             # md5Mismatch。commit 后缀保证「manifest 指向的 URL 内容永不变」。
@@ -519,13 +512,13 @@ jobs:
               "gitCommit": "${GIT_COMMIT}",
               "flutterBinding": "${FLUTTER_BINDING}",
               "contractHash": "${DART_CONTRACT_HASH}",
-              "targetVersionCode": ${ABI_VC},
+              "targetVersionCode": ${APK_VC},
               "patchUrl": "https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/patch-${abi}-${GIT_COMMIT}.zip",
               "md5": "${ZIP_MD5}"
             }
           }
           EOF
-            echo "前端补丁 $abi: zip_md5=$ZIP_MD5 label=$LABEL versionCode=$ABI_VC"
+            echo "前端补丁 $abi: zip_md5=$ZIP_MD5 label=$LABEL versionCode=$APK_VC"
           done
       # version.json:设置页「检查客户端更新」dev 渠道靠它拿 git_commit / build_time
       # 做精确比较(frontend_version_api._fetchDevVersionInfo),缺失会导致 dev 客户端
@@ -568,13 +561,13 @@ jobs:
           echo "native_contract.json = $HASHES"
           echo "BUNDLE_DART_CONTRACT_HASH=$(printf '%s' "$HASHES" | sed -n 's/.*"dart":"\([a-f0-9]*\)".*/\1/p')" >> "$GITHUB_ENV"
           echo "BUNDLE_GO_CONTRACT_HASH=$(printf '%s' "$HASHES" | sed -n 's/.*"go":"\([a-f0-9]*\)".*/\1/p')" >> "$GITHUB_ENV"
-      - name: Build Flutter Android Bundle APKs
+      - name: Build Flutter Android Bundle APK
         env:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          flutter build apk --release --split-per-abi \
+          flutter build apk --release \
             --dart-define=HAS_BACKEND=true \
             --dart-define=FRONTEND_VERSION=${{ steps.version.outputs.version }} \
             --dart-define=FRONTEND_BUILD_TIME=${{ steps.version.outputs.build_time }} \
@@ -583,7 +576,7 @@ jobs:
             --dart-define=TRACELY_APP_ID=${{ secrets.TRACELY_APP_ID }} \
             --dart-define=TRACELY_APP_SECRET=${{ secrets.TRACELY_APP_SECRET }} \
             --dart-define=TRACELY_HOST=${{ secrets.TRACELY_HOST }}
-      - name: Verify and collect Android Bundle APKs
+      - name: Verify and collect Android Bundle APK and patches
         env:
           SEMVER: ${{ steps.version.outputs.version }}
           BACKEND_VERSION: ${{ needs.backend.outputs.version }}
@@ -594,21 +587,23 @@ jobs:
           BACKEND_COMMIT: ${{ needs.backend.outputs.sha }}
         run: |
           set -euo pipefail
+          apk="build/app/outputs/flutter-apk/app-release.apk"
+          python3 scripts/check-android-preferences-jni.py "$apk"
+          cp "$apk" apk-output/songloft-bundled-android.apk
           BUILD_TOOLS_DIR=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          APK_VC=$("$BUILD_TOOLS_DIR/aapt" dump badging "$apk" | sed -n "s/^package:.*versionCode='\([0-9]*\)'.*/\1/p")
+          test "$APK_VC" -ge 4002
+          LABEL="${SEMVER}-${GIT_COMMIT}"
           for abi in arm64-v8a armeabi-v7a x86_64; do
-            apk="build/app/outputs/flutter-apk/app-${abi}-release.apk"
-            python3 scripts/check-android-preferences-jni.py "$apk"
-            cp "$apk" "apk-output/songloft-bundled-android-${abi}.apk"
-            ABI_VC=$("$BUILD_TOOLS_DIR/aapt" dump badging "$apk" | sed -n "s/^package:.*versionCode='\([0-9]*\)'.*/\1/p")
-            test -n "$ABI_VC"
-            LABEL="${SEMVER}-${GIT_COMMIT}"
+            unzip -l "$apk" "lib/$abi/libflutter.so" > /dev/null
+            unzip -l "$apk" "lib/$abi/libapp.so" > /dev/null
             rm -rf dist
             dart run flutter_patcher:pack --apk "$apk" --version "$LABEL" \
-              --target-version-code "$ABI_VC" --abi "$abi"
+              --target-version-code "$APK_VC" --abi "$abi"
             cp dist/patch.zip "apk-output/bundle-patch-${abi}-${GIT_COMMIT}.zip"
             ZIP_MD5=$(md5sum "apk-output/bundle-patch-${abi}-${GIT_COMMIT}.zip" | cut -d' ' -f1)
             cat > "apk-output/bundle-manifest-${abi}.json" <<EOF
-          {"hasUpdate":true,"patch":{"version":"${LABEL}","semanticVersion":"${SEMVER}","gitCommit":"${GIT_COMMIT}","flutterBinding":"${FLUTTER_BINDING}","contractHash":"${BUNDLE_DART_CONTRACT_HASH}","targetVersionCode":${ABI_VC},"patchUrl":"https://github.com/${REPO}/releases/download/${TAG}/bundle-patch-${abi}-${GIT_COMMIT}.zip","md5":"${ZIP_MD5}"}}
+          {"hasUpdate":true,"patch":{"version":"${LABEL}","semanticVersion":"${SEMVER}","gitCommit":"${GIT_COMMIT}","flutterBinding":"${FLUTTER_BINDING}","contractHash":"${BUNDLE_DART_CONTRACT_HASH}","targetVersionCode":${APK_VC},"patchUrl":"https://github.com/${REPO}/releases/download/${TAG}/bundle-patch-${abi}-${GIT_COMMIT}.zip","md5":"${ZIP_MD5}"}}
           EOF
             so="apk-output/bundle-libgojni-${abi}-${BACKEND_COMMIT}.so"
             unzip -p "$apk" "lib/${abi}/libgojni.so" > "$so"
@@ -629,7 +624,8 @@ jobs:
         with:
           name: songloft-android-apk
           path: |
-            apk-output/*.apk
+            apk-output/songloft-android.apk
+            apk-output/songloft-bundled-android.apk
             apk-output/patch-*.zip
             apk-output/manifest-*.json
             apk-output/bundle-*.zip

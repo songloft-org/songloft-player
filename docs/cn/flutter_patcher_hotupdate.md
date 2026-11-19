@@ -21,7 +21,7 @@
 - **无基线**:客户端查**本渠道最新** Release——dev→滚动 tag `dev`;stable→GitHub `/releases/latest`(dev 是 prerelease,latest 天然返回最新正式版)。由 `lib/core/updater/channel_release_resolver.dart` 解析,任意非最新 → 最新。
 - **自动发布**:`build-and-release.yml` 的 `build-android` job 每次发版自动 `dart run flutter_patcher:pack` 产出 `patch-<abi>-<commit>.zip` + `manifest-<abi>.json` 随 release 上传(`arm64-v8a` / `armeabi-v7a` / `x86_64`)。**已无手动 `patch-release.yml`。**
 - **比较规则**:dev 比 **git commit hash**;stable 比**版本号**(semver,`lib/core/updater/version_compare.dart`)。已应用同补丁(`flutter_patcher.currentVersion == patchLabel`)跳过。
-- **兼容键取代 versionCode 基线**:`libapp.so` 天然按宿主 APK 的 **versionCode** 绑定引擎。注意 `--split-per-abi` 下 gradle 会把各 ABI APK 的 versionCode 改写为「ABI偏移×1000+pubspec基础值」(如 arm64-v8a=2001),故 CI 用 aapt 从分 ABI APK 读**真实值**写入 manifest/补丁;本项目 pubspec 的 `+N` **恒定**(CI 不随构建 bump),同 ABI 的新旧构建 versionCode 相同,自然可跨版本热更——versionCode 是**自动兼容代理**,不是手挑的基线。客户端额外比对 `AppConfig.flutterBinding`(= CI `FLUTTER_VERSION`)与 manifest 的 `flutterBinding`:不同 → 不热更(防同 versionCode 但换了 Flutter 引擎导致崩溃),交「整包不兼容」分支引导下 APK。仅当有意 bump pubspec `+N`(通常伴随引擎/原生变更)时才走整包。
+- **版本码与引擎兼容性** — Gradle 将通用 APK 的 `versionCode` 下限设为 4002，以便覆盖安装旧分架构包（最高 4001）。CI 用 aapt 从 APK 读取实际版本码，并写入各 ABI 的前端补丁和 manifest。客户端检查 `versionCode`、Flutter 引擎键（`flutterBinding`）和原生契约，版本码或引擎不匹配时引导下载整包。
 
 ## 客户端流程(启动检查 + 手动)
 
@@ -46,7 +46,7 @@
 
 ## 发布(`build-and-release.yml` 的 `build-android`,自动)
 
-每次发版(tag `dev` 或 `v<x.y.z>`)自动执行:`flutter build apk --release --split-per-abi` → 对 `arm64-v8a` / `armeabi-v7a` / `x86_64` 各 `dart run flutter_patcher:pack --apk <abi apk> --version <semver>-<commit> --target-version-code <vc> --abi <abi>` → 生成 `patch-<abi>-<commit>.zip` + `manifest-<abi>.json` → 随 release 上传。**无手动 workflow、无 cherry-pick、无 `patch_label` 输入。**
+每次发版（`dev` 或 `v<x.y.z>`）用 `flutter build apk --release` 生成一个通用 APK。CI 从同一个 APK 为 `arm64-v8a`、`armeabi-v7a` 和 `x86_64` 分别运行 `dart run flutter_patcher:pack --apk <apk> --version <semver>-<commit> --target-version-code <vc> --abi <abi>`，随 Release 上传 APK、`patch-<abi>-<commit>.zip` 和 `manifest-<abi>.json`。
 
 ## 发布纪律
 
@@ -56,7 +56,7 @@
 
 ## 验证
 
-1. `flutter analyze` 通过;`flutter build apk --release --split-per-abi` 成功。
+1. `flutter analyze` 通过;`flutter build apk --release` 成功。
 2. 装某 ABI 的老 dev / stable APK 到真机。
 3. 发一版更新(改一处可见 Dart)→ 打开 App → 弹「发现新版本」列前端组件 → 选代理 → 下载 → 重启 → 看到改动 = 成功。
 4. 不兼容路径:升级了 Flutter 引擎的新版 → `flutterBinding` 不匹配 → 打开应弹「需要下载新版本」→ 跳 `/settings`。

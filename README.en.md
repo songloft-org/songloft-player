@@ -47,9 +47,7 @@ Choose a file for your device under **Assets** on the release page. Some packagi
 | | [songloft-windows-x64.msix](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-windows-x64.msix) | x64 installer; install through the system installer |
 | 🍎 **macOS** | [songloft-macos.dmg](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-macos.dmg) | Universal (Intel/Apple Silicon); open the DMG and drag the app into Applications |
 | | [songloft-macos.zip](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-macos.zip) | Universal (Intel/Apple Silicon); extract the ZIP and move the app into Applications |
-| 🤖 **Android** | [songloft-arm64-v8a.apk](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-arm64-v8a.apk) | ARM64 (recommended); download and open the APK, and allow installation when prompted |
-| | [songloft-armeabi-v7a.apk](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-armeabi-v7a.apk) | 32-bit ARM; download and open the APK, and allow installation when prompted |
-| | [songloft-x86_64.apk](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-x86_64.apk) | Intel devices/emulators; download and open the APK, and allow installation when prompted |
+| 🤖 **Android** | [songloft-android.apk](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-android.apk) | Supports ARM64, ARMv7, and x86_64. Open the downloaded APK and allow installation when prompted |
 | 📱 **iOS** | [songloft-ios-nosign.ipa](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-ios-nosign.ipa) | Unsigned device build; re-sign with your developer certificate and a provisioning profile for your device before installing |
 
 > Development builds are available at the [dev branch Release](https://github.com/songloft-org/songloft-player/releases/tag/dev).
@@ -97,7 +95,7 @@ flutter run -d <device-id>                    # Android device
 # Build for each platform
 flutter build web --no-web-resources-cdn                                       # Web (standalone)
 flutter build web --no-web-resources-cdn --dart-define=DEPLOY_MODE=embedded    # Web (embedded)
-flutter build apk --split-per-abi                                              # Android APK
+flutter build apk --release                                                    # Android APK
 flutter build ios --no-codesign                                                # iOS
 flutter build macos                                                            # macOS
 flutter build linux                                                            # Linux
@@ -213,7 +211,7 @@ Android and desktop users choose a music directory the first time local mode is 
 
 | Platform | Bundle download |
 |---|---|
-| Android ARM64 / ARMv7 / x86_64 | `songloft-bundled-android-*.apk` in the Release assets |
+| Android ARM64 / ARMv7 / x86_64 | `songloft-bundled-android.apk` in the Release assets |
 | iOS | `songloft-bundled-ios-nosign.ipa` (unsigned; re-sign required) |
 | Linux x86_64 | `songloft-bundled-linux-x64.tar.gz` |
 | macOS Universal | `songloft-bundled-macos.zip` |

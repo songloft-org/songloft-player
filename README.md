@@ -47,9 +47,7 @@ Release 正文展示版本变更，并保留本节的安装说明链接；历史
 | | [songloft-windows-x64.msix](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-windows-x64.msix) | x64 安装版，按系统提示安装 |
 | 🍎 **macOS** | [songloft-macos.dmg](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-macos.dmg) | Universal (Intel/Apple Silicon)，打开 DMG 后将应用拖入「应用程序」 |
 | | [songloft-macos.zip](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-macos.zip) | Universal (Intel/Apple Silicon)，解压 ZIP 后将应用移入「应用程序」 |
-| 🤖 **Android** | [songloft-arm64-v8a.apk](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-arm64-v8a.apk) | ARM64 设备（推荐），下载并打开 APK，按提示允许安装 |
-| | [songloft-armeabi-v7a.apk](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-armeabi-v7a.apk) | 32 位 ARM 设备，下载并打开 APK，按提示允许安装 |
-| | [songloft-x86_64.apk](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-x86_64.apk) | Intel 设备或模拟器，下载并打开 APK，按提示允许安装 |
+| 🤖 **Android** | [songloft-android.apk](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-android.apk) | 支持 ARM64、ARMv7 和 x86_64。下载并打开 APK，按提示允许安装 |
 | 📱 **iOS** | [songloft-ios-nosign.ipa](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-ios-nosign.ipa) | 未签名设备包，需使用自己的开发者证书和适用于目标设备的 provisioning profile 重签后安装 |
 
 > 开发版可在 [dev 分支 Release](https://github.com/songloft-org/songloft-player/releases/tag/dev) 获取。
@@ -97,7 +95,7 @@ flutter run -d <device-id>                    # Android 设备
 # 各平台构建
 flutter build web --no-web-resources-cdn                                       # Web (standalone)
 flutter build web --no-web-resources-cdn --dart-define=DEPLOY_MODE=embedded    # Web (嵌入模式)
-flutter build apk --split-per-abi                                              # Android APK
+flutter build apk --release                                                    # Android APK
 flutter build ios --no-codesign                                                # iOS
 flutter build macos                                                            # macOS
 flutter build linux                                                            # Linux
@@ -213,7 +211,7 @@ Android 和桌面端首次启用本地模式时选择音乐目录，iOS 使用�
 
 | 平台 | Bundle 下载 |
 |---|---|
-| Android ARM64 / ARMv7 / x86_64 | [Release Assets](https://github.com/songloft-org/songloft-player/releases/latest) 中的 `songloft-bundled-android-*.apk` |
+| Android ARM64 / ARMv7 / x86_64 | [Release Assets](https://github.com/songloft-org/songloft-player/releases/latest) 中的 `songloft-bundled-android.apk` |
 | iOS | `songloft-bundled-ios-nosign.ipa`（未签名，需自行重签） |
 | Linux x86_64 | `songloft-bundled-linux-x64.tar.gz` |
 | macOS Universal | `songloft-bundled-macos.zip` |

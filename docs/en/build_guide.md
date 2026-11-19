@@ -91,7 +91,7 @@ songloft-player-build/
 ├── windows/              # Windows desktop
 ├── macos/                # macOS desktop
 ├── android/
-│   ├── apk/              # Android APK files
+│   ├── apk/              # app-release.apk (ARM64, ARMv7, x86_64)
 │   └── bundle/           # Android AAB files
 ├── ios/                  # iOS app (macOS only)
 └── BUILD_REPORT.md       # Build report

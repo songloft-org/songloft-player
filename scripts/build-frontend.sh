@@ -498,15 +498,16 @@ build_android() {
 
     echo -e "${BLUE}[Android]${NC} 开始构建 Android 版本..."
     cd "$FRONTEND_DIR"
-    mkdir -p "$output"
+    mkdir -p "$output/apk"
 
-    # 构建 APK（split-per-abi 生成多架构包）
-    flutter build apk --release --split-per-abi "${FLUTTER_VERSION_ARGS[@]}" 2>&1 | tee -a "$log_file"
-    # 复制 APK 产物到输出目录
-    if [ -d "build/app/outputs/flutter-apk" ]; then
-        cp -r build/app/outputs/flutter-apk "$output/apk"
-        echo -e "${GREEN}✓ [Android]${NC} APK 构建完成"
-    fi
+    flutter build apk --release "${FLUTTER_VERSION_ARGS[@]}" 2>&1 | tee -a "$log_file"
+    cp build/app/outputs/flutter-apk/app-release.apk "$output/apk/"
+    # 清理重复使用输出目录时留下的旧分架构产物。
+    local abi
+    for abi in arm64-v8a armeabi-v7a x86_64; do
+        rm -f "$output/apk/app-$abi-release.apk" "$output/apk/flutter-apk/app-$abi-release.apk"
+    done
+    echo -e "${GREEN}✓ [Android]${NC} APK 构建完成"
 
     # 构建 AAB（App Bundle）
     flutter build appbundle --release "${FLUTTER_VERSION_ARGS[@]}" 2>&1 | tee -a "$log_file"

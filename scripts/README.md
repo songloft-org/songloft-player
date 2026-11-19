@@ -13,7 +13,7 @@
 | `compute_native_contract.sh` | 计算插件、MethodChannel 和 release ProGuard 规则的热更新兼容哈希 |
 | `check-android-preferences-jni.py` | 检查 release APK 中设置插件的 JNI 方法描述符，依赖 Android SDK 的 `apkanalyzer` |
 
-Android release 构建后执行 `python3 scripts/check-android-preferences-jni.py <apk>`，检查 JNI 方法描述符，以及协程、结果和 Unit 等 JNI 运行时引用的 Kotlin 类/成员。标准版与 Bundle 发布工作流会逐一检查 ARM64、ARMv7 与 x86_64 产物。纯 Dart 测试和 debug APK 不能替代此检查；修改 ProGuard 规则需要整包 APK，原生契约哈希会阻止旧 APK 仅接收 Dart 补丁。脚本回归使用 `python3 -m unittest discover -s scripts/tests -p '*_test.py'`。
+Android release 构建后执行 `python3 scripts/check-android-preferences-jni.py <apk>`，检查 JNI 方法描述符，以及协程、结果和 Unit 等 JNI 运行时引用的 Kotlin 类/成员。标准版和 Bundle 发布工作流分别检查各自通用 APK 的 DEX，并在生成按 ABI 发布的补丁前确认包内含三个架构的 Flutter 原生库。纯 Dart 测试和 debug APK 不能替代此检查；修改 ProGuard 规则需要整包 APK，原生契约哈希会阻止旧 APK 仅接收 Dart 补丁。脚本回归使用 `python3 -m unittest discover -s scripts/tests -p '*_test.py'`。
 
 ## 🔧 `bump-version.sh` — 版本发布
 

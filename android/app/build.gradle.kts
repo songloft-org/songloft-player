@@ -61,7 +61,8 @@ android {
         val SONGLOFT_MIN_SDK = 24
         minSdk = SONGLOFT_MIN_SDK
         targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
+        // 旧分架构 APK 的最高 versionCode 为 4001（x86_64）。通用 APK 必须能覆盖安装。
+        versionCode = maxOf(flutter.versionCode, 4002)
         versionName = flutter.versionName
     }
 

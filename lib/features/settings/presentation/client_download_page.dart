@@ -34,15 +34,9 @@ class ClientDownloadPage extends ConsumerWidget {
   static const List<_ClientAsset> _standardAssets = [
     _ClientAsset(
       os: WebOS.android,
-      label: 'Android (ARM64)',
+      label: 'Android',
       icon: Icons.android,
-      asset: 'songloft-arm64-v8a.apk',
-    ),
-    _ClientAsset(
-      os: WebOS.android,
-      label: 'Android (ARMv7)',
-      icon: Icons.android,
-      asset: 'songloft-armeabi-v7a.apk',
+      asset: 'songloft-android.apk',
     ),
     _ClientAsset(
       os: WebOS.ios,
@@ -74,15 +68,9 @@ class ClientDownloadPage extends ConsumerWidget {
   static const List<_ClientAsset> _bundleAssets = [
     _ClientAsset(
       os: WebOS.android,
-      label: 'Android (ARM64)',
+      label: 'Android',
       icon: Icons.android,
-      asset: 'songloft-bundled-android-arm64-v8a.apk',
-    ),
-    _ClientAsset(
-      os: WebOS.android,
-      label: 'Android (ARMv7)',
-      icon: Icons.android,
-      asset: 'songloft-bundled-android-armeabi-v7a.apk',
+      asset: 'songloft-bundled-android.apk',
     ),
     _ClientAsset(
       os: WebOS.ios,
