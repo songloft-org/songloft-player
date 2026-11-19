@@ -31,7 +31,7 @@ Download the latest version from [GitHub Releases](https://github.com/songloft-o
 
 Release bodies contain version changes and installation links to this section. Version history is maintained in the Chinese-only [CHANGELOG.md](CHANGELOG.md), updated automatically after a versioned release succeeds. See the table below for installation instructions.
 
-This repository publishes both the standard Flutter client and Bundle local-mode clients. The standard edition connects to a separate [Songloft server](https://github.com/songloft-org/songloft); Bundle starts the embedded Go backend locally and can switch between local and remote modes from the login or settings screen. Bundle builds compile the backend from the root commit pinned in `mobile-backend.lock.json` and package it through this repository's workflow.
+This repository publishes both the standard Flutter client and Bundle local-mode clients. The standard edition connects to a separate [Songloft server](https://github.com/songloft-org/songloft); Bundle starts the embedded Go backend locally and can switch between local and remote modes from the login or settings screen. The Bundle workflow selects the latest commit on the root repository’s `main` at startup and builds every platform in the run from that SHA.
 
 Choose a file for your device under **Assets** on the release page. Some packaging formats may be unavailable; check the attached files.
 
@@ -200,7 +200,14 @@ The Bundle version embeds the Go backend into the client, so users don't need a 
 - **Desktop (macOS/Windows/Linux)**: Go backend compiled as `songloft-server` executable, launched as a subprocess
 - **Web**: Not supported for bundle mode
 
-Bundle packages for Android, iOS, Linux, Windows, and macOS are published alongside the standard client by this repository's `.github/workflows/build-and-release.yml`. `mobile-backend.lock.json` pins the Go backend commit; changing it requires a compatibility review.
+Bundle packages for Android, iOS, Linux, Windows, and macOS are published alongside the standard client by this repository's `.github/workflows/build-and-release.yml`. The workflow records the selected backend SHA and version.
+
+For a local Android build, prepare a backend checkout with `pkg/tag` initialized. The script uses that checkout’s HEAD.
+
+```bash
+SONGLOFT_BACKEND_SOURCE=/absolute/songloft bash scripts/build-bundle-backend.sh android
+flutter build apk --dart-define=HAS_BACKEND=true
+```
 
 Android and desktop users choose a music directory the first time local mode is enabled; iOS uses the app's Documents directory. The app does not show a separate mode-selection dialog on first launch. Bundle assets are attached to [this repository's Releases](https://github.com/songloft-org/songloft-player/releases/latest) and start with `songloft-bundled-`:
 

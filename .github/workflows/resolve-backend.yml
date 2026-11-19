@@ -1,0 +1,40 @@
+name: Resolve Bundle backend
+
+on:
+  workflow_call:
+    outputs:
+      sha:
+        value: ${{ jobs.resolve.outputs.sha }}
+      version:
+        value: ${{ jobs.resolve.outputs.version }}
+
+permissions:
+  contents: read
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.backend.outputs.sha }}
+      version: ${{ steps.backend.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: songloft-org/songloft
+          ref: main
+          path: backend-source
+          persist-credentials: false
+      - name: Record the backend source for all package jobs
+        id: backend
+        shell: bash
+        working-directory: backend-source
+        run: |
+          set -euo pipefail
+          sha=$(git rev-parse HEAD)
+          version=$(git show HEAD:main.go | sed -n 's|^// @version ||p')
+          if [[ ! "$sha" =~ ^[a-f0-9]{40}$ || ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Unable to read the commit and version of the Songloft backend."
+            exit 1
+          fi
+          printf 'sha=%s\nversion=%s\n' "$sha" "$version" >> "$GITHUB_OUTPUT"
+          printf 'Bundle backend %s (%s)\n' "$version" "$sha"

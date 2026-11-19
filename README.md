@@ -31,7 +31,7 @@ https://github.com/songloft-org/songloft/issues/6
 
 Release 正文展示版本变更，并保留本节的安装说明链接；历史记录保存在中文 [CHANGELOG.md](CHANGELOG.md)，在版本发布成功后自动更新。各平台安装说明见下表。
 
-本仓库发布标准 Flutter 客户端和 Bundle 本地模式客户端。标准版连接独立的 [Songloft 服务器](https://github.com/songloft-org/songloft)；Bundle 版在本机启动随包内嵌的 Go 后端，可在登录页或设置页切换本地/远程模式。Bundle 构建从 `mobile-backend.lock.json` 指定的主仓库提交编译后端，并由本仓库 workflow 打包。
+本仓库发布标准 Flutter 客户端和 Bundle 本地模式客户端。标准版连接独立的 [Songloft 服务器](https://github.com/songloft-org/songloft)；Bundle 版在本机启动随包内嵌的 Go 后端，可在登录页或设置页切换本地/远程模式。Bundle 流水线以启动时主仓库 `main` 的最新提交构建 Go 后端，并用同一 SHA 为各平台打包。
 
 在 Release 页的 **Assets** 中选择适合设备的文件；部分安装格式可能未提供，以实际附件为准。
 
@@ -200,17 +200,14 @@ Bundle 版将 Go 后端嵌入到客户端中，用户无需单独部署服务器
 - **桌面端（macOS/Windows/Linux）**：Go 后端编译为 `songloft-server` 可执行文件，启动时作为子进程运行
 - **Web**：不支持 Bundle 模式
 
-本地构建步骤（以 Android 为例，需要先准备锁定版本的主仓库源码）：
+本地构建以 Android 为例。先准备主仓库源码并初始化 `pkg/tag`，脚本使用该 checkout 的 HEAD：
 
 ```bash
-# 1. 检出 mobile-backend.lock.json 中的主仓库 SHA，并初始化 pkg/tag
-# 2. 在主仓库源码中编译 Android .aar，放到 android/app/libs/songloft.aar
-
-# 3. 构建 Flutter APK（启用 Bundle 模式）
+SONGLOFT_BACKEND_SOURCE=/absolute/songloft bash scripts/build-bundle-backend.sh android
 flutter build apk --dart-define=HAS_BACKEND=true
 ```
 
-Android、iOS、Linux、Windows、macOS 的 Bundle 包由本仓库 `.github/workflows/build-and-release.yml` 与标准客户端一起发布。Go 后端提交由 `mobile-backend.lock.json` 固定；更新锁文件必须经过兼容性审查。
+Android、iOS、Linux、Windows、macOS 的 Bundle 包由本仓库 `.github/workflows/build-and-release.yml` 与标准客户端一起发布。流水线记录本次选用的后端 SHA 和版本。
 
 Android 和桌面端首次启用本地模式时选择音乐目录，iOS 使用应用 Documents 目录；无需在首次启动时通过独立弹窗选择运行模式。Bundle 资产在[本仓库 Releases](https://github.com/songloft-org/songloft-player/releases/latest)中，文件名以 `songloft-bundled-` 开头：
 

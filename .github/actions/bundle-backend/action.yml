@@ -1,0 +1,31 @@
+name: Checkout Songloft Bundle backend
+description: Fetch the backend commit resolved for this workflow and initialize its tag dependency.
+inputs:
+  commit:
+    description: Resolved backend commit SHA
+    required: true
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v4
+      with:
+        repository: songloft-org/songloft
+        ref: ${{ inputs.commit }}
+        path: backend-source
+        persist-credentials: false
+    - uses: actions/setup-go@v5
+      with:
+        go-version: "1.26.x"
+        cache-dependency-path: backend-source/go.sum
+    - shell: bash
+      working-directory: backend-source
+      env:
+        BACKEND_COMMIT: ${{ inputs.commit }}
+      run: |
+        set -euo pipefail
+        test "$(git rev-parse HEAD)" = "$BACKEND_COMMIT"
+        printf 'SONGLOFT_BACKEND_COMMIT=%s\n' "$BACKEND_COMMIT" >> "$GITHUB_ENV"
+        GIT_TERMINAL_PROMPT=0 git submodule update --init --depth 1 pkg/tag
+        go doc ./mobile | sed -n '/^func /p' | sort > "$RUNNER_TEMP/mobile-export-surface.txt"
+        sort mobile/export_surface.txt > "$RUNNER_TEMP/mobile-export-surface.expected"
+        diff -u "$RUNNER_TEMP/mobile-export-surface.expected" "$RUNNER_TEMP/mobile-export-surface.txt"

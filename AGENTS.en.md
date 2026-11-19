@@ -184,7 +184,7 @@ Paths are defined by `AppRoutes` in `core/router/app_router.dart`:
 | Edition | Release repository | Artifact | Builder |
 |---|---|---|---|
 | Standard | `songloft-org/songloft-player` | `songloft-*.apk`, etc. | Local `build-and-release.yml` |
-| Bundle | `songloft-org/songloft-player` | `songloft-bundled-*` | This repository's `build-and-release.yml`, building the Go backend from the root SHA pinned in `mobile-backend.lock.json` |
+| Bundle | `songloft-org/songloft-player` | `songloft-bundled-*` | This repository's `build-and-release.yml`, building the Go backend from the latest root `main` SHA selected once per workflow run |
 
 - `FrontendVersionApi` uses compile-time `AppConfig.frontendUpdateRepo` (`hasEmbeddedBackend ? frontendBundleRepo : frontendRepo`), as does `frontendUpdateReleasesUrl`.
 - Bundle update checks use this repository's Release. Installation links must still distinguish `songloft-bundled-*` so Bundle users do not replace their app with the standard edition.

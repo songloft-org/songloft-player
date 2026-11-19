@@ -98,7 +98,7 @@
 
 - 标准版前端使用 `manifest-<abi>.json`;Bundle 前端使用 `bundle-manifest-<abi>.json`，两者结构为 `{hasUpdate, patch:{version(patchLabel), semanticVersion, gitCommit, flutterBinding, contractHash, targetVersionCode, patchUrl, md5}}`。
 - Bundle 后端使用 `bundle-backend-manifest-<abi>.json`:`{hasUpdate, backend:{abi, version, gitCommit, buildTime, soUrl, md5, contractHash, size}}`(无 targetVersionCode)。
-- Bundle 资产由 Flutter 客户端仓库构建；`mobile-backend.lock.json` 同时固定主仓库 SHA 与该提交对应的后端语义版本，gomobile 版本从该 SHA 的 `go.mod` 读取。
+- Bundle 资产由 Flutter 客户端仓库构建；CI 启动时解析主仓库 `main` 的最新提交和版本。各平台复用该 SHA，gomobile 版本从该提交的 `go.mod` 读取。
 - 都随本仓库 release(tag=dev / v<x.y.z>)自动上传;客户端按渠道解析最新。
 
 ## 发布纪律

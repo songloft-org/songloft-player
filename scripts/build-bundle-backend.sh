@@ -1,24 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-target=${1:?usage: build-pinned-backend.sh <android|ios|linux|windows|macos-universal> [output]}
+target=${1:?usage: build-bundle-backend.sh <android|ios|linux|windows|macos-universal> [output]}
 output=${2:-}
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 backend_root=${SONGLOFT_BACKEND_SOURCE:-"$repo_root/backend-source"}
-pin=$(node - "$repo_root/mobile-backend.lock.json" <<'NODE'
-const fs = require('node:fs');
-const pin = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
-if (pin.repository !== 'https://github.com/songloft-org/songloft.git' ||
-    pin.package !== 'mobile' || !/^[0-9a-f]{40}$/.test(pin.commit) ||
-    !/^\d+\.\d+\.\d+$/.test(pin.version)) {
-  throw new Error('Invalid backend lock');
-}
-console.log(pin.commit, pin.version);
-NODE
-)
-read -r commit version <<< "$pin"
-
-[[ "$(git -C "$backend_root" rev-parse HEAD)" == "$commit" ]]
+commit=$(git -C "$backend_root" rev-parse HEAD)
+if [[ "$commit" != "${SONGLOFT_BACKEND_COMMIT:-$commit}" ]]; then
+  echo "Backend checkout does not match the commit selected for this build: $commit" >&2
+  exit 1
+fi
+version=$(git -C "$backend_root" show "$commit:main.go" | sed -n 's|^// @version ||p')
+if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "Invalid version in backend commit $commit" >&2
+  exit 1
+fi
 [[ -s "$backend_root/mobile/export_surface.txt" ]]
 
 build_time=${BUILD_TIME:-$(date -u '+%Y-%m-%d_%H:%M:%S')}

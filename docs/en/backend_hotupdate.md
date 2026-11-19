@@ -98,7 +98,7 @@ State in a plain file `filesDir/backend_patch/state.json` (readable before the D
 
 - Standard frontend uses `manifest-<abi>.json`; Bundle uses `bundle-manifest-<abi>.json`. Both contain `{hasUpdate, patch:{version(patchLabel), semanticVersion, gitCommit, flutterBinding, contractHash, targetVersionCode, patchUrl, md5}}`.
 - Bundle backend uses `bundle-backend-manifest-<abi>.json` with `{hasUpdate, backend:{abi, version, gitCommit, buildTime, soUrl, md5, contractHash, size}}` (no `targetVersionCode`).
-- The Flutter client repository builds Bundle assets. `mobile-backend.lock.json` pins both the root SHA and its backend semantic version; the gomobile version is read from that SHA's `go.mod`.
+- The Flutter client repository builds Bundle assets. CI resolves the latest root `main` commit and its version at startup. All platforms use that SHA, and the gomobile version comes from its `go.mod`.
 - Assets are uploaded with this repository's release (tag = dev / v<x.y.z>); the client resolves the latest of its channel.
 
 ## Release discipline
