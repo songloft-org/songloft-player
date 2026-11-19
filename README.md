@@ -47,7 +47,7 @@ Release 正文展示版本变更，并保留本节的安装说明链接；历史
 | | [songloft-windows-x64.msix](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-windows-x64.msix) | x64 安装版，按系统提示安装 |
 | 🍎 **macOS** | [songloft-macos.dmg](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-macos.dmg) | Universal (Intel/Apple Silicon)，打开 DMG 后将应用拖入「应用程序」 |
 | | [songloft-macos.zip](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-macos.zip) | Universal (Intel/Apple Silicon)，解压 ZIP 后将应用移入「应用程序」 |
-| 🤖 **Android** | [songloft-android.apk](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-android.apk) | 支持 ARM64、ARMv7 和 x86_64。下载并打开 APK，按提示允许安装 |
+| 🤖 **Android** | [正式版附件](https://github.com/songloft-org/songloft-player/releases/latest) · [开发版 APK](https://github.com/songloft-org/songloft-player/releases/download/dev/songloft-android.apk) | 通用包 `songloft-android.apk` 支持 ARM64、ARMv7 和 x86_64。打开 APK 后按提示允许安装 |
 | 📱 **iOS** | [songloft-ios-nosign.ipa](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-ios-nosign.ipa) | 未签名设备包，需使用自己的开发者证书和适用于目标设备的 provisioning profile 重签后安装 |
 
 > 开发版可在 [dev 分支 Release](https://github.com/songloft-org/songloft-player/releases/tag/dev) 获取。
@@ -211,7 +211,7 @@ Android 和桌面端首次启用本地模式时选择音乐目录，iOS 使用�
 
 | 平台 | Bundle 下载 |
 |---|---|
-| Android ARM64 / ARMv7 / x86_64 | [Release Assets](https://github.com/songloft-org/songloft-player/releases/latest) 中的 `songloft-bundled-android.apk` |
+| Android ARM64 / ARMv7 / x86_64 | 通用包 `songloft-bundled-android.apk`。[正式版附件](https://github.com/songloft-org/songloft-player/releases/latest) · [开发版 APK](https://github.com/songloft-org/songloft-player/releases/download/dev/songloft-bundled-android.apk) |
 | iOS | `songloft-bundled-ios-nosign.ipa`（未签名，需自行重签） |
 | Linux x86_64 | `songloft-bundled-linux-x64.tar.gz` |
 | macOS Universal | `songloft-bundled-macos.zip` |
