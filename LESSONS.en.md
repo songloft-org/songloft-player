@@ -10,6 +10,12 @@ Include rule, scope, full owner/repo#number, failure/fix commit SHAs, actual val
 
 ## Entries
 
+### CI-004: Keep shared packaging helpers outside the app build directory
+
+- The Flutter Windows standard package built successfully, as did the Bundle app and Go backend. After the packager recreated `build/`, the Bundle ZIP step could no longer find the compiled WebView hit-test helper. Build it in `RUNNER_TEMP` and copy from there into both the standard and Bundle ZIPs. [Windows CI](https://github.com/songloft-org/songloft-player/actions/runs/44481909546/job/135416370687)
+- The same macOS Bundle job built the app and backend before `lipo -verify_arch` rejected its arguments. Read the architecture list with `lipo -archs` and check for arm64 and x86_64. A universal fixture passed on a physical Mac and a single-architecture fixture was rejected. PowerShell on a physical Windows machine preserved the staged helper after recreating `build/`. Full packaging CI awaits revalidation. [macOS CI](https://github.com/songloft-org/songloft-player/actions/runs/44481909546/job/135416370907)
+- Seen 1× (2026-11-19).
+
 ### CI-003: Read the committed manifest when verifying release interfaces
 
 - Windows Bundle checked out the public backend successfully. Its interface check then failed because the manifest in the working tree had CRLF line endings. All four signatures in the diff were identical. [Windows CI](https://github.com/songloft-org/songloft-player/actions/runs/44479533779/job/135408165785)

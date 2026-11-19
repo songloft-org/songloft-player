@@ -10,6 +10,12 @@
 
 ## 条目
 
+### CI-004：双包流水线把公共辅助产物保留在构建目录之外
+
+- Flutter Windows 标准版打包成功，后续 Bundle 中的 Go 后端和客户端也都编译成功。打包器重建 `build/` 后，Bundle 打 ZIP 时找不到此前已编译的 WebView 命中测试程序。在 `RUNNER_TEMP` 构建该程序，标准 ZIP 与 Bundle ZIP 都从同一路径读取。[Windows CI](https://github.com/songloft-org/songloft-player/actions/runs/44481909546/job/135416370687)
+- 同次 macOS Bundle 已编译应用和后端，`lipo -verify_arch` 却拒绝命令参数。使用 `lipo -archs` 读取实际的架构列表并核对 arm64 与 x86_64。在真实 Mac 上通用夹具通过，单架构夹具被拒绝。Windows 真机 PowerShell 模拟重建 `build/` 后成功复制临时目录里的辅助程序。完整桌面打包 CI 待复验。[macOS CI](https://github.com/songloft-org/songloft-player/actions/runs/44481909546/job/135416370907)
+- Seen 1× (2026-11-19)。
+
 ### CI-003：发布接口校验使用 Git 中提交的清单
 
 - Windows Bundle 已成功检出公开后端，接口比对仍因工作树清单被转换为 CRLF 而退出。日志中四个接口的签名完全一致。[Windows CI](https://github.com/songloft-org/songloft-player/actions/runs/44479533779/job/135408165785)
