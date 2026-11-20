@@ -2,10 +2,10 @@
 
 [中文](README.md) | English
 
-[![Build and Release](https://github.com/songloft-org/songloft-player/actions/workflows/build-and-release.yml/badge.svg)](https://github.com/songloft-org/songloft-player/actions/workflows/build-and-release.yml)
+[![Build and Release](https://github.com/songloft-org/songloft-player-flutter/actions/workflows/build-and-release.yml/badge.svg)](https://github.com/songloft-org/songloft-player-flutter/actions/workflows/build-and-release.yml)
 [![GitHub License](https://img.shields.io/github/license/songloft-org/songloft-player)](https://github.com/songloft-org/songloft-player)
-[![GitHub Release](https://img.shields.io/github/v/release/songloft-org/songloft-player)](https://github.com/songloft-org/songloft-player/releases)
-[![Stars](https://img.shields.io/github/stars/songloft-org/songloft-player)](https://github.com/songloft-org/songloft-player/stargazers)
+[![GitHub Release](https://img.shields.io/github/v/release/songloft-org/songloft-player)](https://github.com/songloft-org/songloft-player-flutter/releases)
+[![Stars](https://img.shields.io/github/stars/songloft-org/songloft-player)](https://github.com/songloft-org/songloft-player-flutter/stargazers)
 
 <p align="center">
   <strong>🎵 Songloft Player — A cross-platform music player built with Flutter</strong>
@@ -17,8 +17,8 @@ Settings → Playback → Keep screen on for lyrics keeps the display awake whil
 
 <p align="center">
   <a href="https://github.com/songloft-org/songloft-player">🏠 GitHub</a> •
-  <a href="https://github.com/songloft-org/songloft-player/releases">📥 Download</a> •
-  <a href="https://github.com/songloft-org/songloft-player/issues">💬 Issues</a>
+  <a href="https://github.com/songloft-org/songloft-player-flutter/releases">📥 Download</a> •
+  <a href="https://github.com/songloft-org/songloft-player-flutter/issues">💬 Issues</a>
 </p>
 
 ## Screenshots
@@ -27,7 +27,7 @@ https://github.com/songloft-org/songloft/issues/6
 
 ## Download
 
-Download the latest version from [GitHub Releases](https://github.com/songloft-org/songloft-player/releases/latest):
+Download the latest version from [GitHub Releases](https://github.com/songloft-org/songloft-player-flutter/releases/latest):
 
 Release bodies contain version changes and installation links to this section. Version history is maintained in the Chinese-only [CHANGELOG.md](CHANGELOG.md), updated automatically after a versioned release succeeds. See the table below for installation instructions.
 
@@ -37,19 +37,19 @@ Choose a file for your device under **Assets** on the release page. Some packagi
 
 | Platform | Download | Notes |
 |----------|----------|-------|
-| 🌐 **Web (standalone)** | [songloft-web-standalone.tar.gz](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-web-standalone.tar.gz) | Extract to a static server and configure the backend API address; cross-origin hosting requires the backend to allow access from the site |
-| 🌐 **Web (embedded)** | [songloft-web-embedded.tar.gz](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-web-embedded.tar.gz) | For same-origin static hosting or a backend embedding build; hides the API address field. Extracting does not automatically replace a running server's frontend |
-| 🐧 **Linux** | [songloft-linux-x64.tar.gz](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-linux-x64.tar.gz) | Extract and launch the app, keeping the complete directory |
-| | [songloft-linux-x64.deb](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-linux-x64.deb) | Debian/Ubuntu x64; install using your package manager |
-| | [songloft-linux-x64.rpm](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-linux-x64.rpm) | Fedora/RHEL/CentOS x64; install using your package manager |
-| | [songloft-linux-x64.AppImage](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-linux-x64.AppImage) | Make the AppImage executable and run it |
-| 🪟 **Windows** | [songloft-windows-x64.zip](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-windows-x64.zip) | x64 portable; extract and launch the app, keeping all files together |
-| 🍎 **macOS** | [songloft-macos.dmg](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-macos.dmg) | Universal (Intel/Apple Silicon); open the DMG and drag the app into Applications |
-| | [songloft-macos.zip](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-macos.zip) | Universal (Intel/Apple Silicon); extract the ZIP and move the app into Applications |
-| 🤖 **Android** | [Stable release assets](https://github.com/songloft-org/songloft-player/releases/latest) · [Dev APK](https://github.com/songloft-org/songloft-player/releases/download/dev/songloft-android.apk) | The universal package `songloft-android.apk` supports ARM64, ARMv7, and x86_64. Open the APK and allow installation when prompted |
-| 📱 **iOS** | [songloft-ios-nosign.ipa](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-ios-nosign.ipa) | Unsigned device build; re-sign with your developer certificate and a provisioning profile for your device before installing |
+| 🌐 **Web (standalone)** | [songloft-web-standalone.tar.gz](https://github.com/songloft-org/songloft-player-flutter/releases/latest/download/songloft-web-standalone.tar.gz) | Extract to a static server and configure the backend API address; cross-origin hosting requires the backend to allow access from the site |
+| 🌐 **Web (embedded)** | [songloft-web-embedded.tar.gz](https://github.com/songloft-org/songloft-player-flutter/releases/latest/download/songloft-web-embedded.tar.gz) | For same-origin static hosting or a backend embedding build; hides the API address field. Extracting does not automatically replace a running server's frontend |
+| 🐧 **Linux** | [songloft-linux-x64.tar.gz](https://github.com/songloft-org/songloft-player-flutter/releases/latest/download/songloft-linux-x64.tar.gz) | Extract and launch the app, keeping the complete directory |
+| | [songloft-linux-x64.deb](https://github.com/songloft-org/songloft-player-flutter/releases/latest/download/songloft-linux-x64.deb) | Debian/Ubuntu x64; install using your package manager |
+| | [songloft-linux-x64.rpm](https://github.com/songloft-org/songloft-player-flutter/releases/latest/download/songloft-linux-x64.rpm) | Fedora/RHEL/CentOS x64; install using your package manager |
+| | [songloft-linux-x64.AppImage](https://github.com/songloft-org/songloft-player-flutter/releases/latest/download/songloft-linux-x64.AppImage) | Make the AppImage executable and run it |
+| 🪟 **Windows** | [songloft-windows-x64.zip](https://github.com/songloft-org/songloft-player-flutter/releases/latest/download/songloft-windows-x64.zip) | x64 portable; extract and launch the app, keeping all files together |
+| 🍎 **macOS** | [songloft-macos.dmg](https://github.com/songloft-org/songloft-player-flutter/releases/latest/download/songloft-macos.dmg) | Universal (Intel/Apple Silicon); open the DMG and drag the app into Applications |
+| | [songloft-macos.zip](https://github.com/songloft-org/songloft-player-flutter/releases/latest/download/songloft-macos.zip) | Universal (Intel/Apple Silicon); extract the ZIP and move the app into Applications |
+| 🤖 **Android** | [Stable release assets](https://github.com/songloft-org/songloft-player-flutter/releases/latest) · [Dev APK](https://github.com/songloft-org/songloft-player-flutter/releases/download/dev/songloft-android.apk) | The universal package `songloft-android.apk` supports ARM64, ARMv7, and x86_64. Open the APK and allow installation when prompted |
+| 📱 **iOS** | [songloft-ios-nosign.ipa](https://github.com/songloft-org/songloft-player-flutter/releases/latest/download/songloft-ios-nosign.ipa) | Unsigned device build; re-sign with your developer certificate and a provisioning profile for your device before installing |
 
-> Development builds are available at the [dev branch Release](https://github.com/songloft-org/songloft-player/releases/tag/dev).
+> Development builds are available at the [dev branch Release](https://github.com/songloft-org/songloft-player-flutter/releases/tag/dev).
 > For a client with the embedded backend, look for the filenames listed under [Bundle local mode](#bundle-local-mode).
 
 `patch-*.zip`, `manifest-*.json`, and `version.json` are used by the client's update checker and do not need manual installation.
@@ -197,7 +197,7 @@ The Bundle version embeds the Go backend into the client, so users don't need a 
 - **Desktop (macOS/Windows/Linux)**: Go backend compiled as `songloft-server` executable, launched as a subprocess
 - **Web**: Not supported for bundle mode
 
-Bundle packages for Android, iOS, Linux, Windows, and macOS are published alongside the standard client by this repository's `.github/workflows/build-and-release.yml`. The workflow records the selected backend SHA and version.
+The [backend repository](https://github.com/songloft-org/songloft) builds and publishes Android, iOS, Linux, Windows, and macOS Bundles from pinned client and backend commits. This repository publishes the standard editions.
 
 For a local Android build, prepare a backend checkout with `pkg/tag` initialized. The script uses that checkout’s HEAD.
 
@@ -206,15 +206,17 @@ SONGLOFT_BACKEND_SOURCE=/absolute/songloft bash scripts/build-bundle-backend.sh 
 flutter build apk --dart-define=HAS_BACKEND=true
 ```
 
-Android and desktop users choose a music directory the first time local mode is enabled; iOS uses the app's Documents directory. The app does not show a separate mode-selection dialog on first launch. Bundle assets are attached to [this repository's Releases](https://github.com/songloft-org/songloft-player/releases/latest) and start with `songloft-bundled-`:
+Android and desktop users choose a music directory the first time local mode is enabled; iOS uses the app's Documents directory. The app does not show a separate mode-selection dialog on first launch. Bundle assets are attached to [this repository's Releases](https://github.com/songloft-org/songloft/releases/latest) and start with `songloft-bundled-`:
 
 | Platform | Bundle download |
 |---|---|
-| Android ARM64 / ARMv7 / x86_64 | Universal package `songloft-bundled-android.apk`. [Stable release assets](https://github.com/songloft-org/songloft-player/releases/latest) · [Dev APK](https://github.com/songloft-org/songloft-player/releases/download/dev/songloft-bundled-android.apk) |
+| Android ARM64 / ARMv7 / x86_64 | Universal package `songloft-bundled-android.apk`. [Stable release assets](https://github.com/songloft-org/songloft/releases/latest) · [Dev APK](https://github.com/songloft-org/songloft/releases/download/dev/songloft-bundled-android.apk) |
 | iOS | `songloft-bundled-ios-nosign.ipa` (unsigned; re-sign required) |
 | Linux x86_64 | `songloft-bundled-linux-x64.tar.gz` |
-| macOS Universal | `songloft-bundled-macos.zip` |
+| macOS Apple Silicon | `songloft-bundled-macos.zip` |
 | Windows x86_64 | `songloft-bundled-windows-x64.zip` |
+
+See the [package inventory](https://github.com/songloft-org/songloft/blob/main/docs/en/release-packages.md) for Flutter Standard and Bundle.
 
 ## Release
 

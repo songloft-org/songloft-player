@@ -184,8 +184,8 @@ Bundle 版通过 `--dart-define=HAS_BACKEND=true` 注入（`AppConfig.hasEmbedde
 
 | 版本 | 发布仓库 | 产物名 | 由谁构建 |
 |------|---------|--------|---------|
-| 标准版 | `songloft-org/songloft-player` | `songloft-*.apk` 等 | 后端仓库 `release.yml` |
-| Bundle 版 | `songloft-org/songloft` | `songloft-bundled-*` | 后端仓库 `release.yml`，从流水线启动时主仓库 `main` 的同一最新 SHA 构建 Go 后端 |
+| 标准版 | `songloft-org/songloft-player-flutter` | `songloft-*.apk` 等 | 本仓库 `build-and-release.yml` |
+| Bundle 版 | `songloft-org/songloft` | `songloft-bundled-*` | 后端仓库 `release.yml`，固定后端提交与客户端子模块提交 |
 
 - `FrontendVersionApi` 的更新检查仓库由 `AppConfig.frontendUpdateRepo`（`hasEmbeddedBackend ? frontendBundleRepo : frontendRepo`，编译期固定）决定；`frontendUpdateReleasesUrl` 同理。
 - Bundle 更新检查仍走后端仓库 Release；安装入口必须区分 `songloft-bundled-*`，不能让 Bundle 用户下载标准版覆盖安装。

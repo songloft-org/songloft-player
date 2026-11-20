@@ -2,10 +2,10 @@
 
 [English](README.en.md) | 中文
 
-[![Build and Release](https://github.com/songloft-org/songloft-player/actions/workflows/build-and-release.yml/badge.svg)](https://github.com/songloft-org/songloft-player/actions/workflows/build-and-release.yml)
+[![Build and Release](https://github.com/songloft-org/songloft-player-flutter/actions/workflows/build-and-release.yml/badge.svg)](https://github.com/songloft-org/songloft-player-flutter/actions/workflows/build-and-release.yml)
 [![GitHub License](https://img.shields.io/github/license/songloft-org/songloft-player)](https://github.com/songloft-org/songloft-player)
-[![GitHub Release](https://img.shields.io/github/v/release/songloft-org/songloft-player)](https://github.com/songloft-org/songloft-player/releases)
-[![Stars](https://img.shields.io/github/stars/songloft-org/songloft-player)](https://github.com/songloft-org/songloft-player/stargazers)
+[![GitHub Release](https://img.shields.io/github/v/release/songloft-org/songloft-player)](https://github.com/songloft-org/songloft-player-flutter/releases)
+[![Stars](https://img.shields.io/github/stars/songloft-org/songloft-player)](https://github.com/songloft-org/songloft-player-flutter/stargazers)
 
 <p align="center">
   <strong>🎵 Songloft 跨平台音乐播放器 — 基于 Flutter 构建</strong>
@@ -17,8 +17,8 @@ Songloft 跨平台音乐播放器，基于 Flutter 构建，支持 iOS、Android
 
 <p align="center">
   <a href="https://github.com/songloft-org/songloft-player">🏠 GitHub</a> •
-  <a href="https://github.com/songloft-org/songloft-player/releases">📥 下载</a> •
-  <a href="https://github.com/songloft-org/songloft-player/issues">💬 问题反馈</a>
+  <a href="https://github.com/songloft-org/songloft-player-flutter/releases">📥 下载</a> •
+  <a href="https://github.com/songloft-org/songloft-player-flutter/issues">💬 问题反馈</a>
 </p>
 
 ## 截图
@@ -27,7 +27,7 @@ https://github.com/songloft-org/songloft/issues/6
 
 ## 下载安装
 
-从 [GitHub Releases](https://github.com/songloft-org/songloft-player/releases/latest) 下载最新版本：
+从 [GitHub Releases](https://github.com/songloft-org/songloft-player-flutter/releases/latest) 下载最新版本：
 
 Release 正文展示版本变更，并保留本节的安装说明链接；历史记录保存在中文 [CHANGELOG.md](CHANGELOG.md)，在版本发布成功后自动更新。各平台安装说明见下表。
 
@@ -37,19 +37,19 @@ Release 正文展示版本变更，并保留本节的安装说明链接；历史
 
 | 平台 | 下载链接 | 说明 |
 |------|----------|------|
-| 🌐 **Web (standalone)** | [songloft-web-standalone.tar.gz](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-web-standalone.tar.gz) | 解压到静态服务器，打开站点后配置后端 API 地址；跨源部署需要后端允许该站点访问 |
-| 🌐 **Web (embedded)** | [songloft-web-embedded.tar.gz](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-web-embedded.tar.gz) | 用于同源静态服务或后端嵌入构建，隐藏 API 地址输入；解压不会自动替换已运行的服务器前端 |
-| 🐧 **Linux** | [songloft-linux-x64.tar.gz](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-linux-x64.tar.gz) | 解压后运行应用，保留完整目录 |
-| | [songloft-linux-x64.deb](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-linux-x64.deb) | Debian/Ubuntu x64，使用系统包管理器安装 |
-| | [songloft-linux-x64.rpm](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-linux-x64.rpm) | Fedora/RHEL/CentOS x64，使用系统包管理器安装 |
-| | [songloft-linux-x64.AppImage](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-linux-x64.AppImage) | 添加执行权限后运行 |
-| 🪟 **Windows** | [songloft-windows-x64.zip](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-windows-x64.zip) | x64 便携版，解压后运行应用，保留同目录全部文件 |
-| 🍎 **macOS** | [songloft-macos.dmg](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-macos.dmg) | Universal (Intel/Apple Silicon)，打开 DMG 后将应用拖入「应用程序」 |
-| | [songloft-macos.zip](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-macos.zip) | Universal (Intel/Apple Silicon)，解压 ZIP 后将应用移入「应用程序」 |
-| 🤖 **Android** | [正式版附件](https://github.com/songloft-org/songloft-player/releases/latest) · [开发版 APK](https://github.com/songloft-org/songloft-player/releases/download/dev/songloft-android.apk) | 通用包 `songloft-android.apk` 支持 ARM64、ARMv7 和 x86_64。打开 APK 后按提示允许安装 |
-| 📱 **iOS** | [songloft-ios-nosign.ipa](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-ios-nosign.ipa) | 未签名设备包，需使用自己的开发者证书和适用于目标设备的 provisioning profile 重签后安装 |
+| 🌐 **Web (standalone)** | [songloft-web-standalone.tar.gz](https://github.com/songloft-org/songloft-player-flutter/releases/latest/download/songloft-web-standalone.tar.gz) | 解压到静态服务器，打开站点后配置后端 API 地址；跨源部署需要后端允许该站点访问 |
+| 🌐 **Web (embedded)** | [songloft-web-embedded.tar.gz](https://github.com/songloft-org/songloft-player-flutter/releases/latest/download/songloft-web-embedded.tar.gz) | 用于同源静态服务或后端嵌入构建，隐藏 API 地址输入；解压不会自动替换已运行的服务器前端 |
+| 🐧 **Linux** | [songloft-linux-x64.tar.gz](https://github.com/songloft-org/songloft-player-flutter/releases/latest/download/songloft-linux-x64.tar.gz) | 解压后运行应用，保留完整目录 |
+| | [songloft-linux-x64.deb](https://github.com/songloft-org/songloft-player-flutter/releases/latest/download/songloft-linux-x64.deb) | Debian/Ubuntu x64，使用系统包管理器安装 |
+| | [songloft-linux-x64.rpm](https://github.com/songloft-org/songloft-player-flutter/releases/latest/download/songloft-linux-x64.rpm) | Fedora/RHEL/CentOS x64，使用系统包管理器安装 |
+| | [songloft-linux-x64.AppImage](https://github.com/songloft-org/songloft-player-flutter/releases/latest/download/songloft-linux-x64.AppImage) | 添加执行权限后运行 |
+| 🪟 **Windows** | [songloft-windows-x64.zip](https://github.com/songloft-org/songloft-player-flutter/releases/latest/download/songloft-windows-x64.zip) | x64 便携版，解压后运行应用，保留同目录全部文件 |
+| 🍎 **macOS** | [songloft-macos.dmg](https://github.com/songloft-org/songloft-player-flutter/releases/latest/download/songloft-macos.dmg) | Universal (Intel/Apple Silicon)，打开 DMG 后将应用拖入「应用程序」 |
+| | [songloft-macos.zip](https://github.com/songloft-org/songloft-player-flutter/releases/latest/download/songloft-macos.zip) | Universal (Intel/Apple Silicon)，解压 ZIP 后将应用移入「应用程序」 |
+| 🤖 **Android** | [正式版附件](https://github.com/songloft-org/songloft-player-flutter/releases/latest) · [开发版 APK](https://github.com/songloft-org/songloft-player-flutter/releases/download/dev/songloft-android.apk) | 通用包 `songloft-android.apk` 支持 ARM64、ARMv7 和 x86_64。打开 APK 后按提示允许安装 |
+| 📱 **iOS** | [songloft-ios-nosign.ipa](https://github.com/songloft-org/songloft-player-flutter/releases/latest/download/songloft-ios-nosign.ipa) | 未签名设备包，需使用自己的开发者证书和适用于目标设备的 provisioning profile 重签后安装 |
 
-> 开发版可在 [dev 分支 Release](https://github.com/songloft-org/songloft-player/releases/tag/dev) 获取。
+> 开发版可在 [dev 分支 Release](https://github.com/songloft-org/songloft-player-flutter/releases/tag/dev) 获取。
 > 下载内嵌后端的客户端时，请按 [Bundle 选包说明](#bundle-本地模式)中的文件名选择。
 
 `patch-*.zip`、`manifest-*.json` 和 `version.json` 供客户端检查更新使用，无需手动安装。
@@ -204,17 +204,19 @@ SONGLOFT_BACKEND_SOURCE=/absolute/songloft bash scripts/build-bundle-backend.sh 
 flutter build apk --dart-define=HAS_BACKEND=true
 ```
 
-Android、iOS、Linux、Windows、macOS 的 Bundle 包由本仓库 `.github/workflows/build-and-release.yml` 与标准客户端一起发布。流水线记录本次选用的后端 SHA 和版本。
+Android、iOS、Linux、Windows、macOS 的 Bundle 由 [后端仓库](https://github.com/songloft-org/songloft) 构建和发布，流水线固定客户端和后端提交。本仓库发布标准版。
 
-Android 和桌面端首次启用本地模式时选择音乐目录，iOS 使用应用 Documents 目录；无需在首次启动时通过独立弹窗选择运行模式。Bundle 资产在[本仓库 Releases](https://github.com/songloft-org/songloft-player/releases/latest)中，文件名以 `songloft-bundled-` 开头：
+Android 和桌面端首次启用本地模式时选择音乐目录，iOS 使用应用 Documents 目录；无需在首次启动时通过独立弹窗选择运行模式。Bundle 资产在[后端仓库 Releases](https://github.com/songloft-org/songloft/releases/latest)中，文件名以 `songloft-bundled-` 开头：
 
 | 平台 | Bundle 下载 |
 |---|---|
-| Android ARM64 / ARMv7 / x86_64 | 通用包 `songloft-bundled-android.apk`。[正式版附件](https://github.com/songloft-org/songloft-player/releases/latest) · [开发版 APK](https://github.com/songloft-org/songloft-player/releases/download/dev/songloft-bundled-android.apk) |
+| Android ARM64 / ARMv7 / x86_64 | 通用包 `songloft-bundled-android.apk`。[正式版附件](https://github.com/songloft-org/songloft/releases/latest) · [开发版 APK](https://github.com/songloft-org/songloft/releases/download/dev/songloft-bundled-android.apk) |
 | iOS | `songloft-bundled-ios-nosign.ipa`（未签名，需自行重签） |
 | Linux x86_64 | `songloft-bundled-linux-x64.tar.gz` |
-| macOS Universal | `songloft-bundled-macos.zip` |
+| macOS Apple Silicon | `songloft-bundled-macos.zip` |
 | Windows x86_64 | `songloft-bundled-windows-x64.zip` |
+
+[完整包名清单](https://github.com/songloft-org/songloft/blob/main/docs/release-packages.md)包含 Flutter 标准版和 Bundle。
 
 ## 版本发布
 
