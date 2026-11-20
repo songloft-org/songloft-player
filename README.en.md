@@ -31,7 +31,7 @@ Download the latest version from [GitHub Releases](https://github.com/songloft-o
 
 Release bodies contain version changes and installation links to this section. Version history is maintained in the Chinese-only [CHANGELOG.md](CHANGELOG.md), updated automatically after a versioned release succeeds. See the table below for installation instructions.
 
-This repository publishes both the standard Flutter client and Bundle local-mode clients. The standard edition connects to a separate [Songloft server](https://github.com/songloft-org/songloft); Bundle starts the embedded Go backend locally and can switch between local and remote modes from the login or settings screen. The Bundle workflow selects the latest commit on the root repository’s `main` at startup and builds every platform in the run from that SHA.
+This repository publishes Flutter Standard. The backend repository publishes the local-mode Bundle. The standard edition connects to a separate [Songloft server](https://github.com/songloft-org/songloft); Bundle starts the embedded Go backend locally and can switch between local and remote modes from the login or settings screen. The Bundle workflow builds every platform from the same pinned backend and client submodule commits.
 
 Choose a file for your device under **Assets** on the release page. Some packaging formats may be unavailable; check the attached files.
 

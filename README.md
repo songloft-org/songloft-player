@@ -31,7 +31,7 @@ https://github.com/songloft-org/songloft/issues/6
 
 Release 正文展示版本变更，并保留本节的安装说明链接；历史记录保存在中文 [CHANGELOG.md](CHANGELOG.md)，在版本发布成功后自动更新。各平台安装说明见下表。
 
-本仓库发布标准 Flutter 客户端和 Bundle 本地模式客户端。标准版连接独立的 [Songloft 服务器](https://github.com/songloft-org/songloft)；Bundle 版在本机启动随包内嵌的 Go 后端，可在登录页或设置页切换本地/远程模式。Bundle 流水线以启动时主仓库 `main` 的最新提交构建 Go 后端，并用同一 SHA 为各平台打包。
+本仓库发布 Flutter 标准版，后端仓库发布 Bundle 本地模式客户端。标准版连接独立的 [Songloft 服务器](https://github.com/songloft-org/songloft)；Bundle 版在本机启动随包内嵌的 Go 后端，可在登录页或设置页切换本地/远程模式。Bundle 流水线为各平台固定同一后端提交和客户端子模块提交。
 
 在 Release 页的 **Assets** 中选择适合设备的文件；部分安装格式可能未提供，以实际附件为准。
 
