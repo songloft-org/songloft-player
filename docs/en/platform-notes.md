@@ -89,12 +89,6 @@ Windows uses libmpv as the audio backend via `just_audio_media_kit`:
 - Visual Studio 2022 (with C++ Desktop Development workload)
 - Windows 10 SDK
 
-### MSIX Packaging
-
-```bash
-flutter pub run msix:create
-```
-
 ### Token Storage
 
 SharedPreferences reads on Windows can occasionally be unstable. `AuthInterceptor` prefers the in-memory `cachedAccessToken` and only reads from storage when the cache is empty.

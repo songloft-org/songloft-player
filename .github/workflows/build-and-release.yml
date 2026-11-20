@@ -266,21 +266,11 @@ jobs:
           $testHelper = Join-Path $env:RUNNER_TEMP 'native-webview-tests\Release\webview_hit_test.exe'
           Copy-Item -LiteralPath $testHelper -Destination build\windows\x64\runner\Release\ -ErrorAction Stop
           Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath songloft-windows-x64.zip
-      - name: Build MSIX package
-        continue-on-error: true
-        shell: pwsh
-        run: |
-          fastforge package --platform windows --targets msix
-          $msixFile = Get-ChildItem -Path "dist" -Recurse -Filter "*.msix" -ErrorAction SilentlyContinue | Select-Object -First 1
-          if ($msixFile) {
-            Copy-Item $msixFile.FullName -Destination songloft-windows-x64.msix
-          }
       - uses: actions/upload-artifact@v4
         with:
           name: songloft-windows-x64
           path: |
             songloft-windows-x64.zip
-            songloft-windows-x64.msix
           retention-days: 1
       - uses: ./.github/actions/bundle-backend
         with:
@@ -807,7 +797,7 @@ jobs:
         run: |
           mkdir -p final-assets
           if [ -d release-assets ]; then
-            find release-assets -type f \( -name '*.tar.gz' -o -name '*.zip' -o -name '*.apk' -o -name '*.ipa' -o -name '*.deb' -o -name '*.rpm' -o -name '*.AppImage' -o -name '*.dmg' -o -name '*.msix' -o -name '*.so' -o -name 'manifest-*.json' -o -name 'bundle-*.json' -o -name 'version.json' \) -exec cp {} final-assets/ \;
+            find release-assets -type f \( -name '*.tar.gz' -o -name '*.zip' -o -name '*.apk' -o -name '*.ipa' -o -name '*.deb' -o -name '*.rpm' -o -name '*.AppImage' -o -name '*.dmg' -o -name '*.so' -o -name 'manifest-*.json' -o -name 'bundle-*.json' -o -name 'version.json' \) -exec cp {} final-assets/ \;
           fi
           echo "=== Release Assets ==="
           ls -lh final-assets/ || echo "(no assets)"

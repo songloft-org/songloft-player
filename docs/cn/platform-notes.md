@@ -89,12 +89,6 @@ Windows 端通过 `just_audio_media_kit` 使用 libmpv 作为音频后端：
 - Visual Studio 2022（带 C++ 桌面开发工作负载）
 - Windows 10 SDK
 
-### MSIX 打包
-
-```bash
-flutter pub run msix:create
-```
-
 ### Token 存储
 
 Windows 平台的 SharedPreferences 读取偶尔不稳定，`AuthInterceptor` 优先使用内存缓存的 `cachedAccessToken`，仅在缓存为空时才读存储。

@@ -27,10 +27,6 @@ releases:
         package:
           platform: windows
           target: exe
-      - name: build-windows-msix
-        package:
-          platform: windows
-          target: msix
       - name: build-android-apk
         package:
           platform: android

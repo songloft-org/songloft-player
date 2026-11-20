@@ -44,7 +44,6 @@ Release 正文展示版本变更，并保留本节的安装说明链接；历史
 | | [songloft-linux-x64.rpm](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-linux-x64.rpm) | Fedora/RHEL/CentOS x64，使用系统包管理器安装 |
 | | [songloft-linux-x64.AppImage](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-linux-x64.AppImage) | 添加执行权限后运行 |
 | 🪟 **Windows** | [songloft-windows-x64.zip](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-windows-x64.zip) | x64 便携版，解压后运行应用，保留同目录全部文件 |
-| | [songloft-windows-x64.msix](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-windows-x64.msix) | x64 安装版，按系统提示安装 |
 | 🍎 **macOS** | [songloft-macos.dmg](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-macos.dmg) | Universal (Intel/Apple Silicon)，打开 DMG 后将应用拖入「应用程序」 |
 | | [songloft-macos.zip](https://github.com/songloft-org/songloft-player/releases/latest/download/songloft-macos.zip) | Universal (Intel/Apple Silicon)，解压 ZIP 后将应用移入「应用程序」 |
 | 🤖 **Android** | [正式版附件](https://github.com/songloft-org/songloft-player/releases/latest) · [开发版 APK](https://github.com/songloft-org/songloft-player/releases/download/dev/songloft-android.apk) | 通用包 `songloft-android.apk` 支持 ARM64、ARMv7 和 x86_64。打开 APK 后按提示允许安装 |
