@@ -338,6 +338,14 @@ Total size: 2.1GB
 Build report saved to: songloft-player-build/BUILD_REPORT.md
 ```
 
+## FFmpeg assets in Bundle builds
+
+Bundle releases do not select FFmpeg independently in each platform job. The release workflow first resolves `manifest.json` from the `dev` or stable Release of `hanxi/ffmpeg-builder`, validates the concrete tag, platform, ABI, size, and SHA-256, then gives the same `ffmpeg-resolution.json` to the Android, desktop, and iOS jobs.
+
+Android puts the ELF tools for `arm64-v8a`, `armeabi-v7a`, and `x86_64` in the APK's `lib/<ABI>/` directory. The backend runs them from the app's installed `nativeLibraryDir`. Linux, Windows, and macOS launchers pass the packaged tool paths to the Go backend. macOS signs the tools before signing the app. On iOS, `make build-go-mobile-ios SONGLOFT_FFMPEG_IOS_ASSET=/path/to/staged/ios-ffmpeg` links the library into `Songloft.xcframework`. Stage the verified iOS Release asset with the backend repository's `scripts/install-ffmpeg-asset.mjs` and pass its output directory to Make. When builds fail, inspect `release_tag`, `source_commit`, and `manifest_sha256` in the resolution record.
+
+Offline builds may provide an explicitly resolved Release tag and a local asset cache. Re-resolve and verify the manifest and asset digests after changing the selected Release.
+
 ## 📞 Support
 
 If you encounter any issues, refer to:

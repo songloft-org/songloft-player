@@ -5,6 +5,7 @@ import android.os.Handler
 import android.os.Looper
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import java.io.File
 import kotlin.concurrent.thread
 
 /**
@@ -98,8 +99,18 @@ class SongloftBackendPlugin(private val context: Context, flutterEngine: Flutter
         }
         thread {
             try {
-                val startMethod = mobileClass!!.getMethod("start", String::class.java, String::class.java, Long::class.javaPrimitiveType)
-                val actualPort = startMethod.invoke(null, dataDir, musicDir, port.toLong()) as Long
+                val toolDir = File(context.applicationInfo.nativeLibraryDir)
+                val ffmpeg = File(toolDir, "libffmpeg.so")
+                val ffprobe = File(toolDir, "libffprobe.so")
+                val startTypes = arrayOf(String::class.java, String::class.java, Long::class.javaPrimitiveType!!)
+                val actualPort = if (ffmpeg.exists() || ffprobe.exists()) {
+                    val method = mobileClass!!.getMethod(
+                        "startWithMediaTools", *startTypes, String::class.java, String::class.java,
+                    )
+                    method.invoke(null, dataDir, musicDir, port.toLong(), ffmpeg.path, ffprobe.path)
+                } else {
+                    mobileClass!!.getMethod("start", *startTypes).invoke(null, dataDir, musicDir, port.toLong())
+                } as Number
                 mainHandler.post { result.success(actualPort.toInt()) }
             } catch (e: Exception) {
                 val cause = e.cause ?: e

@@ -338,6 +338,14 @@ Flutter 3.41.0 • channel stable
 构建报告已保存至：songloft-player-build/BUILD_REPORT.md
 ```
 
+## Bundle 的 FFmpeg 资产
+
+Bundle 发布不会在每个平台 job 中重新选择 FFmpeg。发布流水线先从 `hanxi/ffmpeg-builder` 的 `dev` 或稳定 Release 解析 `manifest.json`，校验具体 tag、平台、ABI、文件大小和 SHA-256，然后把同一份 `ffmpeg-resolution.json` 交给 Android、桌面和 iOS job。
+
+Android 将 `arm64-v8a`、`armeabi-v7a` 和 `x86_64` 的 ELF 工具放入 APK 的 `lib/<ABI>/`，后端通过 Android 安装后的 `nativeLibraryDir` 执行它们。Linux、Windows 和 macOS 启动器将应用包中的工具路径交给 Go 后端，macOS 在签应用前签工具。iOS 通过 `make build-go-mobile-ios SONGLOFT_FFMPEG_IOS_ASSET=/path/to/staged/ios-ffmpeg` 将库链接进 `Songloft.xcframework`。使用主仓库的 `scripts/install-ffmpeg-asset.mjs` 解包已验证的 iOS Release 资产后，将输出目录传给 Make 目标。构建失败时检查解析记录中的 `release_tag`、`source_commit` 和 `manifest_sha256`。
+
+离线构建可显式指定已解析的 Release tag，并把下载的压缩资产放入本地缓存。重新解析后必须重新校验 manifest 与资产摘要。
+
 ## 📞 支持
 
 如有问题，请查看：

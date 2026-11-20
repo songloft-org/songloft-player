@@ -16,6 +16,13 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+            keepDebugSymbols += setOf("**/libffmpeg.so", "**/libffprobe.so")
+        }
+    }
+
     namespace = "com.songloft.songloft_flutter"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion

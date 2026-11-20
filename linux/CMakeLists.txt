@@ -134,3 +134,9 @@ if(EXISTS "${GO_SERVER_BINARY}")
   install(PROGRAMS "${GO_SERVER_BINARY}" DESTINATION "${CMAKE_INSTALL_PREFIX}"
     COMPONENT Runtime)
 endif()
+# Bundle FFmpeg tools resolved by the release workflow next to the backend.
+set(FFMPEG_TOOLS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/runner/tools")
+if(EXISTS "${FFMPEG_TOOLS_DIR}")
+  install(DIRECTORY "${FFMPEG_TOOLS_DIR}/" DESTINATION "${CMAKE_INSTALL_PREFIX}/tools"
+    USE_SOURCE_PERMISSIONS COMPONENT Runtime)
+endif()

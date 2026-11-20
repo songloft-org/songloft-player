@@ -208,3 +208,9 @@ Include rule, scope, full owner/repo#number, failure/fix commit SHAs, actual val
 - Rule: Design background tints and foreground together. Composite translucent text against its actual background before measuring contrast. Material contrast guarantees on its default surface do not automatically apply to cover overlays. Check consistent missing/failed-cover fallbacks and ensure increased contrast covers dynamic layers.
 - Done right: Shared `PlayerBackdrop` blends tints into the current surface and strengthens the accent against that background. Active lines, translations, romaji, and karaoke share full contrast. Light/dark gradient samples across six built-in palettes and extreme covers passed, alongside all 716 tests, static analysis, and embedded builds. Actual browser song switching and missing/failed-cover comparisons are in the [#523 record](docs/en/issue-523.md). Not run: native outdoor device acceptance.
 - Seen 1× (2026-10-15). Status: experience; uncommitted worktree identity is in the task record. Check Git/CI separately for release inclusion.
+
+### BUNDLE-FFMPEG-001: Bundle builds reuse one resolved FFmpeg Release
+
+- Scope: Flutter Bundle Android, desktop, and iOS builds.
+- Rule: resolve `ffmpeg-resolution.json` first, then verify the asset digest for each platform and ABI. Android installs tools through the APK native library directory, desktop launchers pass packaged tool paths, and iOS links the static library at build time. Jobs must not read a rolling `latest` file.
+- Seen 1× (2026-11-20). Status: local implementation; multi-platform toolchain CI is not passing yet.

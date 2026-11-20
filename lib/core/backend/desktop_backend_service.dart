@@ -61,6 +61,17 @@ class DesktopBackendService {
     // 为每个安装生成一次随机密码并落盘复用，getAdminPassword() 从同一文件读取后登录。
     final password = await _ensureAdminPassword(dataDir);
 
+    final tools = Directory(
+      '${File(binary).parent.path}${Platform.pathSeparator}tools',
+    );
+    final extension = Platform.isWindows ? '.exe' : '';
+    final ffmpeg = '${tools.path}${Platform.pathSeparator}ffmpeg$extension';
+    final ffprobe = '${tools.path}${Platform.pathSeparator}ffprobe$extension';
+    final toolEnvironment = {
+      if (File(ffmpeg).existsSync()) 'SONGLOFT_BUNDLE_FFMPEG': ffmpeg,
+      if (File(ffprobe).existsSync()) 'SONGLOFT_BUNDLE_FFPROBE': ffprobe,
+    };
+
     final process = await Process.start(binary, [
       '-port', '${port > 0 ? port : 0}',
       '-db', dbPath,
@@ -69,7 +80,7 @@ class DesktopBackendService {
       if (musicDir.isNotEmpty) ...['-music', musicDir],
       '-username', 'admin',
       '-password', password,
-    ]);
+    ], environment: toolEnvironment);
     _process = process;
     _port = 0;
 

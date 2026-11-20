@@ -62,3 +62,10 @@ pubspec.lock
 # pbxproj / Podfile.lock / xcscheme 是工程定义与可复现构建的必需文件，
 # 必须入库（删掉曾导致 CI 无法构建 iOS，见 73d60a6）。
 **/xcshareddata/swiftpm/
+
+# FFmpeg files staged from verified Release assets
+/android/app/src/main/jniLibs/*/libffmpeg.so
+/android/app/src/main/jniLibs/*/libffprobe.so
+/linux/runner/tools/
+/macos/Runner/tools/
+/windows/runner/tools/
