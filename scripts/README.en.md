@@ -56,7 +56,9 @@ Automates the Flutter frontend version release process. **Unified release contra
 4. Updates `pubspec.yaml` version (preserving the `+build number`)
 5. Git commit + annotated tag (`v{version}`) + `git push --atomic` of main and that tag in one shot
 
-After the tag is pushed, `.github/workflows/build-and-release.yml` automatically handles multi-platform builds and GitHub Release creation.
+This repository's `.github/workflows/build-and-release.yml` publishes Standard packages. Build-related pushes to `main` update this repository's `dev`, and `v*` tag pushes publish the corresponding version. Markdown-only changes do not trigger builds. To refresh `dev` manually, select `main` and leave all platforms enabled under **Actions → Build and Release → Run workflow**. Selecting a subset also replaces the rolling `dev`, and its assets contain only the outputs from that run.
+
+The backend repository's `Release` workflow builds and publishes Flutter Bundle and Android Bundle hot-update assets. Run that workflow in the backend repository to update Bundle. See the [backend release and signing guide](https://songloft.hanxi.cc/en/bundle-mode#release-triggers-and-signing) and [package inventory](https://songloft.hanxi.cc/en/release-packages).
 
 Release bodies contain automatically generated, categorized changes, with only installation links in `.github/release-notes.md`. Platform installation instructions are maintained in the root [README.md](../README.md#下载安装) and [README.en.md](../README.en.md#download). After a version-tag release succeeds, a separate job updates the Chinese-only root `CHANGELOG.md` from the latest `main` and commits it back to the repository. Rolling dev builds do not write this file. Changelog updates for different versions run serially and do not trigger another build.
 

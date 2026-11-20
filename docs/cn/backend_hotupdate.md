@@ -7,7 +7,7 @@
 ## 核心模型:无基线 + 自动发布 + 工具链兼容键
 
 - **无基线**:客户端查**后端 Release 的本渠道最新**——dev→滚动 tag `dev`;stable→GitHub `/releases/latest`(dev 是 prerelease,latest 天然返回最新正式版)。由 `lib/core/updater/channel_release_resolver.dart` 解析,复用 `FrontendVersionApi` 思路。
-- **自动发布**:后端仓库 `release.yml` 的 Flutter Bundle job 每次发版自动产出并上传 Bundle 前端 `bundle-patch-<abi>-<commit>.zip`+`bundle-flutter-version.json`、后端 `bundle-libgojni-<abi>-<backend-sha>.so`+`bundle-flutter-backend-manifest-<abi>.json`(arm64-v8a / armeabi-v7a / x86_64,gomobile bind 含 android/amd64 目标)。**无手动 workflow、无 versionCode 绑定**。
+- **自动发布**:后端仓库 `release.yml` 的 Flutter Bundle job 每次发版自动产出并上传 Bundle 前端 `bundle-patch-<abi>-<commit>.zip`+`bundle-flutter-version.json`、后端 `bundle-libgojni-<abi>-<backend-sha>.so`+`bundle-flutter-backend-manifest-<abi>.json`(arm64-v8a / armeabi-v7a / x86_64,gomobile bind 含 android/amd64 目标)。补丁协议不绑定 versionCode。若后端构建只上传测试包，检查 [Bundle 发布签名与触发条件](https://songloft.hanxi.cc/bundle-mode#发布触发与签名)。
 - **兼容键取代 versionCode**(自动、非手改):
   - **前端 libapp.so** — Gradle 将通用 APK 的 `versionCode` 下限设为 4002，以便覆盖安装旧分架构包（最高 4001）。CI 用 aapt 从 APK 读取实际版本码，并写入各 ABI 的前端补丁和 manifest。客户端检查 `versionCode`、Flutter 引擎键（`flutterBinding`）和原生契约，版本码或引擎不匹配时引导下载整包。
   - **后端 libgojni.so**:兼容边界是 gomobile 导出面(`mobile/export_surface.txt` + `release.yml` 导出面守卫,自动)。**去掉 versionCode**,靠「导出面冻结 + 崩溃回滚黑名单」保证任意老包热更到最新。

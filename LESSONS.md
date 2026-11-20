@@ -213,4 +213,4 @@
 
 - 范围：Flutter Bundle 的 Android、桌面和 iOS 构建。
 - 规则：先解析 `ffmpeg-resolution.json`，再按平台与 ABI 校验资产摘要。Android 通过 APK 原生文件目录安装工具，桌面启动器传入包内工具路径，iOS 编译时链接静态库；不要在各 job 读取滚动 `latest` 文件。
-- Seen 1× (2026-11-20)。状态：本地实现；多平台工具链 CI 尚未通过。
+- Seen 1× (2026-11-20)。[后端 Bundle CI](https://github.com/songloft-org/songloft/actions/runs/44754365874)复用同一解析记录，生成五个平台的 Flutter 测试包。设备安装与播放另行验收。

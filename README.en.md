@@ -3,9 +3,9 @@
 [中文](README.md) | English
 
 [![Build and Release](https://github.com/songloft-org/songloft-player-flutter/actions/workflows/build-and-release.yml/badge.svg)](https://github.com/songloft-org/songloft-player-flutter/actions/workflows/build-and-release.yml)
-[![GitHub License](https://img.shields.io/github/license/songloft-org/songloft-player)](https://github.com/songloft-org/songloft-player)
-[![GitHub Release](https://img.shields.io/github/v/release/songloft-org/songloft-player)](https://github.com/songloft-org/songloft-player-flutter/releases)
-[![Stars](https://img.shields.io/github/stars/songloft-org/songloft-player)](https://github.com/songloft-org/songloft-player-flutter/stargazers)
+[![GitHub License](https://img.shields.io/github/license/songloft-org/songloft-player-flutter)](https://github.com/songloft-org/songloft-player-flutter)
+[![GitHub Release](https://img.shields.io/github/v/release/songloft-org/songloft-player-flutter)](https://github.com/songloft-org/songloft-player-flutter/releases)
+[![Stars](https://img.shields.io/github/stars/songloft-org/songloft-player-flutter)](https://github.com/songloft-org/songloft-player-flutter/stargazers)
 
 <p align="center">
   <strong>🎵 Songloft Player — A cross-platform music player built with Flutter</strong>
@@ -16,7 +16,7 @@ Songloft Player is a cross-platform music player built with Flutter, supporting 
 Settings → Playback → Keep screen on for lyrics keeps the display awake while viewing lyrics. It is off by default and saved only on this device. Returning to the cover on mobile, leaving the player, or backgrounding the app restores automatic screen sleep. Wide players apply it while lyrics are visible, including when playback is paused. Web support depends on browser capabilities and permission; unavailable or denied requests do not interrupt playback.
 
 <p align="center">
-  <a href="https://github.com/songloft-org/songloft-player">🏠 GitHub</a> •
+  <a href="https://github.com/songloft-org/songloft-player-flutter">🏠 GitHub</a> •
   <a href="https://github.com/songloft-org/songloft-player-flutter/releases">📥 Download</a> •
   <a href="https://github.com/songloft-org/songloft-player-flutter/issues">💬 Issues</a>
 </p>
@@ -63,7 +63,8 @@ Choose a file for your device under **Assets** on the release page. Some packagi
 - **Adaptive navigation**: Bottom bar on mobile, sidebar on tablet, side menu on desktop
 - **Music playback**: Powered by just_audio, supports local and network songs, background playback
 - **Playlist management**: Create, edit, delete playlists, add/remove songs
-- **Song library**: Paginated loading, search/filter, song editing
+- **Song library**: Paginated search and editing with combined filters for local tracks, remote tracks, and radio. Library Play All excludes radio and tracks in hidden or audiobook playlists
+- **Radio**: Set Automatic, HLS, HTTP-FLV, or Audio only for a station or a selection of stations. Audio only turns video off
 - **Theme**: Light / Dark / System
 - **JWT authentication**: Dual-token mechanism with secure storage (auto-fallback)
 

@@ -21,7 +21,7 @@
 
 Songloft 跨平台音乐播放器，基于 Flutter 3.41+ / Dart 3.7+ 构建，支持 iOS、Android、macOS、Windows、Linux、Web 六端。
 
-独立仓库 [songloft-org/songloft-player](https://github.com/songloft-org/songloft-player)，作为父仓库 [songloft](https://github.com/songloft-org/songloft) 的子模块。后端 API 默认 `http://localhost:58091`（账号 admin/admin）。
+独立仓库 [songloft-org/songloft-player-flutter](https://github.com/songloft-org/songloft-player-flutter)，作为父仓库 [songloft](https://github.com/songloft-org/songloft) 的子模块。后端 API 默认 `http://localhost:58091`（账号 admin/admin）。
 
 ---
 
@@ -195,7 +195,7 @@ Bundle 版通过 `--dart-define=HAS_BACKEND=true` 注入（`AppConfig.hasEmbedde
 
 详见 [docs/cn/backend_hotupdate.md](docs/cn/backend_hotupdate.md)（Bundle 统一模型,权威）。要点:
 
-- **无基线 + 自动发布**:客户端查**后端 Release 的本渠道最新**（dev→`dev` tag;stable→`/releases/latest`,`channel_release_resolver.dart`）；后端仓库 `release.yml` 的 Flutter Bundle job 同时构建标准版和 Bundle 版，并为 Bundle 上传 `bundle-patch-<abi>-<commit>.zip`、`bundle-flutter-version.json`、`bundle-libgojni-<abi>-<backend-sha>.so` 与 `bundle-flutter-backend-manifest-<abi>.json`。
+- **无基线 + 自动发布**：客户端通过 `channel_release_resolver.dart` 读取后端本渠道最新 Release（dev 用 `dev` tag，正式版用 `/releases/latest`）。后端 `release.yml` 的 Flutter Bundle job 生成 `bundle-patch-<abi>-<commit>.zip`、`bundle-flutter-version.json`、`bundle-libgojni-<abi>-<backend-sha>.so` 和 `bundle-flutter-backend-manifest-<abi>.json`，随成功发布的后端 Release 上传。
 - **合并为一次体验**:`PatchUpdateDialog.maybeShow`（`lib/core/updater/`）每会话并行检查两类补丁,一个对话框列出、一起下载、**只重启一次**（`EmbeddedBackendService.restartProcess` 真进程冷启 —— libapp.so 生效 + `SongloftApplication` 预加载 libgojni.so）。
 - **启动检查的三道闸 + 手动入口**（不要退回「首帧就打网络」）:触发点在 `ShellLayout`（**不是** HomePage —— Shell 全会话常驻,且 TvHomePage 也在它下面,TV 因此一并覆盖）,顺序是**先 `ref.listenManual(authStateProvider)` 等 `authenticated`、再排 `kPatchCheckStartupDelay`(4s) 的可取消 `Timer`**（只判 `mounted` 是竞态:认证慢于延迟时,登录前那次短命挂载会吃掉本会话唯一的检查名额、写掉节流窗口,还带无 token 的 dio 去查;`Timer` 而非 `Future.delayed` 是为了能在 `dispose` 取消）。受「启动时自动检查更新」开关（`autoUpdateCheckProvider`,prefs `auto_update_check_enabled`,缺省开）与 `kPatchCheckThrottle`(6h,prefs `last_patch_check_at`) 节流约束;检查阶段套 45s 整体超时（代理失败会降级直连，单请求最坏翻倍）;节流判定必须带 `elapsed >= 0`（时钟被往回调过时未来时间戳会把检查挡死到真实时间追上）。**查到补丁但 `context` 已卸载时要回滚节流时间戳**,且单独打日志别复用「无可热更补丁」那条。手动入口合并在「设置 → 关于与更新 → 检查客户端更新」,走 `maybeShow(manual: true)`:跳过两道闸、**绕过（非清除）「忽略此版本」名单**、不写节流时间戳,无补丁时落回 `FrontendUpgradeDialog`（它自带三态,故不额外 snackbar）。闸门语义由 `test/core/updater/patch_update_dialog_gates_test.dart` 覆盖。
 - **前端补丁兼容性**取决于 APK 实际 `versionCode`、Flutter 引擎键（`AppConfig.flutterBinding` = CI `FLUTTER_VERSION`）与原生契约。每个版本的三个 ABI 补丁从同一个通用 APK 提取。后端通过固定 SHA 的 `mobile/export_surface.txt` 校验 Go 导出面。

@@ -3,9 +3,9 @@
 [English](README.en.md) | 中文
 
 [![Build and Release](https://github.com/songloft-org/songloft-player-flutter/actions/workflows/build-and-release.yml/badge.svg)](https://github.com/songloft-org/songloft-player-flutter/actions/workflows/build-and-release.yml)
-[![GitHub License](https://img.shields.io/github/license/songloft-org/songloft-player)](https://github.com/songloft-org/songloft-player)
-[![GitHub Release](https://img.shields.io/github/v/release/songloft-org/songloft-player)](https://github.com/songloft-org/songloft-player-flutter/releases)
-[![Stars](https://img.shields.io/github/stars/songloft-org/songloft-player)](https://github.com/songloft-org/songloft-player-flutter/stargazers)
+[![GitHub License](https://img.shields.io/github/license/songloft-org/songloft-player-flutter)](https://github.com/songloft-org/songloft-player-flutter)
+[![GitHub Release](https://img.shields.io/github/v/release/songloft-org/songloft-player-flutter)](https://github.com/songloft-org/songloft-player-flutter/releases)
+[![Stars](https://img.shields.io/github/stars/songloft-org/songloft-player-flutter)](https://github.com/songloft-org/songloft-player-flutter/stargazers)
 
 <p align="center">
   <strong>🎵 Songloft 跨平台音乐播放器 — 基于 Flutter 构建</strong>
@@ -16,7 +16,7 @@ Songloft 跨平台音乐播放器，基于 Flutter 构建，支持 iOS、Android
 「设置 → 播放设置 → 歌词页屏幕常亮」可在查看歌词时保持亮屏，默认关闭、仅保存到本机。手机返回封面、离开播放器或切到后台后恢复系统自动熄屏；宽屏播放器在歌词可见时生效，暂停播放仍可查看歌词。Web 端受浏览器亮屏能力和权限限制，不支持或拒绝时不影响播放。
 
 <p align="center">
-  <a href="https://github.com/songloft-org/songloft-player">🏠 GitHub</a> •
+  <a href="https://github.com/songloft-org/songloft-player-flutter">🏠 GitHub</a> •
   <a href="https://github.com/songloft-org/songloft-player-flutter/releases">📥 下载</a> •
   <a href="https://github.com/songloft-org/songloft-player-flutter/issues">💬 问题反馈</a>
 </p>
@@ -63,7 +63,8 @@ Release 正文展示版本变更，并保留本节的安装说明链接；历史
 - **自适应导航**: 手机底栏、平板侧栏、桌面侧边菜单
 - **音乐播放**: 基于 just_audio，支持本地和网络歌曲，后台播放
 - **歌单管理**: 创建、编辑、删除歌单，添加/移除歌曲
-- **歌曲库**: 分页加载、搜索过滤、歌曲编辑
+- **歌曲库**：分页搜索与歌曲编辑，可组合筛选本地、网络歌曲与电台。曲库的「播放全部」排除电台、隐藏歌单与有声书歌单中的歌曲
+- **电台**：编辑单条电台，或多选电台批量设置自动、HLS、HTTP-FLV 或仅音频播放模式。仅音频模式会关闭视频内容
 - **主题切换**: 亮色/暗色/跟随系统
 - **JWT 认证**: 双 Token 机制，安全存储（自动降级）
 

@@ -213,4 +213,4 @@ Include rule, scope, full owner/repo#number, failure/fix commit SHAs, actual val
 
 - Scope: Flutter Bundle Android, desktop, and iOS builds.
 - Rule: resolve `ffmpeg-resolution.json` first, then verify the asset digest for each platform and ABI. Android installs tools through the APK native library directory, desktop launchers pass packaged tool paths, and iOS links the static library at build time. Jobs must not read a rolling `latest` file.
-- Seen 1× (2026-11-20). Status: local implementation; multi-platform toolchain CI is not passing yet.
+- Seen 1× (2026-11-20). [Backend Bundle CI](https://github.com/songloft-org/songloft/actions/runs/44754365874) reused one resolution record to produce Flutter test packages for five platforms. Device installation and playback are checked separately.

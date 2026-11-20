@@ -56,7 +56,9 @@ Android release 构建后执行 `python3 scripts/check-android-preferences-jni.p
 4. 更新 `pubspec.yaml` 中的版本号（保留 `+build number`）
 5. Git commit + 创建 annotated tag（格式 `v{version}`）+ `git push --atomic` 一次推送 main 与该 tag
 
-推送 tag 后由 `.github/workflows/build-and-release.yml` 自动完成多平台构建和 GitHub Release。
+本仓库的 `.github/workflows/build-and-release.yml` 发布标准版。构建相关改动推送到 `main` 会更新本仓库的 `dev`，推送 `v*` tag 发布对应版本。纯 Markdown 修改不会触发构建。手动刷新 `dev` 时选择 **Actions → Build and Release → Run workflow**，使用 `main` 和全部平台选项。只选择部分平台也会替换滚动 `dev`，附件只包含本次产出的文件。
+
+Flutter Bundle 与 Android Bundle 热更新资产由后端仓库的 `Release` 工作流生成和发布。需要更新 Bundle 时，在后端仓库运行工作流。查看[后端发布与签名说明](https://songloft.hanxi.cc/bundle-mode#发布触发与签名)和[完整包名清单](https://songloft.hanxi.cc/release-packages)。
 
 Release 正文展示自动生成的分类变更记录，`.github/release-notes.md` 仅保留安装说明链接；各平台安装说明统一维护在根目录的 [README.md](../README.md#下载安装) 与 [README.en.md](../README.en.md#download)。版本 tag 发布成功后，独立 job 基于最新 `main` 更新根目录的中文 `CHANGELOG.md` 并提交回仓库；滚动 dev 不写入该文件。不同版本的日志更新串行执行，不触发新一轮构建。
 
