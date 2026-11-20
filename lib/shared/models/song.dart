@@ -2,6 +2,7 @@
 enum RadioMode {
   automatic(''),
   hls('hls'),
+  flv('flv'),
   audioOnly('audio_only');
 
   const RadioMode(this.value);

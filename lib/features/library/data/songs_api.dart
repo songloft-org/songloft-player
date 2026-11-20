@@ -400,6 +400,22 @@ class SongsApi {
     return Song.fromJson(response.data!);
   }
 
+  /// 批量设置电台播放模式。
+  /// POST /api/v1/songs/batch-radio-mode
+  Future<int> batchUpdateRadioMode(
+    List<int> ids, {
+    required RadioMode radioMode,
+    bool? isVideo,
+  }) async {
+    final data = <String, dynamic>{'ids': ids, 'radio_mode': radioMode.value};
+    if (isVideo != null) data['is_video'] = isVideo;
+    final response = await dio.post<Map<String, dynamic>>(
+      '${AppConfig.apiPrefix}/songs/batch-radio-mode',
+      data: data,
+    );
+    return response.data?['updated'] as int? ?? 0;
+  }
+
   /// 更新歌曲歌词
   ///
   /// PUT /api/v1/songs/{id}/lyrics

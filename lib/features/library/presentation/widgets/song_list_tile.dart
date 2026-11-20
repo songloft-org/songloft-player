@@ -126,6 +126,10 @@ class SongListTile extends StatelessWidget {
       isChecked: isSelected,
       onCheckChanged: (_) => onSelect?.call(),
       showFavorite: !isSelectionMode,
+      subtitleSuffix:
+          song.type == AppConstants.songTypeRadio
+              ? '${l10n.libraryRadioMode}: ${_radioModeLabel(l10n)}'
+              : null,
       menuActions: actions,
       onTap: isSelectionMode ? onSelect : onTap,
       onLongPress: isSelectionMode ? null : onLongPress,
@@ -225,7 +229,19 @@ class SongListTile extends StatelessWidget {
               const SizedBox(width: 16),
             ],
             // 类型标签
-            SizedBox(width: 60, child: _buildTypeChip(context)),
+            SizedBox(
+              width: 60,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildTypeChip(context),
+                  if (song.type == AppConstants.songTypeRadio) ...[
+                    const SizedBox(height: 4),
+                    _buildRadioModeChip(context),
+                  ],
+                ],
+              ),
+            ),
             const SizedBox(width: 16),
             // 时长
             SizedBox(
@@ -300,6 +316,37 @@ class SongListTile extends StatelessWidget {
         textAlign: TextAlign.center,
       ),
     );
+  }
+
+  Widget _buildRadioModeChip(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: colorScheme.secondaryContainer,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        _radioModeLabel(AppLocalizations.of(context)),
+        maxLines: 1,
+        overflow: TextOverflow.clip,
+        style: TextStyle(fontSize: 10, color: colorScheme.onSecondaryContainer),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  String _radioModeLabel(AppLocalizations l10n) {
+    switch (song.radioMode) {
+      case RadioMode.hls:
+        return l10n.libraryRadioModeHls;
+      case RadioMode.flv:
+        return l10n.libraryRadioModeFlv;
+      case RadioMode.audioOnly:
+        return l10n.libraryRadioModeAudioOnly;
+      case RadioMode.automatic:
+        return l10n.libraryRadioModeAuto;
+    }
   }
 
   Widget _buildDesktopActions(BuildContext context) {

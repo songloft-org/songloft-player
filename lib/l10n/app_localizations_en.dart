@@ -1239,6 +1239,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get libraryDeselectAll => 'Deselect all';
 
   @override
+  String get libraryBatchRadioMode => 'Set radio mode';
+
+  @override
+  String get libraryBatchRadioModeTitle => 'Set radio playback mode';
+
+  @override
+  String libraryBatchRadioModeMessage(int count) {
+    return 'Apply a playback mode to $count selected radio stations.';
+  }
+
+  @override
+  String get libraryBatchRadioModeUpdateVideo => 'Also set video content';
+
+  @override
+  String get libraryBatchRadioModeAudioHint =>
+      'Audio-only mode always turns video content off.';
+
+  @override
+  String libraryBatchRadioModeUpdated(int updated, int total) {
+    return 'Updated $updated/$total radio stations';
+  }
+
+  @override
   String get libraryTitle => 'Library';
 
   @override
@@ -1460,6 +1483,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get libraryRadioModeAuto => 'Automatic';
+
+  @override
+  String get libraryRadioModeHls => 'HLS';
+
+  @override
+  String get libraryRadioModeFlv => 'HTTP-FLV';
 
   @override
   String get libraryRadioModeAudioOnly => 'Audio only';

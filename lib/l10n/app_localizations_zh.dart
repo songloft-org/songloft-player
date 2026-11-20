@@ -1192,6 +1192,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get libraryDeselectAll => '取消全选';
 
   @override
+  String get libraryBatchRadioMode => '设置电台模式';
+
+  @override
+  String get libraryBatchRadioModeTitle => '设置电台播放模式';
+
+  @override
+  String libraryBatchRadioModeMessage(int count) {
+    return '为选中的 $count 个电台设置播放模式。';
+  }
+
+  @override
+  String get libraryBatchRadioModeUpdateVideo => '同时设置视频内容';
+
+  @override
+  String get libraryBatchRadioModeAudioHint => '仅音频模式会自动关闭视频内容。';
+
+  @override
+  String libraryBatchRadioModeUpdated(int updated, int total) {
+    return '已更新 $updated/$total 个电台';
+  }
+
+  @override
   String get libraryTitle => '曲库';
 
   @override
@@ -1408,6 +1430,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get libraryRadioModeAuto => '自动';
+
+  @override
+  String get libraryRadioModeHls => 'HLS';
+
+  @override
+  String get libraryRadioModeFlv => 'HTTP-FLV';
 
   @override
   String get libraryRadioModeAudioOnly => '仅音频';

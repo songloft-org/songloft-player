@@ -359,6 +359,29 @@ class SongsListNotifier extends Notifier<SongsListState> {
     }
   }
 
+  /// 批量设置所选电台的播放模式。
+  Future<int> batchUpdateRadioMode({
+    required RadioMode radioMode,
+    bool? isVideo,
+  }) async {
+    if (state.selectedSongIds.isEmpty) return 0;
+
+    final selectedIds = state.selectedSongIds.toList();
+    try {
+      final updated = await _repository.batchUpdateRadioMode(
+        selectedIds,
+        radioMode: radioMode,
+        isVideo: isVideo,
+      );
+      await refresh();
+      state = state.copyWith(isSelectionMode: false, selectedSongIds: {});
+      return updated;
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
   /// 清理歌曲
   Future<int> cleanSongs() async {
     try {

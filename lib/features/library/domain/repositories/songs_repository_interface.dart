@@ -66,6 +66,13 @@ abstract class ISongsRepository {
     RadioMode? radioMode,
   });
 
+  /// 批量设置电台播放模式。
+  Future<int> batchUpdateRadioMode(
+    List<int> ids, {
+    required RadioMode radioMode,
+    bool? isVideo,
+  });
+
   /// 更新歌曲歌词
   Future<({String fileWriteStatus})> updateSongLyrics(
     int id, {

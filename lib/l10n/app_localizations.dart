@@ -2217,6 +2217,42 @@ abstract class AppLocalizations {
   /// **'取消全选'**
   String get libraryDeselectAll;
 
+  /// No description provided for @libraryBatchRadioMode.
+  ///
+  /// In zh, this message translates to:
+  /// **'设置电台模式'**
+  String get libraryBatchRadioMode;
+
+  /// No description provided for @libraryBatchRadioModeTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'设置电台播放模式'**
+  String get libraryBatchRadioModeTitle;
+
+  /// No description provided for @libraryBatchRadioModeMessage.
+  ///
+  /// In zh, this message translates to:
+  /// **'为选中的 {count} 个电台设置播放模式。'**
+  String libraryBatchRadioModeMessage(int count);
+
+  /// No description provided for @libraryBatchRadioModeUpdateVideo.
+  ///
+  /// In zh, this message translates to:
+  /// **'同时设置视频内容'**
+  String get libraryBatchRadioModeUpdateVideo;
+
+  /// No description provided for @libraryBatchRadioModeAudioHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'仅音频模式会自动关闭视频内容。'**
+  String get libraryBatchRadioModeAudioHint;
+
+  /// No description provided for @libraryBatchRadioModeUpdated.
+  ///
+  /// In zh, this message translates to:
+  /// **'已更新 {updated}/{total} 个电台'**
+  String libraryBatchRadioModeUpdated(int updated, int total);
+
   /// No description provided for @libraryTitle.
   ///
   /// In zh, this message translates to:
@@ -2636,6 +2672,18 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'自动'**
   String get libraryRadioModeAuto;
+
+  /// No description provided for @libraryRadioModeHls.
+  ///
+  /// In zh, this message translates to:
+  /// **'HLS'**
+  String get libraryRadioModeHls;
+
+  /// No description provided for @libraryRadioModeFlv.
+  ///
+  /// In zh, this message translates to:
+  /// **'HTTP-FLV'**
+  String get libraryRadioModeFlv;
 
   /// No description provided for @libraryRadioModeAudioOnly.
   ///

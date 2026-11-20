@@ -28,6 +28,7 @@ import 'widgets/folder_browse_view.dart';
 import 'widgets/library_view_switcher.dart';
 import 'widgets/tag_grid_view.dart';
 import 'widgets/song_list_tile.dart';
+import 'widgets/batch_radio_mode_dialog.dart';
 
 /// 曲库统一浏览页。
 ///
@@ -514,6 +515,15 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
                       songIds: state.selectedSongIds.toList(),
                     ),
           ),
+          if (selected == 'radio')
+            SelectionActionButton(
+              icon: Icons.settings_input_antenna,
+              label: l10n.libraryBatchRadioMode,
+              onPressed:
+                  state.selectedSongIds.isEmpty
+                      ? null
+                      : () => _showBatchRadioModeDialog(context),
+            ),
           SelectionActionButton(
             icon: Icons.delete,
             label: l10n.libraryDeleteWithCount(state.selectedSongIds.length),
@@ -1481,6 +1491,36 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
             message: l10n.libraryDeleteFailed,
           );
         }
+      }
+    }
+  }
+
+  Future<void> _showBatchRadioModeDialog(BuildContext context) async {
+    final count = ref.read(songsListProvider).selectedSongIds.length;
+    final result = await showBatchRadioModeDialog(context, count: count);
+    if (result == null || !context.mounted) return;
+
+    try {
+      final updated = await ref
+          .read(songsListProvider.notifier)
+          .batchUpdateRadioMode(
+            radioMode: result.radioMode,
+            isVideo:
+                result.updateVideo && result.radioMode != RadioMode.audioOnly
+                    ? result.isVideo
+                    : null,
+          );
+      if (context.mounted) {
+        ResponsiveSnackBar.showSuccess(
+          context,
+          message: AppLocalizations.of(
+            context,
+          ).libraryBatchRadioModeUpdated(updated, count),
+        );
+      }
+    } catch (error) {
+      if (context.mounted) {
+        ResponsiveSnackBar.showError(context, message: error.toString());
       }
     }
   }

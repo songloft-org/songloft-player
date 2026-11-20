@@ -153,6 +153,23 @@ class SongsRepository implements ISongsRepository {
   }
 
   @override
+  Future<int> batchUpdateRadioMode(
+    List<int> ids, {
+    required RadioMode radioMode,
+    bool? isVideo,
+  }) async {
+    try {
+      return await songsApi.batchUpdateRadioMode(
+        ids,
+        radioMode: radioMode,
+        isVideo: isVideo,
+      );
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  @override
   Future<({String fileWriteStatus})> updateSongLyrics(
     int id, {
     required String lyricSource,

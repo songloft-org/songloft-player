@@ -336,9 +336,13 @@ class _SongEditPageState extends ConsumerState<SongEditPage> {
                         value: RadioMode.automatic,
                         child: Text(l10n.libraryRadioModeAuto),
                       ),
-                      const DropdownMenuItem(
+                      DropdownMenuItem(
                         value: RadioMode.hls,
-                        child: Text('HLS'),
+                        child: Text(l10n.libraryRadioModeHls),
+                      ),
+                      DropdownMenuItem(
+                        value: RadioMode.flv,
+                        child: Text(l10n.libraryRadioModeFlv),
                       ),
                       DropdownMenuItem(
                         value: RadioMode.audioOnly,
