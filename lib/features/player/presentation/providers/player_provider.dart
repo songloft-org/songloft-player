@@ -22,6 +22,7 @@ import '../../../../core/network/api_client.dart';
 import '../../../../core/storage/playback_state_storage.dart';
 import '../../../../core/storage/secure_storage.dart';
 import '../../../../core/utils/url_helper.dart';
+import '../../../../config/constants.dart';
 import '../../../../l10n/l10n_holder.dart';
 import '../../../../main.dart';
 import '../../../../shared/models/song.dart';
@@ -1694,6 +1695,8 @@ class PlayerNotifier extends Notifier<PlayerState> {
     return ref
         .read(songsApiProvider)
         .getSongIds(
+          type: AppConstants.songTypeAllMusic,
+          excludePlaylistLabels: AppConstants.musicExcludePlaylistLabels,
           genre: f.genre,
           artist: f.artist,
           album: f.album,
@@ -1729,6 +1732,8 @@ class PlayerNotifier extends Notifier<PlayerState> {
     final f = categorySongsFilter((field: context.type, value: context.key));
     return (offset, limit) async {
       final resp = await songsApi.getSongs(
+        type: AppConstants.songTypeAllMusic,
+        excludePlaylistLabels: AppConstants.musicExcludePlaylistLabels,
         genre: f.genre,
         artist: f.artist,
         album: f.album,
@@ -1987,6 +1992,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
   Future<int> playAllSongs({
     String? keyword,
     String? type,
+    String? excludePlaylistLabels,
     int startIndex = 0,
   }) async {
     final songsApi = ref.read(songsApiProvider);
@@ -2000,6 +2006,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
       final firstPageResponse = await songsApi.getSongs(
         keyword: keyword,
         type: type,
+        excludePlaylistLabels: excludePlaylistLabels,
         limit: firstPageLimit,
         offset: 0,
       );
@@ -2036,6 +2043,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
           songsApi,
           keyword,
           type,
+          excludePlaylistLabels,
           firstPageSongs.length,
           total,
           generation,
@@ -2058,6 +2066,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
     SongsApi songsApi,
     String? keyword,
     String? type,
+    String? excludePlaylistLabels,
     int startOffset,
     int total,
     int generation, {
@@ -2077,6 +2086,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
         final resp = await songsApi.getSongs(
           keyword: keyword,
           type: type,
+          excludePlaylistLabels: excludePlaylistLabels,
           genre: genre,
           artist: artist,
           album: album,
@@ -2103,6 +2113,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
   void loadRemainingSongsForCurrentPlaylist({
     String? keyword,
     String? type,
+    String? excludePlaylistLabels,
     required int loadedCount,
     required int total,
     String? genre,
@@ -2122,6 +2133,7 @@ class PlayerNotifier extends Notifier<PlayerState> {
       songsApi,
       keyword,
       type,
+      excludePlaylistLabels,
       loadedCount,
       total,
       generation,

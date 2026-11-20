@@ -132,14 +132,21 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
     });
   }
 
-  /// 扁平视图首次进入 / 切换时，把 type 过滤同步到共享的 songsListProvider。
+  /// 扁平视图首次进入 / 切换时，把歌曲类型和歌单排除条件同步到共享 provider。
   void _scheduleFlatSync(String key) {
     if (!isFlatLibraryView(key)) return;
     if (_syncedFlatKey == key) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _syncedFlatKey = key;
-      ref.read(songsListProvider.notifier).setTypeFilter(flatViewType(key));
+      final isAllMusic = key == 'all';
+      ref
+          .read(songsListProvider.notifier)
+          .setLibraryFilter(
+            type: flatViewType(key),
+            excludePlaylistLabels:
+                isAllMusic ? AppConstants.musicExcludePlaylistLabels : null,
+          );
     });
   }
 
@@ -272,7 +279,11 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
   Future<void> _playAll(SongsListState state) async {
     final total = await ref
         .read(playerStateProvider.notifier)
-        .playAllSongs(keyword: state.keyword, type: state.type);
+        .playAllSongs(
+          keyword: state.keyword,
+          type: state.type,
+          excludePlaylistLabels: state.excludePlaylistLabels,
+        );
     if (!mounted) return;
     final l10n = AppLocalizations.of(context);
     if (total < 0) {
@@ -1364,6 +1375,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
       notifier.loadRemainingSongsForCurrentPlaylist(
         keyword: state.keyword,
         type: state.type,
+        excludePlaylistLabels: state.excludePlaylistLabels,
         loadedCount: state.songs.length,
         total: state.total,
       );

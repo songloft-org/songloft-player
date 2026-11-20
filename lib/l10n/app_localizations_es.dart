@@ -609,6 +609,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get filterAll => 'Todas';
 
   @override
+  String get libraryViewMusic => 'Música';
+
+  @override
   String get pickerSelectSongs => 'Seleccionar canciones';
 
   @override

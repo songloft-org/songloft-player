@@ -578,6 +578,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get filterAll => '全部';
 
   @override
+  String get libraryViewMusic => '音乐';
+
+  @override
   String get pickerSelectSongs => '选择歌曲';
 
   @override

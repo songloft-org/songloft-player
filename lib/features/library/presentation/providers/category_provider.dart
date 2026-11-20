@@ -112,7 +112,8 @@ class FacetListNotifier extends AsyncNotifier<FacetListState> {
     final api = ref.read(songsApiProvider);
     return api.getFacets(
       _field,
-      type: AppConstants.songTypeMusic,
+      type: AppConstants.songTypeAllMusic,
+      excludePlaylistLabels: AppConstants.musicExcludePlaylistLabels,
       keyword: _keyword,
       limit: pageLimit,
       offset: offset,
@@ -230,7 +231,8 @@ class CategorySongsNotifier extends AsyncNotifier<PaginatedSongsState> {
   Future<SongListResponse> _fetch(SongsApi api, {required int offset}) {
     final f = categorySongsFilter(_key);
     return api.getSongs(
-      type: AppConstants.songTypeMusic,
+      type: AppConstants.songTypeAllMusic,
+      excludePlaylistLabels: AppConstants.musicExcludePlaylistLabels,
       genre: f.genre,
       artist: f.artist,
       album: f.album,

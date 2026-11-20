@@ -58,7 +58,10 @@ class SongsListState {
   });
 
   /// 库页面是否处于「显示隐藏歌曲」状态
-  bool get showHidden => excludePlaylistLabels == 'none';
+  bool get showHidden =>
+      excludePlaylistLabels == 'none' ||
+      excludePlaylistLabels ==
+          AppConstants.musicExcludePlaylistLabelsWithHidden;
 
   SongsListState copyWith({
     List<Song>? songs,
@@ -204,12 +207,19 @@ class SongsListNotifier extends Notifier<SongsListState> {
   }
 
   /// 切换是否显示隐藏歌单里的歌曲。
-  /// show=true → 传 'none' 显示全部；show=false → 恢复默认（后端排除隐藏歌单）
+  /// show=true → 显示隐藏歌曲；音乐总览仍排除有声书歌单
+  /// show=false → 恢复默认的隐藏歌单排除
   Future<void> setShowHidden(bool show) async {
     if (state.showHidden == show) return;
+    final isAllMusic = state.type == AppConstants.songTypeAllMusic;
     state = state.copyWith(
-      excludePlaylistLabels: show ? 'none' : null,
-      clearExcludePlaylistLabels: !show,
+      excludePlaylistLabels:
+          show
+              ? (isAllMusic
+                  ? AppConstants.musicExcludePlaylistLabelsWithHidden
+                  : 'none')
+              : (isAllMusic ? AppConstants.musicExcludePlaylistLabels : null),
+      clearExcludePlaylistLabels: !show && !isAllMusic,
     );
     await loadSongs(page: 0, keyword: state.keyword, type: state.type);
   }
@@ -222,6 +232,24 @@ class SongsListNotifier extends Notifier<SongsListState> {
     } else {
       await loadSongs(page: 0, keyword: state.keyword, type: type);
     }
+  }
+
+  /// Sets the source type and playlist-label exclusions as one query state.
+  Future<void> setLibraryFilter({
+    required String? type,
+    required String? excludePlaylistLabels,
+  }) async {
+    if (state.type == type &&
+        state.excludePlaylistLabels == excludePlaylistLabels) {
+      return;
+    }
+    state = state.copyWith(
+      type: type,
+      clearType: type == null,
+      excludePlaylistLabels: excludePlaylistLabels,
+      clearExcludePlaylistLabels: excludePlaylistLabels == null,
+    );
+    await loadSongs(page: 0, keyword: state.keyword, type: type);
   }
 
   /// 切换多选模式

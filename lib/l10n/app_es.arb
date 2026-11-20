@@ -216,6 +216,7 @@
   "songTypeRemote": "Remota",
   "songTypeRadio": "Radio",
   "filterAll": "Todas",
+  "libraryViewMusic": "Música",
   "pickerSelectSongs": "Seleccionar canciones",
   "pickerSearchHint": "Buscar canciones, artistas o álbumes",
   "pickerNoMatchInFolder": "No hay canciones que coincidan en esta carpeta",

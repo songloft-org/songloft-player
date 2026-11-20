@@ -607,6 +607,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get filterAll => 'All';
 
   @override
+  String get libraryViewMusic => 'Music';
+
+  @override
   String get pickerSelectSongs => 'Select songs';
 
   @override

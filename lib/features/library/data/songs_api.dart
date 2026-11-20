@@ -69,7 +69,7 @@ class SongsApi {
   SongsApi(this.dio);
 
   /// 获取歌曲列表
-  /// [type] 歌曲类型：music（本地+网络，排除电台和有声书歌单）、local, remote, radio（可选）
+  /// [type] 歌曲类型：local、remote、radio 的逗号分隔组合（可选）
   /// [keyword] 搜索关键词（可选）
   /// [pathPrefix] 按 file_path 前缀过滤（可选，如 music/Pop）
   /// [limit] 每页数量，默认 20
@@ -163,6 +163,7 @@ class SongsApi {
   Future<SongFacetResponse> getFacets(
     String field, {
     String? type,
+    String? excludePlaylistLabels,
     String? keyword,
     int? limit,
     int? offset,
@@ -171,6 +172,9 @@ class SongsApi {
   }) async {
     final queryParams = <String, dynamic>{'field': field};
     if (type != null && type.isNotEmpty) queryParams['type'] = type;
+    if (excludePlaylistLabels != null && excludePlaylistLabels.isNotEmpty) {
+      queryParams['exclude_playlist_labels'] = excludePlaylistLabels;
+    }
     if (keyword != null && keyword.isNotEmpty) {
       queryParams['keyword'] = keyword;
     }

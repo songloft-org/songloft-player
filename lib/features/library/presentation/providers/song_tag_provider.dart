@@ -155,7 +155,8 @@ class TagSongsNotifier extends AsyncNotifier<PaginatedSongsState> {
   Future<SongListResponse> _fetch({required int offset}) {
     final api = ref.read(songsApiProvider);
     return api.getSongs(
-      type: AppConstants.songTypeMusic,
+      type: AppConstants.songTypeAllMusic,
+      excludePlaylistLabels: AppConstants.musicExcludePlaylistLabels,
       tagId: _tagId,
       limit: pageLimit,
       offset: offset,
@@ -177,7 +178,8 @@ class TagSongsNotifier extends AsyncNotifier<PaginatedSongsState> {
     final api = ref.read(songsApiProvider);
     while (current.hasMore) {
       final resp = await api.getSongs(
-        type: AppConstants.songTypeMusic,
+        type: AppConstants.songTypeAllMusic,
+        excludePlaylistLabels: AppConstants.musicExcludePlaylistLabels,
         tagId: _tagId,
         limit: pageLimit,
         offset: current.items.length,

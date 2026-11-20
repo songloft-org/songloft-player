@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../config/constants.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/responsive.dart';
 import '../../../shared/models/song.dart';
@@ -89,6 +90,8 @@ class _CategorySongsPageState extends ConsumerState<CategorySongsPage>
       notifier.loadRemainingSongsForCurrentPlaylist(
         loadedCount: songs.length,
         total: state.total,
+        type: AppConstants.songTypeAllMusic,
+        excludePlaylistLabels: AppConstants.musicExcludePlaylistLabels,
         genre: f.genre,
         artist: f.artist,
         album: f.album,

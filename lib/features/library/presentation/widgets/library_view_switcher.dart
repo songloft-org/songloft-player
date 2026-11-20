@@ -9,7 +9,7 @@ import '../providers/category_provider.dart';
 // 曲库统一浏览页的「视图」抽象。
 //
 // 视图 key 分三组（渲染时按固定组顺序展示并在组间加分割线，组内顺序沿用用户配置）：
-// - 歌曲组：all/local/remote/radio（按 type 过滤的扁平歌曲列表，「网络」= remote）
+// - 歌曲组：all/local/remote/radio（按 type 过滤的扁平列表；all 是 local+remote 音乐）
 // - 分类组：artist/album/genre/year/decade/language/style（facet 卡片 → 下钻）
 // - 歌单组：playlist/playlist_normal/playlist_radio/playlist_remote/playlist_local
 //   （歌单卡片列表 → 歌单详情）。前三个按 playlists.type 过滤，后两个**不按 type**，
@@ -33,7 +33,7 @@ bool isFlatLibraryView(String key) => flatLibraryViewKeys.contains(key);
 /// 判断某视图是否为歌单视图。
 bool isPlaylistLibraryView(String key) => playlistLibraryViewKeys.contains(key);
 
-/// 扁平视图对应的歌曲 type 过滤值；all 选择普通音乐（排除电台和有声书）。
+/// 扁平视图对应的歌曲 type 过滤值；all 选择 local + remote 音乐。
 String? flatViewType(String key) {
   switch (key) {
     case 'local':
@@ -43,7 +43,7 @@ String? flatViewType(String key) {
     case 'radio':
       return AppConstants.songTypeRadio;
     case 'all':
-      return AppConstants.songTypeMusic;
+      return AppConstants.songTypeAllMusic;
     default:
       return null;
   }
@@ -90,7 +90,7 @@ bool isFolderLibraryView(String key) => key == 'folder';
 String libraryViewLabel(AppLocalizations l10n, String key) {
   switch (key) {
     case 'all':
-      return l10n.filterAll;
+      return l10n.libraryViewMusic;
     case 'local':
       return l10n.songTypeLocal;
     case 'remote':

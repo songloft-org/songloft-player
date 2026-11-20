@@ -11,10 +11,12 @@ class AppConstants {
   static const String playModeRandom = 'random';
 
   // 歌曲类型
-  static const String songTypeMusic = 'music';
+  static const String songTypeAllMusic = 'local,remote';
   static const String songTypeLocal = 'local';
   static const String songTypeRemote = 'remote';
   static const String songTypeRadio = 'radio';
+  static const String musicExcludePlaylistLabels = 'hidden,audiobook';
+  static const String musicExcludePlaylistLabelsWithHidden = 'audiobook';
 
   // 歌单类型
   static const String playlistTypeNormal = 'normal';

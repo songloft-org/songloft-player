@@ -215,6 +215,7 @@
   "songTypeRemote": "网络",
   "songTypeRadio": "电台",
   "filterAll": "全部",
+  "libraryViewMusic": "音乐",
   "pickerSelectSongs": "选择歌曲",
   "pickerSearchHint": "搜索歌曲、艺术家或专辑",
   "pickerNoMatchInFolder": "该目录下未找到匹配的歌曲",

@@ -195,6 +195,7 @@
   "songTypeRemote": "Remote",
   "songTypeRadio": "Radio",
   "filterAll": "All",
+  "libraryViewMusic": "Music",
   "pickerSelectSongs": "Select songs",
   "pickerSearchHint": "Search songs, artists or albums",
   "pickerNoMatchInFolder": "No matching songs in this folder",

@@ -1149,6 +1149,12 @@ abstract class AppLocalizations {
   /// **'全部'**
   String get filterAll;
 
+  /// No description provided for @libraryViewMusic.
+  ///
+  /// In zh, this message translates to:
+  /// **'音乐'**
+  String get libraryViewMusic;
+
   /// No description provided for @pickerSelectSongs.
   ///
   /// In zh, this message translates to:
