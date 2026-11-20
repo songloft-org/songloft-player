@@ -18,7 +18,7 @@
 
 ## 核心模型:无基线 + 自动发布 + 兼容键
 
-- **无基线**:客户端查**本渠道最新** Release——dev→滚动 tag `dev`;stable→GitHub `/releases/latest`(dev 是 prerelease,latest 天然返回最新正式版)。由 `lib/core/updater/channel_release_resolver.dart` 解析,任意非最新 → 最新。
+- **无基线**:客户端查**后端 Release 的本渠道最新** Release——dev→滚动 tag `dev`;stable→GitHub `/releases/latest`(dev 是 prerelease,latest 天然返回最新正式版)。由 `lib/core/updater/channel_release_resolver.dart` 解析,任意非最新 → 最新。
 - **自动发布**:`build-and-release.yml` 的 `build-android` job 每次发版自动 `dart run flutter_patcher:pack` 产出 `patch-<abi>-<commit>.zip` + `manifest-<abi>.json` 随 release 上传(`arm64-v8a` / `armeabi-v7a` / `x86_64`)。**已无手动 `patch-release.yml`。**
 - **比较规则**:dev 比 **git commit hash**;stable 比**版本号**(semver,`lib/core/updater/version_compare.dart`)。已应用同补丁(`flutter_patcher.currentVersion == patchLabel`)跳过。
 - **版本码与引擎兼容性** — Gradle 将通用 APK 的 `versionCode` 下限设为 4002，以便覆盖安装旧分架构包（最高 4001）。CI 用 aapt 从 APK 读取实际版本码，并写入各 ABI 的前端补丁和 manifest。客户端检查 `versionCode`、Flutter 引擎键（`flutterBinding`）和原生契约，版本码或引擎不匹配时引导下载整包。
@@ -36,17 +36,17 @@
 
 ## 托管与 URL 约定
 
-补丁作为资产随 songloft-player 对应渠道 Release 上传;标准版使用 `manifest-<abi>.json` / `patch-*`,Bundle 版使用 `bundle-manifest-<abi>.json` / `bundle-patch-*`,客户端根据 `HAS_BACKEND` 与渠道选择资产。
+补丁作为资产随对应渠道 Release 上传。标准版使用 Flutter 客户端 Release 的 `manifest-<abi>.json` / `patch-*`，Bundle 版使用后端 Release 的 `bundle-flutter-version.json` / `bundle-patch-*`，客户端根据 `HAS_BACKEND` 与渠道选择资产。
 
-- 标准版 manifest:`https://github.com/songloft-org/songloft-player/releases/download/<tag>/manifest-<abi>.json`;Bundle 版使用 `bundle-manifest-<abi>.json`
+- 标准版 manifest:`https://github.com/songloft-org/songloft-player-flutter/releases/download/<tag>/manifest-<abi>.json`;Bundle 版使用 `bundle-flutter-version.json`
   - stable:`<tag>` = `v<version>`(经 `/releases/latest` 解析);dev:`<tag>` = `dev`
-  - 内容为 `PatchCheckResult` 形状:`{"hasUpdate":true,"patch":{"version","semanticVersion","gitCommit","flutterBinding","targetVersionCode","patchUrl","md5"}}`(其中 `version` 是 `<semver>-<gitCommit>` 形式的补丁标签)
+  - Bundle 内容为 `{"hasUpdate":true,"patches":{"<abi>":{"version","semanticVersion","gitCommit","flutterBinding","targetVersionCode","patchUrl","md5"}}}`，标准版内容是单个 `patch` 对象
 - patch 包:标准版为 `patch-<abi>-<commit>.zip`,Bundle 版为 `bundle-patch-<abi>-<commit>.zip`(md5 取 zip 的)
 - **向后兼容**:老式 manifest 无 `semanticVersion` / `gitCommit` / `flutterBinding` 时,客户端退回「`hasUpdate` + versionCode 绑定 + 已应用守卫」旧行为。
 
 ## 发布(`build-and-release.yml` 的 `build-android`,自动)
 
-每次发版（`dev` 或 `v<x.y.z>`）用 `flutter build apk --release` 生成一个通用 APK。CI 从同一个 APK 为 `arm64-v8a`、`armeabi-v7a` 和 `x86_64` 分别运行 `dart run flutter_patcher:pack --apk <apk> --version <semver>-<commit> --target-version-code <vc> --abi <abi>`，随 Release 上传 APK、`patch-<abi>-<commit>.zip` 和 `manifest-<abi>.json`。
+Flutter 客户端 Release 为标准版生成 `manifest-<abi>.json` 与 `patch-<abi>-<commit>.zip`。后端 Release 的 Flutter Bundle job 从同一个 Bundle APK 生成 `bundle-flutter-version.json`、`bundle-patch-<abi>-<commit>.zip` 和后端 manifest。
 
 ## 发布纪律
 

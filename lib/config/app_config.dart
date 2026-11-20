@@ -106,8 +106,8 @@ class AppConfig {
   static const String frontendReleasesUrl =
       'https://github.com/songloft-org/songloft-player/releases/latest';
 
-  /// Bundle 与标准版均由本客户端仓库发版；资产名不同，版本号共享。
-  static const String frontendBundleRepo = 'songloft-org/songloft-player';
+  /// Bundle 由后端仓库的同一发布快照发版；Flutter 标准版仍由客户端仓库发版。
+  static const String frontendBundleRepo = 'songloft-org/songloft';
 
   /// 「客户端更新」流程实际使用的检查仓库：标准版和 Bundle 版均查本客户端仓库。
   /// hasEmbeddedBackend 为编译时常量，tree-shaking 会固定此值。

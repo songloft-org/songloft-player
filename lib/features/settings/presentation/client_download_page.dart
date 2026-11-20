@@ -15,7 +15,7 @@ import 'widgets/section_card.dart';
 ///
 /// 按浏览器 User-Agent 推荐匹配当前设备的原生客户端，并列出全部平台：
 /// - 标准版：连接当前服务器（`songloft-org/songloft-player` releases）
-/// - Bundle 版：内嵌后端、无需服务器（在同一 Release 中按文件名选择）
+/// - Bundle 版：内嵌后端、无需服务器（从后端 Release 下载）
 ///
 /// 下载链接自动套用「设置 → 网络设置」配置的 GitHub 加速代理（[githubProxyProvider]）。
 class ClientDownloadPage extends ConsumerWidget {

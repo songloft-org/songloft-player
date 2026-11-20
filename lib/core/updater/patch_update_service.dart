@@ -63,7 +63,9 @@ class PatchUpdateService {
       final abi = await FlutterPatcher.deviceAbi;
       if (abi.isEmpty) return null;
       final manifestName =
-          '${AppConfig.hasEmbeddedBackend ? 'bundle-manifest' : 'manifest'}-$abi.json';
+          AppConfig.hasEmbeddedBackend
+              ? 'bundle-flutter-version.json'
+              : 'manifest-$abi.json';
       final rawUrl = await _resolver.assetUrl(
         manifestName,
         githubProxy: githubProxy,
@@ -94,7 +96,9 @@ class PatchUpdateService {
         return null;
       }
 
-      final p = map['patch'];
+      final patches = map['patches'];
+      final abiPatch = patches is Map ? patches[abi] : null;
+      final p = abiPatch ?? map['patch'];
       final patch = p is Map ? Map<String, dynamic>.from(p) : map;
       final patchLabel = (patch['version'] ?? '') as String;
       final patchUrl =

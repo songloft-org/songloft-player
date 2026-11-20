@@ -180,22 +180,22 @@ dart format lib/ test/
 
 Bundle 版通过 `--dart-define=HAS_BACKEND=true` 注入（`AppConfig.hasEmbeddedBackend`），在设备上内嵌 Go 后端运行，**与 embedded（`DEPLOY_MODE`）正交**：bundle 版并不设 `DEPLOY_MODE=embedded`，故 `isEmbedded=false`，设置页的「检查客户端更新」tile 照常显示。
 
-**标准版与 Bundle 版由本仓库同一 Release 发布，更新检查使用相同仓库，但资产名称分开。**
+**标准版由 Flutter 客户端 Release 发布，Bundle 由后端 Release 发布，更新检查按 edition 选择仓库。**
 
 | 版本 | 发布仓库 | 产物名 | 由谁构建 |
 |------|---------|--------|---------|
-| 标准版 | `songloft-org/songloft-player` | `songloft-*.apk` 等 | 本仓库 `build-and-release.yml` |
-| Bundle 版 | `songloft-org/songloft-player` | `songloft-bundled-*` | 本仓库 `build-and-release.yml`，从流水线启动时主仓库 `main` 的同一最新 SHA 构建 Go 后端 |
+| 标准版 | `songloft-org/songloft-player` | `songloft-*.apk` 等 | 后端仓库 `release.yml` |
+| Bundle 版 | `songloft-org/songloft` | `songloft-bundled-*` | 后端仓库 `release.yml`，从流水线启动时主仓库 `main` 的同一最新 SHA 构建 Go 后端 |
 
 - `FrontendVersionApi` 的更新检查仓库由 `AppConfig.frontendUpdateRepo`（`hasEmbeddedBackend ? frontendBundleRepo : frontendRepo`，编译期固定）决定；`frontendUpdateReleasesUrl` 同理。
-- Bundle 更新检查仍走本仓库 Release；安装入口必须区分 `songloft-bundled-*`，不能让 Bundle 用户下载标准版覆盖安装。
+- Bundle 更新检查仍走后端仓库 Release；安装入口必须区分 `songloft-bundled-*`，不能让 Bundle 用户下载标准版覆盖安装。
 - `frontendRepo` / `frontendReleasesUrl` 保留原义，仅供 Web 端 `client_download_page.dart` 的「标准版下载」区使用（该页 web-only）。
 
 ### 热更新（前端 libapp.so + Bundle 版 Android 后端 libgojni.so）
 
 详见 [docs/cn/backend_hotupdate.md](docs/cn/backend_hotupdate.md)（Bundle 统一模型,权威）。要点:
 
-- **无基线 + 自动发布**:客户端查**本渠道最新**（dev→`dev` tag;stable→`/releases/latest`,`channel_release_resolver.dart`）；本仓库 `build-and-release.yml` 的 Android job 同时构建标准版和 Bundle 版，并为 Bundle 上传 `bundle-patch-<abi>-<commit>.zip`、`bundle-manifest-<abi>.json`、`bundle-libgojni-<abi>-<backend-sha>.so` 与 `bundle-backend-manifest-<abi>.json`。
+- **无基线 + 自动发布**:客户端查**后端 Release 的本渠道最新**（dev→`dev` tag;stable→`/releases/latest`,`channel_release_resolver.dart`）；后端仓库 `release.yml` 的 Flutter Bundle job 同时构建标准版和 Bundle 版，并为 Bundle 上传 `bundle-patch-<abi>-<commit>.zip`、`bundle-flutter-version.json`、`bundle-libgojni-<abi>-<backend-sha>.so` 与 `bundle-flutter-backend-manifest-<abi>.json`。
 - **合并为一次体验**:`PatchUpdateDialog.maybeShow`（`lib/core/updater/`）每会话并行检查两类补丁,一个对话框列出、一起下载、**只重启一次**（`EmbeddedBackendService.restartProcess` 真进程冷启 —— libapp.so 生效 + `SongloftApplication` 预加载 libgojni.so）。
 - **启动检查的三道闸 + 手动入口**（不要退回「首帧就打网络」）:触发点在 `ShellLayout`（**不是** HomePage —— Shell 全会话常驻,且 TvHomePage 也在它下面,TV 因此一并覆盖）,顺序是**先 `ref.listenManual(authStateProvider)` 等 `authenticated`、再排 `kPatchCheckStartupDelay`(4s) 的可取消 `Timer`**（只判 `mounted` 是竞态:认证慢于延迟时,登录前那次短命挂载会吃掉本会话唯一的检查名额、写掉节流窗口,还带无 token 的 dio 去查;`Timer` 而非 `Future.delayed` 是为了能在 `dispose` 取消）。受「启动时自动检查更新」开关（`autoUpdateCheckProvider`,prefs `auto_update_check_enabled`,缺省开）与 `kPatchCheckThrottle`(6h,prefs `last_patch_check_at`) 节流约束;检查阶段套 45s 整体超时（代理失败会降级直连，单请求最坏翻倍）;节流判定必须带 `elapsed >= 0`（时钟被往回调过时未来时间戳会把检查挡死到真实时间追上）。**查到补丁但 `context` 已卸载时要回滚节流时间戳**,且单独打日志别复用「无可热更补丁」那条。手动入口合并在「设置 → 关于与更新 → 检查客户端更新」,走 `maybeShow(manual: true)`:跳过两道闸、**绕过（非清除）「忽略此版本」名单**、不写节流时间戳,无补丁时落回 `FrontendUpgradeDialog`（它自带三态,故不额外 snackbar）。闸门语义由 `test/core/updater/patch_update_dialog_gates_test.dart` 覆盖。
 - **前端补丁兼容性**取决于 APK 实际 `versionCode`、Flutter 引擎键（`AppConfig.flutterBinding` = CI `FLUTTER_VERSION`）与原生契约。每个版本的三个 ABI 补丁从同一个通用 APK 提取。后端通过固定 SHA 的 `mobile/export_surface.txt` 校验 Go 导出面。

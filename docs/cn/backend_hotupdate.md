@@ -1,13 +1,13 @@
 # Bundle 版 Android 热更新(前端 libapp.so + 后端 libgojni.so)
 
-本文描述 Bundle 本地模式下 songloft-player 的 **Android 自托管热更新**:**无基线**——任何非最新 dev 更新到最新 dev、任何非最新 stable 更新到最新 stable。标准版和 Bundle 包由本仓库同一 Release 发布；Bundle 使用独立 manifest 与补丁文件名前缀。**每次发版自动**把最新补丁挂到 Release,客户端启动检查、一次下载、只重启一次:一次真进程冷启同时让前端 `libapp.so`(flutter_patcher)与后端 `libgojni.so`(gomobile)生效。
+本文描述 Bundle 本地模式下 songloft-player 的 **Android 自托管热更新**:**无基线**——任何非最新 dev 更新到最新 dev、任何非最新 stable 更新到最新 stable。Flutter 标准版由客户端 Release 发布，Bundle 包由后端 Release 发布；Bundle 使用独立 manifest 与补丁文件名前缀。**每次发版自动**把最新补丁挂到 Release,客户端启动检查、一次下载、只重启一次:一次真进程冷启同时让前端 `libapp.so`(flutter_patcher)与后端 `libgojni.so`(gomobile)生效。
 
 > 中英双语并存,改一版需同步 `docs/en/backend_hotupdate.md`。
 
 ## 核心模型:无基线 + 自动发布 + 工具链兼容键
 
-- **无基线**:客户端查**本渠道最新**——dev→滚动 tag `dev`;stable→GitHub `/releases/latest`(dev 是 prerelease,latest 天然返回最新正式版)。由 `lib/core/updater/channel_release_resolver.dart` 解析,复用 `FrontendVersionApi` 思路。
-- **自动发布**:本仓库 `build-and-release.yml` 的 Android job 每次发版自动产出并上传 Bundle 前端 `bundle-patch-<abi>-<commit>.zip`+`bundle-manifest-<abi>.json`、后端 `bundle-libgojni-<abi>-<backend-sha>.so`+`bundle-backend-manifest-<abi>.json`(arm64-v8a / armeabi-v7a / x86_64,gomobile bind 含 android/amd64 目标)。**无手动 workflow、无 versionCode 绑定**。
+- **无基线**:客户端查**后端 Release 的本渠道最新**——dev→滚动 tag `dev`;stable→GitHub `/releases/latest`(dev 是 prerelease,latest 天然返回最新正式版)。由 `lib/core/updater/channel_release_resolver.dart` 解析,复用 `FrontendVersionApi` 思路。
+- **自动发布**:后端仓库 `release.yml` 的 Flutter Bundle job 每次发版自动产出并上传 Bundle 前端 `bundle-patch-<abi>-<commit>.zip`+`bundle-flutter-version.json`、后端 `bundle-libgojni-<abi>-<backend-sha>.so`+`bundle-flutter-backend-manifest-<abi>.json`(arm64-v8a / armeabi-v7a / x86_64,gomobile bind 含 android/amd64 目标)。**无手动 workflow、无 versionCode 绑定**。
 - **兼容键取代 versionCode**(自动、非手改):
   - **前端 libapp.so** — Gradle 将通用 APK 的 `versionCode` 下限设为 4002，以便覆盖安装旧分架构包（最高 4001）。CI 用 aapt 从 APK 读取实际版本码，并写入各 ABI 的前端补丁和 manifest。客户端检查 `versionCode`、Flutter 引擎键（`flutterBinding`）和原生契约，版本码或引擎不匹配时引导下载整包。
   - **后端 libgojni.so**:兼容边界是 gomobile 导出面(`mobile/export_surface.txt` + `release.yml` 导出面守卫,自动)。**去掉 versionCode**,靠「导出面冻结 + 崩溃回滚黑名单」保证任意老包热更到最新。
@@ -94,12 +94,12 @@
 
 状态存纯文件 `filesDir/backend_patch/state.json`(需在 Dart 引擎前可读)。`preloadIfStaged`:无 active / 在黑名单 → 不预加载(回滚随包版);`confirmed` → 直接 `System.load`;`staged/pending` → `bootAttempts++`,超阈值(>1)判定启动即崩 → 拉黑(gitCommit+md5)+ 清 active + 回滚;`System.load` 抛异常 → 立即拉黑回滚,绝不让进程崩。confirm 时机:新进程后端健康后(`startup_gate` 冷启 / `backend_lifecycle` resume)`BackendPatchService.confirmIfHealthy()` 校验 `/api/v1/version` git_commit 一致 → `confirmBackendPatch()`。
 
-## Manifest 约定(songloft-player Release 资产,按 ABI)
+## Manifest 约定(按 Release 资产与 ABI)
 
-- 标准版前端使用 `manifest-<abi>.json`;Bundle 前端使用 `bundle-manifest-<abi>.json`，两者结构为 `{hasUpdate, patch:{version(patchLabel), semanticVersion, gitCommit, flutterBinding, contractHash, targetVersionCode, patchUrl, md5}}`。
-- Bundle 后端使用 `bundle-backend-manifest-<abi>.json`:`{hasUpdate, backend:{abi, version, gitCommit, buildTime, soUrl, md5, contractHash, size}}`(无 targetVersionCode)。
-- Bundle 资产由 Flutter 客户端仓库构建；CI 启动时解析主仓库 `main` 的最新提交和版本。各平台复用该 SHA，gomobile 版本从该提交的 `go.mod` 读取。
-- 都随本仓库 release(tag=dev / v<x.y.z>)自动上传;客户端按渠道解析最新。
+- 标准版前端使用 Flutter Release 的 `manifest-<abi>.json`;Bundle 前端使用后端 Release 的 `bundle-flutter-version.json`，Bundle 结构为 `{hasUpdate, patches:{<abi>: patch}}`。
+- Bundle 后端使用 `bundle-flutter-backend-manifest-<abi>.json`:`{hasUpdate, backend:{abi, version, gitCommit, buildTime, soUrl, md5, contractHash, size}}`(无 targetVersionCode)。
+- Bundle 资产由后端仓库 `release.yml` 构建；Release 准备阶段固定主仓库、Flutter/Lynx 子模块和 `pkg/tag` 的完整 SHA。
+- Bundle 资产随后端 Release（tag=dev / v<x.y.z>）自动上传，客户端按渠道解析最新。
 
 ## 发布纪律
 

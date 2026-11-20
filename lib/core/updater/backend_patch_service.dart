@@ -18,7 +18,7 @@ import 'version_compare.dart';
 
 /// Bundle 版 Android 后端热更（替换 `libgojni.so`）的补丁元数据。
 ///
-/// 对应本仓库 Release 的 `bundle-backend-manifest-<abi>.json` 的 `backend` 字段。
+/// 对应后端 Release 的 `bundle-flutter-backend-manifest-<abi>.json` 的 `backend` 字段。
 class BackendPatchInfo {
   /// 展示 + 忽略键（如 `2.11.1-b1`）。
   final String patchLabel;
@@ -103,8 +103,8 @@ class _RunningBackendVersion {
 /// 设计见 docs/cn/backend_hotupdate.md：
 /// - 仅在 Android 且 [AppConfig.hasEmbeddedBackend] 且本地模式后端运行时生效，其余
 ///   平台 [isSupported] 为 false、所有方法安全 no-op。
-/// - 补丁托管在客户端仓库 [AppConfig.frontendUpdateRepo] 的 Release，按渠道取 tag、
-///   按 ABI 取 `bundle-backend-manifest-<abi>.json`。
+/// - 补丁托管在后端仓库 [AppConfig.frontendUpdateRepo] 的 Release，按渠道取 tag、
+///   按 ABI 取 `bundle-flutter-backend-manifest-<abi>.json`。
 /// - 「当前后端版本」运行期取自 `GET /api/v1/version`（不是编译期常量）。dev 比 git
 ///   commit、stable 比版本号。
 /// - 下载 .so → md5 校验 → 交原生 `stageBackendPatch` 落地 → 冷重启进程后由自定义
@@ -160,12 +160,12 @@ class BackendPatchService {
       }
 
       final rawUrl = await _resolver.assetUrl(
-        'bundle-backend-manifest-$abi.json',
+        'bundle-flutter-backend-manifest-$abi.json',
         githubProxy: githubProxy,
       );
       if (rawUrl == null) {
         debugPrint(
-          '[BackendPatch] checkPatch: 渠道 release 无 bundle-backend-manifest-$abi.json,跳过',
+          '[BackendPatch] checkPatch: 后端 release 无 bundle-flutter-backend-manifest-$abi.json,跳过',
         );
         return null;
       }

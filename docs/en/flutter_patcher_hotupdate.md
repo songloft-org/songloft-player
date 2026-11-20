@@ -18,7 +18,7 @@ This doc describes songloft-player's **frontend self-hosted Android hot update**
 
 ## Core model: baseline-free + auto-publish + compatibility key
 
-- **Baseline-free**: the client fetches the **latest of its channel** — dev → rolling tag `dev`; stable → GitHub `/releases/latest` (dev is a prerelease, so latest returns the newest stable). Resolved by `lib/core/updater/channel_release_resolver.dart`; any non-latest → latest.
+- **Baseline-free**: the Bundle client fetches the **latest backend Release of its channel** — dev → rolling tag `dev`; stable → GitHub `/releases/latest` (dev is a prerelease, so latest returns the newest stable). Resolved by `lib/core/updater/channel_release_resolver.dart`; any non-latest → latest.
 - **Auto-publish**: `build-and-release.yml`'s `build-android` job runs `dart run flutter_patcher:pack` on every release, producing `patch-<abi>-<commit>.zip` + `manifest-<abi>.json` uploaded with the release (`arm64-v8a` / `armeabi-v7a` / `x86_64`). **The manual `patch-release.yml` is gone.**
 - **Comparison**: dev by **git commit hash**; stable by **version number** (semver, `lib/core/updater/version_compare.dart`). Already-applied (`flutter_patcher.currentVersion == patchLabel`) is skipped.
 - **Version code and engine compatibility** — Gradle sets a minimum `versionCode` of 4002 for the universal APK so it can replace older split APKs, whose highest code was 4001. CI reads the actual code from the APK with aapt and writes it to every ABI-specific frontend patch and manifest. The client checks the version code, Flutter engine key (`flutterBinding`), and native contract. A version-code or engine mismatch requires a full APK.
@@ -36,17 +36,17 @@ Entry: `ShellLayout.initState` calls `PatchUpdateDialog.maybeShow` once per sess
 
 ## Hosting & URL convention
 
-Patches are uploaded to the corresponding channel Release in songloft-player. Standard uses `manifest-<abi>.json` / `patch-*`; Bundle uses `bundle-manifest-<abi>.json` / `bundle-patch-*`. The client selects assets by `HAS_BACKEND` and channel.
+Patches are uploaded to the corresponding channel Release. Standard uses `manifest-<abi>.json` / `patch-*` in the Flutter client Release. Bundle uses `bundle-flutter-version.json` / `bundle-patch-*` in the backend Release. The client selects assets by `HAS_BACKEND` and channel.
 
-- Standard manifest: `https://github.com/songloft-org/songloft-player/releases/download/<tag>/manifest-<abi>.json`; Bundle uses `bundle-manifest-<abi>.json`.
+- Standard manifest: `https://github.com/songloft-org/songloft-player-flutter/releases/download/<tag>/manifest-<abi>.json`; Bundle uses `bundle-flutter-version.json`.
   - stable: `<tag>` = `v<version>` (resolved via `/releases/latest`); dev: `<tag>` = `dev`
-  - content is `PatchCheckResult` shaped: `{"hasUpdate":true,"patch":{"version","semanticVersion","gitCommit","flutterBinding","targetVersionCode","patchUrl","md5"}}` (`version` is the patch label in the form `<semver>-<gitCommit>`)
+  - Bundle content is `{"hasUpdate":true,"patches":{"<abi>":{"version","semanticVersion","gitCommit","flutterBinding","targetVersionCode","patchUrl","md5"}}}`. Standard content uses one `patch` object.
 - Patch package: `patch-<abi>-<commit>.zip` for standard and `bundle-patch-<abi>-<commit>.zip` for Bundle (md5 over the zip)
 - **Backward compatibility**: when a legacy manifest lacks `semanticVersion` / `gitCommit` / `flutterBinding`, the client falls back to the old "`hasUpdate` + versionCode binding + already-applied guard" behavior.
 
 ## Publishing (`build-and-release.yml`'s `build-android`, automatic)
 
-Every release (`dev` or `v<x.y.z>`) builds one universal APK with `flutter build apk --release`. CI runs `dart run flutter_patcher:pack --apk <apk> --version <semver>-<commit> --target-version-code <vc> --abi <abi>` on the same APK for `arm64-v8a`, `armeabi-v7a`, and `x86_64`. The release includes the APK, `patch-<abi>-<commit>.zip`, and `manifest-<abi>.json`.
+The Flutter client Release publishes standard `manifest-<abi>.json` and `patch-<abi>-<commit>.zip` assets. The backend Release's Flutter Bundle job creates `bundle-flutter-version.json`, `bundle-patch-<abi>-<commit>.zip`, and the backend manifests from one Bundle APK.
 
 ## Release discipline
 

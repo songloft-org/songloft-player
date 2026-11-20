@@ -1,13 +1,13 @@
 # Bundle Android Hot Update (frontend libapp.so + backend libgojni.so)
 
-This doc describes songloft-player's **self-hosted Android hot update** in Bundle local mode: **baseline-free** — any non-latest dev updates to the latest dev, any non-latest stable to the latest stable. Standard and Bundle packages share this repository's Release, with distinct Bundle manifest and patch prefixes. **Every release auto-publishes** the latest patches as Release assets; the client checks on startup, downloads once, and restarts once: a single real cold restart makes both the frontend `libapp.so` (flutter_patcher) and the backend `libgojni.so` (gomobile) take effect.
+This doc describes songloft-player's **self-hosted Android hot update** in Bundle local mode: **baseline-free** — any non-latest dev updates to the latest dev, any non-latest stable to the latest stable. Flutter standard packages use the client Release, while Bundle packages use the backend Release, with distinct Bundle manifest and patch prefixes. **Every release auto-publishes** the latest patches as Release assets; the client checks on startup, downloads once, and restarts once: a single real cold restart makes both the frontend `libapp.so` (flutter_patcher) and the backend `libgojni.so` (gomobile) take effect.
 
 > Bilingual: any change here must be mirrored in `docs/cn/backend_hotupdate.md`.
 
 ## Core model: baseline-free + auto-publish + toolchain compatibility key
 
-- **Baseline-free**: the client fetches the **latest of its channel** — dev → rolling tag `dev`; stable → GitHub `/releases/latest` (dev is a prerelease, so latest returns the newest stable). Resolved by `lib/core/updater/channel_release_resolver.dart`, reusing `FrontendVersionApi`'s approach.
-- **Auto-publish**: this repository's `build-and-release.yml` Android job produces and uploads Bundle frontend `bundle-patch-<abi>-<commit>.zip`+`bundle-manifest-<abi>.json` and backend `bundle-libgojni-<abi>-<backend-sha>.so`+`bundle-backend-manifest-<abi>.json` on every release (arm64-v8a / armeabi-v7a / x86_64; gomobile bind includes android/amd64). **No manual workflow, no versionCode binding.**
+- **Baseline-free**: the Bundle client fetches the **latest backend Release of its channel** — dev → rolling tag `dev`; stable → GitHub `/releases/latest` (dev is a prerelease, so latest returns the newest stable). Resolved by `lib/core/updater/channel_release_resolver.dart`, reusing `FrontendVersionApi`'s approach.
+- **Auto-publish**: the backend repository's `release.yml` Flutter Bundle job produces and uploads Bundle frontend `bundle-patch-<abi>-<commit>.zip`+`bundle-flutter-version.json` and backend `bundle-libgojni-<abi>-<backend-sha>.so`+`bundle-flutter-backend-manifest-<abi>.json` on every release (arm64-v8a / armeabi-v7a / x86_64; gomobile bind includes android/amd64). **No manual workflow, no versionCode binding.**
 - **Compatibility key instead of versionCode** (automatic, not hand-edited):
   - **Frontend libapp.so** — Gradle sets a minimum `versionCode` of 4002 for the universal APK so it can replace older split APKs, whose highest code was 4001. CI reads the actual code from the APK with aapt and writes it to every ABI-specific frontend patch and manifest. The client checks the version code, Flutter engine key (`flutterBinding`), and native contract. A version-code or engine mismatch requires a full APK.
   - **Backend libgojni.so**: the boundary is the gomobile export surface (`mobile/export_surface.txt` + the `release.yml` guard, automatic). **versionCode dropped**; safety comes from "frozen export surface + crash rollback/blacklist", so any old build updates to the latest.
@@ -94,11 +94,11 @@ Once the gates pass:
 
 State in a plain file `filesDir/backend_patch/state.json` (readable before the Dart engine). `preloadIfStaged`: no active / blacklisted → don't preload (roll back to bundled); `confirmed` → `System.load` directly; `staged/pending` → `bootAttempts++`, over threshold (>1) means boot-crash → blacklist (gitCommit+md5) + clear active + roll back; `System.load` throws → blacklist + roll back immediately, never crash the process. Confirm timing: after the backend is healthy in the new process (`startup_gate` cold start / `backend_lifecycle` resume), `BackendPatchService.confirmIfHealthy()` verifies `/api/v1/version` git_commit matches → `confirmBackendPatch()`.
 
-## Manifest convention (songloft-player Release assets, per ABI)
+## Manifest convention (Release assets, per ABI)
 
-- Standard frontend uses `manifest-<abi>.json`; Bundle uses `bundle-manifest-<abi>.json`. Both contain `{hasUpdate, patch:{version(patchLabel), semanticVersion, gitCommit, flutterBinding, contractHash, targetVersionCode, patchUrl, md5}}`.
-- Bundle backend uses `bundle-backend-manifest-<abi>.json` with `{hasUpdate, backend:{abi, version, gitCommit, buildTime, soUrl, md5, contractHash, size}}` (no `targetVersionCode`).
-- The Flutter client repository builds Bundle assets. CI resolves the latest root `main` commit and its version at startup. All platforms use that SHA, and the gomobile version comes from its `go.mod`.
+- Standard frontend uses `manifest-<abi>.json` in the Flutter Release. Bundle uses `bundle-flutter-version.json` in the backend Release, with `{hasUpdate, patches:{<abi>: patch}}`.
+- Bundle backend uses `bundle-flutter-backend-manifest-<abi>.json` with `{hasUpdate, backend:{abi, version, gitCommit, buildTime, soUrl, md5, contractHash, size}}` (no `targetVersionCode`).
+- The backend `release.yml` builds Bundle assets. Release preparation fixes the full root, Flutter/Lynx submodule, and `pkg/tag` SHAs.
 - Assets are uploaded with this repository's release (tag = dev / v<x.y.z>); the client resolves the latest of its channel.
 
 ## Release discipline
