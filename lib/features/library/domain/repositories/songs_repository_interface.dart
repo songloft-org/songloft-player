@@ -90,6 +90,7 @@ abstract class ISongsRepository {
     String? title,
     String? artist,
     String? album,
+    List<String> clearFields = const [],
     bool renameFile = false,
   });
 

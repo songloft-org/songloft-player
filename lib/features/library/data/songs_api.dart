@@ -471,6 +471,7 @@ class SongsApi {
     String? genre,
     String? language,
     String? style,
+    List<String> clearFields = const [],
     bool renameFile = false,
   }) async {
     final data = <String, dynamic>{
@@ -481,6 +482,7 @@ class SongsApi {
       if (genre != null) 'genre': genre,
       if (language != null) 'language': language,
       if (style != null) 'style': style,
+      if (clearFields.isNotEmpty) 'clear_fields': clearFields,
       'rename_file': renameFile,
     };
     final response = await dio.put<Map<String, dynamic>>(

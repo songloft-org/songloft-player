@@ -301,9 +301,17 @@ class ScanProgressNotifier extends Notifier<ScanProgress> {
   /// 开始扫描
   ///
   /// [paths] 非空时只扫描给定目录（目录级定向扫描），为空/null 时全库扫描。
-  Future<void> startScan({bool reimport = false, List<String>? paths}) async {
+  Future<void> startScan({
+    bool reimport = false,
+    bool resetMetadataOverrides = false,
+    List<String>? paths,
+  }) async {
     // 启动被拒绝时保留原状态，让用户仍能调整目录与配置。
-    await _scanApi.startScan(reimport: reimport, paths: paths);
+    await _scanApi.startScan(
+      reimport: reimport,
+      resetMetadataOverrides: resetMetadataOverrides,
+      paths: paths,
+    );
     _startPolling();
   }
 

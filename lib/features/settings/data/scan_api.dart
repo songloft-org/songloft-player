@@ -140,9 +140,16 @@ class ScanApi {
   ///
   /// [paths] 为目录级定向扫描（Issue songloft-org/songloft#262）：为空/null 时扫描整个
   /// 音乐根目录（默认行为）；非空时只扫描给定目录（含子目录）。每个目录须位于音乐根目录之下。
-  Future<void> startScan({bool reimport = false, List<String>? paths}) async {
+  Future<void> startScan({
+    bool reimport = false,
+    bool resetMetadataOverrides = false,
+    List<String>? paths,
+  }) async {
     try {
       final data = <String, dynamic>{'reimport': reimport};
+      if (reimport && resetMetadataOverrides) {
+        data['reset_metadata_overrides'] = true;
+      }
       if (paths != null && paths.isNotEmpty) {
         data['paths'] = paths;
       }

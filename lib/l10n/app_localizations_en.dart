@@ -3173,7 +3173,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsScanModeReimportDesc =>
-      'Rescan and overwrite all music info';
+      'Rescan files and keep manual edits';
+
+  @override
+  String get settingsScanResetMetadataOverrides =>
+      'Reset manual metadata edits';
+
+  @override
+  String get settingsScanResetMetadataOverridesDesc =>
+      'Use file metadata for songs in the scan scope.';
 
   @override
   String get settingsScanDismiss => 'Dismiss';

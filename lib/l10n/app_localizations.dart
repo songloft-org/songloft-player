@@ -5544,8 +5544,20 @@ abstract class AppLocalizations {
   /// No description provided for @settingsScanModeReimportDesc.
   ///
   /// In zh, this message translates to:
-  /// **'重新扫描并覆盖所有音乐信息'**
+  /// **'重新扫描文件并保留手动编辑'**
   String get settingsScanModeReimportDesc;
+
+  /// No description provided for @settingsScanResetMetadataOverrides.
+  ///
+  /// In zh, this message translates to:
+  /// **'重置手动编辑的元数据'**
+  String get settingsScanResetMetadataOverrides;
+
+  /// No description provided for @settingsScanResetMetadataOverridesDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'对本次扫描范围内的歌曲使用文件元数据。'**
+  String get settingsScanResetMetadataOverridesDesc;
 
   /// No description provided for @settingsScanDismiss.
   ///

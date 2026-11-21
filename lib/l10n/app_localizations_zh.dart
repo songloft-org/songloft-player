@@ -3028,7 +3028,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsScanModeSkipDesc => '仅导入新发现的音乐文件';
 
   @override
-  String get settingsScanModeReimportDesc => '重新扫描并覆盖所有音乐信息';
+  String get settingsScanModeReimportDesc => '重新扫描文件并保留手动编辑';
+
+  @override
+  String get settingsScanResetMetadataOverrides => '重置手动编辑的元数据';
+
+  @override
+  String get settingsScanResetMetadataOverridesDesc => '对本次扫描范围内的歌曲使用文件元数据。';
 
   @override
   String get settingsScanDismiss => '关闭提示';

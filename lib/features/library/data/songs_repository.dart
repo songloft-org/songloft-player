@@ -200,6 +200,7 @@ class SongsRepository implements ISongsRepository {
     String? title,
     String? artist,
     String? album,
+    List<String> clearFields = const [],
     bool renameFile = false,
   }) async {
     try {
@@ -208,6 +209,7 @@ class SongsRepository implements ISongsRepository {
         title: title,
         artist: artist,
         album: album,
+        clearFields: clearFields,
         renameFile: renameFile,
       );
     } on DioException catch (e) {

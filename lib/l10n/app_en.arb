@@ -1739,7 +1739,9 @@
     }
   },
   "settingsScanModeSkipDesc": "Only import newly discovered music files",
-  "settingsScanModeReimportDesc": "Rescan and overwrite all music info",
+  "settingsScanModeReimportDesc": "Rescan files and keep manual edits",
+  "settingsScanResetMetadataOverrides": "Reset manual metadata edits",
+  "settingsScanResetMetadataOverridesDesc": "Use file metadata for songs in the scan scope.",
   "settingsScanDismiss": "Dismiss",
   "settingsScanExcludeDirTitle": "Exclude directory settings",
   "settingsScanExcludeDirSubtitle": "Choose which directories to skip scanning or exclude from automatic playlists",

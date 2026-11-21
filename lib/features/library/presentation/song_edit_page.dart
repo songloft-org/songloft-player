@@ -557,6 +557,14 @@ class _SongEditPageState extends ConsumerState<SongEditPage> {
           title: _titleController.text.trim(),
           artist: displayArtist,
           album: _albumController.text.trim(),
+          clearFields: [
+            if ((widget.song!.artist?.isNotEmpty ?? false) &&
+                displayArtist.isEmpty)
+              'artist',
+            if ((widget.song!.album?.isNotEmpty ?? false) &&
+                _albumController.text.trim().isEmpty)
+              'album',
+          ],
           renameFile: _renameFile,
         );
         // 同步结构化参与歌手（song_artists），使按任一歌手都能检索到该歌。

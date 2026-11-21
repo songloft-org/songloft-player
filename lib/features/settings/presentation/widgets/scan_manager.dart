@@ -22,6 +22,7 @@ class ScanManager extends ConsumerStatefulWidget {
 class _ScanManagerState extends ConsumerState<ScanManager> {
   bool _isLoading = false;
   String? _error;
+  bool _resetMetadataOverrides = false;
   String _scanMode = 'skip'; // 'skip' 或 'reimport'
   bool _showExcludeDirs = false; // 是否展开排除目录设置
   bool _showTargetDirs = false; // 是否展开"指定目录"定向扫描
@@ -72,6 +73,8 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
     try {
       final generation = ++_validationGeneration;
       final paths = List<String>.of(_selectedPaths);
+      final reimport = _scanMode == 'reimport';
+      final resetOverrides = reimport && _resetMetadataOverrides;
       final validation = await ref
           .read(scanApiProvider)
           .validateScan(paths: paths);
@@ -97,9 +100,11 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
       await ref
           .read(scanProgressProvider.notifier)
           .startScan(
-            reimport: _scanMode == 'reimport',
+            reimport: reimport,
+            resetMetadataOverrides: resetOverrides,
             paths: paths.isEmpty ? null : paths,
           );
+      if (mounted) setState(() => _resetMetadataOverrides = false);
     } on ApiException catch (e) {
       if (mounted) setState(() => _error = e.message);
     } catch (e) {
@@ -294,7 +299,10 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
             ],
             selected: {_scanMode},
             onSelectionChanged: (selected) {
-              setState(() => _scanMode = selected.first);
+              setState(() {
+                _scanMode = selected.first;
+                _resetMetadataOverrides = false;
+              });
             },
           ),
         ),
@@ -323,6 +331,20 @@ class _ScanManagerState extends ConsumerState<ScanManager> {
           ),
         ),
         const SizedBox(height: AppSpacing.md),
+
+        if (_scanMode == 'reimport')
+          SwitchListTile(
+            key: const Key('scan-reset-metadata-overrides'),
+            contentPadding: EdgeInsets.zero,
+            title: Text(l10n.settingsScanResetMetadataOverrides),
+            subtitle: Text(l10n.settingsScanResetMetadataOverridesDesc),
+            value: _resetMetadataOverrides,
+            onChanged:
+                _isLoading
+                    ? null
+                    : (value) =>
+                        setState(() => _resetMetadataOverrides = value),
+          ),
 
         // 指定目录（可选）——目录级定向扫描。留空即全库扫描。
         _buildTargetDirsSection(theme, colorScheme),

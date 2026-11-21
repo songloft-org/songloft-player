@@ -17,6 +17,7 @@ class _ScanAdapter implements HttpClientAdapter {
   bool rejectStart = false;
   bool completed = false;
   List<String>? startedPaths;
+  Map<String, dynamic>? scanBody;
 
   @override
   Future<ResponseBody> fetch(
@@ -70,6 +71,7 @@ class _ScanAdapter implements HttpClientAdapter {
       };
     } else if (endpoint.endsWith('/scan')) {
       starts++;
+      scanBody = Map<String, dynamic>.from(options.data as Map);
       startedPaths = ((options.data as Map)['paths'] as List?)?.cast<String>();
       if (rejectStart) {
         status = 400;
@@ -168,5 +170,28 @@ void main() {
       ScanProgress.fromJson({'status': 'completed'}).excludedDirectories,
       isEmpty,
     );
+  });
+
+  testWidgets('重新导入中的重置手动字段默认关闭并需要显式选择', (tester) async {
+    final adapter = _ScanAdapter()..rejectStart = true;
+    await _mount(tester, adapter);
+    final reset = find.byKey(const Key('scan-reset-metadata-overrides'));
+    expect(reset, findsNothing);
+    await tester.tap(find.text('重新导入'));
+    await tester.pumpAndSettle();
+    expect(tester.widget<SwitchListTile>(reset).value, isFalse);
+    await tester.tap(find.text('扫描本地音乐'));
+    await tester.pumpAndSettle();
+    expect(adapter.scanBody, {'reimport': true});
+    await tester.tap(reset);
+    await tester.pumpAndSettle();
+    adapter.rejectStart = false;
+    await tester.tap(find.text('扫描本地音乐'));
+    await tester.pumpAndSettle();
+    expect(adapter.scanBody, {
+      'reimport': true,
+      'reset_metadata_overrides': true,
+    });
+    await tester.pumpWidget(const SizedBox());
   });
 }

@@ -1758,7 +1758,9 @@
     }
   },
   "settingsScanModeSkipDesc": "Solo importa los archivos de música recién descubiertos",
-  "settingsScanModeReimportDesc": "Volver a escanear y sobrescribir toda la información de música",
+  "settingsScanModeReimportDesc": "Volver a escanear los archivos y conservar los cambios manuales",
+  "settingsScanResetMetadataOverrides": "Restablecer los metadatos editados manualmente",
+  "settingsScanResetMetadataOverridesDesc": "Usar los metadatos de los archivos para las canciones incluidas en el escaneo.",
   "settingsScanDismiss": "Descartar",
   "settingsScanExcludeDirTitle": "Ajustes de directorios excluidos",
   "settingsScanExcludeDirSubtitle": "Configura los directorios que se ignorarán durante el escaneo",
