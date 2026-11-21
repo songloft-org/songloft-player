@@ -2,6 +2,41 @@
 
 此文件记录 Songloft Flutter 客户端的版本变更，仅提供中文版本。版本 tag 的 Release 发布成功后，由 CI 根据 Conventional Commits 分类追加记录并提交到 `main`；滚动 dev 记录见 [GitHub Releases](https://github.com/songloft-org/songloft-player/releases/tag/dev)。
 
+## [v2.13.13] - 2026-11-21
+### :sparkles: 新增功能
+- [`c333cf8`](https://github.com/songloft-org/songloft-player-flutter/commit/c333cf80a035020e38672f9c041fd907e4f65c67) - **playlist**: 歌单和收藏支持下一首播放 songloft-org/songloft[#572](https://github.com/songloft-org/songloft-player-flutter/pull/572) *(提交者 [@hanxi](https://github.com/hanxi))*
+- [`e62850c`](https://github.com/songloft-org/songloft-player-flutter/commit/e62850c28af91ed390185c887816c1a27858ca7c) - **library**: 支持选择电台播放模式 *(提交者 [@hanxi](https://github.com/hanxi))*
+- [`b485d7b`](https://github.com/songloft-org/songloft-player-flutter/commit/b485d7b97ff4c083b15b912345b7421a56f052a5) - **bundle**: 在 Flutter 仓库独立构建和发布本地包 *(提交者 [@hanxi](https://github.com/hanxi))*
+- [`8436a40`](https://github.com/songloft-org/songloft-player-flutter/commit/8436a40fc2eb9a105e4b483b45d6daf0efd37b40) - **library**: 使用组合歌曲类型筛选 songloft-org/songloft[#583](https://github.com/songloft-org/songloft-player-flutter/pull/583) *(提交者 [@hanxi](https://github.com/hanxi))*
+- [`bdde6f5`](https://github.com/songloft-org/songloft-player-flutter/commit/bdde6f5f63fec5b85e159726ddfa7648ad60ebc2) - **library**: 支持批量设置电台播放模式 *(PR [#585](https://github.com/songloft-org/songloft-player-flutter/pull/585) by [@hanxi](https://github.com/hanxi))*
+- [`6274c15`](https://github.com/songloft-org/songloft-player-flutter/commit/6274c1538f2c27faaaa2cc738386b4d619b2feb0) - **bundle**: 接入随包 FFmpeg 工具 *(提交者 [@hanxi](https://github.com/hanxi))*
+
+### :bug: 问题修复
+- [`e8ccdcc`](https://github.com/songloft-org/songloft-player-flutter/commit/e8ccdcc4a765356c0bd6dc0c64fc04c0d94aa521) - **auth**: 修正登录协议的 Apache-2.0 许可证声明 *(提交者 [@hanxi](https://github.com/hanxi))*
+- [`f05d804`](https://github.com/songloft-org/songloft-player-flutter/commit/f05d80448a99c128e520a258555e339caf639bf4) - **scan**: 展示目录排除原因并校验扫描范围 (Ref songloft-org/songloft[#573](https://github.com/songloft-org/songloft-player-flutter/pull/573)) *(提交者 [@hanxi](https://github.com/hanxi))*
+- [`58cb04f`](https://github.com/songloft-org/songloft-player-flutter/commit/58cb04f0fb885e9d233322601c8837083c4fe020) - **lyrics**: 支持行内逐字歌词 *(提交者 [@hanxi](https://github.com/hanxi))*
+- [`c0d2eae`](https://github.com/songloft-org/songloft-player-flutter/commit/c0d2eae22a5f9dec0e665dfeec17dc9fad92bf08) - **ci**: 避免 Windows 换行影响 Bundle 接口校验 *(提交者 [@hanxi](https://github.com/hanxi))*
+- [`fb4928b`](https://github.com/songloft-org/songloft-player-flutter/commit/fb4928bcc28a0f4782f1da44273452e48ac2713e) - **ci**: 修复 Flutter 桌面 Bundle 打包检查 *(提交者 [@hanxi](https://github.com/hanxi))*
+- [`dfb92ae`](https://github.com/songloft-org/songloft-player-flutter/commit/dfb92aeaccbd416a9556628a7625d68db6c87bef) - **library**: 排除全部播放中的电台和有声书 *(提交者 [@hanxi](https://github.com/hanxi))*
+- [`20375d5`](https://github.com/songloft-org/songloft-player-flutter/commit/20375d5d71d1e00c2ce95bb4e40733e0bab9fd4b) - **release**: 恢复 Flutter 标准版 Android 产物发布 *(提交者 [@hanxi](https://github.com/hanxi))*
+
+### :construction_worker: 构建与 CI
+- [`aa2ccf5`](https://github.com/songloft-org/songloft-player-flutter/commit/aa2ccf58333c2075312bd47be757f3d7f65d947b) - **bundle**: 打包时自动选用主仓库最新后端 *(提交者 [@hanxi](https://github.com/hanxi))*
+- [`7d5afec`](https://github.com/songloft-org/songloft-player-flutter/commit/7d5afecaa89bf0faf0be59760fd721b800289528) - **android**: 合并标准版和 Bundle 的分架构 APK *(提交者 [@hanxi](https://github.com/hanxi))*
+- [`2b17c0c`](https://github.com/songloft-org/songloft-player-flutter/commit/2b17c0ce38c82344af27f7820f64e50a872040cb) - **windows**: 移除 MSIX 产出 *(提交者 [@hanxi](https://github.com/hanxi))*
+- [`2a8f7d8`](https://github.com/songloft-org/songloft-player-flutter/commit/2a8f7d8d84b5d1661cdcb32e2831a8817d1862d7) - **release**: 将 Flutter Bundle 发布迁移到后端 *(提交者 [@hanxi](https://github.com/hanxi))*
+
+### :memo: 文档更新
+- [`1a4f227`](https://github.com/songloft-org/songloft-player-flutter/commit/1a4f227d7d3c8218e6d8827e98de4953da5b94b2) - **changelog**: 更新 v2.13.12 变更记录 *(提交者 [@github-actions[bot]](https://github.com/apps/github-actions))*
+- [`ce2f987`](https://github.com/songloft-org/songloft-player-flutter/commit/ce2f9878e300670c9c8007196f8e4acad75e4dec) - **android**: 更新通用 APK 正式版和开发版下载说明 *(提交者 [@hanxi](https://github.com/hanxi))*
+- [`80fa001`](https://github.com/songloft-org/songloft-player-flutter/commit/80fa00151d23f3d751a7c75bc7c4faed29433915) - **bundle**: 对齐包名与发布仓库 *(提交者 [@hanxi](https://github.com/hanxi))*
+- [`9efeac2`](https://github.com/songloft-org/songloft-player-flutter/commit/9efeac2b8c78de0b92baba9a0f3c6c9b3acb745b) - **bundle**: 修正 Flutter 下载入口的发版归属 *(提交者 [@hanxi](https://github.com/hanxi))*
+- [`b94c620`](https://github.com/songloft-org/songloft-player-flutter/commit/b94c620cf84c88d0d7efe1bbd17c24380a3242f5) - 同步 Flutter 曲库和 Bundle 发布说明 *(提交者 [@hanxi](https://github.com/hanxi))*
+
+### :wrench: 维护工作
+- [`b4f17f1`](https://github.com/songloft-org/songloft-player-flutter/commit/b4f17f1d3b30256eb599c59e31a94c9159592fc2) - release version 2.13.13 *(提交者 [@hanxi](https://github.com/hanxi))*
+
+
 ## [v2.13.12] - 2026-11-17
 ### :memo: 文档更新
 - [`6f0b395`](https://github.com/songloft-org/songloft-player/commit/6f0b395d1df02eb7d0e1360d672e864cb8bcc8c6) - **changelog**: 更新 v2.13.11 变更记录 *(提交者 [@github-actions[bot]](https://github.com/apps/github-actions))*
@@ -166,3 +201,4 @@
 [v2.13.10]: https://github.com/songloft-org/songloft-player/compare/v2.13.8...v2.13.10
 [v2.13.11]: https://github.com/songloft-org/songloft-player/compare/v2.13.10...v2.13.11
 [v2.13.12]: https://github.com/songloft-org/songloft-player/compare/v2.13.11...v2.13.12
+[v2.13.13]: https://github.com/songloft-org/songloft-player-flutter/compare/v2.13.12...v2.13.13
