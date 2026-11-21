@@ -4,7 +4,7 @@
 
 [![Build and Release](https://github.com/songloft-org/songloft-player-flutter/actions/workflows/build-and-release.yml/badge.svg)](https://github.com/songloft-org/songloft-player-flutter/actions/workflows/build-and-release.yml)
 [![GitHub License](https://img.shields.io/github/license/songloft-org/songloft-player-flutter)](https://github.com/songloft-org/songloft-player-flutter)
-[![GitHub Release](https://img.shields.io/github/v/release/songloft-org/songloft-player-flutter)](https://github.com/songloft-org/songloft-player-flutter/releases)
+[![GitHub Release](https://img.shields.io/github/v/release/songloft-org/songloft-player-flutter)](https://github.com/songloft-org/songloft-player-flutter/releases/latest)
 [![Stars](https://img.shields.io/github/stars/songloft-org/songloft-player-flutter)](https://github.com/songloft-org/songloft-player-flutter/stargazers)
 
 <p align="center">
@@ -17,7 +17,8 @@ Songloft 跨平台音乐播放器，基于 Flutter 构建，支持 iOS、Android
 
 <p align="center">
   <a href="https://github.com/songloft-org/songloft-player-flutter">🏠 GitHub</a> •
-  <a href="https://github.com/songloft-org/songloft-player-flutter/releases">📥 下载</a> •
+  <a href="https://github.com/songloft-org/songloft-player-flutter/releases/latest">📥 最新正式版</a> •
+  <a href="https://github.com/songloft-org/songloft-player-flutter/releases/tag/dev">下载 dev</a> •
   <a href="https://github.com/songloft-org/songloft-player-flutter/issues">💬 问题反馈</a>
 </p>
 

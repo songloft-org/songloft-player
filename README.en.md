@@ -4,7 +4,7 @@
 
 [![Build and Release](https://github.com/songloft-org/songloft-player-flutter/actions/workflows/build-and-release.yml/badge.svg)](https://github.com/songloft-org/songloft-player-flutter/actions/workflows/build-and-release.yml)
 [![GitHub License](https://img.shields.io/github/license/songloft-org/songloft-player-flutter)](https://github.com/songloft-org/songloft-player-flutter)
-[![GitHub Release](https://img.shields.io/github/v/release/songloft-org/songloft-player-flutter)](https://github.com/songloft-org/songloft-player-flutter/releases)
+[![GitHub Release](https://img.shields.io/github/v/release/songloft-org/songloft-player-flutter)](https://github.com/songloft-org/songloft-player-flutter/releases/latest)
 [![Stars](https://img.shields.io/github/stars/songloft-org/songloft-player-flutter)](https://github.com/songloft-org/songloft-player-flutter/stargazers)
 
 <p align="center">
@@ -17,7 +17,8 @@ Settings → Playback → Keep screen on for lyrics keeps the display awake whil
 
 <p align="center">
   <a href="https://github.com/songloft-org/songloft-player-flutter">🏠 GitHub</a> •
-  <a href="https://github.com/songloft-org/songloft-player-flutter/releases">📥 Download</a> •
+  <a href="https://github.com/songloft-org/songloft-player-flutter/releases/latest">📥 Latest stable</a> •
+  <a href="https://github.com/songloft-org/songloft-player-flutter/releases/tag/dev">Download dev</a> •
   <a href="https://github.com/songloft-org/songloft-player-flutter/issues">💬 Issues</a>
 </p>
 
