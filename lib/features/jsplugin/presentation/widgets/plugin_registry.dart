@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/network/api_exceptions.dart';
@@ -21,7 +20,7 @@ import '../../domain/github_plugin.dart';
 import '../providers/github_discovery_provider.dart';
 import '../providers/jsplugin_provider.dart';
 import '../providers/client_registry_provider.dart';
-import 'plugin_icon_utils.dart';
+import 'registry_plugin_icon.dart';
 
 /// 官方插件源 URL
 const _kOfficialRegistryUrl =
@@ -943,7 +942,12 @@ class _RegistryPluginItemState extends ConsumerState<_RegistryPluginItem> {
         entry.description != null && entry.description!.isNotEmpty;
 
     return ListTile(
-      leading: _buildIcon(entry, theme),
+      leading: RegistryPluginIcon(
+        name: entry.name,
+        identity: entry.rowKey,
+        url:
+            entry.icon == null ? null : UrlHelper.buildResourceUrl(entry.icon!),
+      ),
       title: Text(entry.name),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -997,54 +1001,6 @@ class _RegistryPluginItemState extends ConsumerState<_RegistryPluginItem> {
       ),
       trailing: _buildAction(entry, theme),
       isThreeLine: hasDescription || entry.conflict,
-    );
-  }
-
-  Widget _buildIcon(RegistryPluginEntry entry, ThemeData theme) {
-    if (entry.icon != null && entry.icon!.isNotEmpty) {
-      final rawIcon = entry.icon!;
-      // 商店条目的 icon 来自后端返回的 `/api/v1/proxy?url=<encoded>`：
-      // `endsWith('.svg')` 会误判为位图并交给 `Image.network` 解码 SVG，
-      // errorBuilder 兜底成首字母。用 `isSvgIconUrl` 解析 query 里的目标 URL。
-      final isSvg = isSvgIconUrl(rawIcon);
-      final url = UrlHelper.buildResourceUrl(rawIcon);
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child:
-            isSvg
-                ? SvgPicture.network(
-                  url,
-                  width: 40,
-                  height: 40,
-                  fit: BoxFit.contain,
-                  placeholderBuilder: (_) => _buildFallbackIcon(entry, theme),
-                  errorBuilder: (_, _, _) => _buildFallbackIcon(entry, theme),
-                )
-                : ExcludeSemantics(
-                  child: Image.network(
-                    url,
-                    width: 40,
-                    height: 40,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => _buildFallbackIcon(entry, theme),
-                  ),
-                ),
-      );
-    }
-    return _buildFallbackIcon(entry, theme);
-  }
-
-  Widget _buildFallbackIcon(RegistryPluginEntry entry, ThemeData theme) {
-    // 用 rowKey 而非 entryPath：同名不同作者的两个条目否则连颜色和首字母都一样
-    final color =
-        Colors.primaries[entry.rowKey.hashCode % Colors.primaries.length];
-    final initial =
-        entry.name.isNotEmpty ? entry.name.characters.first.toUpperCase() : '?';
-    return CircleAvatar(
-      backgroundColor: color.withValues(alpha: 0.2),
-      foregroundColor: color,
-      radius: 20,
-      child: Text(initial, style: const TextStyle(fontWeight: FontWeight.bold)),
     );
   }
 

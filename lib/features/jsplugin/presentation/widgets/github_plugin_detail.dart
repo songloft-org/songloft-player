@@ -10,6 +10,7 @@ import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../domain/github_plugin.dart';
 import '../providers/github_discovery_provider.dart';
 import '../providers/jsplugin_provider.dart';
+import 'github_discovery_icon.dart';
 
 class GithubPluginDetail extends ConsumerStatefulWidget {
   final GithubPlugin plugin;
@@ -206,6 +207,8 @@ class _GithubPluginDetailState extends ConsumerState<GithubPluginDetail> {
           children: [
             Row(
               children: [
+                GithubDiscoveryIcon(plugin: plugin),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     plugin.manifest.name,

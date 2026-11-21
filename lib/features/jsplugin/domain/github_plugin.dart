@@ -10,6 +10,7 @@ class GithubPluginManifest {
       renderEngine,
       updateUrl,
       downloadUrl;
+  final String icon;
   final List<String> permissions;
 
   const GithubPluginManifest({
@@ -25,6 +26,7 @@ class GithubPluginManifest {
     this.renderEngine = '',
     this.updateUrl = '',
     this.downloadUrl = '',
+    this.icon = '',
   });
 
   factory GithubPluginManifest.fromJson(Map<String, dynamic> json) {
@@ -76,6 +78,7 @@ class GithubPluginManifest {
       renderEngine: engine,
       updateUrl: text('updateUrl', optional: true),
       downloadUrl: text('download_url', optional: true),
+      icon: json['icon'] is String ? json['icon'] as String : '',
     );
   }
 }
@@ -103,6 +106,25 @@ class GithubPlugin {
     required this.releaseUrl,
     required this.publishedAt,
   });
+
+  String? get iconUrl {
+    final segments = manifest.icon.trim().split('/');
+    if (segments.any(
+      (part) =>
+          part.isEmpty ||
+          part == '.' ||
+          part == '..' ||
+          RegExp(r'[\\:?#%\x00-\x1f\x7f]').hasMatch(part),
+    )) {
+      return null;
+    }
+    final path = [
+      if (segments.length == 1) 'static',
+      ...segments.map(Uri.encodeComponent),
+    ].join('/');
+    final branch = Uri.encodeComponent(repository.defaultBranch);
+    return 'https://raw.githubusercontent.com/${repository.fullName}/$branch/$path';
+  }
 
   GithubPlugin withRepository(GithubRepository repo) => GithubPlugin(
     repository: repo,

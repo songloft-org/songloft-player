@@ -10,6 +10,12 @@
 
 ## 条目
 
+### PLUGIN-001 · 直接验证远程 SVG 的失败路径
+
+- Flutter 基线 `25c4144d8fc6696cd346964c14bc1b6920b99c4b` 的发现页样式首版使用 `SvgPicture.network`。在 Docker Chromium 121 中，代理返回 404 时组件显示了回退，同时旧 SVG 缓存上报未处理错误。横向 SVG 还将 40 像素的图标位撑到 60 像素。
+- 在异步加载中先检查 HTTP 响应并解码，再将有效绘制数据交给组件。为图标外层设置紧约束。用同一个 390 像素 Web 夹具检查代理直连重试、坏图、缺失图和非正方形 SVG。修正后页面无未处理异常，图标位宽度为 40 像素。
+- Seen 1× (2026-11-21)。
+
 ### CI-005：Android 发布必须校验跨 job 的实际产物
 
 - [Flutter dev CI](https://github.com/songloft-org/songloft-player-flutter/actions/runs/44741264627)的 Android job 已校验通用 APK 并生成三个 ABI 的补丁，迁移 Bundle 后漏了上传标准版产物。发布 job 仍成功，`dev` 缺少 APK、补丁和版本清单。

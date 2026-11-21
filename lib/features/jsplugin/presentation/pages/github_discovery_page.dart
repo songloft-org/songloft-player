@@ -9,6 +9,7 @@ import '../../domain/github_plugin.dart';
 import '../../data/github_discovery_api.dart';
 import '../providers/github_discovery_provider.dart';
 import '../providers/jsplugin_provider.dart';
+import '../widgets/github_discovery_icon.dart';
 import '../widgets/github_plugin_detail.dart';
 import '../widgets/github_discovery_token_dialog.dart';
 
@@ -312,7 +313,13 @@ class _GithubDiscoveryPageState extends ConsumerState<GithubDiscoveryPage> {
             key: ValueKey(plugin.repository.id),
             child: ListTile(
               contentPadding: const EdgeInsets.all(16),
-              title: Text(plugin.manifest.name),
+              titleAlignment: ListTileTitleAlignment.top,
+              leading: GithubDiscoveryIcon(plugin: plugin),
+              title: Text(
+                plugin.manifest.name,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

@@ -5,6 +5,41 @@ import 'package:songloft_flutter/features/jsplugin/domain/github_plugin.dart';
 import '../github_discovery_fixtures.dart';
 
 void main() {
+  test('图标路径相对发现仓库的默认分支解析', () {
+    const raw =
+        'https://raw.githubusercontent.com/$discoveryRepo/release%2Fnext';
+    expect(
+      discoveryPlugin(branch: 'release/next', icon: 'icon.svg').iconUrl,
+      '$raw/static/icon.svg',
+    );
+    expect(
+      discoveryPlugin(
+        branch: 'release/next',
+        icon: 'frontend/public/my icon.png',
+      ).iconUrl,
+      '$raw/frontend/public/my%20icon.png',
+    );
+  });
+
+  test('旧清单和非法图标只影响图标显示', () {
+    for (final icon in [
+      null,
+      42,
+      '',
+      '/icon.svg',
+      '../icon.svg',
+      'img/%2e%2e/icon.svg',
+      'img/./icon.svg',
+      'img\\icon.svg',
+      'https://example.com/icon.svg',
+      'icon.svg?token=value',
+    ]) {
+      final plugin = discoveryPlugin(icon: icon);
+      expect(plugin.iconUrl, isNull, reason: '$icon');
+      expect(plugin.manifest.name, '测试插件');
+    }
+  });
+
   test('插件发布序号参与版本比较，缺少序号视为零', () {
     expect(comparePluginVersions('2026.10.15.1', '2026.10.15'), 1);
     expect(comparePluginVersions('2026.10.15.10', '2026.10.15.9'), 1);

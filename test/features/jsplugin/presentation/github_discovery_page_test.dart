@@ -13,6 +13,7 @@ import 'package:songloft_flutter/features/jsplugin/domain/github_plugin.dart';
 import 'package:songloft_flutter/features/jsplugin/presentation/pages/github_discovery_page.dart';
 import 'package:songloft_flutter/features/jsplugin/presentation/providers/github_discovery_provider.dart';
 import 'package:songloft_flutter/features/jsplugin/presentation/providers/jsplugin_provider.dart';
+import 'package:songloft_flutter/features/jsplugin/presentation/widgets/github_discovery_icon.dart';
 import 'package:songloft_flutter/features/jsplugin/presentation/widgets/github_plugin_detail.dart';
 import 'package:songloft_flutter/features/jsplugin/presentation/widgets/plugin_registry.dart';
 import 'package:songloft_flutter/features/settings/data/settings_api.dart';
@@ -253,6 +254,23 @@ Future<void> _install(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('旧清单在发现列表和详情都显示固定大小的图标占位', (tester) async {
+    await _pump(tester, _Discovery(discoveryPlugin()), _Plugins());
+    final tile = find.byType(GithubDiscoveryIcon);
+    expect(tester.getSize(tile), const Size(40, 40));
+    expect(find.descendant(of: tile, matching: find.text('测')), findsOneWidget);
+    await _detail(tester);
+    final detailIcon = find.descendant(
+      of: find.byType(GithubPluginDetail),
+      matching: tile,
+    );
+    expect(tester.getSize(detailIcon), const Size(40, 40));
+    expect(
+      find.descendant(of: detailIcon, matching: find.text('测')),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('Token 保存在服务器，更换和清除后发现请求使用新配置', (tester) async {
     final discovery = _Discovery(discoveryPlugin());
     final container = await _pump(tester, discovery, _Plugins());
@@ -563,8 +581,10 @@ void main() {
           size: Size(width, 900),
           scale: 1.8,
         );
-        await tester.ensureVisible(find.byKey(const ValueKey(1)));
-        await tester.tap(find.byKey(const ValueKey(1)));
+        final title = find.text('测试插件');
+        await tester.ensureVisible(title);
+        await tester.pump();
+        await tester.tap(title);
         await _frames(tester);
         expect(find.byType(width < 600 ? BottomSheet : Dialog), findsOneWidget);
         await tester.ensureVisible(

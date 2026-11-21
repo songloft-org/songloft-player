@@ -50,11 +50,13 @@ GithubPlugin discoveryPlugin({
   String minimum = '',
   int id = 1,
   String version = '1.2.3',
+  String branch = 'main',
+  Object? icon,
 }) => GithubPlugin(
   repository: GithubRepository(
     id: id,
     fullName: discoveryRepo,
-    defaultBranch: 'main',
+    defaultBranch: branch,
     stars: 5,
     updatedAt: '2026-10-08T00:00:00Z',
   ),
@@ -63,6 +65,7 @@ GithubPlugin discoveryPlugin({
     'version': version,
     'download_url': discoveryDownload.replaceFirst('/v1.2.3/', '/v$version/'),
     'minHostVersion': minimum,
+    if (icon != null) 'icon': icon,
   }),
   downloadUrl: discoveryDownload.replaceFirst('/v1.2.3/', '/v$version/'),
   releaseUrl: 'https://github.com/$discoveryRepo/releases/tag/v$version',

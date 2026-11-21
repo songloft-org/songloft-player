@@ -10,6 +10,12 @@ Include rule, scope, full owner/repo#number, failure/fix commit SHAs, actual val
 
 ## Entries
 
+### PLUGIN-001 · Verify failure paths for remote SVGs
+
+- The initial discovery tile on Flutter baseline `25c4144d8fc6696cd346964c14bc1b6920b99c4b` used `SvgPicture.network`. In Docker Chromium 121, a proxy 404 displayed the fallback and triggered an unhandled exception from the old SVG cache. A wide SVG also expanded the 40 px icon slot to 60 px.
+- Check HTTP responses and decode asynchronously before passing drawable bytes to the widget. Apply tight constraints to the icon slot. The same 390 px Web fixture checked direct retry, corrupt and missing images, and a non-square SVG. The corrected page reported no unhandled errors and held the slot at 40 px.
+- Seen 1× (2026-11-21).
+
 ### CI-005: Verify the Android artifacts passed between jobs
 
 - In [Flutter dev CI](https://github.com/songloft-org/songloft-player-flutter/actions/runs/44741264627), the Android job verified the universal APK and built patches for three ABIs. The Bundle migration had removed the Standard artifact upload. Publishing succeeded and left `dev` without the APK, patches, and version manifests.
