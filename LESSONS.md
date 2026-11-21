@@ -10,6 +10,12 @@
 
 ## 条目
 
+### CI-005：Android 发布必须校验跨 job 的实际产物
+
+- [Flutter dev CI](https://github.com/songloft-org/songloft-player-flutter/actions/runs/44741264627)的 Android job 已校验通用 APK 并生成三个 ABI 的补丁，迁移 Bundle 后漏了上传标准版产物。发布 job 仍成功，`dev` 缺少 APK、补丁和版本清单。
+- 将 `apk-output/` 上传给发布 job。Android job 成功时，在替换现有 Release 之前检查 APK、版本清单及三个 ABI 的补丁和清单。
+- Seen 1× (2026-11-21)。
+
 ### CI-004：双包流水线把公共辅助产物保留在构建目录之外
 
 - Flutter Windows 标准版打包成功，后续 Bundle 中的 Go 后端和客户端也都编译成功。打包器重建 `build/` 后，Bundle 打 ZIP 时找不到此前已编译的 WebView 命中测试程序。在 `RUNNER_TEMP` 构建该程序，标准 ZIP 与 Bundle ZIP 都从同一路径读取。[Windows CI](https://github.com/songloft-org/songloft-player/actions/runs/44481909546/job/135416370687)

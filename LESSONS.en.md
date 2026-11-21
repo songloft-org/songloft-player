@@ -10,6 +10,12 @@ Include rule, scope, full owner/repo#number, failure/fix commit SHAs, actual val
 
 ## Entries
 
+### CI-005: Verify the Android artifacts passed between jobs
+
+- In [Flutter dev CI](https://github.com/songloft-org/songloft-player-flutter/actions/runs/44741264627), the Android job verified the universal APK and built patches for three ABIs. The Bundle migration had removed the Standard artifact upload. Publishing succeeded and left `dev` without the APK, patches, and version manifests.
+- Upload `apk-output/` to the publishing job. When the Android job succeeds, check the APK, version metadata, and all three ABI patches and manifests before replacing the existing Release.
+- Seen 1× (2026-11-21).
+
 ### CI-004: Keep shared packaging helpers outside the app build directory
 
 - The Flutter Windows standard package built successfully, as did the Bundle app and Go backend. After the packager recreated `build/`, the Bundle ZIP step could no longer find the compiled WebView hit-test helper. Build it in `RUNNER_TEMP` and copy from there into both the standard and Bundle ZIPs. [Windows CI](https://github.com/songloft-org/songloft-player/actions/runs/44481909546/job/135416370687)
